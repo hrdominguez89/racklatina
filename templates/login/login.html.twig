@@ -1,0 +1,64 @@
+{% extends 'base_public.html.twig' %}
+
+{% block title %}Racklatina - Portal clientes
+{% endblock %}
+
+{% block body %}
+
+	<!-- auth page content -->
+
+	<!-- end row -->
+		<div class="row justify-content-center"> <div class="col-md-8 col-lg-6 col-xl-5">
+			<div class="card mt-4 card-bg-fill">
+
+				<div class="card-body p-4">
+					<div class="text-center mt-2">
+						<h5 class="text-rkl-secondary">Portal clientes</h5>
+						{% if error %}
+							<div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security')|raw }}</div>
+						{% endif %}
+					</div>
+					<div class="p-2 mt-4">
+						<form method="post">
+
+							<div class="mb-3">
+								<label for="username" class="form-label">DNI</label>
+								<input type="text" value="{{ last_username }}" name="_username" id="username" pattern="\d{7,8}" title="Ingrese un numero de DNI valido" inputmode="numeric" placeholder="Ingrese su DNI" class="form-control" required autofocus>
+							</div>
+							<div class="mb-3">
+								<div class="float-end">
+									<a href="{{ path('app_forgot_password') }}" class="text-muted">¿Olvidó su contraseña?</a>
+								</div>
+								<label class="form-label" for="password-input">Contraseña</label>
+								<div class="position-relative auth-pass-inputgroup mb-3">
+									<input type="password" name="_password" id="password-input" class="form-control pe-5 password-input" placeholder="Ingrese su contraseña" autocomplete="current-password" required>
+									<button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted password-addon material-shadow-none" type="button" id="password-addon">
+										<i class="ri-eye-fill align-middle"></i>
+									</button>
+								</div>
+							</div>
+							{# <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+							<pre>Token generado: {{ csrf_token('authenticate') }}</pre> #}
+
+							<div class="mt-4">
+								<button class="btn btn-primary w-100" type="submit">Iniciar sesión</button>
+							</div>
+						</form>
+						<div class="mt-4 text-center">
+							<div class="mt-4 text-center">
+								<p class="mb-0">¿No tenes cuenta?
+									<a href="{{ path('app_register') }}" class="fw-semibold text-rkl-primary text-decoration-underline">
+										Registrate
+									</a>
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- end card body -->
+			</div>
+			<!-- end card -->
+		</div>
+	</div>
+	<!-- end row -->
+{% endblock %}

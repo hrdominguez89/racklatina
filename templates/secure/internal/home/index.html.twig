@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Página de inicio
+{% endblock %}
+
+{% block body %}
+
+	<div
+		class="container-fluid">
+
+		<!-- start page title -->
+		<div class="row">
+			<div class="col-12">
+				<div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+					<h4 class="mb-sm-0">VISTA USUARIOS INTERNOS RACKLATINA</h4>
+
+					<div class="page-title-right">
+						<ol class="breadcrumb m-0">
+							<li class="breadcrumb-item">
+								<a href="javascript: void(0);">Mi portal</a>
+							</li>
+							<li class="breadcrumb-item active">Ordenes de compra</li>
+						</ol>
+					</div>
+
+				</div>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-12">
+				<h2>Usuarios Externos</h2>
+			</div>
+			<div class="col-12">
+				<table class="table table-bordered table-striped">
+					<thead>
+						<tr>
+							<th>Nombre</th>
+							<th>Apellido</th>
+							<th>Correo</th>
+							<th>Teléfono</th>
+							<th>Verificado</th>
+							<th>Acciones</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for user in external_users %}
+							<tr>
+								<td>{{ user.firstName }}</td>
+								<td>{{ user.lastName }}</td>
+								<td>{{ user.email }}</td>
+								<td>{{ user.externalUserData.phoneNumber }}</td>
+								<td></td>
+								<td></td>
+							</tr>
+						{% endfor %}
+
+					</tbody>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<!-- end page title -->
+
+</div>{% endblock %}

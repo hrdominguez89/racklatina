@@ -1,0 +1,19 @@
+secure_internal_controllers:
+    resource:
+        path: ../src/Controller/Secure/Internal/
+        namespace: App\Controller\Secure\Internal
+    type: attribute
+    prefix: secure/
+
+secure_external_controllers:
+    resource:
+        path: ../src/Controller/Secure/External/
+        namespace: App\Controller\Secure\External
+    type: attribute
+    prefix: secure/clientes
+
+public_controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute

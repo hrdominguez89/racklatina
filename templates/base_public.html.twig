@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es" data-layout="vertical" data-topbar="dark" data-sidebar="light" data-sidebar-size="lg" data-sidebar-image="none" data-preloader="disable" data-theme="default" data-theme-colors="default">
+
+	<head>
+		<meta charset="UTF-8">
+		<title>
+			{% block title %}Racklatina
+			{% endblock %}
+		</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta content="Racklatina" name="description"/>
+		<meta
+		content="Racklatina" name="author"/>
+
+		<!-- App favicon -->
+		<link
+		rel="shortcut icon" href="{{ asset('images/favicon.ico') }}">
+
+		<!-- jsvectormap css -->
+		<link
+		href="{{ asset('libs/jsvectormap/css/jsvectormap.min.css') }}" rel="stylesheet" type="text/css"/>
+
+		<!--Swiper slider css-->
+		<link
+		href="{{ asset('libs/swiper/swiper-bundle.min.css') }}" rel="stylesheet" type="text/css"/>
+
+		<!-- Layout config Js -->
+		<script src="{{ asset('js/layout.js') }}"></script>
+		<!-- Bootstrap Css -->
+		<link
+		href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+		<!-- Icons Css -->
+		<link
+		href="{{ asset('css/icons.min.css') }}" rel="stylesheet" type="text/css"/>
+		<!-- App Css-->
+		<link
+		href="{{ asset('css/app.min.css') }}" rel="stylesheet" type="text/css"/>
+		<!-- custom Css-->
+		<link href="{{ asset('css/custom.min.css') }}" rel="stylesheet" type="text/css"/>
+
+		<link href="{{ asset('styles/app.css') }}" rel="stylesheet" type="text/css"/> {% block stylesheets %}{% endblock %}
+
+		{% block javascripts %}
+			{% block importmap %}
+				{{ importmap('app') }}
+			{% endblock %}
+		{% endblock %}
+	</head>
+	<body class="auth-one-bg body-public">
+
+		<nav class="navbar sticky-top  navbar-expand-lg navbar-racklatina">
+			<div class="container-fluid">
+				<a class="navbar-brand" href="https://racklatina.com/">
+					<img src="{{ asset('images/logo-racklatina-light.png') }}" alt="Racklatina">
+				</a>
+				<div class="d-lg-flex links-racklatina">
+					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+						<span class="navbar-toggler-icon"></span>
+					</button>
+					<div class="collapse navbar-collapse" id="navbarNav">
+						<ul class="navbar-nav">
+							<li class="nav-item">
+								<a class="nav-link" aria-current="page" href="https://racklatina.com/">INICIO</a>
+							</li>
+							<li class="nav-item dropdown">
+								<a class="nav-link dropdown-hover" href="https://racklatina.com/productos/" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+									PRODUCTOS
+								</a>
+								<ul class="dropdown-menu">
+									<li class="dropdown-item">
+										<a href="https://racklatina.com/product-category/automatizacion-industrial-y-software/" title="Automatización Industrial y Software">Automatización Industrial y Software
+										</a>
+									</li>
+									<li class="dropdown-item">
+										<a title="Reductores" href="https://racklatina.com/product-category/reductores/">Reductores
+										</a>
+									</li>
+									<li class="dropdown-item">
+										<a title="Calidad de Energía" href="https://racklatina.com/product-category/calidad-de-energia/">Calidad de Energía
+										</a>
+									</li>
+									<li class="dropdown-item">
+										<a title="Comunicación Industrial" href="https://racklatina.com/product-category/comunicacion-industrial/">Comunicación Industrial
+										</a>
+									</li>
+									<li class="dropdown-item">
+										<a title="Control Industrial" href="https://racklatina.com/product-category/control-industrial/">Control Industrial
+										</a>
+									</li>
+									<li class="dropdown-item">
+										<a title="Envolventes" href="https://racklatina.com/product-category/envolventes/">Envolventes
+										</a>
+									</li>
+									<li class="dropdown-item">
+										<a title="Gestión Térmica" href="https://racklatina.com/product-category/gestion-termica/">Gestión Térmica
+										</a>
+									</li>
+									<li class="dropdown-item">
+										<a title="Industrial IOT" href="https://racklatina.com/product-category/iot/">Industrial IOT
+										</a>
+									</li>
+									<li class="visible-uy dropdown-item" style="display: none;">
+										<a title="Instrumentación y Medición" href="https://racklatina.com/product-category/instrumentacion-y-medicion/">Instrumentación y Medición
+										</a>
+									</li>
+									<li class="dropdown-item">
+										<a title="Automatización Neumática" href="https://racklatina.com/product-category/automatizacion-neumatica/">Automatización Neumática
+										</a>
+									</li>
+									<li class="dropdown-item">
+										<a title="Potencia" href="https://racklatina.com/product-category/potencia/">Potencia
+										</a>
+									</li>
+									<li class="dropdown-item">
+										<a title="Seguridad" href="https://racklatina.com/product-category/safety/">Seguridad
+										</a>
+									</li>
+									<li class="dropdown-item">
+										<a title="Sensores" href="https://racklatina.com/product-category/sensores/">Sensores
+										</a>
+									</li>
+								</ul>
+							</li>
+							<li class="nav-item dropdown">
+								<a class="nav-link" href="#" id="serviciosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+									SERVICIOS Y SOLUCIONES
+								</a>
+								<ul class="dropdown-menu" aria-labelledby="serviciosDropdown">
+									<li class="dropdown-submenu">
+										<a class="dropdown-item dropdown-toggle" href="#" style="font-weight:600;font-size:12px;">SERVICIOS DE CAMPO</a>
+										<ul class="dropdown-menu">
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/servicios-de-campo/">Servicio de Campo</a>
+											</li>
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/modernizaciones/">Modernizaciones</a>
+											</li>
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/auditorias-y-validaciones/">Auditorías y Validaciones de Red</a>
+											</li>
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/servicios-electricos/">Servicios Eléctricos</a>
+											</li>
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/mantenimiento-de-ups/">Mantenimiento de UPS</a>
+											</li>
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/seguridad-en-maquina-y-loto/">Seguridad en Maquina y Loto</a>
+											</li>
+										</ul>
+									</li>
+									<li class="dropdown-submenu">
+										<a class="dropdown-item dropdown-toggle" href="https://racklatina.com/soporte-remoto/" style="font-weight:600;font-size:12px;">SOPORTE REMOTO</a>
+										<ul class="dropdown-menu">
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/soporte-techconnect/">Soporte TechConnect</a>
+											</li>
+										</ul>
+									</li>
+									<li class="dropdown-submenu">
+										<a class="dropdown-item dropdown-toggle" href="https://racklatina.com/centro-de-reparacion-rockwell/" style="font-weight:600;font-size:12px;">CENTRO DE REPARACIÓN ROCKWELL</a>
+										<ul class="dropdown-menu">
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/centro-de-reparacion-rockwell/">Centro De Reparación Rockwell</a>
+											</li>
+										</ul>
+									</li>
+									<li class="dropdown-submenu">
+										<a class="dropdown-item dropdown-toggle" href="https://racklatina.com/training-y-certificaciones/" style="font-weight:600;font-size:12px;">TRAINING Y CERTIFICACIONES</a>
+										<ul class="dropdown-menu">
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/capacitacion-rockwell-automation/">Capacitación Rockwell Automatión</a>
+											</li>
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/capacitaciones-rkl/">Capacitaciones RKL</a>
+											</li>
+										</ul>
+									</li>
+									<li class="dropdown-submenu">
+										<a class="dropdown-item dropdown-toggle" href="https://racklatina.com/tableros-y-proyectos/" style="font-weight:600;font-size:12px;">PROYECTOS Y SOLUCIONES</a>
+										<ul class="dropdown-menu">
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/tgbt/">TGBT</a>
+											</li>
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/tablero-arrancador-de-motor/">Tablero Arrancador de Motor</a>
+											</li>
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/centro-de-control-de-motores/">Centro de Control de Motores (CCM)</a>
+											</li>
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/tableros-de-control/">Tableros de Control PLC, Conectividad, etc.</a>
+											</li>
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/tableros-de-sistemas-energia-segura/">Tableros de Sistemas de Energía Segura (UPS)</a>
+											</li>
+											<li>
+												<a class="dropdown-item" href="https://racklatina.com/tableros-a-medida/">Tableros a medida</a>
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+
+							<li class="nav-item dropdown">
+								<a class="nav-link dropdown-hover" href="https://racklatina.com/compania/" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+									COMPAÑIA
+								</a>
+								<ul class="dropdown-menu">
+									<li class="dropdown-item">
+										<a href="https://racklatina.com/2021/compania/#alianzas-estrategicas" title="Alianzas Estratégicas">Alianzas Estratégicas
+										</a>
+									</li>
+									<li class="dropdown-item">
+										<a title="Mercados y Principales Clientes" href="https://racklatina.com/2021/compania/#mercados-y-principales-clientes">Mercados y Principales Clientes
+										</a>
+									</li>
+									<li class="dropdown-item">
+										<a title="Legajo Impositivo" href="https://racklatina.com/2021/compania/#legajo-impositivo">Legajo Impositivo
+										</a>
+									</li>
+								</ul>
+							</li>
+
+							<li class="nav-item">
+								<a class="nav-link" href="https://racklatina.com/contacto/" aria-disabled="true">CONTACTO</a>
+							</li>
+
+							<li class="nav-item">
+								<a class="nav-link active" href="{{ path('app_login') }}" aria-disabled="true">PORTAL CLIENTES</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</nav>
+
+		{% for label, messages in app.flashes %}
+			{% for message in messages %}
+				<div class="auth-page-wrapper d-flex align-items-center justify-content-center">
+					<div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+						{{ message }}
+						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+					</div>
+				</div>
+			{% endfor %}
+		{% endfor %}
+		<div class="auth-page-wrapper d-flex align-items-center justify-content-center login-box">
+			<div class="auth-page-content w-100">
+				<div class="container"> {% block body %}{% endblock %}
+					<!-- footer -->
+					<footer class="footer">
+						<div class="container">
+							<div class="row">
+								<div class="col-lg-12">
+									<div
+										class="text-center">{# <p class="mb-0 text-white">&copy;
+																																																																																																			{{ "now"|date("Y") }}
+																																																																																																			Racklatina S.A. Todos los derechos reservados.
+																																																																																																		</p> #}
+									</div>
+								</div>
+							</div>
+						</div>
+					</footer>
+					<!-- end Footer -->
+				</div>
+			</div>
+			<!-- end auth-page-wrapper -->
+			<!-- JAVASCRIPT -->
+
+			<script>
+				window.assets = {
+choicesJs: "{{ asset('libs/choices.js/public/assets/scripts/choices.min.js') }}",
+flatpickrJs: "{{ asset('libs/flatpickr/flatpickr.min.js') }}",
+langJson: "{{ asset('lang/en.json') }}",
+bellSvg: "{{ asset('images/svg/bell.svg') }}",
+flag: {
+us: "{{ asset('images/flags/us.svg') }}",
+spain:"{{ asset('images/flags/spain.svg') }}",
+germany:"{{ asset('images/flags/germany.svg') }}",
+italy:"{{ asset('images/flags/italy.svg') }}",
+russia:"{{ asset('images/flags/russia.svg') }}",
+china:"{{ asset('images/flags/china.svg') }}",
+french:"{{ asset('images/flags/french.svg') }}",
+ae:"{{ asset('images/flags/ae.svg') }}"
+}
+};
+			</script>
+
+			<!-- JAVASCRIPT -->
+			<script src="{{ asset('libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+			<script src="{{ asset('libs/simplebar/simplebar.min.js') }}"></script>
+			<script src="{{ asset('libs/node-waves/waves.min.js') }}"></script>
+			<script src="{{ asset('libs/feather-icons/feather.min.js') }}"></script>
+			<script src="{{ asset('js/pages/plugins/lord-icon-2.1.0.js') }}"></script>
+			<script src="{{ asset('js/plugins.js') }}"></script>
+
+			<!-- particles js -->
+			{# // <script src="{{ asset('libs/particles.js/particles.js') }}"></script> #}
+			<!-- particles app js -->
+			{# // <script src="{{ asset('js/pages/particles.app.js') }}"></script> #}
+			<!-- password-addon init --><script src="{{ asset('js/pages/password-addon.init.js') }}"> </script>
+		</body>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+		<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+	</body>
+</html></body></body></html>
