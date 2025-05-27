@@ -1,25 +1,23 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Página de inicio
+{% block title %}
+	Página de inicio
 {% endblock %}
 
 {% block body %}
 
-	<div
-		class="container-fluid">
+	<div	class="container-fluid">
 
 		<!-- start page title -->
-		<div class="row">
-			<div class="col-12">
-				<div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
-					<h4 class="mb-sm-0">VISTA CLIENTES</h4>
+		<div	class="row">
+			<div	class="col-12">
+				<div	class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
 
-					<div class="page-title-right">
-						<ol class="breadcrumb m-0">
-							<li class="breadcrumb-item">
-								<a href="javascript: void(0);">Mi portal</a>
+					<div	class="page-title-right">
+						<ol	class="breadcrumb m-0">
+							<li	class="breadcrumb-item active">
+								Mi portal
 							</li>
-							<li class="breadcrumb-item active">Ordenes de compra</li>
 						</ol>
 					</div>
 
@@ -27,6 +25,45 @@
 			</div>
 		</div>
 		<!-- end page title -->
+		<div	class="row">
+			<div	class="col-12 col-md-6">
+				<!-- Simple card -->
+				<a	href="{{ path('app_secure_external_customer_request') }}">
+					<div	class="card">
+						<img	class="card-img-top img-fluid"	src="{{ asset('images/mis_solicitudes.png') }}"	alt="Card image cap" />
+						<div	class="card-body"	style="min-height: 190px;">
 
+							<h4	class="card-title mb-2">
+								Gestioná tus solicitudes de permiso
+							</h4>
+							<p	class="card-text">
+								Desde aquí podés ver el estado de tus pedidos y generar nuevas solicitudes para actuar en representación de un cliente.
+							</p>
+							<div	class="text-end"></div>
+						</div>
+					</div>
+				</a>
+			<!-- end card -->
+			</div>
+			<div	class="col-12 col-md-6">
+				<!-- Simple card -->
+				<a	href="#">
+					<div	class="card">
+						<img	class="card-img-top img-fluid"	height="150"	src="{{ asset('images/ordenes_de_compra.png') }}"	alt="Card image cap" />
+						<div	class="card-body"	style="min-height: 190px;">
+							<h4	class="card-title mb-2">
+								Órdenes de Compra
+							</h4>
+							<p	class="card-text">
+								Visualizá y gestioná las órdenes de compra de los clientes a los que representás.
+							</p>
+							<div	class="text-end"></div>
+						</div>
+					</div>
+				</a>
+			<!-- end card -->
+			</div>
+		<!-- end col -->
+		</div>
 	</div>
 {% endblock %}

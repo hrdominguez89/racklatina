@@ -1,0 +1,195 @@
+{% extends 'base.html.twig' %}
+{% block title %}
+	{{ modo == 'editar' ? 'Editar solicitud' : 'Nueva solicitud' }}
+{% endblock %}
+{% block body %}
+	<div	class="container-fluid">
+		<div	class="row">
+			<div	class="col-12">
+				<div	class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+					<div	class="page-title-right">
+						<ol	class="breadcrumb m-0">
+							<li	class="breadcrumb-item">
+								<a	href="{{ path('app_home') }}">
+									Mi portal
+								</a>
+							</li>
+							<li	class="breadcrumb-item">
+								<a	href="{{ path('app_secure_external_customer_request') }}">
+									Mis solicitudes
+								</a>
+							</li>
+							<li	class="breadcrumb-item active">
+								{{ modo == 'editar' ? 'Editar solicitud' : 'Nueva solicitud' }}
+							</li>
+						</ol>
+					</div>
+				</div>
+			</div>
+		</div>
+		{% for label, messages in app.flashes %}
+			{% for message in messages %}
+				<div	class="auth-page-wrapper d-flex align-items-center justify-content-center">
+					<div	class="alert alert-{{ label }} alert-dismissible fade show"	role="alert">
+						{{ message }}
+						<button	type="button"	class="btn-close"	data-bs-dismiss="alert"	aria-label="Close"></button>
+					</div>
+				</div>
+			{% endfor %}
+		{% endfor %}
+		<div	class="row mt-4">
+			{{ form_start(form) }}
+			<div	class="col-12">
+				<div	class="row">
+					<div	class="col-3">
+						<div	class="mb-3">
+							<label	for="cuit"	class="form-label">
+								CUIT
+							</label>
+							<input	type="text"	id="cuit"	name="cuit"	class="form-control"	pattern="\d{2}-\d{8}-\d"	placeholder="Ej: 20-12345678-3"></div>
+						</div>
+						<div	class="col-3 text-start align-self-end">
+							<button	type="button"	id="buscar-clientes"	class="btn btn-secondary mb-3">
+								<i	class="ri-search-line align-middle me-1"></i>
+								Buscar clientes
+							</button>
+						</div>
+					</div>
+					<div	class="row">
+						<div	class="col-6"	id="seleccion-cliente"	style="display: none;">
+							<label	for="cliente"	class="form-label">
+								Seleccioná un cliente
+							</label>
+							<select	id="cliente"	class="form-select"></select>
+							<button	type="button"	class="btn btn-secondary mt-2"	id="agregar-cliente">
+								<i	class="ri-add-line"></i>
+								Agregar cliente
+							</button>
+						</div>
+					</div>
+					<table	class="table table-bordered mt-3"	id="clientes-seleccionados">
+						<thead>
+							<tr>
+								<th>
+									Cliente
+								</th>
+								<th>
+									Acciones
+								</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+					<input	type="hidden"	name="clientes"	id="clientes-data"	value='{{ clientesJson|raw }}'>
+						<div	class="row">
+							<div	class="col-12 text-end">
+								<a	class="btn btn-secondary mt-3 mx-2"	href="{{ path('app_secure_external_customer_request') }}">
+									Volver
+								</a>
+								<button	type="submit"	class="btn btn-primary mx-2 mt-3">
+									<i	class="ri-save-line"></i>
+									{{ modo == 'editar' ? 'Guardar cambios' : 'Enviar solicitud' }}
+								</button>
+							</div>
+						</div>
+					</div>
+					{{ form_end(form) }}
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+			const buscarBtn = document.getElementById('buscar-clientes');
+			const cuitInput = document.getElementById('cuit');
+			const selectDiv = document.getElementById('seleccion-cliente');
+			const clienteSelect = document.getElementById('cliente');
+			const agregarBtn = document.getElementById('agregar-cliente');
+			const tabla = document.getElementById('clientes-seleccionados');
+			const tbody = tabla.querySelector('tbody');
+			const hiddenInput = document.getElementById('clientes-data');
+
+			let clientesAgregados = [];
+
+			try {
+				clientesAgregados = JSON.parse(hiddenInput.value || '[]');
+			} catch (e) {
+				clientesAgregados = [];
+			}
+
+			function actualizarTabla() {
+				tbody.innerHTML = '';
+				clientesAgregados.forEach(cliente => {
+					const tr = document.createElement('tr');
+
+					const tdNombre = document.createElement('td');
+					tdNombre.textContent = `${cliente.razonSocial} (${cliente.id}) - CUIT: ${cliente.cuit}`;
+
+					const tdAcciones = document.createElement('td');
+					const btnQuitar = document.createElement('button');
+					btnQuitar.type = 'button';
+					btnQuitar.className = 'btn btn-sm btn-danger';
+					btnQuitar.innerHTML = '<i style="font-size:16px" class="ri-delete-bin-6-fill"></i>';
+					btnQuitar.addEventListener('click', () => {
+						clientesAgregados = clientesAgregados.filter(c => c.id !== cliente.id);
+						actualizarTabla();
+					});
+
+					tdAcciones.appendChild(btnQuitar);
+					tr.appendChild(tdNombre);
+					tr.appendChild(tdAcciones);
+					tbody.appendChild(tr);
+				});
+
+				hiddenInput.value = JSON.stringify(clientesAgregados);
+				tabla.style.display = clientesAgregados.length > 0 ? 'table' : 'none';
+			}
+
+			buscarBtn.addEventListener('click', () => {
+				const cuit = cuitInput.value.trim();
+				if (!cuit.match(/^\d{2}-\d{8}-\d$/)) {
+					alert('CUIT inválido. Usá el formato XX-XXXXXXXX-X.');
+					return;
+				}
+
+				fetch(`/secure/clientes/mis-solicitudes/buscar-clientes-por-cuit?cuit=${encodeURIComponent(cuit)}`)
+					.then(response => response.json())
+					.then(clientes => {
+						if (!Array.isArray(clientes) || clientes.length === 0) {
+							alert('No se encontraron clientes con ese CUIT.');
+							return;
+						}
+
+						clienteSelect.innerHTML = '';
+						clientes.forEach(cliente => {
+							const option = document.createElement('option');
+							option.value = JSON.stringify(cliente);
+							option.textContent = `${cliente.razonSocial} (${cliente.id})`;
+							clienteSelect.appendChild(option);
+						});
+
+						selectDiv.style.display = 'block';
+					})
+					.catch(error => {
+						alert('Ocurrió un error al buscar clientes: ' + error.message);
+					});
+			});
+
+			agregarBtn.addEventListener('click', () => {
+				const selected = clienteSelect.value;
+				if (!selected) return;
+
+				const cliente = JSON.parse(selected);
+				if (clientesAgregados.some(c => c.id === cliente.id)) {
+					alert('Ese cliente ya fue agregado.');
+					return;
+				}
+
+				clientesAgregados.push(cliente);
+				actualizarTabla();
+			});
+
+			actualizarTabla();
+		});
+	</script>
+{% endblock %}

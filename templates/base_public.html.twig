@@ -235,18 +235,18 @@
 			</div>
 		</nav>
 
-		{% for label, messages in app.flashes %}
-			{% for message in messages %}
-				<div class="auth-page-wrapper d-flex align-items-center justify-content-center">
-					<div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
-						{{ message }}
-						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-					</div>
-				</div>
-			{% endfor %}
-		{% endfor %}
 		<div class="auth-page-wrapper d-flex align-items-center justify-content-center login-box">
 			<div class="auth-page-content w-100">
+				{% for label, messages in app.flashes %}
+					{% for message in messages %}
+						<div class="auth-page-wrapper d-flex align-items-center justify-content-center">
+							<div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+								{{ message }}
+								<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+							</div>
+						</div>
+					{% endfor %}
+				{% endfor %}
 				<div class="container"> {% block body %}{% endblock %}
 					<!-- footer -->
 					<footer class="footer">

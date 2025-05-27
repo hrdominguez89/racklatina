@@ -283,8 +283,19 @@ a:focus {
 .btn-primary:hover,
 .btn-primary:active,
 .btn-primary:link {
-  background-color: var(--rkl-primary-hover)!important;
-  border-color: var(--rkl-primary-hover)!important;
+  background-color: var(--rkl-primary-hover) !important;
+  border-color: var(--rkl-primary-hover) !important;
+}
+
+a.btn.btn-primary {
+  color: #fff !important;
+}
+
+a.btn.btn-primary:hover,
+a.btn.btn-primary:focus,
+a.btn.btn-primary.active,
+a.btn.btn-primary:visited {
+  color: #fff !important;
 }
 
 .btn-secondary {
@@ -295,8 +306,14 @@ a:focus {
 .btn-secondary:hover,
 .btn-secondary:active,
 .btn-secondary:link {
-  background-color: var(--rkl-secondary-hover)!important;
-  border-color: var(--rkl-secondary-hover)!important;
+  background-color: var(--rkl-secondary-hover) !important;
+  border-color: var(--rkl-secondary-hover) !important;
+}
+a.btn.btn-secondary:hover,
+a.btn.btn-secondary:focus,
+a.btn.btn-secondary.active,
+a.btn.btn-secondary:visited {
+  color: #fff !important;
 }
 
 .btn-outline-primary {

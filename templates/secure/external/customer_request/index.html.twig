@@ -1,0 +1,139 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+	Mis solicitudes
+{% endblock %}
+{% block stylesheets %}
+	{{ parent() }}
+	<link	rel="stylesheet"	href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+	{% endblock %}
+	{% block javascripts %}
+		{{ parent() }}
+		<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+		<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+		<script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabla = document.querySelector('#tabla-solicitudes');
+            if (tabla) {
+                new DataTable(tabla, {
+                    pageLength: 10,
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                    }
+                });
+            }
+        });
+    </script>
+	{% endblock %}
+	{% block body %}
+		<div	class="container-fluid">
+
+			<!-- start page title -->
+			<div	class="row">
+				<div	class="col-12">
+					<div	class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+
+						<div	class="page-title-right">
+							<ol	class="breadcrumb m-0">
+								<li	class="breadcrumb-item">
+									<a	href="{{ path('app_home') }}">
+										Mi portal
+									</a>
+								</li>
+								<li	class="breadcrumb-item active">
+									Mis solicitudes
+								</li>
+							</ol>
+						</div>
+
+					</div>
+				</div>
+			</div>
+			<div	class="row">
+				<div	class="col-12 d-flex justify-content-between align-items-center mb-3">
+					<div>
+						<a	href="{{ path('app_secure_external_customer_request_new') }}"	class="btn btn-primary">
+							<i	class="ri-add-line align-middle me-1"></i>
+							Nueva solicitud
+						</a>
+					</div>
+					<div>
+						<a	href="{{ path('app_secure_external_customer_request') }}"	class="btn btn-outline-primary {% if not statusFiltro %}active{% endif %}">
+							Todas
+						</a>
+						{% for estado in estadosDisponibles %}
+							<a	href="{{ path('app_secure_external_customer_request', { status: estado.value }) }}"	class="btn btn-outline-primary {% if statusFiltro == estado.value %}active{% endif %}">
+								{{ estado.label() }}
+							</a>
+						{% endfor %}
+					</div>
+				</div>
+			</div>
+			<div	class="row">
+				<div	class="col-12">
+					{% if solicitudes is empty %}
+						<div	class="alert alert-info">
+							No tenés solicitudes en este estado.
+						</div>
+					{% else %}
+						<table	class="table table-hover">
+							<thead>
+								<tr>
+									<th>
+										ID
+									</th>
+									<th>
+										Estado
+									</th>
+									<th>
+										Tipo
+									</th>
+									<th>
+										Fecha
+									</th>
+									<th>
+										Acciones
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for solicitud in solicitudes %}
+									<tr>
+										<td>
+											{{ solicitud.id }}
+										</td>
+										<td>
+											{{ solicitud.status.label() }}
+										</td>
+										<td>
+											{{ solicitud.requestType.label() }}
+										</td>
+										<td>
+											{{ solicitud.createdAt|date('d/m/Y H:i') }}
+										</td>
+										<td>
+											<a	href="{{ path('customer_request_edit', { id: solicitud.id }) }}"	class="btn btn-sm btn-warning"	data-turbo="false">
+												<i style="font-size:16px" class="ri-edit-2-fill"></i>
+											</a>
+										</td>
+									</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					{% endif %}
+
+				</div>
+			</div>
+
+			<div	class="row">
+				<div	class="col-12 text-end">
+					<a	class="btn btn-secondary"	href="{{ path('app_home') }}">
+						Volver
+					</a>
+				</div>
+			</div>
+
+		</div>
+
+	{% endblock %}
+	

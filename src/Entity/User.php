@@ -75,9 +75,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $resetPasswordTokenExiresAt = null;
 
+    /**
+     * @var Collection<int, CustomerRequest>
+     */
+    #[ORM\OneToMany(targetEntity: CustomerRequest::class, mappedBy: 'userRequest')]
+    private Collection $userRequests;
+
+    /**
+     * @var Collection<int, CustomerRequest>
+     */
+    #[ORM\OneToMany(targetEntity: CustomerRequest::class, mappedBy: 'userUpdate')]
+    private Collection $userUpdateRequests;
+
+    /**
+     * @var Collection<int, UserCustomer>
+     */
+    #[ORM\OneToMany(targetEntity: UserCustomer::class, mappedBy: 'user')]
+    private Collection $userCustomers;
+
     public function __construct()
     {
         $this->userRoles = new ArrayCollection();
+        $this->userRequests = new ArrayCollection();
+        $this->userUpdateRequests = new ArrayCollection();
+        $this->userCustomers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -302,6 +323,96 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setResetPasswordTokenExiresAt(?\DateTimeImmutable $resetPasswordTokenExiresAt): static
     {
         $this->resetPasswordTokenExiresAt = $resetPasswordTokenExiresAt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CustomerRequest>
+     */
+    public function getUserRequests(): Collection
+    {
+        return $this->userRequests;
+    }
+
+    public function addUserRequest(CustomerRequest $userRequest): static
+    {
+        if (!$this->userRequests->contains($userRequest)) {
+            $this->userRequests->add($userRequest);
+            $userRequest->setUserRequest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserRequest(CustomerRequest $userRequest): static
+    {
+        if ($this->userRequests->removeElement($userRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($userRequest->getUserRequest() === $this) {
+                $userRequest->setUserRequest(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CustomerRequest>
+     */
+    public function getUserUpdateRequests(): Collection
+    {
+        return $this->userUpdateRequests;
+    }
+
+    public function addUserUpdateRequest(CustomerRequest $userUpdateRequest): static
+    {
+        if (!$this->userUpdateRequests->contains($userUpdateRequest)) {
+            $this->userUpdateRequests->add($userUpdateRequest);
+            $userUpdateRequest->setUserUpdate($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserUpdateRequest(CustomerRequest $userUpdateRequest): static
+    {
+        if ($this->userUpdateRequests->removeElement($userUpdateRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($userUpdateRequest->getUserUpdate() === $this) {
+                $userUpdateRequest->setUserUpdate(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, UserCustomer>
+     */
+    public function getUserCustomers(): Collection
+    {
+        return $this->userCustomers;
+    }
+
+    public function addUserCustomer(UserCustomer $userCustomer): static
+    {
+        if (!$this->userCustomers->contains($userCustomer)) {
+            $this->userCustomers->add($userCustomer);
+            $userCustomer->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserCustomer(UserCustomer $userCustomer): static
+    {
+        if ($this->userCustomers->removeElement($userCustomer)) {
+            // set the owning side to null (unless already changed)
+            if ($userCustomer->getUser() === $this) {
+                $userCustomer->setUser(null);
+            }
+        }
 
         return $this;
     }

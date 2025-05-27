@@ -12,8 +12,6 @@ final class HomeController extends AbstractController
     #[Route('/', name: 'app_secure_external_home')]
     public function index(): Response
     {
-        return $this->render('secure/external/home/index.html.twig', [
-            'controller_name' => 'HomeController',
-        ]);
+        return $this->render('secure/external/home/index.html.twig');
     }
 }

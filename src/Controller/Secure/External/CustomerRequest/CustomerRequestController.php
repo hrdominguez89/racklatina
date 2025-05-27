@@ -1,0 +1,143 @@
+<?php
+
+namespace App\Controller\Secure\External\CustomerRequest;
+
+use App\Entity\CustomerRequest;
+use App\Enum\CustomerRequestStatus;
+use App\Enum\CustomerRequestType;
+use App\Repository\ClientesRepository;
+use App\Repository\CustomerRequestRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+
+#[Route('secure/clientes/mis-solicitudes')]
+final class CustomerRequestController extends AbstractController
+{
+    #[Route('/', name: 'app_secure_external_customer_request')]
+    public function index(Request $request, CustomerRequestRepository $repository): Response
+    {
+        $statusParam = $request->query->get('status');
+        $user = $this->getUser();
+
+        $criteria = ['userRequest' => $user];
+
+        if ($statusParam !== null) {
+            // Validar que sea un valor válido del enum
+            $statusParam = strtolower($statusParam);
+            $statusValido = array_map(fn($e) => $e->value, CustomerRequestStatus::cases());
+
+            if (in_array($statusParam, $statusValido, true)) {
+                $criteria['status'] = CustomerRequestStatus::from($statusParam);
+            }
+        }
+
+        $solicitudes = $repository->findBy($criteria, ['createdAt' => 'DESC']);
+
+        return $this->render('secure/external/customer_request/index.html.twig', [
+            'solicitudes' => $solicitudes,
+            'statusFiltro' => $statusParam,
+            'estadosDisponibles' => CustomerRequestStatus::cases(),
+        ]);
+    }
+
+    #[Route('/nueva', name: 'app_secure_external_customer_request_new')]
+    public function new(Request $request, EntityManagerInterface $em): Response
+    {
+        $form = $this->createFormBuilder(null)->getForm();
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $clientesJson = $request->request->get('clientes');
+            $clientes = json_decode($clientesJson, true);
+
+            if (!is_array($clientes) || empty($clientes)) {
+                $this->addFlash('danger', 'Debés agregar al menos un cliente.');
+                return $this->redirectToRoute('app_secure_external_customer_request_new');
+            }
+
+            $solicitud = new CustomerRequest();
+            $solicitud->setRequestType(CustomerRequestType::REPRESENTACION);
+            $solicitud->setStatus(CustomerRequestStatus::PENDIENTE);
+            $solicitud->setUserRequest($this->getUser());
+            $solicitud->setData($clientes);
+
+            $em->persist($solicitud);
+            $em->flush();
+
+            $this->addFlash('success', 'Solicitud enviada correctamente.');
+            return $this->redirectToRoute('app_secure_external_customer_request');
+        }
+
+        return $this->render('secure/external/customer_request/form.html.twig', [
+            'form' => $form->createView(),
+            'clientesJson' => '[]',
+            'modo' => 'crear',
+            'cuitInicial' => '',
+        ]);
+    }
+
+
+    #[Route('/{id}/editar', name: 'customer_request_edit')]
+    public function edit(CustomerRequest $solicitud, Request $request, EntityManagerInterface $em): Response
+    {
+        if ($solicitud->getUserRequest() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('No tenés permiso para editar esta solicitud.');
+        }
+
+        $form = $this->createFormBuilder(null)->getForm();
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $clientesJson = $request->request->get('clientes');
+            $clientes = json_decode($clientesJson, true);
+
+            if (!is_array($clientes) || empty($clientes)) {
+                $this->addFlash('danger', 'Debés mantener al menos un cliente.');
+                return $this->redirectToRoute('customer_request_edit', ['id' => $solicitud->getId()]);
+            }
+
+            $solicitud->setData($clientes);
+            $solicitud->setUserUpdate($this->getUser());
+            $em->flush();
+
+            $this->addFlash('success', 'Solicitud actualizada correctamente.');
+            return $this->redirectToRoute('app_secure_external_customer_request');
+        }
+
+        $primerCuit = $solicitud->getData()[0]['cuit'] ?? '';
+
+        return $this->render('secure/external/customer_request/form.html.twig', [
+            'form' => $form->createView(),
+            'clientesJson' => json_encode($solicitud->getData()),
+            'modo' => 'editar',
+            'cuitInicial' => $primerCuit,
+        ]);
+    }
+
+
+
+    #[Route('/buscar-clientes-por-cuit', name: 'app_secure_external_customer_request_buscar_clientes', methods: ['GET'])]
+    public function buscarClientesPorCuit(Request $request, ClientesRepository $clientesRepository): JsonResponse
+    {
+        $cuit = $request->query->get('cuit');
+
+        if (!preg_match('/^\d{2}-\d{8}-\d$/', $cuit)) {
+            return new JsonResponse(['error' => 'CUIT inválido.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Buscar todos los clientes con ese CUIT, sin importar estado
+        $clientes = $clientesRepository->findBy(['cuit' => $cuit]);
+
+        $resultado = array_map(fn($cliente) => [
+            'id' => $cliente->getCodigoCalipso(),
+            'razonSocial' => $cliente->getRazonSocial() ?? '(Sin nombre)',
+            'cuit' => $cliente->getCuit() ?? '(Sin CUIT)',
+        ], $clientes);
+
+        return new JsonResponse($resultado);
+    }
+}

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Form\LoginFormType;
+use App\Repository\PedidosrelacionadosRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,7 +26,7 @@ class LoginController extends AbstractController
     }
 
     #[Route(path: '/login', name: 'app_login')]
-    public function login(AuthenticationUtils $authenticationUtils): Response
+    public function login(AuthenticationUtils $authenticationUtils, PedidosrelacionadosRepository $pedidosrelacionadosRepository): Response
     {
         if ($this->getUser()) {
             if ($this->getUser()->isInternal()) {
