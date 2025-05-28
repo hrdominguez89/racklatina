@@ -1,0 +1,62 @@
+{% extends 'base.html.twig' %}
+{% block title %}
+    Revisar solicitud
+{% endblock %}
+{% block body %}
+    <div class="container-fluid mt-4">
+        <h4>
+            Revisión de solicitud #
+            {{ solicitud.id }}
+        </h4>
+        <p>
+            <strong>
+                Usuario:
+            </strong>
+            {{ solicitud.userRequest.email }}
+        </p>
+        <form method="post">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>
+                            Aprobar
+                        </th>
+                        <th>
+                            Razón Social
+                        </th>
+                        <th>
+                            CUIT
+                        </th>
+                        <th>
+                            Código Cliente
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cliente in clientes %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="aprobados[]" value="{{ cliente.id }}"></td>
+                                <td>
+                                    {{ cliente.razonSocial }}
+                                </td>
+                                <td>
+                                    {{ cliente.cuit }}
+                                </td>
+                                <td>
+                                    {{ cliente.id }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-success">
+                        <i class="ri-check-line"></i>
+                        Confirmar aprobación
+                    </button>
+                </div>
+            </form>
+        </div>
+    {% endblock %}
+    
