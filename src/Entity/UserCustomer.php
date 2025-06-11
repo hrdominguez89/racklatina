@@ -41,7 +41,6 @@ class UserCustomer
     #[ORM\JoinColumn(nullable: false)]
     private ?CustomerRequest $customerRequest = null;
 
-
     public function __construct()
     {
         $this->createdAt = new \DateTime();
@@ -121,4 +120,6 @@ class UserCustomer
 
         return $this;
     }
+
+   
 }

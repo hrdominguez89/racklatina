@@ -1,0 +1,132 @@
+{# templates/_modal_ver_usuario_cliente.html.twig #}
+<div class="modal fade" id="modalAltaUsuario" tabindex="-1" aria-labelledby="modalAltaUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalAltaUsuarioLabel">Ver Usuario - {{ user.firstName }} {{ user.lastName }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="firstName" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="firstName" name="firstName" value="{{ user.firstName }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="lastName" class="form-label">Apellido</label>
+                            <input type="text" class="form-control" id="lastName" name="lastName" value="{{ user.lastName }}" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="dni" class="form-label">DNI</label>
+                            <input type="text" class="form-control" id="dni" name="dni" value="{{ user.nationalIdNumber ?? '' }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="empresa" class="form-label">Empresa</label>
+                            <input type="text" class="form-control" id="empresa" name="empresa" value="{{ externalDataUser ? externalDataUser.companyName : '' }}" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="celular" class="form-label">Celular (whatsapp)</label>
+                            <input type="text" class="form-control" id="celular" name="celular" value="{{ externalDataUser ? externalDataUser.phoneNumber : '' }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="cargo" class="form-label">Cargo</label>
+                            <input type="text" class="form-control" id="cargo" name="cargo" 
+                                   value="{{ externalDataUser ? externalDataUser.jobTitle : '' }}" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="password" name="password" value="••••••••" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="sector" class="form-label">Sector</label>
+                            <select name="sector" class="form-select" id="sector" disabled>
+                                <option value="{{sector ?? null}}">{{sector ?? null}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="segmento" class="form-label">Segmento</label>
+                            <input  type="text" class="form-control" id="segmento" name="segmento" value="{{ externalDataUser ? externalDataUser.segmento : '' }}" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Campo adicional para sector -->
+                <div class="row" id="divSectorExtraData" style="display: {% if externalDataUser and externalDataUser.sectorExtraData %}block{% else %}none{% endif %};">
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label for="sectorExtraData" class="form-label">Describa sector</label>
+                            <input type="text" name="sectorExtraData" class="form-control" id="sectorExtraData" 
+                                   value="{{ externalDataUser ? externalDataUser.sectorExtraData : '' }}" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="pais" class="form-label">País</label>
+                            <select name="pais" class="form-select" id="pais" disabled>
+                                <option value="">Seleccione un País</option>
+                                {% for pais in paises %}
+                                    <option value="{{ pais }}" {{ externalDataUser and externalDataUser.pais == pais ? 'selected' : '' }}>{{ pais }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="provincia" class="form-label">Provincia</label>
+                            <select name="provincia" class="form-select" id="provincia" disabled>
+                                <option value="">Seleccione una Provincia</option>
+                                {% for provincia in provincias %}
+                                    <option value="{{ provincia }}" {{ externalDataUser and externalDataUser.provincia == provincia ? 'selected' : '' }}>{{ provincia }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="modalEditar({{ user.id }})">Editar</button>
+            </div>
+        </div>
+    </div>
+</div>

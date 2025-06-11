@@ -29,6 +29,21 @@ class ExternalUserData
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private ?bool $verified = null;
 
+    #[ORM\ManyToOne(inversedBy: 'externalUserData')]
+    private ?Sectors $sector = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $sectorExtraData = null;
+
+    #[ORM\Column(length: 60, nullable: true)]
+    private ?string $segmento = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $pais = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $provincia = null;
+
     public function __construct()
     {
         $this->verified = false;
@@ -96,6 +111,66 @@ class ExternalUserData
     public function setVerified(bool $verified): static
     {
         $this->verified = $verified;
+
+        return $this;
+    }
+
+    public function getSector(): ?Sectors
+    {
+        return $this->sector;
+    }
+
+    public function setSector(?Sectors $sector): static
+    {
+        $this->sector = $sector;
+
+        return $this;
+    }
+
+    public function getSectorExtraData(): ?string
+    {
+        return $this->sectorExtraData;
+    }
+
+    public function setSectorExtraData(?string $sectorExtraData): static
+    {
+        $this->sectorExtraData = $sectorExtraData;
+
+        return $this;
+    }
+
+    public function getSegmento(): ?string
+    {
+        return $this->segmento;
+    }
+
+    public function setSegmento(?string $segmento): static
+    {
+        $this->segmento = $segmento;
+
+        return $this;
+    }
+
+    public function getPais(): ?string
+    {
+        return $this->pais;
+    }
+
+    public function setPais(?string $pais): static
+    {
+        $this->pais = $pais;
+
+        return $this;
+    }
+
+    public function getProvincia(): ?string
+    {
+        return $this->provincia;
+    }
+
+    public function setProvincia(?string $provincia): static
+    {
+        $this->provincia = $provincia;
 
         return $this;
     }

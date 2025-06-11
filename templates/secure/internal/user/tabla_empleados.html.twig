@@ -1,0 +1,28 @@
+<table id="tabla-usuarios" class="table table-sm table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th><th>Email</th><th>Nombre</th><th>Apellido</th><th>DNI</th><th>Roles</th><th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in empleados %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.firstName }}</td>
+                <td>{{ user.lastName }}</td>
+                <td>{{ user.nationalIdNumber }}</td>
+                <td>
+                    {% for rol in user.getRoles %}
+                        <span class="badge bg-secondary">{{ rol }}</span>
+                    {% endfor %}
+                </td>
+                <td>
+                <a href="#" class="btn btn-sm btn-outline-primary">Ver</a>
+                <a href="#" class="btn btn-sm btn-outline-primary">Editar</a>
+                <a href="#" class="btn btn-sm btn-outline-primary">Eliminar</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

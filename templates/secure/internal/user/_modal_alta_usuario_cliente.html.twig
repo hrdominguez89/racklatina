@@ -1,0 +1,199 @@
+{# templates/_modal_alta_usuario_cliente.html.twig #}
+<div class="modal fade" id="modalAltaUsuario" tabindex="-1" aria-labelledby="modalAltaUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalAltaUsuarioLabel">Alta de Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formAltaUsuario" method="POST" action="{{ path('app_usuarios_cliente_create') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="firstName" class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="firstName" name="firstName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="lastName" class="form-label">Apellido *</label>
+                                <input type="text" class="form-control" id="lastName" name="lastName" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="dni" class="form-label">DNI *</label>
+                                <input type="text" class="form-control" id="dni" name="dni" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="empresa" class="form-label">Empresa *</label>
+                                <input type="text" class="form-control" id="empresa" name="empresa" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="celular" class="form-label">Celular (whatsapp)</label>
+                                <input type="text" class="form-control" id="celular" name="celular">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="cargo" class="form-label">Cargo</label>
+                                <input type="text" class="form-control" id="cargo" name="cargo">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Contraseña</label>
+                                <input type="password" class="form-control" id="password" name="password">
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="sector" class="form-label">Sector</label>
+                                <select name="sector" class="form-select" id="sector">
+                                    <option value="">Seleccione un sector</option>
+                                    {% for sector in sectores %}
+                                        <option value="{{ sector.id }}" data-requires-data-extra="{{ sector.requiresData ? 'true' : 'false' }}">{{ sector.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="segmento" class="form-label">Segmento</label>
+                                <input type="text" class="form-control" id="segmento" name="segmento">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Campo adicional para sector (inicialmente oculto) -->
+                    <div class="row" id="divSectorExtraData" style="display: none;">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="sectorExtraData" class="form-label">Describa sector</label>
+                                <input type="text" name="sectorExtraData" class="form-control" id="sectorExtraData" placeholder="Especifique el sector...">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="pais" class="form-label">País</label>
+                                <select name="pais" class="form-select" id="pais">
+                                    <option value="">Seleccione un País</option>
+                                    {% for pais in paises %}
+                                        <option value="{{ pais }}">{{ pais }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                         <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="provincia" class="form-label">Provincia</label>
+                                <select name="provincia" class="form-select" id="provincia">
+                                    <option value="">Seleccione una Provincia</option>
+                                    {% for provincia in provincias %}
+                                        <option value="{{ provincia }}">{{ provincia }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                       
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-info">Crear Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Función para manejar el cambio en el select de sector
+    function handleSectorChange() {
+        const sectorSelect = document.getElementById('sector');
+        const divSectorExtraData = document.getElementById('divSectorExtraData');
+        const sectorExtraDataInput = document.getElementById('sectorExtraData');
+        
+        if (sectorSelect && divSectorExtraData) {
+            sectorSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const requiresExtraData = selectedOption.getAttribute('data-requires-data-extra');
+                
+                if (requiresExtraData === 'true') {
+                    // Mostrar el campo adicional
+                    divSectorExtraData.style.display = 'flex';
+                    sectorExtraDataInput.setAttribute('required', 'required');
+                } else {
+                    // Ocultar el campo adicional
+                    divSectorExtraData.style.display = 'none';
+                    sectorExtraDataInput.removeAttribute('required');
+                    sectorExtraDataInput.value = ''; // Limpiar el valor
+                }
+            });
+        }
+    }
+    
+    // Inicializar el manejador de eventos cuando se carga el modal
+    handleSectorChange();
+    
+    // Limpiar formulario al cerrar modal
+    const modalElement = document.getElementById('modalAltaUsuario');
+    if (modalElement) {
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            const form = document.getElementById('formAltaUsuario');
+            if (form) {
+                form.reset();
+                // También ocultar el campo extra al resetear
+                const divSectorExtraData = document.getElementById('divSectorExtraData');
+                if (divSectorExtraData) {
+                    divSectorExtraData.style.display = 'none';
+                }
+            }
+        });
+    }
+    
+    // Validación del formulario
+    const form = document.getElementById('formAltaUsuario');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                e.preventDefault();
+                alert('Email y contraseña son requeridos');
+            }
+        });
+    }
+});
+</script>

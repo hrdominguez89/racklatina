@@ -258,7 +258,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setNationalIdNumber(int $nationalIdNumber): static
     {
         $this->nationalIdNumber = $nationalIdNumber;
-
+      
         return $this;
     }
 

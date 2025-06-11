@@ -1,0 +1,189 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Usuarios{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                    <div class="page-title-right">
+                        <ol class="breadcrumb m-0">
+                            <li class="breadcrumb-item">
+                                <a href="{{ path('app_home') }}">Mi portal</a>
+                            </li>
+                            <li class="breadcrumb-item active">Usuarios clientes Racklatina</li>
+                        </ol>
+                    </div>
+                     <button type="button" class="btn btn-info waves-effect waves-light" onclick="abrirModalAltaUsuario()">
+                    Alta de usuario
+                </button>
+                </div>
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show mt-2" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+        
+        <div id="modal-container"></div>
+
+        <!-- Contenedor de tabla -->
+        <div class="row">
+            <div class="col-12">
+                <div id="tabla-container">
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+    function cargarTabla(tipo) {
+        fetch(`{{ path('app_usuarios_ajax') }}?tipo=${tipo}`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('tabla-container').innerHTML = html;
+                // Reinicializar DataTable
+                $('#tabla-usuarios').DataTable({
+                    language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' }
+                });
+            });
+    }
+    function modalVer(id) {
+    // Cambiar de GET a POST para coincidir con tu ruta
+    fetch(`{{ path('app_usuarios_ver') }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `id=${id}`
+    })
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById('modal-container').innerHTML = html;
+        const modal = new bootstrap.Modal(document.getElementById('modalAltaUsuario'));
+        modal.show();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al cargar los datos del usuario');
+    });
+}
+    function abrirModalAltaUsuario() {
+    fetch(`{{ path('app_usuarios_cliente_alta') }}`)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('modal-container').innerHTML = html;
+            const modal = new bootstrap.Modal(document.getElementById('modalAltaUsuario'));
+            modal.show();
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarTabla('clientes');
+    });
+    function modalEditar(id) {
+         fetch(`{{ path('app_usuarios_cliente_editar') }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `id=${id}`
+    })
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById('modal-container').innerHTML = html;
+        const modal = new bootstrap.Modal(document.getElementById('modalAltaUsuario'));
+        modal.show();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al cargar los datos del usuario');
+    });
+    }
+    function EliminarUsuario(id) {
+        fetch(`{{ path('app_usuarios_cliente_eliminar') }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `id=${id}`
+        });
+        
+    }
+    function abrirModalAltaUsuario() {
+        fetch(`{{ path('app_usuarios_cliente_alta') }}`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('modal-container').innerHTML = html;
+                // IMPORTANTE: Inicializar el JavaScript del modal DESPUÉS de cargar el HTML
+                initializarModalSector();
+                const modal = new bootstrap.Modal(document.getElementById('modalAltaUsuario'));
+                modal.show();
+            });
+    }
+
+function initializarModalSector() {
+    const sectorSelect = document.getElementById('sector');
+    const divSectorExtraData = document.getElementById('divSectorExtraData');
+    const sectorExtraDataInput = document.getElementById('sectorExtraData');
+    
+    if (sectorSelect && divSectorExtraData) {
+        
+        sectorSelect.removeEventListener('change', handleSectorChange);
+        sectorSelect.addEventListener('change', handleSectorChange);
+        
+        function handleSectorChange() {
+            const selectedOption = sectorSelect.options[sectorSelect.selectedIndex];
+            const requiresExtraData = selectedOption.getAttribute('data-requires-data-extra');
+            
+            console.log('Sector seleccionado:', selectedOption.text);
+            console.log('Requiere datos extra:', requiresExtraData);
+            
+            if (requiresExtraData === 'true' || requiresExtraData === '1') {
+                divSectorExtraData.style.display = 'block';
+                if (sectorExtraDataInput) {
+                    sectorExtraDataInput.setAttribute('required', 'required');
+                }
+            } else {
+                divSectorExtraData.style.display = 'none';
+                if (sectorExtraDataInput) {
+                    sectorExtraDataInput.removeAttribute('required');
+                    sectorExtraDataInput.value = '';
+                }
+            }
+        }
+    }
+    const modalElement = document.getElementById('modalAltaUsuario');
+    if (modalElement) {
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            const form = document.getElementById('formAltaUsuario');
+            if (form) {
+                form.reset();
+                if (divSectorExtraData) {
+                    divSectorExtraData.style.display = 'none';
+                }
+            }
+        });
+    }
+}
+    </script>
+{% endblock %}

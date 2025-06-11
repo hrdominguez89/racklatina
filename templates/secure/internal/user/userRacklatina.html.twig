@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Usuarios{% endblock %}
+{% block stylesheets %}
+
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                    <div class="page-title-right">
+                        <ol class="breadcrumb m-0">
+                            <li class="breadcrumb-item">
+                                <a href="{{ path('app_home') }}">Mi portal</a>
+                            </li>
+                            <li class="breadcrumb-item active">Usuarios Racklatina</li>
+                        </ol>
+                    </div>
+                <button type="button" class="btn btn-info waves-effect waves-light" onclick="abrirModalAltaUsuario()">
+                    Alta de usuario
+                </button>
+                </div>
+            </div>
+            
+        </div>
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show mt-2" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+        
+        <div id="modal-container"></div>
+        <!-- Contenedor de tabla -->
+        <div class="row">
+            <div class="col-12">
+                <div id="tabla-container">
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+    function cargarTabla(tipo) {
+        fetch(`{{ path('app_usuarios_ajax') }}?tipo=${tipo}`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('tabla-container').innerHTML = html;
+                // Reinicializar DataTable
+                $('#tabla-usuarios').DataTable({
+                    language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' }
+                });
+            });
+    }
+    function abrirModalAltaUsuario() {
+    fetch(`{{ path('app_usuarios_racklatina_alta') }}`)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('modal-container').innerHTML = html;
+            const modal = new bootstrap.Modal(document.getElementById('modalAltaUsuario'));
+            modal.show();
+        });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        // Cargar empleados por defecto
+        cargarTabla('empleados');
+    });
+    </script>
+{% endblock %}
