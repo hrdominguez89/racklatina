@@ -6,9 +6,10 @@
                 <h5 class="modal-title" id="modalAltaUsuarioLabel">Alta de Usuario</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="formAltaUsuario" method="POST" action="{{ path('app_usuarios_cliente_create') }}">
+            <form id="formAltaUsuario" method="POST" action="{{ path('app_usuarios_crear') }}">
                 <div class="modal-body">
                     <div class="row">
+                        <input type="hidden" name="tipo_usuario" value="cliente" readonly>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="firstName" class="form-label">Nombre *</label>
@@ -26,7 +27,7 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="dni" class="form-label">DNI *</label>
-                                <input type="text" class="form-control" id="dni" name="dni" required>
+                                <input type="text" class="form-control" id="dni" name="dni" required maxlength="8">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -121,10 +122,6 @@
                                 </select>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="row">
-                       
                     </div>
                 </div>
                 <div class="modal-footer">

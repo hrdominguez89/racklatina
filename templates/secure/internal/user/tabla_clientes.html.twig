@@ -14,7 +14,7 @@
                 <td>{{ user.nationalIdNumber }}</td>
                 <td>
                     {% for rol in user.getRoles %}
-                        <span class="badge bg-secondary">{{ rol }}</span>
+                        <span class="badge bg-secondary"> {{ rol|replace({'ROLE_': ''})|replace({'_': ' '})|title }} </span>
                     {% endfor %}
                 </td>
                 <td>

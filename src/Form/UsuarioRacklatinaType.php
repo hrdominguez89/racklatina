@@ -50,18 +50,14 @@ class UsuarioRacklatinaType extends AbstractType
                     ]),
                 ],
             ])
-            ->add('roles', TextType::class, [
-                'constraints' => [
-                    new NotBlank(),
-                ],
-            ])
         ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            // Configure your form options here
+            'csrf_protection' => false,
+            'allow_extra_fields' => true
         ]);
     }
 }

@@ -67,13 +67,69 @@
             });
     }
     function abrirModalAltaUsuario() {
-    fetch(`{{ path('app_usuarios_racklatina_alta') }}`)
-        .then(response => response.text())
-        .then(html => {
-            document.getElementById('modal-container').innerHTML = html;
-            const modal = new bootstrap.Modal(document.getElementById('modalAltaUsuario'));
-            modal.show();
+    fetch(`{{ path('app_usuarios_modal_alta') }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `tipo_usuario=empleado`
+    })
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById('modal-container').innerHTML = html;
+        const modal = new bootstrap.Modal(document.getElementById('modalAltaUsuario'));
+        modal.show();
+    });
+}
+    function EliminarUsuarioEmpleado(id)
+    {
+        fetch(`{{ path('app_usuarios_eliminar') }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `id=${id}`
         });
+        location.reload();
+    }
+     function modalEditarEmpleado(id) {
+         fetch(`{{ path('app_usuarios_editar') }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `id=${id}&tipo_usuario=empleado`
+    })
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById('modal-container').innerHTML = html;
+        const modal = new bootstrap.Modal(document.getElementById('modalAltaUsuario'));
+        modal.show();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al cargar los datos del usuario');
+    });
+    }
+    function modalVerEmpleado(id) {
+    // Cambiar de GET a POST para coincidir con tu ruta
+    fetch(`{{ path('app_usuarios_ver_detalle') }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `id=${id}&tipo_usuario=empleado`
+    })
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById('modal-container').innerHTML = html;
+        const modal = new bootstrap.Modal(document.getElementById('modalAltaUsuario'));
+        modal.show();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al cargar los datos del usuario');
+    });
     }
     document.addEventListener('DOMContentLoaded', function() {
         // Cargar empleados por defecto

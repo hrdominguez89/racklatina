@@ -19,6 +19,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+
 #[Route('secure/user')]
 final class UserController extends AbstractController
 {
@@ -95,7 +97,11 @@ final class UserController extends AbstractController
 
         foreach($usuarios_empleados_ids_unicos as $user_id)
         {
-            $users[] =$this->userRepository->find($user_id);
+            $aux = $this->userRepository->findOneBy(["id" => $user_id]);
+            if($aux)
+            {
+                $users[] = $aux;
+            }
         }
         return $users;
     }
@@ -129,48 +135,66 @@ final class UserController extends AbstractController
         foreach($usuarios_empleados_ids_unicos as $user_id)
         {
             $aux = $this->userRepository->findOneBy(["id" => $user_id]);
-            // dd($aux->getEmail());
             if($aux)
             {
                 $users[] = $aux;
             }
         }
-        // dd($users);
         return $users;
     }
-    #[Route('/modal-alta', name: 'app_usuarios_racklatina_alta')]
-    public function abrirModalAltaUsuario(): Response
-    {
-        $roles = $this->roleRepository->findBy(["type" => "internal"]);
 
-        $roles_aux = array_map(function($rol) {
-            return [
-                    "id" => $rol->getId(),
-                    "nombre" => $rol->getName()
-            ];
-        }, $roles);
-        return $this->render('secure/internal/user/_modal_alta_usuario.html.twig', ["roles" => $roles_aux]);
-    }
-    #[Route('/create', name: 'app_usuarios_racklatina_create', methods: ['POST'])]
-    public function createUsuarioRacklatina(Request $request): Response
+    // FUNCIONES PARA ALTAS DE USUARIOS
+    #[Route('/crearUsuarios', name: 'app_usuarios_crear', methods: ['POST'])]
+    public function crearUsuarios(Request $request)
     {
-        $json = json_decode($request->getContent(), true);
+        $data = [];
+        foreach($request->request as $key => $value) {
+            $data[$key] = $value;
+        }
+        $tipo_usuario = $data["tipo_usuario"];
+        switch($tipo_usuario) {
+            case "empleado":
+                $flag = $this->crearEmpleado($data);
+                 if($flag)
+                {
+                    $this->addFlash('succes', 'Se dio de alta el usuario.');
+                }
+                else
+                {
+                    $this->addFlash('error', 'No se completo el alta de usuario empleado.');
+                }
+                return $this->redirectToRoute('app_secure_internal_user_user_racklatina');
+            case "cliente":
+                $flag = $this->crearCliente($data);
+                if($flag)
+                {
+                    $this->addFlash('succes', 'Se dio de alta el usuario.');
+                }
+                else
+                {
+                    $this->addFlash('error', 'No se completo el alta de usuario cliente.');
+                }
+                return $this->redirectToRoute('app_secure_internal_user_user_cliente');
+        }
+    }
+    public function crearEmpleado($data,UserPasswordHasherInterface $passwordHasher)
+    {
         $form = $this->createForm(UsuarioRacklatinaType::class);
-        $form->submit($json);
+        $form->submit($data);
+        
         if ( $form->isValid())
         {
-            $email = $request->request->get('email') ?? null;
-            $password = $request->request->get('password');
-            $firstName = $request->request->get('firstName');
-            $lastName = $request->request->get('lastName');
-            $dni = $request->request->get('nationalIdNumber');
-            $rol_id = $request->request->all ('roles')[0];
+            $email = $data[ 'email'] ?? null;
+            $password = $data[ 'password']->hashPassword();
+            $firstName = $data[ 'firstName'];
+            $lastName = $data[ 'lastName'];
+            $dni = $data[ 'nationalIdNumber'];
+            $rol_id = $data['roles'][0];
             $rol = $this->roleRepository->find(id: $rol_id);
 
             $usuario = new User();
-    
+            $usuario->setPassword($passwordHasher->hashPassword($usuario, $password));
             $usuario->setEmail($email);
-            $usuario->setPassword($password);
             $usuario->setFirstName($firstName);
             $usuario->setLastName($lastName);
             $usuario->setNationalIdNumber($dni);
@@ -185,199 +209,218 @@ final class UserController extends AbstractController
             $this->entityManager->persist($usuario_rol);
             $this->entityManager->flush();
     
-            $this->addFlash('success', 'Usuario creado exitosamente');
+            return true;
         }
-        else
-        {
-            $this->addFlash('error', 'Error al crear el usuario');
-        }
-
-        return $this->redirectToRoute('app_secure_internal_user_user_racklatina');
+        return false;
     }
-
-    #[Route('/modal-alta-cliente', name: 'app_usuarios_cliente_alta')]
-    public function abrirModalAltaUsuarioCliente(SectorsRepository $sectorsRepository): Response
-    {
-        $data["sectores"] = $sectorsRepository->findAll();
-        $data["segmentos"]= [];
-        $data["paises"] =[];
-        $data["provincias"] = [];
-
-        return $this->render('secure/internal/user/_modal_alta_usuario_cliente.html.twig',$data);
-    }
-        /**
-         * Endpoint que recibe datos para el alta del usuario cliente
-         *
-         * Recibe por POST:
-         *      - firstName: nombre del usuario
-         *      - lastName: apellido del usuario
-         *      - email: email del usuario
-         *      - password: password del usuario
-         *      - roles: array con un solo elemento, el id del rol
-         *      - nationalIdNumber: dni del usuario
-         *      - empresa: empresa del usuario
-         *      - telefono: telefono del usuario
-         *      - segmento: segmento del usuario
-         *      - sector: sector del usuario
-         *      - cargo: cargo del usuario
-         *      - pais: pais del usuario
-         *      - provincia: provincia del usuario
-         *
-         * Devuelve un json con el mensaje de exito o error
-         * y redirige a la ruta app_secure_internal_user_user_cliente
-         */
-    #[Route('/createCliente', name: 'app_usuarios_cliente_create', methods: ['POST'])]
-    public function createUsuarioRacklatinaCliente(Request $request): Response
-    {
-        $json = json_decode($request->getContent(), true);
+    public function crearCliente($data,UserPasswordHasherInterface $passwordHasher) {
         $form = $this->createForm(UsuarioClienteRacklatinaType::class);
-        $form->submit($json);
+        $form->submit($data);
         if ( $form->isValid())
         {
-            $nombre = $request->request->get('firstName');
-            $apellido = $request->request->get('lastName');
-            $email = $request->request->get('email');
-            $password = $request->request->get('password');
-            $dni = $request->request->get('nationalIdNumber');
+            $nombre = $data[ 'firstName'];
+            $apellido = $data[ 'lastName'];
+            $email = $data[ 'email'];
+            $password = $data[ 'password'];
+            $dni = $data[ 'dni'];
             
             $user = new User();
             $user->setEmail($email);
-            $user->setPassword($password);
+            $user->setPassword($passwordHasher->hashPassword($user, $password));
             $user->setFirstName($nombre);
             $user->setLastName($apellido);
             $user->setNationalIdNumber( $dni);
             
             $this->entityManager->persist($user);
-
+            $this->entityManager->flush();
+            
             $externalUserData = new ExternalUserData();
-            $externalUserData->setCompanyName($request->request->get('empresa'));
-            $externalUserData->setPhoneNumber($request->request->get('telefono'));
-            $externalUserData->setSegmento($request->request->get('segmento'));
-            $externalUserData->setSector($request->request->get('sector'));
-            $externalUserData->setJobTitle($request->request->get('cargo'));
-            $externalUserData->setPais($request->request->get('pais'));
-            $externalUserData->setProvincia($request->request->get('provincia'));
+
+            $externalUserData->setCompanyName($data[ 'empresa']);
+            $externalUserData->setPhoneNumber($data[ 'celular']);
+
+            $sector = $this->sectoresRepository->find($data[ 'sector']);
+            $externalUserData->setSector($sector);
+
+            $externalUserData->setSegmento($data[ 'segmento']);
+            $externalUserData->setJobTitle($data[ 'cargo']);
+            $externalUserData->setPais($data[ 'pais']);
+            $externalUserData->setProvincia($data[ 'provincia']);
             $externalUserData->setUser($user);
 
             $this->entityManager->persist($externalUserData);
 
+            $this->entityManager->flush();
 
             $userRole = new UserRole();
+
             $userRole->setUser($user);
             $userRole->setRole($this->roleRepository->find(id: 2));
             
             $this->entityManager->persist($userRole);
             $this->entityManager->flush();
             
-            $this->addFlash('success', 'Usuario creado exitosamente');
+            return true;
+        }
+        return false;
+    }
+    #[Route('/modal-alta-usuario', name: 'app_usuarios_modal_alta')]
+    public function abrirModalAltaUsuario(Request $request,SectorsRepository $sectorsRepository): Response
+    {
+        if($request->request->get('tipo_usuario') == "empleado"){ 
+            $roles = $this->roleRepository->findBy(["type" => "internal"]);
+            $roles_aux = array_map(function($rol) {
+                $aux =  str_replace("ROLE_", "", $rol->getName());
+                $aux =  str_replace("_", " ", $aux);
+                return [
+                    "id" => $rol->getId(),
+                    "nombre" => $aux
+                ];
+            }, $roles);
+            return $this->render('secure/internal/user/_modal_alta_usuario.html.twig', ["roles" => $roles_aux]);
         }
         else
         {
-            $this->addFlash('error', 'Error al crear el usuario');
-        }
+        $data["sectores"] = $sectorsRepository->findAll();
+        $data["segmentos"]= [];
+        $data["paises"] =[];
+        $data["provincias"] = [];
 
-        return $this->redirectToRoute('app_secure_internal_user_user_cliente');
+        return $this->render('secure/internal/user/_modal_alta_usuario_cliente.html.twig',$data);
+        }
     }
-    #[Route('/editarCliente', name: 'app_usuarios_cliente_editar', methods: ['POST'])]
-    public function editarCliente(Request $request)
+  
+    // FUNCIONES PARA EDICION DE USUARIOS
+    #[Route('/abrir-modal-edicion-usuario', name: 'app_usuarios_editar', methods: ['POST'])]
+    public function abrirModalEdicionUsuario(Request $request)
     {
         $id = $request->request->get('id');
         $user = $this->userRepository->find($id) ?? null;
-        
+
         if (!$user) {
-            throw $this->createNotFoundException('Usuario no encontrado');
+            
         }
+
+        if($request->request->get('tipo_usuario') == "empleado")
+        {
+            $data = [
+                "user" => $user,
+                "isViewMode" => true // Flag para indicar que es modo vista
+            ];
+            return $this->render('secure/internal/user/_modal_editar_usuario_empleado.html.twig', $data);
+        };
+
         $externalUserData = $this->externalUserDataRepository->findOneBy(['user' => $user->getId()])??null; // Aquí deberías obtener los datos del UserCustomer si tienes esa entidad
         $sectores = $this->sectoresRepository->findAll();
         $data = [
             "user" => $user,
             "externalUserData" => $externalUserData,
+            "mi_sector"=> $externalUserData?->getSector(),
             "provincias" => ["Bs As","CABA"], // Llenar con los datos reales si los tienes
             "paises" => ["Argentina","Chile"],
             "sectores" =>$sectores,
             "segmentos" => ["Consumo","Produccion"],
             "isViewMode" => true // Flag para indicar que es modo vista
         ];
-        
         return $this->render('secure/internal/user/_modal_editar_usuario_cliente.html.twig', $data);
     }
-    
-    #[Route('/guardar', name: 'app_usuarios_cliente_editar_guardar', methods: ['POST'])]
-    public function guardarEdicionCliente(Request $request)
+    #[Route('/editar',name:'app_usuarios_editar_guardar',methods:['POST'])]
+    public function editarUsuario(Request $request)
     {
         $id = $request->request->get('id');
         $user = $this->userRepository->find($id) ?? null;
-        
+
         if (!$user) {
-            $this->addFlash('error', 'No se encontro el id del usuario');
+            
+        }
+
+        if($request->request->get('tipo_usuario') == "empleado")
+        {
+            $user->setEmail($request->request->get('email'));
+            $user->setPassword($request->request->get('password'));
+            $user->setFirstName($request->request->get('firstName'));
+            $user->setLastName($request->request->get('lastName'));
+            $user->setNationalIdNumber($request->request->get('dni'));
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+            
+            return $this->redirectToRoute('app_secure_internal_user_user_racklatina');
+        }
+        else
+        {
+            $user->setEmail($request->request->get('email'));
+            $user->setPassword($request->request->get('password'));
+            $user->setFirstName($request->request->get('firstName'));
+            $user->setLastName($request->request->get('lastName'));
+            $user->setNationalIdNumber($request->request->get('dni'));
+            $externalUserData = $this->externalUserDataRepository->findOneBy(['user' => $user->getId()]);
+            $externalUserData->setCompanyName($request->request->get('empresa'));
+            $externalUserData->setPhoneNumber($request->request->get('telefono'));
+            $externalUserData->setSegmento($request->request->get('segmento'));
+            $externalUserData->setJobTitle($request->request->get('cargo'));
+            $externalUserData->setPais($request->request->get('pais'));
+            $externalUserData->setProvincia($request->request->get('provincia'));
+            $externalUserData->setUser($user);
+            
+            $sector = $this->sectoresRepository->find($request->request->get('sector'));
+            if($sector){
+                $externalUserData->setSector($sector);
+            }
+
+            $this->entityManager->persist($externalUserData);
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+            
             return $this->redirectToRoute('app_secure_internal_user_user_cliente');
         }
+    }
 
-        $user->setEmail($request->request->get('email'));
-        $user->setPassword($request->request->get('password'));
-        $user->setFirstName($request->request->get('firstName'));
-        $user->setLastName($request->request->get('lastName'));
-        $user->setNationalIdNumber($request->request->get('dni'));
+    //FUNCIONES PARA VER USUARIOS
 
-        $externalUserData = $this->externalUserDataRepository->findOneBy(['user' => $user->getId()]);
-        $externalUserData->setCompanyName($request->request->get('empresa'));
-        $externalUserData->setPhoneNumber($request->request->get('telefono'));
-        $externalUserData->setSegmento($request->request->get('segmento'));
-        $externalUserData->setJobTitle($request->request->get('cargo'));
-        $externalUserData->setPais($request->request->get('pais'));
-        $externalUserData->setProvincia($request->request->get('provincia'));
-        $externalUserData->setUser($user);
-        
-        $sector = $this->sectoresRepository->find($request->request->get('sector'));
-        if($sector){
-            $externalUserData->setSector($sector);
+    #[Route("/verDetalle",name:"app_usuarios_ver_detalle",methods:["POST"])]
+    public function verDetalleUsuarios(Request $request)
+    {
+        $id = $request->request->get('id');
+        $user = $this->userRepository->find($id) ?? null;
+        if (!$user) {
+            
         }
 
-        $this->entityManager->persist($externalUserData);
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
-        
-        return $this->redirectToRoute('app_secure_internal_user_user_cliente');
+        if($request->request->get('tipo_usuario') == "empleado")
+        {
+            $data = [
+                "user" => $user,
+                "isViewMode" => true
+            ];
+            return $this->render('secure/internal/user/_modal_ver_usuario_empleado.html.twig', $data);
+        }
+        else
+        {
+            $externalDataUser = $this->externalUserDataRepository->findOneBy(['user' => $user->getId()]);
+            $sector = $externalDataUser?->getSector()?->getName();
+
+            $data = [
+                "user" => $user,
+                "externalDataUser" => $externalDataUser,
+                "sector" => $sector,
+                "segmentos" => [], 
+                "paises" => [], 
+                "provincias" => [], 
+                "isViewMode" => true 
+            ];
+            return $this->render('secure/internal/user/_modal_ver_usuario_cliente.html.twig', $data);
+        }
     }
-        
-    #[Route('/borrarCliente', name: 'app_usuarios_cliente_eliminar', methods: ['POST'])]
-    public function borrarCliente(Request $request) 
+
+    //  FUNCION PARA ELIMINAR USUARIO
+    #[Route('/eliminarusuario', name: 'app_usuarios_eliminar')] // faltan las rutas en el retorno 
+    public function eliminarusuario(Request $request)
     {
         $id = $request->request->get('id');
         $user = $this->userRepository->find($id);
         if($user){
             $this->entityManager->remove($user);
             $this->entityManager->flush();
-            return $this->redirectToRoute('app_secure_internal_user_user_cliente');
         }
-        $this->addFlash('error', 'No se encontro el usuario a eliminar');
-        return $this->redirectToRoute('app_secure_internal_user_user_cliente');
-        
-    }
-    #[Route('/verCliente', name: 'app_usuarios_ver', methods: ['POST'])]
-    public function verClienteEnDetalle(Request $request, SectorsRepository $sectorsRepository)
-    {
-        $id = $request->request->get('id');
-        $user = $this->userRepository->find($id);
-        
-        if (!$user) {
-            $this->addFlash('error', 'Error al buscar el usuario');
-            return $this->render('secure/internal/user/_modal_ver_usuario_cliente.html.twig', $data);
-        }
-        
-        $externalDataUser = $this->externalUserDataRepository->findOneBy(['user' => $user->getId()]);
-        $sector = $externalDataUser?->getSector()?->getName();
-
-        $data = [
-            "user" => $user,
-            "externalDataUser" => $externalDataUser,
-            "sector" => $sector,
-            "segmentos" => [], 
-            "paises" => [], 
-            "provincias" => [], 
-            "isViewMode" => true 
-        ];
-        
-        return $this->render('secure/internal/user/_modal_ver_usuario_cliente.html.twig', $data);
     }
 }

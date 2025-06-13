@@ -14,13 +14,13 @@
                 <td>{{ user.nationalIdNumber }}</td>
                 <td>
                     {% for rol in user.getRoles %}
-                        <span class="badge bg-secondary">{{ rol }}</span>
+                        <span class="badge bg-secondary">{{ rol|replace({'ROLE_': ''})|replace({'_': ' '})|title }}</span>
                     {% endfor %}
                 </td>
                 <td>
-                <a href="#" class="btn btn-sm btn-outline-primary">Ver</a>
-                <a href="#" class="btn btn-sm btn-outline-primary">Editar</a>
-                <a href="#" class="btn btn-sm btn-outline-primary">Eliminar</a>
+                <button onclick="modalVerEmpleado({{user.id}})" class="btn btn-sm btn-outline-primary">Ver</button>
+                <button onclick="modalEditarEmpleado({{user.id}})" class="btn btn-sm btn-outline-primary">Editar</button>
+                <button onclick="EliminarUsuarioEmpleado({{user.id}})" class="btn btn-sm btn-outline-primary">Eliminar</button>
                 </td>
             </tr>
         {% endfor %}
