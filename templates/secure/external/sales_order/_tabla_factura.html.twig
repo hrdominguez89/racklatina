@@ -1,0 +1,24 @@
+<table id="tabla-facturas" class="table table-sm table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Número</th>
+            <th>Fecha</th>
+            <th>Importe</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for factura in facturas %}
+            <tr>
+                <td>{{ factura.numero }}</td>
+                <td>{{ factura.fecha|date('d/m/Y') }}</td>
+                <td>${{ factura.importe|number_format(2) }}</td>
+                <td>{{ factura.estado }}</td>
+                <td>
+                    <button onclick="abrirModalFactura({{ factura.numero }})" class="btn btn-sm btn-outline-success">Ver detalle</button>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

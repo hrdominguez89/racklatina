@@ -1,0 +1,185 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    Orden de compra en detalle. 
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    {% endblock %}
+
+    {% block body %}
+        <div class="container-fluid">
+
+            <!-- start page title -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                        <div class="page-title-right">
+                            <ol class="breadcrumb m-0">
+                                <li class="breadcrumb-item active">
+                                    Mi portal.
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    Pedidos.
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h4>
+                        Informacion de la orden de compra #{{ orden_de_compra.numero }}
+                    </h4>
+                    <p>
+                        <strong>
+                            Cliente:
+                        </strong>
+                        {{ orden_de_compra.usuario }}
+                    </p>
+                    <p>
+                        <strong>
+                            Nro. de pedido:
+                        </strong>
+                        {{ orden_de_compra.numero }}
+                    </p>
+                    <p>
+                        <strong>
+                            Informaci n de la orden de compra:
+                        </strong>
+                        <ul>
+                            <li>
+                                Numero: {{ orden_de_compra.numero }}
+                            </li>
+                            <li>
+                                Cliente: {{ orden_de_compra.razonsocial }}
+                            </li>
+                            <li>
+                                Orden de compra del cliente: {{ orden_de_compra.ordencompracliente }}
+                            </li>
+                            <li>
+                                Fecha de pedido: {{ orden_de_compra.fechapedido ? orden_de_compra.fechapedido|date('d/m/Y') : '' }}
+                            </li>
+                            <li>
+                                Tipo de pedido: {{ orden_de_compra.tipoorden }}
+                            </li>
+                            <li>
+                                Deposito: {{ orden_de_compra.deposito }}
+                            </li>
+                            <li>
+                                Lugar de entrega: {{ orden_de_compra.lugar }}
+                            </li>
+                            <li>
+                                Tipo de pedido: {{ orden_de_compra.tipopedido }}
+                            </li>
+                            <li>
+                                Kit: {{ orden_de_compra.kit == 'SI' ? 'S ' : 'N ' }}
+                            </li>
+                            <li>
+                                Transporte: {{ orden_de_compra.transporte }}
+                            </li>
+                            <li>
+                                Autorizado: {{ orden_de_compra.autorizado == 'SI' ? 'S ' : 'N ' }}
+                            </li>
+                           
+                            <li>
+                                Forma de pago: {{ orden_de_compra.pago }}
+                            </li>
+                            <li>
+                                Cobrador: {{ orden_de_compra.cobrador }}
+                            </li>
+                        </ul>
+                    <div id="modalRemitoBody"></div>
+                    <div id="modalFacturaBody"></div>
+                    <h5>
+                        Remitos
+                    </h5>
+                     <div class="row">
+                        <div class="col-12">
+                            <div id="tabla-remitos">
+                                
+                            </div>
+                        </div>
+                    </div>
+                    <h5>
+                        Facturas
+                    </h5>
+                    <div class="row">
+                        <div class="col-12">
+                            <div id="tabla-facturas">
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endblock %}
+
+    {% block javascripts %}
+        {{ parent() }}
+        <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+        <script>
+        function cargarTablaRemitos() {
+        fetch(`{{ path('app_secure_external_sales_order_ajax_remitos') }}`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('tabla-remitos').innerHTML = html;
+                // Reinicializar DataTable
+                $('#tabla-remitos').DataTable({
+                    language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' }
+                });
+            });
+        }   
+
+        function cargarTablaFacturas() {
+            fetch(`{{ path('app_secure_external_sales_order_ajax_facturas') }}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('tabla-facturas').innerHTML = html;
+                    $('#tabla-facturas').DataTable({
+                        language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' }
+                    });
+                });
+        }
+
+        cargarTablaRemitos();
+        cargarTablaFacturas();
+
+        function abrirModalFactura(facturaId)
+        {
+            fetch(`{{ path('app_secure_external_sales_order_ajax_factura') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({id: facturaId})
+            })
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('modalFacturaBody').innerHTML = html;
+                    const modal = new bootstrap.Modal(document.getElementById('modalFactura'));
+                    modal.show();
+                });
+        }
+        function abrirModalRemito(remitoId)
+        {
+            fetch(`{{ path('app_secure_external_sales_order_ajax_remito') }}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('modalRemitoBody').innerHTML = html;
+                    const modal = new bootstrap.Modal(document.getElementById('modalRemito'));
+                    modal.show();
+                });
+        }
+
+
+        </script>
+    {% endblock %}
+    

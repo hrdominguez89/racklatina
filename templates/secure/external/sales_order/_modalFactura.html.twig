@@ -1,0 +1,59 @@
+<!-- Modal Factura -->
+<div class="modal fade" id="modalFactura" tabindex="-1" aria-labelledby="modalFacturaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalFacturaLabel">Detalle de Factura</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Razón Social:</strong> <span id="factura-razon-social"></span></p>
+                        <p><strong>Cotización:</strong> <span id="factura-cotizacion"></span></p>
+                        <p><strong>Fecha:</strong> <span id="factura-fecha"></span></p>
+                        <p><strong>Estado:</strong> <span id="factura-estado"></span></p>
+                        <p><strong>Artículo:</strong> <span id="factura-articulo"></span></p>
+                        <p><strong>Nombre Artículo:</strong> <span id="factura-nombre-articulo"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Moneda:</strong> <span id="factura-moneda"></span></p>
+                        <p><strong>Cantidad:</strong> <span id="factura-cantidad"></span></p>
+                        <p><strong>Precio:</strong> <span id="factura-precio"></span></p>
+                        <p><strong>Precio Cotizado:</strong> <span id="factura-precio-cotizado"></span></p>
+                        <p><strong>Importe Neto:</strong> <span id="factura-importe-neto"></span></p>
+                        <p><strong>Importe Neto Cotizado:</strong> <span id="factura-importe-neto-cotizado"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function verDetalleFactura(facturaId) {
+    // Buscar la factura en los datos (asumiendo que están disponibles)
+    // const factura = orden_de_compra.facturas.find(f => f.id === facturaId);
+    
+    // if (factura) {
+    //     document.getElementById('factura-razon-social').textContent = factura.Razon_Social || '';
+    //     document.getElementById('factura-cotizacion').textContent = factura.Cotizacion || '';
+    //     document.getElementById('factura-fecha').textContent = factura.Fecha || '';
+    //     document.getElementById('factura-estado').textContent = factura.Estado || '';
+    //     document.getElementById('factura-articulo').textContent = factura.Articulo || '';
+    //     document.getElementById('factura-nombre-articulo').textContent = factura.Nombre_Articulo || '';
+    //     document.getElementById('factura-moneda').textContent = factura.Moneda || '';
+    //     document.getElementById('factura-cantidad').textContent = factura.Cantidad || '';
+    //     document.getElementById('factura-precio').textContent = factura.Precio || '';
+    //     document.getElementById('factura-precio-cotizado').textContent = factura.Precio_Cotizado || '';
+    //     document.getElementById('factura-importe-neto').textContent = factura.ImporteNeto || '';
+    //     document.getElementById('factura-importe-neto-cotizado').textContent = factura.ImporteNeto_Cotizado || '';
+        
+    // }
+    const modal = new bootstrap.Modal(document.getElementById('modalFactura'));
+    modal.show();
+}
+</script>
