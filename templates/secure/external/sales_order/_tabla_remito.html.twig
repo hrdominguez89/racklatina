@@ -1,0 +1,24 @@
+<table id="tabla-remitos" class="table table-sm table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Número</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Cantidad</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for remito in remitos %}
+            <tr>
+                <td>{{ remito.numero }}</td>
+                <td>{{ remito.fecha|date('d/m/Y') }}</td>
+                <td>{{ remito.estado }}</td>
+                <td>{{ remito.cantidad }}</td>
+                <td>
+                    <button onclick="abrirModalRemito({{ remito.numero }})" class="btn btn-sm btn-outline-info">Ver detalle</button>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

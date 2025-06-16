@@ -730,4 +730,61 @@ class Pedidosrelacionados
 
         return $this;
     }
+
+    public function getInfo()
+    {
+        $data = [
+            'dbschemaid' => $this->dbschemaid,
+            'item' => $this->item,
+            'linkr' => $this->linkr,
+            'linkf' => $this->linkf,
+            'articulo' => $this->articulo,
+            'detalle' => $this->detalle,
+            'estado' => $this->estado,
+            'cantidadoriginal' => $this->cantidadoriginal,
+            'precioDolar' => $this->precioDolar,
+            'importeDolar' => $this->importeDolar,
+            'ordencompra' => $this->ordencompra,
+            'cantidadasignada' => $this->cantidadasignada,
+            'fechaEstimada' => $this->fechaEstimada,
+            'fechaBacklog' => $this->fechaBacklog,
+            'fechapedido' => $this->fechapedido->format('Y-m-d'),
+            'fechacarga' => $this->fechacarga->format('Y-m-d'),
+            'codigo' => $this->codigo,
+            'numero' => $this->numero,
+            'cliente' => $this->cliente,
+            'razonsocial' => $this->razonsocial,
+            'estadocliente' => $this->estadocliente,
+            'comercial' => $this->comercial,
+            'usuario' => $this->usuario,
+            'ordencompracliente' => $this->ordencompracliente,
+            'tipoorden' => $this->tipoorden,
+            'deposito' => $this->deposito,
+            'tipopedido' => $this->tipopedido,
+            'kit' => $this->kit,
+            'transporte' => $this->transporte,
+            'lugar' => $this->lugar,
+            'autorizado' => $this->autorizado,
+            'cantEnt' => $this->cantEnt,
+            'cumplio' => $this->cumplio,
+            'preparado' => $this->preparado,
+            'estadointerno' => $this->estadointerno,
+            'fechaentrega' => $this->fechaentrega,
+            'remitos' => $this->remitos,
+            'facturas' => $this->facturas,
+            'facturas2' => $this->facturas2,
+            'pago' => $this->pago,
+            'cobrador' => $this->cobrador,
+            'fechaAntbacklog' => $this->fechaAntbacklog,
+            'salesorder' => $this->salesorder,
+            'recomend' => $this->recomend,
+            'nomrecomend' => $this->nomrecomend,
+            'fecharemitos' => $this->fecharemitos,
+            'fechaentregarem' => $this->fechaentregarem,
+            'hojaruta' => $this->hojaruta,
+        ];
+
+        return json_encode($data);
+
+    }
 }

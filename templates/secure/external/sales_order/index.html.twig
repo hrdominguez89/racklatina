@@ -50,6 +50,9 @@
                                 <th>
                                     Detalle
                                 </th>
+                                <th>
+                                    Acciones
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -69,6 +72,9 @@
                                     </td>
                                     <td>
                                         {{ pedido.detalle }}
+                                    </td>
+                                    <td>
+                                        <a href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle', {'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente}) }}"  class="btn btn-outline-primary btn-sm">Ver en detalle</a>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -94,6 +100,8 @@
                 order: [[3, 'desc']]
             });
         });
+
+
     </script>
     {% endblock %}
     

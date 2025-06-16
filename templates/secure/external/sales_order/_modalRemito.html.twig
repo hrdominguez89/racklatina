@@ -1,0 +1,67 @@
+<!-- Modal Remito -->
+<div class="modal fade" id="modalRemito" tabindex="-1" aria-labelledby="modalRemitoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalRemitoLabel">Detalle de Remito</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>DB Schema ID:</strong> <span id="remito-dbschemaid"></span></p>
+                        <p><strong>Fecha:</strong> <span id="remito-fecha"></span></p>
+                        <p><strong>Remito:</strong> <span id="remito-remito"></span></p>
+                        <p><strong>Número:</strong> <span id="remito-numero"></span></p>
+                        <p><strong>Tipo Comprobante:</strong> <span id="remito-tipo-comprobante"></span></p>
+                        <p><strong>Nombre Comprobante:</strong> <span id="remito-nombre-comprobante"></span></p>
+                        <p><strong>Código Artículo:</strong> <span id="remito-codigo-articulo"></span></p>
+                        <p><strong>Nombre Artículo:</strong> <span id="remito-nombre-articulo"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Servicio:</strong> <span id="remito-servicio"></span></p>
+                        <p><strong>Código Cliente:</strong> <span id="remito-codigo-cliente"></span></p>
+                        <p><strong>Razón Social:</strong> <span id="remito-razon-social"></span></p>
+                        <p><strong>Cotización:</strong> <span id="remito-cotizacion"></span></p>
+                        <p><strong>Moneda:</strong> <span id="remito-moneda"></span></p>
+                        <p><strong>Entregado:</strong> <span id="remito-entregado"></span></p>
+                        <p><strong>Facturado:</strong> <span id="remito-facturado"></span></p>
+                        <p><strong>Pendiente:</strong> <span id="remito-pendiente"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function verDetalleRemito(remitoId) {
+    // Buscar el remito en los datos (asumiendo que están disponibles)
+    // const remito = orden_de_compra.remitos.find(r => r.id === remitoId);
+    
+    // if (remito) {
+    //     document.getElementById('remito-dbschemaid').textContent = remito.dbschemaid || '';
+    //     document.getElementById('remito-fecha').textContent = remito.Fecha || '';
+    //     document.getElementById('remito-remito').textContent = remito.Remito || '';
+    //     document.getElementById('remito-numero').textContent = remito.Numero || '';
+    //     document.getElementById('remito-tipo-comprobante').textContent = remito.Tipo_Comprobante || '';
+    //     document.getElementById('remito-nombre-comprobante').textContent = remito.Nombre_Comprobante || '';
+    //     document.getElementById('remito-codigo-articulo').textContent = remito.Codigo_Articulo || '';
+    //     document.getElementById('remito-nombre-articulo').textContent = remito.Nombre_Articulo || '';
+    //     document.getElementById('remito-servicio').textContent = remito.Servicio || '';
+    //     document.getElementById('remito-codigo-cliente').textContent = remito.Codigo_Cliente || '';
+    //     document.getElementById('remito-razon-social').textContent = remito.Razon_Social || '';
+    //     document.getElementById('remito-cotizacion').textContent = remito.Cotizacion || '';
+    //     document.getElementById('remito-moneda').textContent = remito.Moneda || '';
+    //     document.getElementById('remito-entregado').textContent = remito.Entregado || '';
+    //     document.getElementById('remito-facturado').textContent = remito.Facturado || '';
+    //     document.getElementById('remito-pendiente').textContent = remito.Pendiente || '';
+        
+        // const modal = new bootstrap.Modal(document.getElementById('modalRemito'));
+        // modal.show();
+    // }
+}
+</script>
