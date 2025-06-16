@@ -39,13 +39,12 @@ final class SalesOrderController extends AbstractController
             'pedidos' => $pedidos,
         ]);
     }
-    #[Route('/verEnDetalle', name: 'app_secure_external_sales_order_sales_order_ver_en_detalle', methods: ['POST'])]
+    #[Route('/verEnDetalle/{cliente_id}/{orden_compra_cliente_id}', name: 'app_secure_external_sales_order_sales_order_ver_en_detalle', methods: ['GET'])]
 
-    public function verOrdenDetallada(HttpFoundationRequest $request)
+    public function verOrdenDetallada(HttpFoundationRequest $request, string $cliente_id, string $orden_compra_cliente_id, PedidosrelacionadosRepository $pedidosrelacionadosRepository): Response
     {
-        $info = $request->request->get('info');
-        $ordenDeCompra = json_decode($info, true);
-        
+        $ordenDeCompra =  $pedidosrelacionadosRepository->findOneBy(['cliente' => $cliente_id, 'ordencompracliente' => $orden_compra_cliente_id]);
+        // dd($ordenDeCompra);
         return $this->render('secure/external/sales_order/verDetalleOrdenCompra.html.twig', [
             "orden_de_compra" => $ordenDeCompra
         ]);

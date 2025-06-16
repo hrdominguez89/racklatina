@@ -74,7 +74,7 @@
                                         {{ pedido.detalle }}
                                     </td>
                                     <td>
-                                        <button onclick ="verDetalleOrdenDeCompra({{pedido.info}})"  class="btn btn-outline-primary btn-sm">Ver en detalle</button>
+                                        <a href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle', {'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente}) }}"  class="btn btn-outline-primary btn-sm">Ver en detalle</a>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -101,21 +101,6 @@
             });
         });
 
-        function verDetalleOrdenDeCompra(info) {
-    // Crear un formulario temporal para enviar los datos via POST
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '{{ path("app_secure_external_sales_order_sales_order_ver_en_detalle") }}';
-    
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'info';
-    input.value = JSON.stringify(info);
-    
-    form.appendChild(input);
-    document.body.appendChild(form);
-    form.submit();
-}
 
     </script>
     {% endblock %}
