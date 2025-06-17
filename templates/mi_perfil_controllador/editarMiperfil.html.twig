@@ -3,41 +3,89 @@
 {% block title %}Editar Perfil{% endblock %}
 
 {% block body %}
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <div class="card shadow-sm">
-                    <div class="card-header btn-primary text-white text-center">
-                    <h4 class="mb-0">Editar Perfil</h4>
-                    </div>
-                    <form method="post" action="{{ path('app_editar_perfil_guardar') }}">
-                        <div class="mb-3">
-                            <label for="firstName" class="form-label">Nombre</label>
-                            <input type="text" class="form-control" id="firstName" name="firstName" value="{{ user.firstName }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="lastName" class="form-label">Apellido</label>
-                            <input type="text" class="form-control" id="lastName" name="lastName" value="{{ user.lastName }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Correo Electrónico</label>
-                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="dni" class="form-label">DNI</label>
-                            <input type="text" class="form-control" id="dni" name="dni" value="{{ user.nationalIdNumber }}">
-                        </div>
-
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                        </div>
-                    </form>
-                    </div>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header  text-white">
+                    <h5 class="mb-0">Editar Perfil</h5>
                 </div>
+                <form method="POST" action="{{ path('app_editar_perfil_guardar') }}">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName" class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="firstName" name="firstName" required value="{{ user.firstName ?? '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName" class="form-label">Apellido *</label>
+                                <input type="text" class="form-control" id="lastName" name="lastName" required value="{{ user.lastName ?? '' }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dni" class="form-label">DNI *</label>
+                                <input type="text" class="form-control" id="dni" name="dni" required maxlength="8" value="{{ user.nationalIdNumber ?? '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="birthDate" class="form-label">Fecha de Nacimiento</label>
+                                <input type="date" class="form-control" id="birthDate" name="birthDate" value="{{ user.birthDate is defined and user.birthDate ? user.birthDate|date('Y-m-d') : '' }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Correo Electrónico *</label>
+                                <input type="email" class="form-control" id="email" name="email" required value="{{ user.email ?? '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phoneNumber" class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" id="phoneNumber" name="phoneNumber" value="{{ user.phoneNumber ?? '' }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="cellPhoneNumber" class="form-label">Celular</label>
+                                <input type="text" class="form-control" id="cellPhoneNumber" name="cellPhoneNumber" value="{{ user.cellPhoneNumber ?? '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="companyName" class="form-label">Empresa</label>
+                                <input type="text" class="form-control" id="companyName" name="companyName" value="{{ user.companyName ?? '' }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="jobTitle" class="form-label">Cargo</label>
+                                <input type="text" class="form-control" id="jobTitle" name="jobTitle" value="{{ user.jobTitle ?? '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="sector" class="form-label">Sector</label>
+                                <input type="text" class="form-control" id="sector" name="sector" value="{{ user.sector ?? '' }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="segment" class="form-label">Segmento</label>
+                                <input type="text" class="form-control" id="segment" name="segment" value="{{ user.segment ?? '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="country" class="form-label">País</label>
+                                <input type="text" class="form-control" id="country" name="country" value="{{ user.country ?? '' }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="province" class="form-label">Provincia</label>
+                                <input type="text" class="form-control" id="province" name="province" value="{{ user.province ?? '' }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-end">
+                        <a href="{{ path('app_home') }}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}

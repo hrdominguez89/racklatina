@@ -19,7 +19,9 @@
                             <div class="card-body">
                                 <p class="mb-2"><strong>Nombre:</strong> {{ user.firstName }}</p>
                                 <p class="mb-2"><strong>Apellido:</strong> {{ user.lastName }}</p>
-                                <!-- Agrega más datos según sea necesario -->
+                                <p class="mb-2"><strong>DNI:</strong> {{ user.nationalIdNumber }}</p>
+                                <p class="mb-2"><strong>Fecha de Nacimiento:</strong> {{ user.birthDate is defined ? user.birthDate|date('Y-m-d') : 'No disponible' }}</p>
+                                
                             </div>
                         </div>
                         <div class="card shadow-sm">
@@ -27,9 +29,15 @@
                                 <h5 class="mb-0">Información Adicional</h5>
                             </div>
                             <div class="card-body">
-                                <p class="mb-2"><strong>DNI:</strong> {{ user.nationalIdNumber }}</p>
-                                <p class="mb-2"><strong>Correo:</strong>{{ user.email }}</p>
-                                <!-- Agrega más datos según sea necesario -->
+                                <p class="mb-2"><strong>Correo:</strong> {{ user.email ?? 'No disponible' }}</p>
+                                <p class="mb-2"><strong>Telefono:</strong> {{ user.phoneNumber ?? 'No disponible' }}</p>
+                                <p class="mb-2"><strong>Empresa:</strong> {{ user.companyName ?? 'No disponible' }}</p>
+                                <p class="mb-2"><strong>Celular:</strong> {{ user.cellPhoneNumber ?? 'No disponible' }}</p>
+                                <p class="mb-2"><strong>Cargo:</strong> {{ user.jobTitle ?? 'No disponible' }}</p>
+                                <p class="mb-2"><strong>Sector:</strong> {{ user.sector ?? 'No disponible' }}</p>
+                                <p class="mb-2"><strong>Segmento:</strong> {{ user.segment ?? 'No disponible' }}</p>
+                                <p class="mb-2"><strong>Pais:</strong> {{ user.country ?? 'No disponible' }}</p>
+                                <p class="mb-2"><strong>Provincia:</strong> {{ user.province ?? 'No disponible' }}</p>
                             </div>
                         </div>
                         <div class="d-grid gap-2">
