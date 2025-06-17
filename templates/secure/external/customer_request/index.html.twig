@@ -112,9 +112,15 @@
 											{{ solicitud.createdAt|date('d/m/Y H:i') }}
 										</td>
 										<td>
+											{% if solicitud.status.label == 'Pendiente'  %}
 											<a	href="{{ path('customer_request_edit', { id: solicitud.id }) }}"	class="btn btn-sm btn-warning"	data-turbo="false">
 												<i style="font-size:16px" class="ri-edit-2-fill"></i>
 											</a>
+											{% else %}
+											<a	href="{{ path('customer_request_show', { id: solicitud.id }) }}"	class="btn btn-sm btn-secondary"	data-turbo="false">
+												<i style="font-size:16px" class="ri-eye-fill"></i>
+											</a>
+											{% endif %}
 										</td>
 										
 									</tr>

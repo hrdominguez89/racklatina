@@ -1,9 +1,9 @@
 {# templates/_modal_ver_usuario_cliente.html.twig #}
-<div class="modal fade" id="modalAltaUsuario" tabindex="-1" aria-labelledby="modalAltaUsuarioLabel" aria-hidden="true">
+<div class="modal fade" id="modalVerUsuario" tabindex="-1" aria-labelledby="modalVerUsuarioLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalAltaUsuarioLabel">Ver Usuario - {{ user.firstName }} {{ user.lastName }}</h5>
+                <h5 class="modal-title" id="modalVerUsuarioLabel">Ver Usuario - {{ user.firstName }} {{ user.lastName }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -39,7 +39,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" onclick="modalEditar({{ user.id }})">Editar</button>
+                <button type="button" class="btn btn-primary" onclick="modalEditarEmpleado({{ user.id }})">Editar</button>
             </div>
         </div>
     </div>

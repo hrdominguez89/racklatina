@@ -32,8 +32,7 @@ final class UserController extends AbstractController
         private UserCustomerRepository $userCustomerRepository,
         private SectorsRepository $sectoresRepository,
         private ExternalUserDataRepository $externalUserDataRepository
-        )
-    {
+    ) {
         $this->userRepository = $userRepository;
         $this->userRoleRepository = $userRoleRepository;
         $this->roleRepository = $roleRepository;
@@ -58,12 +57,12 @@ final class UserController extends AbstractController
     public function ajax(Request $request): Response
     {
         $tipo = $request->query->get('tipo', 'empleados');
-        
+
         if ($tipo === 'empleados') {
             $empleados = $this->getEmpleados();
             return $this->render('secure/internal/user/tabla_empleados.html.twig', ['empleados' => $empleados]);
         }
-        
+
         $clientes = $this->getClientes();
         return $this->render('secure/internal/user/tabla_clientes.html.twig', ['clientes' => $clientes]);
     }
@@ -73,21 +72,21 @@ final class UserController extends AbstractController
      */
     public function getEmpleados()
     {
-        
+
         $roles_internos_array = $this->roleRepository->findBy(["type" => "internal"]);
 
-        $roles_internos_ids = array_map(function($rol) {
+        $roles_internos_ids = array_map(function ($rol) {
             return $rol->getId();
         }, $roles_internos_array);
 
-        $usuarios_empleados_array = array_map(function($rol_id) {
+        $usuarios_empleados_array = array_map(function ($rol_id) {
             return $this->userRoleRepository->findBy(['role' => $rol_id]);
-        },$roles_internos_ids);
-        
+        }, $roles_internos_ids);
+
         $usuarios_empleados_ids = [];
 
-        foreach($usuarios_empleados_array as $roles_grupo) {
-            foreach($roles_grupo as $user_role) {
+        foreach ($usuarios_empleados_array as $roles_grupo) {
+            foreach ($roles_grupo as $user_role) {
                 $usuarios_empleados_ids[] = $user_role->getUser()->getId();
             }
         }
@@ -95,17 +94,15 @@ final class UserController extends AbstractController
         $usuarios_empleados_ids_unicos = array_unique($usuarios_empleados_ids);
         $users = [];
 
-        foreach($usuarios_empleados_ids_unicos as $user_id)
-        {
+        foreach ($usuarios_empleados_ids_unicos as $user_id) {
             $aux = $this->userRepository->findOneBy(["id" => $user_id]);
-            if($aux)
-            {
+            if ($aux) {
                 $users[] = $aux;
             }
         }
         return $users;
     }
-     /**
+    /**
      * Funcion auxiliar para el lsitado de los clientes
      * @return array
      */
@@ -113,18 +110,18 @@ final class UserController extends AbstractController
     {
         $roles_internos_array = $this->roleRepository->findBy(["type" => "external"]);
 
-        $roles_internos_ids = array_map(function($rol) {
+        $roles_internos_ids = array_map(function ($rol) {
             return $rol->getId();
         }, $roles_internos_array);
 
-        $usuarios_empleados_array = array_map(function($rol_id) {
+        $usuarios_empleados_array = array_map(function ($rol_id) {
             return $this->userRoleRepository->findBy(['role' => $rol_id]);
-        },$roles_internos_ids);
-        
+        }, $roles_internos_ids);
+
         $usuarios_empleados_ids = [];
-        
-        foreach($usuarios_empleados_array as $roles_grupo) {
-            foreach($roles_grupo as $user_role) {
+
+        foreach ($usuarios_empleados_array as $roles_grupo) {
+            foreach ($roles_grupo as $user_role) {
                 $usuarios_empleados_ids[] = $user_role->getUser()->getId();
             }
         }
@@ -132,11 +129,9 @@ final class UserController extends AbstractController
         $usuarios_empleados_ids_unicos = array_unique($usuarios_empleados_ids);
         $users = [];
 
-        foreach($usuarios_empleados_ids_unicos as $user_id)
-        {
+        foreach ($usuarios_empleados_ids_unicos as $user_id) {
             $aux = $this->userRepository->findOneBy(["id" => $user_id]);
-            if($aux)
-            {
+            if ($aux) {
                 $users[] = $aux;
             }
         }
@@ -145,50 +140,44 @@ final class UserController extends AbstractController
 
     // FUNCIONES PARA ALTAS DE USUARIOS
     #[Route('/crearUsuarios', name: 'app_usuarios_crear', methods: ['POST'])]
-    public function crearUsuarios(Request $request)
+    public function crearUsuarios(Request $request, UserPasswordHasherInterface $passwordHasher)
     {
         $data = [];
-        foreach($request->request as $key => $value) {
+        foreach ($request->request as $key => $value) {
             $data[$key] = $value;
         }
         $tipo_usuario = $data["tipo_usuario"];
-        switch($tipo_usuario) {
+        switch ($tipo_usuario) {
             case "empleado":
-                $flag = $this->crearEmpleado($data);
-                 if($flag)
-                {
-                    $this->addFlash('succes', 'Se dio de alta el usuario.');
-                }
-                else
-                {
+                $flag = $this->crearEmpleado($data, $passwordHasher);
+                if ($flag) {
+                    $this->addFlash('success', 'Se dio de alta el usuario.');
+                } else {
                     $this->addFlash('error', 'No se completo el alta de usuario empleado.');
                 }
                 return $this->redirectToRoute('app_secure_internal_user_user_racklatina');
             case "cliente":
-                $flag = $this->crearCliente($data);
-                if($flag)
-                {
-                    $this->addFlash('succes', 'Se dio de alta el usuario.');
-                }
-                else
-                {
+                $flag = $this->crearCliente($data, $passwordHasher);
+                if ($flag) {
+                    $this->addFlash('success', 'Se dio de alta el usuario.');
+                } else {
                     $this->addFlash('error', 'No se completo el alta de usuario cliente.');
                 }
                 return $this->redirectToRoute('app_secure_internal_user_user_cliente');
         }
     }
-    public function crearEmpleado($data,UserPasswordHasherInterface $passwordHasher)
+    public function crearEmpleado($data, UserPasswordHasherInterface $passwordHasher)
     {
         $form = $this->createForm(UsuarioRacklatinaType::class);
         $form->submit($data);
-        
-        if ( $form->isValid())
-        {
-            $email = $data[ 'email'] ?? null;
-            $password = $data[ 'password']->hashPassword();
-            $firstName = $data[ 'firstName'];
-            $lastName = $data[ 'lastName'];
-            $dni = $data[ 'nationalIdNumber'];
+
+        if ($form->isValid()) {
+
+            $email = $data['email'] ?? null;
+            $password = $data['password'];
+            $firstName = $data['firstName'];
+            $lastName = $data['lastName'];
+            $dni = $data['nationalIdNumber'];
             $rol_id = $data['roles'][0];
             $rol = $this->roleRepository->find(id: $rol_id);
 
@@ -198,54 +187,54 @@ final class UserController extends AbstractController
             $usuario->setFirstName($firstName);
             $usuario->setLastName($lastName);
             $usuario->setNationalIdNumber($dni);
-    
+
             $this->entityManager->persist($usuario);
-    
+
             $usuario_rol = new UserRole();
-    
+
             $usuario_rol->setUser($usuario);
             $usuario_rol->setRole($rol);
-    
+
             $this->entityManager->persist($usuario_rol);
             $this->entityManager->flush();
-    
+
             return true;
         }
         return false;
     }
-    public function crearCliente($data,UserPasswordHasherInterface $passwordHasher) {
+    public function crearCliente($data, UserPasswordHasherInterface $passwordHasher)
+    {
         $form = $this->createForm(UsuarioClienteRacklatinaType::class);
         $form->submit($data);
-        if ( $form->isValid())
-        {
-            $nombre = $data[ 'firstName'];
-            $apellido = $data[ 'lastName'];
-            $email = $data[ 'email'];
-            $password = $data[ 'password'];
-            $dni = $data[ 'dni'];
-            
+        if ($form->isValid()) {
+            $nombre = $data['firstName'];
+            $apellido = $data['lastName'];
+            $email = $data['email'];
+            $password = $data['password'];
+            $dni = $data['dni'];
+
             $user = new User();
             $user->setEmail($email);
             $user->setPassword($passwordHasher->hashPassword($user, $password));
             $user->setFirstName($nombre);
             $user->setLastName($apellido);
-            $user->setNationalIdNumber( $dni);
-            
+            $user->setNationalIdNumber($dni);
+
             $this->entityManager->persist($user);
             $this->entityManager->flush();
-            
+
             $externalUserData = new ExternalUserData();
 
-            $externalUserData->setCompanyName($data[ 'empresa']);
-            $externalUserData->setPhoneNumber($data[ 'celular']);
+            $externalUserData->setCompanyName($data['empresa']);
+            $externalUserData->setPhoneNumber($data['celular']);
 
-            $sector = $this->sectoresRepository->find($data[ 'sector']);
+            $sector = $this->sectoresRepository->find($data['sector']);
             $externalUserData->setSector($sector);
 
-            $externalUserData->setSegmento($data[ 'segmento']);
-            $externalUserData->setJobTitle($data[ 'cargo']);
-            $externalUserData->setPais($data[ 'pais']);
-            $externalUserData->setProvincia($data[ 'provincia']);
+            $externalUserData->setSegmento($data['segmento']);
+            $externalUserData->setJobTitle($data['cargo']);
+            $externalUserData->setPais($data['pais']);
+            $externalUserData->setProvincia($data['provincia']);
             $externalUserData->setUser($user);
 
             $this->entityManager->persist($externalUserData);
@@ -256,20 +245,20 @@ final class UserController extends AbstractController
 
             $userRole->setUser($user);
             $userRole->setRole($this->roleRepository->find(id: 2));
-            
+
             $this->entityManager->persist($userRole);
             $this->entityManager->flush();
-            
+
             return true;
         }
         return false;
     }
     #[Route('/modal-alta-usuario', name: 'app_usuarios_modal_alta')]
-    public function abrirModalAltaUsuario(Request $request,SectorsRepository $sectorsRepository): Response
+    public function abrirModalAltaUsuario(Request $request, SectorsRepository $sectorsRepository): Response
     {
-        if($request->request->get('tipo_usuario') == "empleado"){ 
+        if ($request->request->get('tipo_usuario') == "empleado") {
             $roles = $this->roleRepository->findBy(["type" => "internal"]);
-            $roles_aux = array_map(function($rol) {
+            $roles_aux = array_map(function ($rol) {
                 $aux =  str_replace("ROLE_", "", $rol->getName());
                 $aux =  str_replace("_", " ", $aux);
                 return [
@@ -278,18 +267,16 @@ final class UserController extends AbstractController
                 ];
             }, $roles);
             return $this->render('secure/internal/user/_modal_alta_usuario.html.twig', ["roles" => $roles_aux]);
-        }
-        else
-        {
-        $data["sectores"] = $sectorsRepository->findAll();
-        $data["segmentos"]= [];
-        $data["paises"] =[];
-        $data["provincias"] = [];
+        } else {
+            $data["sectores"] = $sectorsRepository->findAll();
+            $data["segmentos"] = [];
+            $data["paises"] = [];
+            $data["provincias"] = [];
 
-        return $this->render('secure/internal/user/_modal_alta_usuario_cliente.html.twig',$data);
+            return $this->render('secure/internal/user/_modal_alta_usuario_cliente.html.twig', $data);
         }
     }
-  
+
     // FUNCIONES PARA EDICION DE USUARIOS
     #[Route('/abrir-modal-edicion-usuario', name: 'app_usuarios_editar', methods: ['POST'])]
     public function abrirModalEdicionUsuario(Request $request)
@@ -298,11 +285,9 @@ final class UserController extends AbstractController
         $user = $this->userRepository->find($id) ?? null;
 
         if (!$user) {
-            
         }
 
-        if($request->request->get('tipo_usuario') == "empleado")
-        {
+        if ($request->request->get('tipo_usuario') == "empleado") {
             $data = [
                 "user" => $user,
                 "isViewMode" => true // Flag para indicar que es modo vista
@@ -310,44 +295,42 @@ final class UserController extends AbstractController
             return $this->render('secure/internal/user/_modal_editar_usuario_empleado.html.twig', $data);
         };
 
-        $externalUserData = $this->externalUserDataRepository->findOneBy(['user' => $user->getId()])??null; // Aquí deberías obtener los datos del UserCustomer si tienes esa entidad
+        $externalUserData = $this->externalUserDataRepository->findOneBy(['user' => $user->getId()]) ?? null; // Aquí deberías obtener los datos del UserCustomer si tienes esa entidad
         $sectores = $this->sectoresRepository->findAll();
         $data = [
             "user" => $user,
             "externalUserData" => $externalUserData,
-            "mi_sector"=> $externalUserData?->getSector(),
-            "provincias" => ["Bs As","CABA"], // Llenar con los datos reales si los tienes
-            "paises" => ["Argentina","Chile"],
-            "sectores" =>$sectores,
-            "segmentos" => ["Consumo","Produccion"],
+            "mi_sector" => $externalUserData?->getSector(),
+            "provincias" => ["Bs As", "CABA"], // Llenar con los datos reales si los tienes
+            "paises" => ["Argentina", "Chile"],
+            "sectores" => $sectores,
+            "segmentos" => ["Consumo", "Produccion"],
             "isViewMode" => true // Flag para indicar que es modo vista
         ];
         return $this->render('secure/internal/user/_modal_editar_usuario_cliente.html.twig', $data);
     }
-    #[Route('/editar',name:'app_usuarios_editar_guardar',methods:['POST'])]
-    public function editarUsuario(Request $request)
+    #[Route('/editar', name: 'app_usuarios_editar_guardar', methods: ['POST'])]
+    public function editarUsuario(Request $request, UserPasswordHasherInterface $passwordHasher)
     {
         $id = $request->request->get('id');
         $user = $this->userRepository->find($id) ?? null;
 
         if (!$user) {
-            
         }
 
-        if($request->request->get('tipo_usuario') == "empleado")
-        {
+        if ($request->request->get('tipo_usuario') == "empleado") {
             $user->setEmail($request->request->get('email'));
-            $user->setPassword($request->request->get('password'));
+            if ($request->request->get('password') !== '') {
+                $user->setPassword($passwordHasher->hashPassword($user, $request->request->get('password')));
+            }
             $user->setFirstName($request->request->get('firstName'));
             $user->setLastName($request->request->get('lastName'));
             $user->setNationalIdNumber($request->request->get('dni'));
             $this->entityManager->persist($user);
             $this->entityManager->flush();
-            
+
             return $this->redirectToRoute('app_secure_internal_user_user_racklatina');
-        }
-        else
-        {
+        } else {
             $user->setEmail($request->request->get('email'));
             $user->setPassword($request->request->get('password'));
             $user->setFirstName($request->request->get('firstName'));
@@ -361,41 +344,37 @@ final class UserController extends AbstractController
             $externalUserData->setPais($request->request->get('pais'));
             $externalUserData->setProvincia($request->request->get('provincia'));
             $externalUserData->setUser($user);
-            
+
             $sector = $this->sectoresRepository->find($request->request->get('sector'));
-            if($sector){
+            if ($sector) {
                 $externalUserData->setSector($sector);
             }
 
             $this->entityManager->persist($externalUserData);
             $this->entityManager->persist($user);
             $this->entityManager->flush();
-            
+
             return $this->redirectToRoute('app_secure_internal_user_user_cliente');
         }
     }
 
     //FUNCIONES PARA VER USUARIOS
 
-    #[Route("/verDetalle",name:"app_usuarios_ver_detalle",methods:["POST"])]
+    #[Route("/verDetalle", name: "app_usuarios_ver_detalle", methods: ["POST"])]
     public function verDetalleUsuarios(Request $request)
     {
         $id = $request->request->get('id');
         $user = $this->userRepository->find($id) ?? null;
         if (!$user) {
-            
         }
 
-        if($request->request->get('tipo_usuario') == "empleado")
-        {
+        if ($request->request->get('tipo_usuario') == "empleado") {
             $data = [
                 "user" => $user,
                 "isViewMode" => true
             ];
             return $this->render('secure/internal/user/_modal_ver_usuario_empleado.html.twig', $data);
-        }
-        else
-        {
+        } else {
             $externalDataUser = $this->externalUserDataRepository->findOneBy(['user' => $user->getId()]);
             $sector = $externalDataUser?->getSector()?->getName();
 
@@ -403,10 +382,10 @@ final class UserController extends AbstractController
                 "user" => $user,
                 "externalDataUser" => $externalDataUser,
                 "sector" => $sector,
-                "segmentos" => [], 
-                "paises" => [], 
-                "provincias" => [], 
-                "isViewMode" => true 
+                "segmentos" => [],
+                "paises" => [],
+                "provincias" => [],
+                "isViewMode" => true
             ];
             return $this->render('secure/internal/user/_modal_ver_usuario_cliente.html.twig', $data);
         }
@@ -418,7 +397,7 @@ final class UserController extends AbstractController
     {
         $id = $request->request->get('id');
         $user = $this->userRepository->find($id);
-        if($user){
+        if ($user) {
             $this->entityManager->remove($user);
             $this->entityManager->flush();
         }

@@ -20,7 +20,7 @@
                             <li class="breadcrumb-item active">Usuarios Racklatina</li>
                         </ol>
                     </div>
-                <button type="button" class="btn btn-info waves-effect waves-light" onclick="abrirModalAltaUsuario()">
+                <button type="button" class="btn btn-primary" onclick="abrirModalAltaUsuario()">
                     Alta de usuario
                 </button>
                 </div>
@@ -92,25 +92,44 @@
         });
         location.reload();
     }
-     function modalEditarEmpleado(id) {
-         fetch(`{{ path('app_usuarios_editar') }}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `id=${id}&tipo_usuario=empleado`
-    })
-    .then(response => response.text())
-    .then(html => {
-        document.getElementById('modal-container').innerHTML = html;
-        const modal = new bootstrap.Modal(document.getElementById('modalAltaUsuario'));
-        modal.show();
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error al cargar los datos del usuario');
-    });
+    function modalEditarEmpleado(id) {
+        fetch(`{{ path('app_usuarios_editar') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `id=${id}&tipo_usuario=empleado`
+        })
+        .then(response => response.text())
+        .then(html => {
+            const modalVerEl = document.getElementById('modalVerUsuario');
+            const modalVerBackdrop = document.querySelector('.modal-backdrop');
+            const modalVerIsVisible = modalVerEl && modalVerEl.classList.contains('show');
+
+            const showNuevoModal = () => {
+                document.getElementById('modal-container').innerHTML = html;
+                const modalAltaEl = document.getElementById('modalAltaUsuario');
+                const modal = new bootstrap.Modal(modalAltaEl);
+                modal.show();
+            };
+
+            if (modalVerIsVisible) {
+                const modalVer = bootstrap.Modal.getInstance(modalVerEl) || new bootstrap.Modal(modalVerEl);
+                modalVerEl.addEventListener('hidden.bs.modal', () => {
+                    showNuevoModal();
+                }, { once: true });
+                modalVer.hide();
+            } else {
+                showNuevoModal();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar los datos del usuario');
+        });
     }
+
+
     function modalVerEmpleado(id) {
     // Cambiar de GET a POST para coincidir con tu ruta
     fetch(`{{ path('app_usuarios_ver_detalle') }}`, {
@@ -123,7 +142,7 @@
     .then(response => response.text())
     .then(html => {
         document.getElementById('modal-container').innerHTML = html;
-        const modal = new bootstrap.Modal(document.getElementById('modalAltaUsuario'));
+        const modal = new bootstrap.Modal(document.getElementById('modalVerUsuario'));
         modal.show();
     })
     .catch(error => {

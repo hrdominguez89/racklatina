@@ -3,6 +3,7 @@
 namespace App\Controller\Secure\External\CustomerRequest;
 
 use App\Entity\CustomerRequest;
+use App\Entity\UserCustomer;
 use App\Enum\CustomerRequestStatus;
 use App\Enum\CustomerRequestType;
 use App\Repository\ClientesRepository;
@@ -117,6 +118,35 @@ final class CustomerRequestController extends AbstractController
             'cuitInicial' => $primerCuit,
         ]);
     }
+
+    #[Route('/{id}/ver', name: 'customer_request_show')]
+    public function show(CustomerRequest $solicitud, EntityManagerInterface $em): Response
+    {
+        $user = $this->getUser();
+
+        if ($solicitud->getUserRequest() !== $user) {
+            throw $this->createAccessDeniedException('No tenés permiso para ver esta solicitud.');
+        }
+
+        if ($solicitud->getStatus() === CustomerRequestStatus::PENDIENTE) {
+            $this->addFlash('warning', 'Esta solicitud aún no ha sido procesada.');
+            return $this->redirectToRoute('app_secure_external_customer_request');
+        }
+
+        $clienteIdsAprobados = $em->getRepository(UserCustomer::class)
+            ->createQueryBuilder('uc')
+            ->select('uc.cliente')
+            ->where('uc.customerRequest = :req')
+            ->setParameter('req', $solicitud)
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        return $this->render('secure/external/customer_request/show.html.twig', [
+            'solicitud' => $solicitud,
+            'aprobados' => $clienteIdsAprobados,
+        ]);
+    }
+
 
 
 

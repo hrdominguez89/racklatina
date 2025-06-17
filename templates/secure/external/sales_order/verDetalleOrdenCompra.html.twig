@@ -17,14 +17,21 @@
                 <div class="col-12">
                     <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
                         <div class="page-title-right">
-                            <ol class="breadcrumb m-0">
-                                <li class="breadcrumb-item active">
-                                    Mi portal.
-                                </li>
-                                <li class="breadcrumb-item active">
-                                    Pedidos.
-                                </li>
-                            </ol>
+                            <ol	class="breadcrumb m-0">
+								<li	class="breadcrumb-item">
+									<a	href="{{ path('app_home') }}">
+										Mi portal
+									</a>
+								</li>
+                                <li	class="breadcrumb-item">
+									<a	href="{{ path('app_secure_external_sales_order_sales_order') }}">
+										Ordenes de compra
+									</a>
+								</li>
+								<li	class="breadcrumb-item active">
+									Informacion de la orden de compra
+								</li>
+							</ol>
                         </div>
                     </div>
                 </div>
@@ -169,6 +176,13 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12 text-end">
+                    <a class="btn btn-secondary" href="{{ path('app_secure_external_sales_order_sales_order') }}">
+                        Volver
+                    </a>
                 </div>
             </div>
         </div>

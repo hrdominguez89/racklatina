@@ -6,7 +6,7 @@ use App\Repository\FacturasRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Table(name: 'facturas')]
+#[ORM\Table(name: 'Facturas')]
 #[ORM\Entity(repositoryClass: FacturasRepository::class, readOnly: true)]
 class Facturas
 {

@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+{% block title %}
+	Detalle de Solicitud
+{% endblock %}
+{% block body %}
+	<div	class="container-fluid">
+		<div	class="row">
+				<div	class="col-12">
+					<div	class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+
+						<div	class="page-title-right">
+							<ol	class="breadcrumb m-0">
+								<li	class="breadcrumb-item">
+									<a	href="{{ path('app_home') }}">
+										Mi portal
+									</a>
+								</li>
+								<li	class="breadcrumb-item">
+									<a	href="{{ path('app_secure_external_customer_request') }}">
+										Mis solicitudes
+									</a>
+								</li>
+								<li	class="breadcrumb-item active">
+									Ver solicitud
+								</li>
+							</ol>
+						</div>
+
+					</div>
+				</div>
+			</div>
+		<h2	class="mt-4 mb-3">
+			Detalle de Solicitud
+		</h2>
+		<div	class="mb-3">
+			<strong>
+				Fecha de creación:
+			</strong>
+			{{ solicitud.createdAt|date('d/m/Y H:i') }}
+			<br>
+				<strong>
+					Estado general: {{solicitud.status.label()}}
+				</strong>
+				{% set estado = solicitud.status.value %}
+				{% if estado == 'APROBADO' %}
+					<span	class="badge bg-success">
+						{{ estado|lower }}
+					</span>
+				{% elseif estado == 'RECHAZADO' %}
+					<span	class="badge bg-danger">
+						{{ estado|lower }}
+					</span>
+				{% elseif estado == 'PARCIALMENTE_APROBADO' %}
+					<span	class="badge bg-warning text-dark">
+						{{ estado|lower }}
+					</span>
+				{% endif %}
+			</div>
+			<table	class="table table-hover table-bordered align-middle">
+				<thead	class="table-dark">
+					<tr>
+						<th>
+							#
+						</th>
+						<th>
+							Razón Social
+						</th>
+						<th>
+							CUIT
+						</th>
+						<th>
+							Estado individual
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for cliente in solicitud.data %}
+						{% set aprobado = cliente.id in aprobados %}
+						<tr>
+							<td>
+								{{ loop.index }}
+							</td>
+							<td>
+								{{ cliente.razonSocial }}
+							</td>
+							<td>
+								{{ cliente.cuit }}
+							</td>
+							<td>
+								{% if aprobado %}
+									<span	class="badge bg-success">
+										Aprobado
+									</span>
+								{% else %}
+									<span	class="badge bg-danger">
+										Rechazado
+									</span>
+								{% endif %}
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	{% endblock %}
+	

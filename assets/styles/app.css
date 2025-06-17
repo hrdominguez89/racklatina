@@ -229,6 +229,15 @@ a:focus {
   color: var(--rkl-primary-hover);
 }
 
+a.btn.btn-sm.btn-warning:hover,
+a.btn.btn-sm.btn-warning:focus,
+a.btn.btn-sm.btn-warning:active,
+a.btn.btn-sm.btn-warning:link,
+a.btn.btn-sm.btn-warning:visited {
+    color: #fff;
+    text-decoration: none;
+}
+
 /* ------------------------
    UTILIDADES DE TEXTO Y FONDO
 ------------------------- */

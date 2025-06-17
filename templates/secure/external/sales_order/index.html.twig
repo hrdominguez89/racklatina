@@ -1,35 +1,32 @@
 {% extends 'base.html.twig' %}
-
 {% block title %}
     Pedidos Relacionados
 {% endblock %}
-
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     {% endblock %}
-
     {% block body %}
         <div class="container-fluid">
-
             <!-- start page title -->
             <div class="row">
                 <div class="col-12">
                     <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
                         <div class="page-title-right">
                             <ol class="breadcrumb m-0">
-                                <li class="breadcrumb-item active">
-                                    Mi portal
+                                <li class="breadcrumb-item">
+                                    <a href="{{ path('app_home') }}">
+                                        Mi portal
+                                    </a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    Pedidos
+                                    Ordenes de compra
                                 </li>
                             </ol>
                         </div>
                     </div>
                 </div>
             </div>
-
             <div class="row mt-4">
                 <div class="col-12">
                     <table id="tabla-pedidos" class="table table-striped">
@@ -74,7 +71,9 @@
                                         {{ pedido.detalle }}
                                     </td>
                                     <td>
-                                        <a href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle', {'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente}) }}"  class="btn btn-outline-primary btn-sm">Ver en detalle</a>
+                                        <a href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle', {'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente}) }}" class="btn btn-outline-primary btn-sm">
+                                            Detalle
+                                        </a>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -82,10 +81,15 @@
                     </table>
                 </div>
             </div>
-
+            <div class="row mt-4">
+                <div class="col-12 text-end">
+                    <a class="btn btn-secondary" href="{{ path('app_home') }}">
+                        Volver
+                    </a>
+                </div>
+            </div>
         </div>
     {% endblock %}
-
     {% block javascripts %}
         {{ parent() }}
         <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>

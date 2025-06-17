@@ -36,27 +36,27 @@
                     {% for cliente in clientes %}
                         <tr>
                             <td>
-                                <input type="checkbox" name="aprobados[]" value="{{ cliente.id }}"></td>
-                                <td>
-                                    {{ cliente.razonSocial }}
-                                </td>
-                                <td>
-                                    {{ cliente.cuit }}
-                                </td>
-                                <td>
-                                    {{ cliente.id }}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <div class="text-end">
-                    <button type="submit" class="btn btn-success">
-                        <i class="ri-check-line"></i>
-                        Confirmar aprobación
-                    </button>
-                </div>
-            </form>
-        </div>
-    {% endblock %}
-    
+                                <input type="checkbox" name="aprobados[]" value="{{ cliente.id }}" />
+                            </td>
+                            <td>
+                                {{ cliente.razonSocial }}
+                            </td>
+                            <td>
+                                {{ cliente.cuit }}
+                            </td>
+                            <td>
+                                {{ cliente.id }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="text-end">
+                <button type="submit" class="btn btn-success">
+                    <i class="ri-check-line"></i>
+                    Confirmar aprobación
+                </button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

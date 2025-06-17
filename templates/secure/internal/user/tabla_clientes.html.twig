@@ -1,26 +1,32 @@
 <table id="tabla-usuarios" class="table table-sm table-striped table-bordered">
     <thead>
         <tr>
-            <th>ID</th><th>Email</th><th>Nombre</th><th>Apellido</th><th>DNI</th><th>Roles</th><th>Acciones</th>
+            <th class="text-center">ID</th>
+            <th class="text-center">Email</th>
+            <th class="text-center">Nombre</th>
+            <th class="text-center">Apellido</th>
+            <th class="text-center">DNI</th>
+            <th class="text-center">Roles</th>
+            <th class="text-center">Acciones</th>
         </tr>
     </thead>
     <tbody>
         {% for user in clientes %}
             <tr>
-                <td>{{ user.id }}</td>
+                <td class="text-center">{{ user.id }}</td>
                 <td>{{ user.email ?? null }}</td>
                 <td>{{ user.firstName }}</td>
                 <td>{{ user.lastName }}</td>
-                <td>{{ user.nationalIdNumber }}</td>
-                <td>
+                <td class="text-center">{{ user.nationalIdNumber }}</td>
+                <td class="text-center">
                     {% for rol in user.getRoles %}
                         <span class="badge bg-secondary"> {{ rol|replace({'ROLE_': ''})|replace({'_': ' '})|title }} </span>
                     {% endfor %}
                 </td>
-                <td>
-                    <button onclick ="modalVer({{user.id}})" class="btn btn-sm btn-outline-primary">Ver</button>
-                    <button onclick="modalEditar({{user.id}})" class="btn btn-sm btn-outline-primary">Editar</button>
-                    <button onclick="EliminarUsuario({{user.id}})" class="btn btn-sm btn-outline-primary">Eliminar</button>
+                <td class="text-center">
+                    <button onclick ="modalVer({{user.id}})" class="btn btn-sm btn-secondary mx-1" title="Ver usuario"><i style="font-size:16px;" class="ri-eye-fill"></i></button>
+                    <button onclick="modalEditar({{user.id}})" class="btn btn-sm btn-warning mx-1" title="Editar usuario"><i style="font-size:16px;" class="ri-edit-2-fill"></i></button>
+                    <button onclick="EliminarUsuario({{user.id}})" class="btn btn-sm btn-danger mx-1" title="Eliminar usuario"><i style="font-size:16px;" class="ri-delete-bin-6-fill"></i></button>
                 </td>
             </tr>
         {% endfor %}
