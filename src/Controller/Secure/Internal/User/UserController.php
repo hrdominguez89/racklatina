@@ -332,7 +332,9 @@ final class UserController extends AbstractController
             return $this->redirectToRoute('app_secure_internal_user_user_racklatina');
         } else {
             $user->setEmail($request->request->get('email'));
-            $user->setPassword($request->request->get('password'));
+            if ($request->request->get('password') !== '') {
+                $user->setPassword($passwordHasher->hashPassword($user, $request->request->get('password')));
+            }
             $user->setFirstName($request->request->get('firstName'));
             $user->setLastName($request->request->get('lastName'));
             $user->setNationalIdNumber($request->request->get('dni'));
