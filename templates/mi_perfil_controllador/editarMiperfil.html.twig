@@ -28,54 +28,49 @@
                                 <input type="text" class="form-control" id="dni" name="dni" required maxlength="8" value="{{ user.nationalIdNumber ?? '' }}">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="birthDate" class="form-label">Fecha de Nacimiento</label>
-                                <input type="date" class="form-control" id="birthDate" name="birthDate" value="{{ user.birthDate is defined and user.birthDate ? user.birthDate|date('Y-m-d') : '' }}">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
                                 <label for="email" class="form-label">Correo Electrónico *</label>
                                 <input type="email" class="form-control" id="email" name="email" required value="{{ user.email ?? '' }}">
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="phoneNumber" class="form-label">Teléfono</label>
-                                <input type="text" class="form-control" id="phoneNumber" name="phoneNumber" value="{{ user.phoneNumber ?? '' }}">
-                            </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="cellPhoneNumber" class="form-label">Celular</label>
-                                <input type="text" class="form-control" id="cellPhoneNumber" name="cellPhoneNumber" value="{{ user.cellPhoneNumber ?? '' }}">
+                                <label for="phoneNumber" class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" id="phoneNumber" name="phoneNumber" value="{{ external_user_data.phoneNumber ?? '' }}">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="companyName" class="form-label">Empresa</label>
-                                <input type="text" class="form-control" id="companyName" name="companyName" value="{{ user.companyName ?? '' }}">
+                                <input type="text" class="form-control" id="companyName" name="companyName" value="{{ external_user_data.companyName ?? '' }}">
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="jobTitle" class="form-label">Cargo</label>
-                                <input type="text" class="form-control" id="jobTitle" name="jobTitle" value="{{ user.jobTitle ?? '' }}">
+                                <input type="text" class="form-control" id="jobTitle" name="jobTitle" value="{{ external_user_data.jobTitle ?? '' }}">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="sector" class="form-label">Sector</label>
-                                <input type="text" class="form-control" id="sector" name="sector" value="{{ user.sector ?? '' }}">
+                                <select name="sector" class="form-select" id="sector">
+                                    <option value="">Seleccione un sector</option>
+                                    {% for sector in sectores %}
+                                        <option value="{{ sector.id }}" {% if external_user_data.sector.id and sector.id == external_user_data.sector.id %}selected{% endif %}>{{ sector.name }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="segment" class="form-label">Segmento</label>
-                                <input type="text" class="form-control" id="segment" name="segment" value="{{ user.segment ?? '' }}">
+                                <input type="text" class="form-control" id="segment" name="segment" value="{{ external_user_data.segmento ?? '' }}">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="country" class="form-label">País</label>
-                                <input type="text" class="form-control" id="country" name="country" value="{{ user.country ?? '' }}">
+                                <input type="text" class="form-control" id="country" name="country" value="{{ external_user_data.pais ?? '' }}">
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="province" class="form-label">Provincia</label>
-                                <input type="text" class="form-control" id="province" name="province" value="{{ user.province ?? '' }}">
+                                <input type="text" class="form-control" id="province" name="province" value="{{ external_user_data.provincia ?? '' }}">
                             </div>
                         </div>
                     </div>
