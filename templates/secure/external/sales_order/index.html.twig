@@ -33,13 +33,13 @@
                         <thead>
                             <tr>
                                 <th>
-                                    Cliente
+                                    Orden Compra Cliente
+                                </th>
+                                <th>
+                                    Nro pedido
                                 </th>
                                 <th>
                                     Razón Social
-                                </th>
-                                <th>
-                                    Orden Compra
                                 </th>
                                 <th>
                                     Fecha Pedido
@@ -47,6 +47,8 @@
                                 <th>
                                     Detalle
                                 </th>
+                                <th>
+                                    Estado
                                 <th>
                                     Acciones
                                 </th>
@@ -56,19 +58,22 @@
                             {% for pedido in pedidos %}
                                 <tr>
                                     <td>
-                                        {{ pedido.cliente }}
+                                        {{ pedido.ordencompracliente }}
+                                    </td>
+                                    <td>
+                                        {{ pedido.numero }}
                                     </td>
                                     <td>
                                         {{ pedido.razonsocial }}
-                                    </td>
-                                    <td>
-                                        {{ pedido.ordencompra }}
                                     </td>
                                     <td>
                                         {{ pedido.fechapedido ? pedido.fechapedido|date('d/m/Y') : '' }}
                                     </td>
                                     <td>
                                         {{ pedido.detalle }}
+                                    </td>
+                                    <td>
+                                        {{ pedido.estado }}
                                     </td>
                                     <td>
                                         <a href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle', {'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente}) }}" class="btn btn-outline-primary btn-sm">

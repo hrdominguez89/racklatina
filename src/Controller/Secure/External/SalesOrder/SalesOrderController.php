@@ -2,8 +2,12 @@
 
 namespace App\Controller\Secure\External\SalesOrder;
 
+use App\Entity\Pedidosrelacionados;
+use App\Repository\FacturasRepository;
 use App\Repository\PedidosrelacionadosRepository;
+use App\Repository\RemitosRepository;
 use App\Repository\UserCustomerRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\BrowserKit\Request;
 use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
@@ -27,29 +31,77 @@ final class SalesOrderController extends AbstractController
             ->setParameter('usuario', $usuario)
             ->getQuery()
             ->getSingleColumnResult();
-
         // Buscar los pedidos relacionados de esos clientes
         $pedidos = $pedidosrelacionadosRepository->createQueryBuilder('p')
             ->where('p.cliente IN (:clientes)')
             ->setParameter('clientes', $clientes)
             ->getQuery()
-            ->getResult();
+            ->getArrayResult();
 
         return $this->render('secure/external/sales_order/index.html.twig', [
             'pedidos' => $pedidos,
         ]);
     }
-    #[Route('/verEnDetalle/{cliente_id}/{orden_compra_cliente_id}', name: 'app_secure_external_sales_order_sales_order_ver_en_detalle', methods: ['GET'])]
+    #[Route('/detalle/{cliente_id}/{orden_compra_cliente_id}', name: 'app_secure_external_sales_order_sales_order_ver_en_detalle', methods: ['GET'])]
 
-    public function verOrdenDetallada(HttpFoundationRequest $request, string $cliente_id, string $orden_compra_cliente_id, PedidosrelacionadosRepository $pedidosrelacionadosRepository): Response
+    public function detalle(HttpFoundationRequest $request, string $cliente_id, string $orden_compra_cliente_id, PedidosrelacionadosRepository $pedidosrelacionadosRepository, EntityManagerInterface $em): Response
     {
         $ordenDeCompra =  $pedidosrelacionadosRepository->findOneBy(['cliente' => $cliente_id, 'ordencompracliente' => $orden_compra_cliente_id]);
-        // dd($ordenDeCompra);
-        return $this->render('secure/external/sales_order/verDetalleOrdenCompra.html.twig', [
-            "orden_de_compra" => $ordenDeCompra
+
+        $ordenesDeCompra = $em->createQueryBuilder()
+            ->select('p')
+            ->from(Pedidosrelacionados::class, 'p')
+            ->where('p.cliente = :cliente')
+            ->andWhere('p.ordencompracliente = :orden')
+            ->setParameter('cliente', $cliente_id)
+            ->setParameter('orden', $orden_compra_cliente_id)
+            ->getQuery()
+            ->getArrayResult();
+
+        return $this->render('secure/external/sales_order/detalle.html.twig', [
+            "orden_de_compra" => $ordenDeCompra,
+            "ordenes_de_compra" => $ordenesDeCompra,
         ]);
     }
-    
+
+    #[Route('/remito/{numero}', name: 'app_remito_show')]
+    public function verRemito(string $numero, RemitosRepository $remitosRepository): Response
+    {
+        $remitos = $remitosRepository->findBy([
+            'remito' => $numero
+        ]);
+
+        if (!$remitos) {
+            // no tirar excepción, dejá que Twig lo maneje
+            $remitos = [];
+        }
+
+        return $this->render('secure/external/sales_order/remito.html.twig', [
+            'remitos' => $remitos,
+            'numero' => $numero
+        ]);
+    }
+
+
+
+
+    #[Route('/factura/{numero}', name: 'app_factura_show')]
+    public function verFactura(string $numero, FacturasRepository $facturasRepository): Response
+    {
+        // Eliminamos prefijos como FA, CA, etc.
+        $numeroLimpio = preg_replace('/^[A-Z]+/', '', $numero);
+
+        $facturas = $facturasRepository->findBy([
+            'numero' => $numeroLimpio
+        ]);
+
+        return $this->render('secure/external/sales_order/factura.html.twig', [
+            'facturas' => $facturas,
+            'numero' => $numero
+        ]);
+    }
+
+
     #[Route('/ajax/remitos', name: 'app_secure_external_sales_order_ajax_remitos')]
     public function ajaxRemitos(HttpFoundationRequest $request): Response
     {
@@ -86,20 +138,26 @@ final class SalesOrderController extends AbstractController
         // $data = $request->request->get('factura');
         // $factura = json_decode($data, true);
         $facturas = [
-            ["numero" => "001-0000001",
-            "fecha" => "2022-01-01",
-            "importe" => 1000.00,
-            "estado" => "Pendiente"],
-            ["numero" => "001-0000002",
-            "fecha" => "2022-01-02",
-            "importe" => 2000.00,
-            "estado" => "Pendiente"],
-            ["numero" => "001-0000003",
-            "fecha" => "2022-01-03",
-            "importe" => 3000.00,
-            "estado" => "Pendiente"]
+            [
+                "numero" => "001-0000001",
+                "fecha" => "2022-01-01",
+                "importe" => 1000.00,
+                "estado" => "Pendiente"
+            ],
+            [
+                "numero" => "001-0000002",
+                "fecha" => "2022-01-02",
+                "importe" => 2000.00,
+                "estado" => "Pendiente"
+            ],
+            [
+                "numero" => "001-0000003",
+                "fecha" => "2022-01-03",
+                "importe" => 3000.00,
+                "estado" => "Pendiente"
+            ]
         ];
-       
+
         return $this->render('secure/external/sales_order/_tabla_factura.html.twig', [
             'facturas' => $facturas
         ]);
@@ -116,7 +174,7 @@ final class SalesOrderController extends AbstractController
             "importe" => 1000.00,
             "estado" => "Pendiente"
         ];
-       
+
         return $this->render('secure/external/sales_order/_modalFactura.html.twig', [
             'factura' => $factura
         ]);
@@ -131,11 +189,9 @@ final class SalesOrderController extends AbstractController
             "estado" => "Pendiente",
             "cantidad" => 100
         ];
-       
+
         return $this->render('secure/external/sales_order/_modalRemito.html.twig', [
             'remito' => $remito
         ]);
     }
-
-
 }
