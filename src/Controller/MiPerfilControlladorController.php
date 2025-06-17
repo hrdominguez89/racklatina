@@ -45,7 +45,7 @@ final class MiPerfilControlladorController extends AbstractController{
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
-        return $this->render('mi_perfil_controllador/miPerfil.html.twig', [
+        return $this->render('secure/external/home/index.html.twig', [
             'controller_name' => 'MiPerfilControlladorController',
             'user' => $this->getUser()
         ]);

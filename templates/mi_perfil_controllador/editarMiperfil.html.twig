@@ -7,10 +7,10 @@
     <div class="row justify-content-center">
         <div class="col-md-10 col-lg-8">
             <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header  text-white">
                     <h5 class="mb-0">Editar Perfil</h5>
                 </div>
-                <form method="POST" action="{{ path('app_mi_perfil_controllador_edicion') }}">
+                <form method="POST" action="{{ path('app_editar_perfil_guardar') }}">
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -80,8 +80,8 @@
                         </div>
                     </div>
                     <div class="card-footer text-end">
-                        <a href="{{ path('app_mi_perfil_controllador') }}" class="btn btn-secondary">Cancelar</a>
-                        <button type="submit" class="btn btn-success">Guardar Cambios</button>
+                        <a href="{{ path('app_home') }}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                     </div>
                 </form>
             </div>
