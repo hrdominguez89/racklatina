@@ -35,7 +35,7 @@ final class MiPerfilControlladorController extends AbstractController{
     public function editarPerfil(Request $request): Response
     {
         $externalUserData = $this->externalUserDataRepository->findOneBy(['user' => $this->getUser()->getId()]);
-        return $this->render('mi_perfil_controllador/editarMiPerfil.html.twig', [
+        return $this->render('mi_perfil_controllador/editarMiperfil.html.twig', [
             'controller_name' => 'MiPerfilControlladorController',
             'user' => $this->getUser(),
             'external_user_data' => $externalUserData,
