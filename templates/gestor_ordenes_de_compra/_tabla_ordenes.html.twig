@@ -1,0 +1,44 @@
+<table id="tabla-ordenes" class="table table-sm table-striped table-bordered">
+    <thead>
+        <tr>
+             <th>
+                Orden Compra Cliente
+            </th>
+            <th>
+                Nro pedido
+            </th>
+            <th>
+                Razón Social
+            </th>
+            <th>
+                Fecha Pedido
+            </th>
+            <th>
+                Detalle
+            </th>
+            <th>
+                Estado
+            </th>
+            <th>
+                Acciones
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for orden in ordenes %}
+            <tr>
+                <td>{{ orden.ordenCompraCliente }}</td>
+                <td>{{ orden.numero }}</td>
+                <td>{{ orden.razonSocial }}</td>
+                <td>{{ orden.fechaPedido|date('d/m/Y') }}</td>
+                <td>{{ orden.detalle }}</td>
+                <td>{{ orden.estado }}</td>
+                <td>
+                    <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle', {'cliente_id': orden.cliente, 'orden_compra_cliente_id': orden.ordencompracliente}) }}" class="btn btn-outline-primary btn-sm">
+                        Detalle
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

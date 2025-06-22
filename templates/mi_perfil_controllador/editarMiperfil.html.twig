@@ -52,9 +52,20 @@
                                 <select name="sector" class="form-select" id="sector">
                                     <option value="">Seleccione un sector</option>
                                     {% for sector in sectores %}
-                                        <option value="{{ sector.id }}" {% if external_user_data.sector.id and sector.id == external_user_data.sector.id %}selected{% endif %}>{{ sector.name }}</option>
+                                        <option value="{{ sector.id }}" {% if external_user_data.sector and sector.id == external_user_data.sector.id %}selected{% endif %}{% if sector.requiresData %}
+                                        data-requires-data-extra="true"
+                                    {% endif %}>{{ sector.name }}</option>
                                     {% endfor %}
                                 </select>
+                            </div>
+                            <!-- Campo adicional para sector (inicialmente oculto) -->
+                            <div class="" id="divSectorExtraData" style="display: none;">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label for="sectorExtraData" class="form-label">Describa sector</label>
+                                        <input type="text" name="sectorExtraData" class="form-control" id="sectorExtraData" placeholder="Especifique el sector..." value={{external_user_data.sectorExtraData ?? null}} > 
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="row">
@@ -83,4 +94,69 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Debug: Verificar que los elementos existen
+    const sectorSelect = document.getElementById('sector');
+    const divSectorExtraData = document.getElementById('divSectorExtraData');
+    const sectorExtraDataInput = document.getElementById('sectorExtraData');
+    
+    console.log('Sector select encontrado:', sectorSelect);
+    console.log('Div extra data encontrado:', divSectorExtraData);
+    console.log('Input extra data encontrado:', sectorExtraDataInput);
+    
+    if (sectorSelect && divSectorExtraData && sectorExtraDataInput) {
+        
+        // Función para manejar el cambio
+        function handleSectorChange() {
+            console.log('Evento change disparado');
+            console.log('Valor seleccionado:', sectorSelect.value);
+            
+            const selectedOption = sectorSelect.options[sectorSelect.selectedIndex];
+            console.log('Opción seleccionada:', selectedOption);
+            
+            if (selectedOption) {
+                const requiresExtraData = selectedOption.getAttribute('data-requires-data-extra');
+                console.log('data-requires-data-extra:', requiresExtraData);
+                
+                if (requiresExtraData === 'true') {
+                    console.log('Mostrando campo adicional');
+                    divSectorExtraData.style.display = 'block'; // Cambié de 'flex' a 'block'
+                    sectorExtraDataInput.setAttribute('required', 'required');
+                } else {
+                    console.log('Ocultando campo adicional');
+                    divSectorExtraData.style.display = 'none';
+                    sectorExtraDataInput.removeAttribute('required');
+                    sectorExtraDataInput.value = '';
+                }
+            }
+        }
+        
+        // Agregar el event listener
+        sectorSelect.addEventListener('change', handleSectorChange);
+        
+        // También ejecutar al cargar la página por si ya hay un valor seleccionado
+        handleSectorChange();
+        
+    } else {
+        console.error('No se encontraron todos los elementos necesarios');
+        console.error('sectorSelect:', sectorSelect);
+        console.error('divSectorExtraData:', divSectorExtraData);
+        console.error('sectorExtraDataInput:', sectorExtraDataInput);
+    }
+});
+
+// Versión alternativa más simple para testing
+function testSectorChange() {
+    const sectorSelect = document.getElementById('sector');
+    if (sectorSelect) {
+        sectorSelect.addEventListener('change', function(e) {
+            console.log('TEST: Cambio detectado', e.target.value);
+            alert('Cambio detectado: ' + e.target.value);
+        });
+    }
+}
+</script>
 {% endblock %}

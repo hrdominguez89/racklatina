@@ -46,23 +46,25 @@ final class MiPerfilControlladorController extends AbstractController{
     #[Route('/mi/perfil/controllador/edicion/guardar', name: 'app_editar_perfil_guardar', methods: ['POST'])]
     public function guardarCambiosPerfil(Request $request): Response
     {
+        $data = $request->request->all();
+
         $user = $this->getUser();
-        $user->setFirstName($request->request->get('firstName'));
-        $user->setLastName($request->request->get('lastName'));
-        $user->setEmail($request->request->get('email'));
-        $user->setNationalIdNumber($request->request->get('dni'));
+        $user->setFirstName($data['firstName'] ?? null);
+        $user->setLastName($data['lastName'] ?? null);
+        $user->setEmail($data['email'] ?? null);
+        $user->setNationalIdNumber($data['dni'] ?? null);
 
         $id = $user->getId();
         $userExternalData = $this->externalUserDataRepository->findOneBy(['user' => $id]);
-        $userExternalData->setJobTitle($request->request->get('jobTitle'));
-        $userExternalData->setCompanyName($request->request->get('companyName'));
-        $userExternalData->setPais($request->request->get('country'));
-        $userExternalData->setProvincia($request->request->get('province'));
-        $userExternalData->setSegmento($request->request->get('segment'));
-        $sector = $this->sectorRepoitory->find($request->request->get('sector'));
+        $userExternalData->setJobTitle($data['jobTitle'] ?? null);
+        $userExternalData->setCompanyName($data['companyName'] ?? null);
+        $userExternalData->setPais($data['country'] ?? null);
+        $userExternalData->setProvincia($data['province'] ?? null);
+        $userExternalData->setSegmento($data['segment'] ?? null);
+        $sector = $this->sectorRepoitory->find($data['sector'] ?? null);
         $userExternalData->setSector($sector);
-        $userExternalData->setPhoneNumber($request->request->get('phoneNumber'));
-        
+        $userExternalData->setPhoneNumber($data['phoneNumber'] ?? null);
+        $userExternalData->setSectorExtraData($data['sectorExtraData'] ?? null);
         $this->entityManager->persist($userExternalData);
         $this->entityManager->persist($user);
         $this->entityManager->flush();

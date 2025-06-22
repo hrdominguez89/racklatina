@@ -229,7 +229,7 @@
                 
                 // Cargar contenido via AJAX
                 $.ajax({
-                    url: "{{path('app_remito_show',{'numero':'PLACEHOLDER'})}}".replace('PLACEHOLDER', numeroRemito),
+                    url: "{{path('app_remito_show_int',{'numero':'PLACEHOLDER'})}}".replace('PLACEHOLDER', numeroRemito),
                     type: 'GET',
                     success: function(response) {
                         modalRemitoBody.html(response);
@@ -262,7 +262,7 @@
                 
                 // Cargar contenido via AJAX
                 $.ajax({
-                    url: "{{path('app_factura_show',{'numero':'PLACEHOLDER'})}}".replace('PLACEHOLDER', numeroFactura),
+                    url: "{{path('app_factura_show_int',{'numero':'PLACEHOLDER'})}}".replace('PLACEHOLDER', numeroFactura),
                     type: 'GET',
                     success: function(response) {
                         modalFacturaBody.html(response);

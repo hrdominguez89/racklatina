@@ -7,7 +7,6 @@
 {% block body %}
 
 	<div	class="container-fluid">
-
 		<!-- start page title -->
 		<div	class="row">
 			<div	class="col-12">
@@ -26,7 +25,7 @@
 		</div>
 		<!-- end page title -->
 		<div	class="row">
-			<div	class="col-12 col-md-4">
+			<div	class="col-12 col-md-6">
 				<!-- Simple card -->
 				<a	href="{{ path('app_secure_internal_user_user_racklatina') }}">
 					<div	class="card">
@@ -45,7 +44,7 @@
 					</a>
 				<!-- end card -->
 				</div>
-				<div	class="col-12 col-md-4">
+				<div	class="col-12 col-md-6">
 				<!-- Simple card -->
 				<a	href="{{ path('app_secure_internal_user_user_cliente') }}">
 					<div	class="card">
@@ -64,26 +63,48 @@
 					</a>
 				<!-- end card -->
 				</div>
-				<div	class="col-12 col-md-4">
-					<!-- Simple card -->
-					<a	href="{{ path('app_secure_internal_customer_request') }}">
-						<div	class="card">
-							<img	class="card-img-top img-fluid"	height="150"	src="{{ asset('images/solicitudes.png') }}"	alt="Card image cap">
-								<div	class="card-body"	style="min-height: 190px;">
-									<h4	class="card-title mb-2">
-										Gestión de solicitudes
-									</h4>
-									<p	class="card-text">
-										Desde aquí podrás ver y gestionar las solicitudes enviadas por los usuarios para acceder a funcionalidades o permisos específicos dentro de la plataforma. Podés aprobarlas, rechazarlas o revisarlas en detalle.
-									</p>
-									<div	class="text-end"></div>
-								</div>
-							</div>
-						</a>
-					<!-- end card -->
-					</div>
-				<!-- end col -->
-				</div>
 			</div>
-		{% endblock %}
+			<div class="row">
+			<div	class="col-12 col-md-6">
+				<!-- Simple card -->
+				<a	href="{{ path('app_secure_internal_customer_request') }}">
+					<div	class="card">
+						<img	class="card-img-top img-fluid"	height="150"	src="{{ asset('images/solicitudes.png') }}"	alt="Card image cap">
+							<div	class="card-body"	style="min-height: 190px;">
+								<h4	class="card-title mb-2">
+									Gestión de solicitudes
+								</h4>
+								<p	class="card-text">
+									Desde aquí podrás ver y gestionar las solicitudes enviadas por los usuarios para acceder a funcionalidades o permisos específicos dentro de la plataforma. Podés aprobarlas, rechazarlas o revisarlas en detalle.
+								</p>
+								<div	class="text-end"></div>
+							</div>
+						</div>
+					</a>
+				<!-- end card -->
+				</div>
+			<!-- end col -->
+			<div	class="col-12 col-md-6">
+				<!-- Simple card -->
+				<a	href="{{path('app_gestor_ordenes_de_compra')}}">
+					<div	class="card">
+						<img	class="card-img-top img-fluid"	height="150"	src="{{ asset('images/ordenes_de_compra.png') }}"	alt="Card image cap">
+							<div class="card-body" style="min-height: 190px;">
+								<h4	class="card-title mb-2">
+									Informes de ordenes de compra
+								</h4>
+								<p	class="card-text">
+									Desde aquí podras ver las ordenes de compra de los clientes registrados.
+								</p>
+								<div class="text-end">
+									
+								</div>
+						</div>
+					</div>
+				</a>
+			</div>
+		</div>
+	</div>
+
+{% endblock %}
 		

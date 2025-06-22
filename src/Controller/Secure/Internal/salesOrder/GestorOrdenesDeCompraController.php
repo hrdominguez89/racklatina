@@ -1,0 +1,114 @@
+<?php
+
+namespace App\Controller\Secure\Internal\salesOrder;
+
+use App\Entity\Clientes;
+use App\Entity\Pedidosrelacionados;
+use App\Repository\FacturasRepository;
+use App\Repository\PedidosrelacionadosRepository;
+use App\Repository\RemitosRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Attribute\Route;
+
+final class GestorOrdenesDeCompraController extends AbstractController
+{
+    private EntityManagerInterface $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
+
+    #[Route('/int-ord-compr', name: 'app_gestor_ordenes_de_compra')]
+    public function index(): Response
+    {
+        return $this->render('gestor_ordenes_de_compra/index.html.twig', [
+            'controller_name' => 'GestorOrdenesDeCompraController'
+        ]);
+    }
+
+    #[Route('/buscar-ordenes-por-cuit/{cuit}', name: 'app_gestor_buscar_ordenes_por_cuit', methods: ['GET'])]
+    public function buscarOrdenesPorCuit(Request $request, string $cuit): Response
+    {
+        if (!$cuit) {
+            return $this->json(['error' => 'Debe enviar el CUIT del cliente'], 400);
+        }
+
+        // Buscar cliente por CUIT
+        $cliente = $this->entityManager->getRepository(Clientes::class)
+            ->findOneBy(['cuit' => $cuit]);
+
+        if (!$cliente) {
+            return $this->json(['error' => 'No se encontró el cliente con el CUIT ' . $cuit], 404);
+        }
+        // Buscar órdenes del cliente
+        $ordenes = $this->entityManager->getRepository(Pedidosrelacionados::class)
+            ->findBy(['cliente' => $cliente->getcodigoCalipso()]);
+
+        if (empty($ordenes)) {
+            return $this->json(['error' => 'No se encontraron órdenes de compra para el cliente con CUIT ' . $cuit], 404);
+        }
+        // Renderizar la tabla con las órdenes encontradas
+        return $this->render('gestor_ordenes_de_compra/_tabla_ordenes.html.twig', [
+            'ordenes' => $ordenes,
+            'cliente' => $cliente
+        ]);
+    }
+
+    #[Route('/secure/internal/orden/{cliente_id}/{orden_compra_cliente_id}', name: 'app_secure_internal_sales_order_sales_order_ver_en_detalle', methods: ['GET'])]
+    public function verOrden(Request $request,string $cliente_id, string $orden_compra_cliente_id, PedidosrelacionadosRepository $pedidosrelacionadosRepository, EntityManagerInterface $em): Response
+    {
+        $ordenDeCompra =  $pedidosrelacionadosRepository->findOneBy(['cliente' => $cliente_id, 'ordencompracliente' => $orden_compra_cliente_id]);
+
+        $ordenesDeCompra = $em->createQueryBuilder()
+            ->select('p')
+            ->from(Pedidosrelacionados::class, 'p')
+            ->where('p.cliente = :cliente')
+            ->andWhere('p.ordencompracliente = :orden')
+            ->setParameter('cliente', $cliente_id)
+            ->setParameter('orden', $orden_compra_cliente_id)
+            ->getQuery()
+            ->getArrayResult();
+
+        if (!$ordenesDeCompra) {
+            throw $this->createNotFoundException('Orden no encontrada');
+        }
+
+        return $this->render('gestor_ordenes_de_compra/ver_orden.html.twig', [
+            "orden_de_compra" => $ordenDeCompra,
+            "ordenes_de_compra" => $ordenesDeCompra,
+        ]);
+    }
+    #[Route('/remito-int/{numero}', name: 'app_remito_show_int')]
+    public function verRemito(string $numero, RemitosRepository $remitosRepository): Response
+    {
+        $remitos = $remitosRepository->findBy([
+            'remito' => $numero
+        ]);
+        if (!$remitos) {
+            $remitos = [];
+        }
+
+        return $this->render('gestor_ordenes_de_compra/_modalRemito.html.twig',
+    ["remitos"=>$remitos]);
+    }
+
+
+    #[Route('/factura-int/{numero}', name: 'app_factura_show_int')]
+    public function verFactura(string $numero, FacturasRepository $facturasRepository): Response
+    {
+        // Eliminamos prefijos como FA, CA, etc.
+        $numeroLimpio = preg_replace('/^[A-Z]+/', '', $numero);
+
+        $factura = $facturasRepository->findBy([
+            'numero' => $numeroLimpio
+        ]);
+        // dd($facturas);
+        return $this->render('gestor_ordenes_de_compra/_modalFactura.html.twig',
+    ['facturas' => $factura]);
+    }
+}

@@ -1,0 +1,97 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestor de Órdenes de Compra{% endblock %}
+
+{% block body %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="row">
+            <div class="col-3">
+                <div class="mb-3">
+                    <label for="cuit" class="form-label">
+                        CUIT
+                    </label>
+                    <input type="text" id="cuit" name="cuit" class="form-control" pattern="\d{2}-\d{8}-\d" placeholder="Ej: 20-12345678-3">
+                </div>
+            </div>
+            <div class="col-3 text-start align-self-end">
+                <button type="button" id="buscar-ordenes" class="btn btn-secondary mb-3">
+                    <i class="ri-search-line align-middle me-1"></i>
+                    Buscar órdenes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div id="tabla-container">
+            <!-- Aquí se cargará la tabla de órdenes -->
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const buscarBtn = document.getElementById('buscar-ordenes');
+    const cuitInput = document.getElementById('cuit');
+    const tablaContainer = document.getElementById('tabla-container');
+    
+    buscarBtn.addEventListener('click', () => {
+        const cuit = cuitInput.value.trim();
+        
+        if (!cuit) {
+            alert('Por favor, ingrese un CUIT.');
+            return;
+        }
+        
+        if (!cuit.match(/^\d{2}-\d{8}-\d$/)) {
+            alert('CUIT inválido. Use el formato XX-XXXXXXXX-X.');
+            return;
+        }
+
+        // Mostrar indicador de carga
+        tablaContainer.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div></div>';
+
+        fetch(`{{ path('app_gestor_buscar_ordenes_por_cuit', {'cuit': '___PLACEHOLDER___'}) }}`.replace('___PLACEHOLDER___', encodeURIComponent(cuit)))
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => Promise.reject(err));
+                }
+                return response.text();
+            })
+            .then(html => {
+                tablaContainer.innerHTML = html;
+                
+                // Inicializar DataTable si existe la tabla
+                const tabla = document.getElementById('tabla-ordenes');
+                // if (tabla) {
+                //     const tablaDatatable = new DataTable(tabla, {
+                //         language: { 
+                //             url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' 
+                //         },
+                //         responsive: true,
+                //         pageLength: 25
+                //     });
+                // }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                let mensaje = 'Ocurrió un error al buscar las órdenes.';
+                if (error.error) {
+                    mensaje = error.error;
+                }
+                tablaContainer.innerHTML = `<div class="alert alert-warning" role="alert">${mensaje}</div>`;
+            });
+    });
+
+    // Permitir buscar con Enter
+    cuitInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            buscarBtn.click();
+        }
+    });
+});
+</script>
+{% endblock %}
