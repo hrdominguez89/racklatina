@@ -27,6 +27,16 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+				<div class="col-12 d-flex justify-content-between align-items-center mb-3">
+					<div>
+						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Todas'})}}" class="btn btn-outline-primary">Todas</a>
+						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Pendiente'})}}" class="btn btn-outline-primary">Pendiente</a>
+						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Remitido'})}}" class="btn btn-outline-primary">Remitido</a>
+						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Depurado'})}}" class="btn btn-outline-primary">Depurado</a>
+					</div>
+				</div>
+			</div>
             <div class="row mt-4">
                 <div class="col-12">
                     <table id="tabla-pedidos" class="table table-striped">
@@ -56,6 +66,8 @@
                         </thead>
                         <tbody>
                             {% for pedido in pedidos %}
+                                {% if pedido.estado == status or status == 'Todas' %}
+                                
                                 <tr>
                                     <td>
                                         {{ pedido.ordencompracliente }}
@@ -81,6 +93,8 @@
                                         </a>
                                     </td>
                                 </tr>
+                                {% endif %}
+
                             {% endfor %}
                         </tbody>
                     </table>
@@ -109,8 +123,5 @@
                 order: [[3, 'desc']]
             });
         });
-
-
     </script>
     {% endblock %}
-    

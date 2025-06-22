@@ -28,19 +28,21 @@
                                 <input type="text" class="form-control" id="dni" name="dni" required maxlength="8" value="{{ user.nationalIdNumber ?? '' }}">
                             </div>
                             <div class="col-md-6 mb-3">
+                                <label for="phoneNumber" class="form-label">Teléfono *</label>
+                                <input type="text" class="form-control" id="phoneNumber" name="phoneNumber" value="{{ external_user_data.phoneNumber ?? '' }}">
+                            </div>
+                            
+                        </div>
+                        <div class="row" >
+                            <div class="col-md-6 mb-3">
                                 <label for="email" class="form-label">Correo Electrónico *</label>
                                 <input type="email" class="form-control" id="email" name="email" required value="{{ user.email ?? '' }}">
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="phoneNumber" class="form-label">Teléfono</label>
-                                <input type="text" class="form-control" id="phoneNumber" name="phoneNumber" value="{{ external_user_data.phoneNumber ?? '' }}">
+                            <div class="col-md-6 mb-3" title="Dejar en blanco si no desea cambiar la contraseña">
+                                <label for="password" class="form-label" >Contraseña</label>
+                                <input type="password" class="form-control" id="password" name="password">
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="companyName" class="form-label">Empresa</label>
-                                <input type="text" class="form-control" id="companyName" name="companyName" value="{{ external_user_data.companyName ?? '' }}">
-                            </div>
+                           
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -70,15 +72,20 @@
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
+                                <label for="companyName" class="form-label">Empresa</label>
+                                <input type="text" class="form-control" id="companyName" name="companyName" value="{{ external_user_data.companyName ?? '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
                                 <label for="segment" class="form-label">Segmento</label>
                                 <input type="text" class="form-control" id="segment" name="segment" value="{{ external_user_data.segmento ?? '' }}">
                             </div>
+                            
+                        </div>
+                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="country" class="form-label">País</label>
                                 <input type="text" class="form-control" id="country" name="country" value="{{ external_user_data.pais ?? '' }}">
                             </div>
-                        </div>
-                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="province" class="form-label">Provincia</label>
                                 <input type="text" class="form-control" id="province" name="province" value="{{ external_user_data.provincia ?? '' }}">

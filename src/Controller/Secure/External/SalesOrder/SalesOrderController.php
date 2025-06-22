@@ -17,13 +17,14 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('secure/clientes/sales-order')]
 final class SalesOrderController extends AbstractController
 {
-    #[Route('/', name: 'app_secure_external_sales_order_sales_order')]
+    #[Route('/estado/{status}', name: 'app_secure_external_sales_order_sales_order', requirements: ['status' => '.*'], defaults: ['status' => null])]
+
     public function index(
         PedidosrelacionadosRepository $pedidosrelacionadosRepository,
-        UserCustomerRepository $userCustomerRepository
+        UserCustomerRepository $userCustomerRepository,
+        string $status
     ): Response {
         $usuario = $this->getUser();
-
         // Obtener los códigos de cliente que el usuario tiene autorizados
         $clientes = $userCustomerRepository->createQueryBuilder('uc')
             ->select('uc.cliente')
@@ -40,6 +41,7 @@ final class SalesOrderController extends AbstractController
 
         return $this->render('secure/external/sales_order/index.html.twig', [
             'pedidos' => $pedidos,
+            'status' => $status,
         ]);
     }
     #[Route('/detalle/{cliente_id}/{orden_compra_cliente_id}', name: 'app_secure_external_sales_order_sales_order_ver_en_detalle', methods: ['GET'])]

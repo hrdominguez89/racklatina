@@ -53,7 +53,9 @@ final class MiPerfilControlladorController extends AbstractController{
         $user->setLastName($data['lastName'] ?? null);
         $user->setEmail($data['email'] ?? null);
         $user->setNationalIdNumber($data['dni'] ?? null);
-
+        if ($data['password'] !== '') {
+            $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
+        }
         $id = $user->getId();
         $userExternalData = $this->externalUserDataRepository->findOneBy(['user' => $id]);
         $userExternalData->setJobTitle($data['jobTitle'] ?? null);

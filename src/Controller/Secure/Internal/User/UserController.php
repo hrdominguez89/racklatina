@@ -19,7 +19,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Mime\Email;
 
 #[Route('secure/user')]
 final class UserController extends AbstractController
@@ -32,11 +34,13 @@ final class UserController extends AbstractController
         private UserCustomerRepository $userCustomerRepository,
         private SectorsRepository $sectoresRepository,
         private ExternalUserDataRepository $externalUserDataRepository
+        ,private MailerInterface $mailer
     ) {
         $this->userRepository = $userRepository;
         $this->userRoleRepository = $userRoleRepository;
         $this->roleRepository = $roleRepository;
         $this->entityManager = $entityManager;
+        $this->mailer = $mailer;
     }
     /**La vista gral para el area de gestion de clientes */
     #[Route('/user_cliente', name: 'app_secure_internal_user_user_cliente')]
@@ -197,7 +201,7 @@ final class UserController extends AbstractController
 
             $this->entityManager->persist($usuario_rol);
             $this->entityManager->flush();
-
+            $this->enviarMailDeAlta($usuario);
             return true;
         }
         return false;
@@ -248,7 +252,7 @@ final class UserController extends AbstractController
 
             $this->entityManager->persist($userRole);
             $this->entityManager->flush();
-
+            $this->enviarMailDeAlta($user);
             return true;
         }
         return false;
@@ -403,5 +407,19 @@ final class UserController extends AbstractController
             $this->entityManager->remove($user);
             $this->entityManager->flush();
         }
+    }
+
+    public function enviarMailDeAlta($user)
+    {
+        $email = (new Email())
+        ->from('no-reply@racklatina.com')
+        ->to($user->getEmail())
+        ->subject('¡Se creo su cuenta en Racklatina!')
+        ->html($this->renderView('emails/confirm_account.html.twig', [
+            'user' => $user,
+            'password' => $user->getPassword(),
+        ]));
+
+        $this->mailer->send($email);
     }
 }
