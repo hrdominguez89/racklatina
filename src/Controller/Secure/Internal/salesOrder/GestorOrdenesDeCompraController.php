@@ -28,17 +28,58 @@ final class GestorOrdenesDeCompraController extends AbstractController
     {
         $data['status'] = $request->query->get('status') ?? 'Todas';
         $data['pedidos'] = [];
-        $ordenCompraCliente = $request->query->get('ordenDeCompra') ?? null;
-        if ($ordenCompraCliente) {
-            $query = $pedidosrelacionadosRepository->createQueryBuilder('p')
-                ->where('p.ordencompracliente like :ordenCompraCliente')
-                ->setParameter('ordenCompraCliente', '%' . $ordenCompraCliente . '%');
+        $searchType = $request->query->get('searchType') ?? null;
+        $search = $request->query->get('search') ?? null;
+        if ($searchType && $search) {
+            $query = $pedidosrelacionadosRepository->createQueryBuilder('p');
+            switch ($searchType) {
+                case 'orden':
+                    $query->where('p.ordencompracliente like :ordencompracliente')
+                        ->setParameter('ordencompracliente', '%' . $search . '%');
+                    break;
+                case 'pedido':
+                    $query->where('p.numero like :numero')
+                        ->setParameter('numero', '%' . $search . '%');
+                    break;
+                case 'cliente':
+                default:
+                    $query->where('p.razonsocial like :razonsocial')
+                        ->setParameter('razonsocial', '%' . $search . '%');
+                    break;
+            }
+
             if ($data['status'] !== 'Todas') {
                 $query->andWhere('p.estado = :estado')
                     ->setParameter('estado', $data['status']);
             }
             $data['pedidos'] = $query->getQuery()
                 ->getArrayResult();
+            $agrupados = [];
+
+            foreach ($data['pedidos'] as $pedido) {
+                $key = $pedido['ordencompracliente'] . '|' . $pedido['numero'];
+
+                if (!isset($agrupados[$key])) {
+                    $agrupados[$key] = [
+                        'ordencompracliente' => $pedido['ordencompracliente'],
+                        'numero' => $pedido['numero'],
+                        'cliente' => $pedido['cliente'],
+                        'razonsocial' => $pedido['razonsocial'],
+                        'fechapedido' => $pedido['fechapedido'],
+                        'pendientes' => 0,
+                        'remitidos' => 0,
+                    ];
+                }
+
+                // Contar estados
+                if ($pedido['estado'] === 'Pendiente') {
+                    $agrupados[$key]['pendientes']++;
+                } elseif ($pedido['estado'] === 'Remitido') {
+                    $agrupados[$key]['remitidos']++;
+                }
+            }
+
+            $data['pedidos'] = array_values($agrupados);
         }
 
 
@@ -81,19 +122,16 @@ final class GestorOrdenesDeCompraController extends AbstractController
 
         $cliente_id = $request->query->get('cliente_id') ?? null;
         $orden_compra_cliente_id = $request->query->get('orden_compra_cliente_id') ?? null;
-        $item = $request->query->get('item') ?? null;
 
-        $ordenDeCompra =  $pedidosrelacionadosRepository->findOneBy(['cliente' => $cliente_id, 'ordencompracliente' => $orden_compra_cliente_id, 'item' => $item]);
+        $ordenDeCompra =  $pedidosrelacionadosRepository->findOneBy(['cliente' => $cliente_id, 'ordencompracliente' => $orden_compra_cliente_id]);
 
         $ordenesDeCompra = $em->createQueryBuilder()
             ->select('p')
             ->from(Pedidosrelacionados::class, 'p')
             ->where('p.cliente = :cliente')
             ->andWhere('p.ordencompracliente = :orden')
-            ->andWhere('p.item = :item')
             ->setParameter('cliente', $cliente_id)
             ->setParameter('orden', $orden_compra_cliente_id)
-            ->setParameter('item', $item)
             ->getQuery()
             ->getArrayResult();
 

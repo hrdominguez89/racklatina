@@ -20,7 +20,7 @@
                                     </a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="{{ path('app_gestor_ordenes_de_compra', {status:app.request.get('status') ? app.request.get('status'):'Todas',ordenDeCompra: app.request.get('ordenDeCompra')}) }}">
+                                    <a href="{{ path('app_gestor_ordenes_de_compra', {status:app.request.get('status') ? app.request.get('status'):'Todas',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}">
                                         Informes de Órdenes de Compra
                                     </a>
                                 </li>
@@ -38,12 +38,6 @@
                         Informacion de la orden de compra (nro cliente) #
                         {{ orden_de_compra.OrdenCompraCliente }}
                     </h4>
-                    <p>
-                        <strong>
-                            Cliente:
-                        </strong>
-                        {{ orden_de_compra.usuario }}
-                    </p>
                     <p>
                         <strong>
                             Nro. de pedido:
@@ -212,7 +206,7 @@
                     </div>
                     <div class="row mt-4">
                         <div class="col-12 text-end">
-                            <a class="btn btn-secondary" href="{{ path('app_gestor_ordenes_de_compra', {status:app.request.get('status') ? app.request.get('status'):'Todas',ordenDeCompra: app.request.get('ordenDeCompra')}) }}">
+                            <a class="btn btn-secondary" href="{{ path('app_gestor_ordenes_de_compra', {status:app.request.get('status') ? app.request.get('status'):'Todas',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}">
                                 Volver
                             </a>
                         </div>

@@ -23,7 +23,7 @@ final class SalesOrderController extends AbstractController
         PedidosrelacionadosRepository $pedidosrelacionadosRepository,
         UserCustomerRepository $userCustomerRepository
     ): Response {
-        $status = $request->query->get('status') ?? 'Todas';
+        $data['status'] = $request->query->get('status') ?? 'Todas';
         $usuario = $this->getUser();
         // Obtener los códigos de cliente que el usuario tiene autorizados
         $clientes = $userCustomerRepository->createQueryBuilder('uc')
@@ -33,16 +33,44 @@ final class SalesOrderController extends AbstractController
             ->getQuery()
             ->getSingleColumnResult();
         // Buscar los pedidos relacionados de esos clientes
-        $pedidos = $pedidosrelacionadosRepository->createQueryBuilder('p')
+        $query = $pedidosrelacionadosRepository->createQueryBuilder('p')
             ->where('p.cliente IN (:clientes)')
-            ->setParameter('clientes', $clientes)
-            ->getQuery()
+            ->setParameter('clientes', $clientes);
+        if ($data['status'] !== 'Todas') {
+            $query->andWhere('p.estado = :estado')
+                ->setParameter('estado', $data['status']);
+        }
+        $data['pedidos'] = $query->getQuery()
             ->getArrayResult();
 
-        return $this->render('secure/external/sales_order/index.html.twig', [
-            'pedidos' => $pedidos,
-            'status' => $status,
-        ]);
+        $agrupados = [];
+
+        foreach ($data['pedidos'] as $pedido) {
+            $key = $pedido['ordencompracliente'] . '|' . $pedido['numero'];
+
+            if (!isset($agrupados[$key])) {
+                $agrupados[$key] = [
+                    'ordencompracliente' => $pedido['ordencompracliente'],
+                    'numero' => $pedido['numero'],
+                    'cliente' => $pedido['cliente'],
+                    'razonsocial' => $pedido['razonsocial'],
+                    'fechapedido' => $pedido['fechapedido'],
+                    'pendientes' => 0,
+                    'remitidos' => 0,
+                ];
+            }
+
+            // Contar estados
+            if ($pedido['estado'] === 'Pendiente') {
+                $agrupados[$key]['pendientes']++;
+            } elseif ($pedido['estado'] === 'Remitido') {
+                $agrupados[$key]['remitidos']++;
+            }
+        }
+
+        $data['pedidos'] = array_values($agrupados);
+
+        return $this->render('secure/external/sales_order/index.html.twig', $data);
     }
     #[Route('/detalle', name: 'app_secure_external_sales_order_sales_order_ver_en_detalle', methods: ['GET'])]
 
@@ -51,7 +79,6 @@ final class SalesOrderController extends AbstractController
 
         $cliente_id = $request->query->get('cliente_id') ?? null;
         $orden_compra_cliente_id = $request->query->get('orden_compra_cliente_id') ?? null;
-        $item = $request->query->get('item') ?? null;
 
         $ordenDeCompra =  $pedidosrelacionadosRepository->findOneBy(['cliente' => $cliente_id, 'ordencompracliente' => $orden_compra_cliente_id]);
 
@@ -60,10 +87,8 @@ final class SalesOrderController extends AbstractController
             ->from(Pedidosrelacionados::class, 'p')
             ->where('p.cliente = :cliente')
             ->andWhere('p.ordencompracliente = :orden')
-            ->andWhere('p.item = :item')
             ->setParameter('cliente', $cliente_id)
             ->setParameter('orden', $orden_compra_cliente_id)
-            ->setParameter('item', $item)
             ->getQuery()
             ->getArrayResult();
 

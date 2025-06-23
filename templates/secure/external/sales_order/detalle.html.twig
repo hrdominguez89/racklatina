@@ -41,10 +41,6 @@
                     {{ orden_de_compra.OrdenCompraCliente }}
                 </h4>
                 <p>
-                    <strong>Cliente:</strong>
-                    {{ orden_de_compra.usuario }}
-                </p>
-                <p>
                     <strong>Nro. de pedido:</strong>
                     {{ orden_de_compra.numero }}
                 </p>
@@ -141,7 +137,7 @@
         
         <div class="row mt-4">
             <div class="col-12 text-end">
-                <a class="btn btn-secondary" href="{{ path('app_secure_external_sales_order_sales_order') }}">
+                <a class="btn btn-secondary" href="{{ path('app_secure_external_sales_order_sales_order',{status:app.request.get('status') ? app.request.get('status'):'Todas'}) }}">
                     Volver
                 </a>
             </div>

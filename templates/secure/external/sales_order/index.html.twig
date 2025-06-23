@@ -28,15 +28,20 @@
                 </div>
             </div>
             <div class="row">
-				<div class="col-12 d-flex justify-content-end align-items-end mb-3">
-					<div>
-						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Todas'})}}" class="btn {{ status=='Todas'? 'active':'' }} btn-outline-primary">Todas</a>
-						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Pendiente'})}}" class="btn {{ status=='Pendiente'? 'active':'' }} btn-outline-primary">Pendiente</a>
-						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Remitido'})}}" class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">Remitido</a>
-						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Depurado'})}}" class="btn {{ status=='Depurado'? 'active':'' }} btn-outline-primary">Depurado</a>
-					</div>
-				</div>
-			</div>
+                <div class="col-12 d-flex justify-content-end align-items-end mb-3">
+                    <div>
+                        <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Todas'}) }}" class="btn {{ status=='Todas'? 'active':'' }} btn-outline-primary">
+                            Todas
+                        </a>
+                        <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Pendiente'}) }}" class="btn {{ status=='Pendiente'? 'active':'' }} btn-outline-primary">
+                            Pendiente
+                        </a>
+                        <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Remitido'}) }}" class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">
+                            Remitido
+                        </a>
+                    </div>
+                </div>
+            </div>
             <div class="row mt-4">
                 <div class="col-12">
                     <table id="tabla-pedidos" class="table table-striped">
@@ -55,10 +60,8 @@
                                     Fecha Pedido
                                 </th>
                                 <th>
-                                    Detalle
-                                </th>
-                                <th>
                                     Estado
+                                </th>
                                 <th>
                                     Acciones
                                 </th>
@@ -66,8 +69,6 @@
                         </thead>
                         <tbody>
                             {% for pedido in pedidos %}
-                                {% if pedido.estado == status or status == 'Todas' %}
-                                
                                 <tr>
                                     <td>
                                         {{ pedido.ordencompracliente }}
@@ -79,22 +80,25 @@
                                         {{ pedido.razonsocial }}
                                     </td>
                                     <td data-order="{{ pedido.fechapedido ? pedido.fechapedido|date('Y-m-d') : '' }}">
-                                        {{ pedido.fechapedido ? pedido.fechapedido|date('d/m/Y') : '' }}
+                                        {{ pedido.fechapedido|date('d/m/Y') }}
                                     </td>
                                     <td>
-                                        {{ pedido.detalle }}
+                                        {% if status == 'Todas' %}
+                                            Pendientes&nbsp;{{ pedido.pendientes }}&nbsp;/Remitidos&nbsp;{{ pedido.remitidos }}
+                                        {% elseif status == 'Pendiente' %}
+                                            Pendientes&nbsp;
+                                            {{ pedido.pendientes }}
+                                        {% elseif status == 'Remitido' %}
+                                            Remitidos&nbsp;
+                                            {{ pedido.remitidos }}
+                                        {% endif %}
                                     </td>
                                     <td>
-                                        {{ pedido.estado }}
-                                    </td>
-                                    <td>
-                                        <a href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle', {'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente,'item':pedido.item}) }}" class="btn btn-outline-primary btn-sm">
+                                        <a href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle', {'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente,status:app.request.get('status') ? app.request.get('status'):'Todas'}) }}" class="btn btn-outline-primary btn-sm">
                                             Detalle
                                         </a>
                                     </td>
                                 </tr>
-                                {% endif %}
-
                             {% endfor %}
                         </tbody>
                     </table>
@@ -125,3 +129,4 @@
         });
     </script>
     {% endblock %}
+    

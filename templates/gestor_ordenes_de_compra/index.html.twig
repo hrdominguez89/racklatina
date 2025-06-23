@@ -32,10 +32,28 @@
                         <div class="row">
                             <div class="col-3">
                                 <div class="mb-3">
-                                    <label for="ordenDeCompra" class="form-label">
-                                        Nro de orden de compra
+                                    <label for="searchType" class="form-label">
+                                        Tipo de busqueda
                                     </label>
-                                    <input type="text" id="ordenDeCompra" name="ordenDeCompra" value="{{ app.request.get('ordenDeCompra') }}" class="form-control" />
+                                    <select name="searchType" id="searchType" class="form-select">
+                                        <option value="orden" {{ app.request.get('searchType') == 'orden' ? 'selected' : '' }}>
+                                            Nro de Orden de Compra
+                                        </option>
+                                        <option value="pedido" {{ app.request.get('searchType') == 'pedido' ? 'selected' : '' }}>
+                                            Nro de pedido
+                                        </option>
+                                        <option value="cliente" {{ app.request.get('searchType') == 'cliente' ? 'selected' : '' }}>
+                                            Cliente
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label for="search" class="form-label" id="searchLabel">
+                                        Valor a buscar
+                                    </label>
+                                    <input type="search" id="search" name="search" value="{{ app.request.get('search') }}" class="form-control" />
                                 </div>
                             </div>
                             <div class="col-3 text-start align-self-end">
@@ -48,32 +66,29 @@
                     </form>
                 </div>
             </div>
-            {% if  app.request.get('ordenDeCompra') %}
-            <div class="row">
-                <div class="col-12 d-flex justify-content-end align-items-end mb-3">
-                    <div>
-                        <a href="{{ path('app_gestor_ordenes_de_compra',{status:'Todas',ordenDeCompra: app.request.get('ordenDeCompra')}) }}" class="btn {{ status=='Todas'? 'active':'' }} btn-outline-primary">
-                            Todas
-                        </a>
-                        <a href="{{ path('app_gestor_ordenes_de_compra',{status:'Pendiente',ordenDeCompra: app.request.get('ordenDeCompra')}) }}" class="btn {{ status=='Pendiente'? 'active':'' }} btn-outline-primary">
-                            Pendiente
-                        </a>
-                        <a href="{{ path('app_gestor_ordenes_de_compra',{status:'Remitido',ordenDeCompra: app.request.get('ordenDeCompra')}) }}" class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">
-                            Remitido
-                        </a>
-                        <a href="{{ path('app_gestor_ordenes_de_compra',{status:'Depurado',ordenDeCompra: app.request.get('ordenDeCompra')}) }}" class="btn {{ status=='Depurado'? 'active':'' }} btn-outline-primary">
-                            Depurado
-                        </a>
+            {% if  app.request.get('search') and app.request.get('searchType') %}
+                <div class="row">
+                    <div class="col-12 d-flex justify-content-end align-items-end mb-3">
+                        <div>
+                            <a href="{{ path('app_gestor_ordenes_de_compra',{status:'Todas',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}" class="btn {{ status=='Todas'? 'active':'' }} btn-outline-primary">
+                                Todas
+                            </a>
+                            <a href="{{ path('app_gestor_ordenes_de_compra',{status:'Pendiente',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}" class="btn {{ status=='Pendiente'? 'active':'' }} btn-outline-primary">
+                                Pendiente
+                            </a>
+                            <a href="{{ path('app_gestor_ordenes_de_compra',{status:'Remitido',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}" class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">
+                                Remitido
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
                 {% if pedidos %}
                     <div class="row mt-3 mb-3">
                         <div class="col-12">
                             <h2 class="text-center">
-                                Órdenes de compra encontradas para el número:
+                                Órdenes de compra encontradas para la busqueda:
                                 <strong>
-                                    {{ app.request.get('ordenDeCompra') }}
+                                    {{ app.request.get('search') }}
                                 </strong>
                             </h2>
                         </div>
@@ -94,9 +109,6 @@
                                         </th>
                                         <th>
                                             Fecha Pedido
-                                        </th>
-                                        <th>
-                                            Detalle
                                         </th>
                                         <th>
                                             Estado
@@ -122,13 +134,16 @@
                                                 {{ pedido.fechapedido|date('d/m/Y') }}
                                             </td>
                                             <td>
-                                                {{ pedido.detalle }}
+                                                {% if status == 'Todas' %}
+                                                    Pendientes&nbsp;{{ pedido.pendientes }}&nbsp;/Remitidos&nbsp;{{ pedido.remitidos }}
+                                                {% elseif status == 'Pendiente' %}
+                                                    Pendientes&nbsp;{{ pedido.pendientes }}
+                                                {% elseif status == 'Remitido' %}
+                                                    Remitidos&nbsp;{{ pedido.remitidos }}
+                                                {% endif %}
                                             </td>
                                             <td>
-                                                {{ pedido.estado }}
-                                            </td>
-                                            <td>
-                                                <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle', {'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente,'item': pedido.item,status:app.request.get('status') ? app.request.get('status'):'Todas',ordenDeCompra: app.request.get('ordenDeCompra')}) }}" class="btn btn-outline-primary btn-sm">
+                                                <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle', {'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente,status:app.request.get('status') ? app.request.get('status'):'Todas',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}" class="btn btn-outline-primary btn-sm">
                                                     Detalle
                                                 </a>
                                             </td>
@@ -140,8 +155,8 @@
                     </div>
                 {% else %}
                     <div class="alert alert-warning text-center" role="alert">
-                        No se encontraron órdenes de compra para el número proporcionado:
-                        {{ app.request.get('ordenDeCompra') }}
+                        No se encontraron órdenes de compra para el valor proporcionado:
+                        {{ app.request.get('search') }}
                     </div>
                 {% endif %}
             {% endif %}
