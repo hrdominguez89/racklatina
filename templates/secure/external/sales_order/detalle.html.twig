@@ -53,10 +53,9 @@
                     <table class="table table-striped table-sm">
                         <tbody>
                             <tr>
-                                <td>Numero</td>
-                                <td>{{ orden_de_compra.numero }}</td>
                                 <td>Cliente</td>
                                 <td>{{ orden_de_compra.razonsocial }}</td>
+                                <td colspan="2"></td>
                             </tr>
                             <tr>
                                 <td>Orden de compra del cliente</td>
@@ -86,7 +85,7 @@
             <div class="col-12">
                 <h5 class="mt-4">Ítems de la orden de compra</h5>
                 <table class="table table-bordered table-striped table-sm" id="tabla-items">
-                    <thead class="table-dark">
+                    <thead class="table-dark text-center">
                         <tr>
                             <th>Item</th>
                             <th>Artículo</th>
@@ -102,13 +101,13 @@
                     <tbody>
                         {% for item in ordenes_de_compra %}
                             <tr>
-                                <td>{{ item.item }}</td>
-                                <td>{{ item.articulo }}</td>
+                                <td class="text-center">{{ item.item }}</td>
+                                <td class="text-center">{{ item.articulo }}</td>
                                 <td>{{ item.detalle }}</td>
-                                <td>{{ item.estado }}</td>
-                                <td>{{ item.cantidadoriginal }}</td>
-                                <td>$ {{ item.precioDolar|number_format(2, ',', '.') }}</td>
-                                <td>$ {{ item.importeDolar|number_format(2, ',', '.') }}</td>
+                                <td class="text-center">{{ item.estado }}</td>
+                                <td class="text-center">{{ item.cantidadoriginal }}</td>
+                                <td class="text-center">$&nbsp;{{ item.precioDolar|number_format(2, ',', '.') }}</td>
+                                <td class="text-center">$&nbsp;{{ item.importeDolar|number_format(2, ',', '.') }}</td>
                                 <td>
                                     {% if item.remitos %}
                                         {% for remito in item.remitos|split(' - ') %}

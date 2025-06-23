@@ -9,21 +9,21 @@ use App\Repository\RemitosRepository;
 use App\Repository\UserCustomerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\BrowserKit\Request;
-use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('secure/clientes/sales-order')]
 final class SalesOrderController extends AbstractController
 {
-    #[Route('/estado/{status}', name: 'app_secure_external_sales_order_sales_order', requirements: ['status' => '.*'], defaults: ['status' => null])]
+    #[Route('/', name: 'app_secure_external_sales_order_sales_order', methods: ['GET'])]
 
     public function index(
+        Request $request,
         PedidosrelacionadosRepository $pedidosrelacionadosRepository,
-        UserCustomerRepository $userCustomerRepository,
-        string $status
+        UserCustomerRepository $userCustomerRepository
     ): Response {
+        $status = $request->query->get('status') ?? 'Todas';
         $usuario = $this->getUser();
         // Obtener los códigos de cliente que el usuario tiene autorizados
         $clientes = $userCustomerRepository->createQueryBuilder('uc')
@@ -44,10 +44,15 @@ final class SalesOrderController extends AbstractController
             'status' => $status,
         ]);
     }
-    #[Route('/detalle/{cliente_id}/{orden_compra_cliente_id}', name: 'app_secure_external_sales_order_sales_order_ver_en_detalle', methods: ['GET'])]
+    #[Route('/detalle', name: 'app_secure_external_sales_order_sales_order_ver_en_detalle', methods: ['GET'])]
 
-    public function detalle(HttpFoundationRequest $request, string $cliente_id, string $orden_compra_cliente_id, PedidosrelacionadosRepository $pedidosrelacionadosRepository, EntityManagerInterface $em): Response
+    public function detalle(Request $request, PedidosrelacionadosRepository $pedidosrelacionadosRepository, EntityManagerInterface $em): Response
     {
+
+        $cliente_id = $request->query->get('cliente_id') ?? null;
+        $orden_compra_cliente_id = $request->query->get('orden_compra_cliente_id') ?? null;
+        $item = $request->query->get('item') ?? null;
+
         $ordenDeCompra =  $pedidosrelacionadosRepository->findOneBy(['cliente' => $cliente_id, 'ordencompracliente' => $orden_compra_cliente_id]);
 
         $ordenesDeCompra = $em->createQueryBuilder()
@@ -55,8 +60,10 @@ final class SalesOrderController extends AbstractController
             ->from(Pedidosrelacionados::class, 'p')
             ->where('p.cliente = :cliente')
             ->andWhere('p.ordencompracliente = :orden')
+            ->andWhere('p.item = :item')
             ->setParameter('cliente', $cliente_id)
             ->setParameter('orden', $orden_compra_cliente_id)
+            ->setParameter('item', $item)
             ->getQuery()
             ->getArrayResult();
 
@@ -76,8 +83,10 @@ final class SalesOrderController extends AbstractController
             $remitos = [];
         }
 
-        return $this->render('secure/external/sales_order/_modalRemito.html.twig',
-    ["remitos"=>$remitos]);
+        return $this->render(
+            'secure/external/sales_order/_modalRemito.html.twig',
+            ["remitos" => $remitos]
+        );
     }
 
 
@@ -91,8 +100,9 @@ final class SalesOrderController extends AbstractController
             'numero' => $numeroLimpio
         ]);
         // dd($facturas);
-        return $this->render('secure/external/sales_order/_modalFactura.html.twig',
-    ['facturas' => $factura]);
+        return $this->render(
+            'secure/external/sales_order/_modalFactura.html.twig',
+            ['facturas' => $factura]
+        );
     }
-
 }

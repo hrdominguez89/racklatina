@@ -7,11 +7,13 @@
 	</a>
 	<div	class="collapse menu-dropdown"	id="sidebarDashboards">
 		<ul	class="nav nav-sm flex-column">
-			<li	class="nav-item">
-				<a	href="{{ path('app_secure_internal_user_user_racklatina') }}"	class="nav-link"	data-key="t-analytics">
-					Usuarios Racklatina
-				</a>
-			</li>
+			{% if is_granted('ROLE_SUPER_ADMIN') %}
+				<li	class="nav-item">
+					<a	href="{{ path('app_secure_internal_user_user_racklatina') }}"	class="nav-link"	data-key="t-analytics">
+						Usuarios Racklatina
+					</a>
+				</li>
+			{% endif %}
 			<li	class="nav-item">
 				<a	href="{{ path('app_secure_internal_user_user_cliente') }}"	class="nav-link"	data-key="t-analytics">
 					Usuarios clientes
@@ -20,6 +22,11 @@
 			<li	class="nav-item">
 				<a	href="{{ path('app_secure_internal_customer_request') }}"	class="nav-link"	data-key="t-crm">
 					Solicitudes
+				</a>
+			</li>
+			<li	class="nav-item">
+				<a	href="{{ path('app_gestor_ordenes_de_compra') }}"	class="nav-link"	data-key="t-crm">
+					Informes de órdenes de compra
 				</a>
 			</li>
 		</ul>

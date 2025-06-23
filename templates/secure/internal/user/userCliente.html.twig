@@ -1,61 +1,69 @@
 {% extends 'base.html.twig' %}
-
-{% block title %}Usuarios{% endblock %}
-
+{% block title %}
+    Usuarios
+{% endblock %}
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-{% endblock %}
-
-{% block body %}
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
-                    <div class="page-title-right">
-                        <ol class="breadcrumb m-0">
-                            <li class="breadcrumb-item">
-                                <a href="{{ path('app_home') }}">Mi portal</a>
-                            </li>
-                            <li class="breadcrumb-item active">Usuarios clientes</li>
-                        </ol>
+    {% endblock %}
+    {% block body %}
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                        <div class="page-title-right">
+                            <ol class="breadcrumb m-0">
+                                <li class="breadcrumb-item">
+                                    <a href="{{ path('app_home') }}">
+                                        Mi portal
+                                    </a>
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    Usuarios clientes
+                                </li>
+                            </ol>
+                        </div>
                     </div>
-                     <button type="button" class="btn btn-primary" onclick="abrirModalAltaUsuario()">
-                    Alta de usuario
-                </button>
                 </div>
             </div>
-        </div>
-
-        {% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ label }} alert-dismissible fade show mt-2" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label }} alert-dismissible fade show mt-2" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
-        
-        <div id="modal-container"></div>
-
-        <!-- Contenedor de tabla -->
-        <div class="row">
-            <div class="col-12">
-                <div id="tabla-container">
-                    
+            <div class="row mb-4">
+                <div class="col-12 text-end">
+                    <button type="button" class="btn btn-primary" onclick="abrirModalAltaUsuario()">
+                        Alta de usuario
+                    </button>
+                </div>
+            </div>
+            <div id="modal-container"></div>
+            <!-- Contenedor de tabla -->
+            <div class="row">
+                <div class="col-12">
+                    <div id="tabla-container"></div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-12 text-end">
+                    <a class="btn btn-secondary" href="{{ path('app_home') }}">
+                        Volver
+                    </a>
                 </div>
             </div>
         </div>
-    </div>
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
-    <script>
+    {% endblock %}
+    {% block javascripts %}
+        {{ parent() }}
+        <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+        <script>
     function cargarTabla(tipo) {
         fetch(`{{ path('app_usuarios_ajax') }}?tipo=${tipo}`)
             .then(response => response.text())
@@ -200,4 +208,5 @@ function initializarModalSector() {
     }
 }
     </script>
-{% endblock %}
+    {% endblock %}
+    

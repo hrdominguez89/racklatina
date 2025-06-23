@@ -34,7 +34,7 @@
                 <td>{{ orden.detalle }}</td>
                 <td>{{ orden.estado }}</td>
                 <td>
-                    <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle', {'cliente_id': orden.cliente, 'orden_compra_cliente_id': orden.ordencompracliente}) }}" class="btn btn-outline-primary btn-sm">
+                    <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle', {'cliente_id': orden.cliente, 'orden_compra_cliente_id': orden.ordencompracliente,'item':'orden.item'}) }}" class="btn btn-outline-primary btn-sm">
                         Detalle
                     </a>
                 </td>

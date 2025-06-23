@@ -44,9 +44,13 @@ class ExternalUserData
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $provincia = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?bool $profileCompleted = null;
+
     public function __construct()
     {
         $this->verified = false;
+        $this->profileCompleted = false;
     }
     
 
@@ -171,6 +175,18 @@ class ExternalUserData
     public function setProvincia(?string $provincia): static
     {
         $this->provincia = $provincia;
+
+        return $this;
+    }
+
+    public function isProfileCompleted(): ?bool
+    {
+        return $this->profileCompleted;
+    }
+
+    public function setProfileCompleted(?bool $profileCompleted): static
+    {
+        $this->profileCompleted = $profileCompleted;
 
         return $this;
     }

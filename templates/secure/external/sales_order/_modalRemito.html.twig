@@ -4,8 +4,6 @@
                 {# <p><strong>DB Schema ID:</strong> {{ remito.dbschemaid ?? 'N/A' }}</p> #}
                 <p><strong>Fecha:</strong> {{ remitos[0].fecha ? remitos[0].fecha|date('d/m/Y') : 'N/A' }}</p>
                 <p><strong>Remito:</strong> {{ remitos[0].remito ?? 'N/A' }}</p>
-                <p><strong>Número de pedido:</strong> {{ remitos[0].numero ?? numero }}</p>
-                <p><strong>Código Cliente:</strong> {{ remitos[0].codigoCliente ?? 'N/A' }}</p>
                 <p><strong>Razón Social:</strong> {{ remitos[0].razonSocial ?? 'N/A' }}</p>
             </div>
             <div class="col-md-6">
@@ -15,7 +13,7 @@
             <table class="table table-bordered table-sm small">
 
 
-                <thead>
+                <thead class="text-center">
                     <tr >
                         <th>Codigo articulo</th>
                         <th>Nombre articulo</th>
@@ -32,16 +30,16 @@
                 <tbody>
                     {% for remito in remitos %}
                         <tr>
-                            <td >{{ remito.codigoArticulo }}</td>
+                            <td  class="text-center">{{ remito.codigoArticulo }}</td>
                             <td >{{ remito.nombreArticulo }}</td>
-                            <td >{{ remito.servicio }}</td>
-                            <td >{{ remito.cotizacion }}</td>
+                            <td  class="text-center">{{ remito.servicio }}</td>
+                            <td  class="text-center">$&nbsp;{{ remito.cotizacion|number_format(2, ',', '.') }}</td>
                             <td >{{ remito.moneda }}</td>
-                            <td>{{ remito.entregado }}</td>
-                            <td>{{ remito.facturado }}</td>
-                            <td>{{ remito.pendiente }}</td>
-                            <td >{{ remito.nombreComprobante }}</td>
-                            <td >{{ remito.tipoComprobante }}</td>
+                            <td class="text-center">{{ remito.entregado }}</td>
+                            <td class="text-center">{{ remito.facturado }}</td>
+                            <td class="text-center">{{ remito.pendiente }}</td>
+                            <td  class="text-center">{{ remito.nombreComprobante }}</td>
+                            <td  class="text-center">{{ remito.tipoComprobante }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

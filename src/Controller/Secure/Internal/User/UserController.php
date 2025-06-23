@@ -8,6 +8,7 @@ use App\Entity\UserCustomer;
 use App\Entity\UserRole;
 use App\Form\UsuarioClienteRacklatinaType;
 use App\Form\UsuarioRacklatinaType;
+use App\Repository\ClientesRepository;
 use App\Repository\ExternalUserDataRepository;
 use App\Repository\RoleRepository;
 use App\Repository\SectorsRepository;
@@ -33,8 +34,8 @@ final class UserController extends AbstractController
         private EntityManagerInterface $entityManager,
         private UserCustomerRepository $userCustomerRepository,
         private SectorsRepository $sectoresRepository,
-        private ExternalUserDataRepository $externalUserDataRepository
-        ,private MailerInterface $mailer
+        private ExternalUserDataRepository $externalUserDataRepository,
+        private MailerInterface $mailer
     ) {
         $this->userRepository = $userRepository;
         $this->userRoleRepository = $userRoleRepository;
@@ -367,7 +368,7 @@ final class UserController extends AbstractController
     //FUNCIONES PARA VER USUARIOS
 
     #[Route("/verDetalle", name: "app_usuarios_ver_detalle", methods: ["POST"])]
-    public function verDetalleUsuarios(Request $request)
+    public function verDetalleUsuarios(Request $request, ClientesRepository $clientesRepository)
     {
         $id = $request->request->get('id');
         $user = $this->userRepository->find($id) ?? null;
@@ -383,6 +384,13 @@ final class UserController extends AbstractController
         } else {
             $externalDataUser = $this->externalUserDataRepository->findOneBy(['user' => $user->getId()]);
             $sector = $externalDataUser?->getSector()?->getName();
+            $representados = $user->getUserCustomers();
+
+            $clientesRepresentados = $representados->map(function ($userCustomer) use ($clientesRepository) {
+                return $userCustomer->getCliente($clientesRepository);
+            })->filter(function ($cliente) {
+                return $cliente !== null;
+            })->toArray();
 
             $data = [
                 "user" => $user,
@@ -391,7 +399,8 @@ final class UserController extends AbstractController
                 "segmentos" => [],
                 "paises" => [],
                 "provincias" => [],
-                "isViewMode" => true
+                "isViewMode" => true,
+                "representados" => $clientesRepresentados,
             ];
             return $this->render('secure/internal/user/_modal_ver_usuario_cliente.html.twig', $data);
         }
@@ -412,13 +421,13 @@ final class UserController extends AbstractController
     public function enviarMailDeAlta($user)
     {
         $email = (new Email())
-        ->from('no-reply@racklatina.com')
-        ->to($user->getEmail())
-        ->subject('¡Se creo su cuenta en Racklatina!')
-        ->html($this->renderView('emails/confirm_account.html.twig', [
-            'user' => $user,
-            'password' => $user->getPassword(),
-        ]));
+            ->from('no-reply@racklatina.com')
+            ->to($user->getEmail())
+            ->subject('¡Se creo su cuenta en Racklatina!')
+            ->html($this->renderView('emails/confirm_account.html.twig', [
+                'user' => $user,
+                'password' => $user->getPassword(),
+            ]));
 
         $this->mailer->send($email);
     }

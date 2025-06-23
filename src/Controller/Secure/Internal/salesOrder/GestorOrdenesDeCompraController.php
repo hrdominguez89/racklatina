@@ -23,16 +23,30 @@ final class GestorOrdenesDeCompraController extends AbstractController
         $this->entityManager = $entityManager;
     }
 
-    #[Route('/int-ord-compr', name: 'app_gestor_ordenes_de_compra')]
-    public function index(): Response
+    #[Route('/int-ord-compr', name: 'app_gestor_ordenes_de_compra', methods: ['GET'])]
+    public function index(Request $request, PedidosrelacionadosRepository $pedidosrelacionadosRepository): Response
     {
-        return $this->render('gestor_ordenes_de_compra/index.html.twig', [
-            'controller_name' => 'GestorOrdenesDeCompraController'
-        ]);
+        $data['status'] = $request->query->get('status') ?? 'Todas';
+        $data['pedidos'] = [];
+        $ordenCompraCliente = $request->query->get('ordenDeCompra') ?? null;
+        if ($ordenCompraCliente) {
+            $query = $pedidosrelacionadosRepository->createQueryBuilder('p')
+                ->where('p.ordencompracliente like :ordenCompraCliente')
+                ->setParameter('ordenCompraCliente', '%' . $ordenCompraCliente . '%');
+            if ($data['status'] !== 'Todas') {
+                $query->andWhere('p.estado = :estado')
+                    ->setParameter('estado', $data['status']);
+            }
+            $data['pedidos'] = $query->getQuery()
+                ->getArrayResult();
+        }
+
+
+        return $this->render('gestor_ordenes_de_compra/index.html.twig', $data);
     }
 
     #[Route('/buscar-ordenes-por-cuit/{cuit}', name: 'app_gestor_buscar_ordenes_por_cuit', methods: ['GET'])]
-    public function buscarOrdenesPorCuit(Request $request, string $cuit): Response
+    public function buscarOrdenesPorCuit(Request $request, PedidosrelacionadosRepository $pedidosrelacionadosRepository, string $cuit): Response
     {
         if (!$cuit) {
             return $this->json(['error' => 'Debe enviar el CUIT del cliente'], 400);
@@ -46,9 +60,11 @@ final class GestorOrdenesDeCompraController extends AbstractController
             return $this->json(['error' => 'No se encontró el cliente con el CUIT ' . $cuit], 404);
         }
         // Buscar órdenes del cliente
-        $ordenes = $this->entityManager->getRepository(Pedidosrelacionados::class)
-            ->findBy(['cliente' => $cliente->getcodigoCalipso()]);
-
+        $ordenes = $pedidosrelacionadosRepository->createQueryBuilder('p')
+            ->where('p.cliente = :cliente')
+            ->setParameter('cliente', $cliente->getCodigoCalipso())
+            ->getQuery()
+            ->getArrayResult();
         if (empty($ordenes)) {
             return $this->json(['error' => 'No se encontraron órdenes de compra para el cliente con CUIT ' . $cuit], 404);
         }
@@ -59,18 +75,25 @@ final class GestorOrdenesDeCompraController extends AbstractController
         ]);
     }
 
-    #[Route('/secure/internal/orden/{cliente_id}/{orden_compra_cliente_id}', name: 'app_secure_internal_sales_order_sales_order_ver_en_detalle', methods: ['GET'])]
-    public function verOrden(Request $request,string $cliente_id, string $orden_compra_cliente_id, PedidosrelacionadosRepository $pedidosrelacionadosRepository, EntityManagerInterface $em): Response
+    #[Route('/orden', name: 'app_secure_internal_sales_order_sales_order_ver_en_detalle', methods: ['GET'])]
+    public function verOrden(Request $request, PedidosrelacionadosRepository $pedidosrelacionadosRepository, EntityManagerInterface $em): Response
     {
-        $ordenDeCompra =  $pedidosrelacionadosRepository->findOneBy(['cliente' => $cliente_id, 'ordencompracliente' => $orden_compra_cliente_id]);
+
+        $cliente_id = $request->query->get('cliente_id') ?? null;
+        $orden_compra_cliente_id = $request->query->get('orden_compra_cliente_id') ?? null;
+        $item = $request->query->get('item') ?? null;
+
+        $ordenDeCompra =  $pedidosrelacionadosRepository->findOneBy(['cliente' => $cliente_id, 'ordencompracliente' => $orden_compra_cliente_id, 'item' => $item]);
 
         $ordenesDeCompra = $em->createQueryBuilder()
             ->select('p')
             ->from(Pedidosrelacionados::class, 'p')
             ->where('p.cliente = :cliente')
             ->andWhere('p.ordencompracliente = :orden')
+            ->andWhere('p.item = :item')
             ->setParameter('cliente', $cliente_id)
             ->setParameter('orden', $orden_compra_cliente_id)
+            ->setParameter('item', $item)
             ->getQuery()
             ->getArrayResult();
 
@@ -83,6 +106,8 @@ final class GestorOrdenesDeCompraController extends AbstractController
             "ordenes_de_compra" => $ordenesDeCompra,
         ]);
     }
+
+
     #[Route('/remito-int/{numero}', name: 'app_remito_show_int')]
     public function verRemito(string $numero, RemitosRepository $remitosRepository): Response
     {
@@ -93,8 +118,10 @@ final class GestorOrdenesDeCompraController extends AbstractController
             $remitos = [];
         }
 
-        return $this->render('gestor_ordenes_de_compra/_modalRemito.html.twig',
-    ["remitos"=>$remitos]);
+        return $this->render(
+            'gestor_ordenes_de_compra/_modalRemito.html.twig',
+            ["remitos" => $remitos]
+        );
     }
 
 
@@ -108,7 +135,9 @@ final class GestorOrdenesDeCompraController extends AbstractController
             'numero' => $numeroLimpio
         ]);
         // dd($facturas);
-        return $this->render('gestor_ordenes_de_compra/_modalFactura.html.twig',
-    ['facturas' => $factura]);
+        return $this->render(
+            'gestor_ordenes_de_compra/_modalFactura.html.twig',
+            ['facturas' => $factura]
+        );
     }
 }

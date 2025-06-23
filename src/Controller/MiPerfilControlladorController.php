@@ -10,18 +10,18 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-final class MiPerfilControlladorController extends AbstractController{
+final class MiPerfilControlladorController extends AbstractController
+{
 
 
     public function __construct(
-    private EntityManagerInterface $entityManager,
-    private ExternalUserDataRepository $externalUserDataRepository,
-    private SectorsRepository $sectorRepoitory)
-    {
+        private EntityManagerInterface $entityManager,
+        private ExternalUserDataRepository $externalUserDataRepository,
+        private SectorsRepository $sectorRepoitory
+    ) {
         $this->entityManager = $entityManager;
         $this->externalUserDataRepository = $externalUserDataRepository;
         $this->sectorRepoitory = $sectorRepoitory;
-        
     }
     #[Route('/mi/perfil/controllador', name: 'app_mi_perfil_controllador')]
     public function index(): Response
@@ -67,13 +67,12 @@ final class MiPerfilControlladorController extends AbstractController{
         $userExternalData->setSector($sector);
         $userExternalData->setPhoneNumber($data['phoneNumber'] ?? null);
         $userExternalData->setSectorExtraData($data['sectorExtraData'] ?? null);
+        $userExternalData->setProfileCompleted(true);
         $this->entityManager->persist($userExternalData);
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        return $this->render('secure/external/home/index.html.twig', [
-            'controller_name' => 'MiPerfilControlladorController',
-            'user' => $this->getUser()
-        ]);
+        $this->addFlash('success', 'Su perfil fue actualizado correctamente.');
+        return $this->redirectToRoute('app_home');
     }
 }

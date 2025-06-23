@@ -3,7 +3,30 @@
     Revisar solicitud
 {% endblock %}
 {% block body %}
-    <div class="container-fluid mt-4">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                    <div class="page-title-right">
+                        <ol class="breadcrumb m-0">
+                            <li class="breadcrumb-item">
+                                <a href="{{ path('app_home') }}">
+                                    Mi portal
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <a href="{{ path('app_secure_internal_customer_request') }}">
+                                    Solicitudes
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active">
+                                Revisión de solicitud
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
         <h4>
             Revisión de solicitud #
             {{ solicitud.id }}
@@ -14,6 +37,42 @@
             </strong>
             {{ solicitud.userRequest.email }}
         </p>
+        <p>
+            <strong>
+                Apellido y Nombre:
+            </strong>
+            {{ solicitud.userRequest.firstName ~ ' ' ~ solicitud.userRequest.lastName }}
+        </p>
+        <p>
+            <strong>
+                DNI:
+            </strong>
+            {{ solicitud.userRequest.nationalIdNumber }}
+        </p>
+        {% if solicitud.userRequest.externalUserData.companyName %}
+            <p>
+                <strong>
+                    Empresa:
+                </strong>
+                {{ solicitud.userRequest.externalUserData.companyName }}
+            </p>
+        {% endif %}
+        {% if solicitud.userRequest.externalUserData.jobTitle %}
+            <p>
+                <strong>
+                    Cargo:
+                </strong>
+                {{ solicitud.userRequest.externalUserData.jobTitle }}
+            </p>
+        {% endif %}
+        {% if solicitud.userRequest.externalUserData.phoneNumber %}
+            <p>
+                <strong>
+                    Teléfono:
+                </strong>
+                {{ solicitud.userRequest.externalUserData.phoneNumber }}
+            </p>
+        {% endif %}
         <form method="post">
             <table class="table table-striped">
                 <thead>
@@ -52,9 +111,12 @@
                 </tbody>
             </table>
             <div class="text-end">
-                <button type="submit" class="btn btn-success">
+                <a href="{{ path ('app_secure_internal_customer_request') }}" class="btn btn-secondary m-l-2">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary m-l-2">
                     <i class="ri-check-line"></i>
-                    Confirmar aprobación
+                    Finalizar revisión de solicitud
                 </button>
             </div>
         </form>

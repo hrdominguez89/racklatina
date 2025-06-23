@@ -15,8 +15,8 @@
 								</a>
 							</li>
 							<li	class="breadcrumb-item">
-								<a	href="{{ path('app_secure_external_customer_request') }}">
-									Mis solicitudes
+								<a	href="{{ path('app_secure_internal_customer_request') }}">
+									Solicitudes
 								</a>
 							</li>
 							<li	class="breadcrumb-item active">
@@ -58,6 +58,48 @@
 						</span>
 					{% endif %}
 				</div>
+				<p>
+					<strong>
+						Usuario:
+					</strong>
+					{{ solicitud.userRequest.email }}
+				</p>
+				<p>
+					<strong>
+						Apellido y Nombre:
+					</strong>
+					{{ solicitud.userRequest.firstName ~ ' ' ~ solicitud.userRequest.lastName }}
+				</p>
+				<p>
+					<strong>
+						DNI:
+					</strong>
+					{{ solicitud.userRequest.nationalIdNumber }}
+				</p>
+				{% if solicitud.userRequest.externalUserData.companyName %}
+					<p>
+						<strong>
+							Empresa:
+						</strong>
+						{{ solicitud.userRequest.externalUserData.companyName }}
+					</p>
+				{% endif %}
+				{% if solicitud.userRequest.externalUserData.jobTitle %}
+					<p>
+						<strong>
+							Cargo:
+						</strong>
+						{{ solicitud.userRequest.externalUserData.jobTitle }}
+					</p>
+				{% endif %}
+				{% if solicitud.userRequest.externalUserData.phoneNumber %}
+					<p>
+						<strong>
+							Teléfono:
+						</strong>
+						{{ solicitud.userRequest.externalUserData.phoneNumber }}
+					</p>
+				{% endif %}
 				<table	class="table table-hover table-bordered align-middle">
 					<thead	class="table-dark">
 						<tr>
@@ -107,7 +149,7 @@
 		</div>
 		<div	class="row mt-4">
 			<div	class="col-12 text-end">
-				<a	class="btn btn-secondary"	href="{{ path('app_secure_external_customer_request') }}">
+				<a	class="btn btn-secondary"	href="{{ path('app_secure_internal_customer_request') }}">
 					Volver
 				</a>
 			</div>

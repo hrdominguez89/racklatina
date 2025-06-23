@@ -2,6 +2,7 @@
 
 namespace App\Controller\Secure\Internal\CustomerRequest;
 
+use App\Entity\CustomerRequest;
 use App\Entity\UserCustomer;
 use App\Enum\CustomerRequestStatus;
 use App\Repository\CustomerRequestRepository;
@@ -15,12 +16,26 @@ use Symfony\Component\Routing\Attribute\Route;
 final class CustomerRequestController extends AbstractController
 {
     #[Route('/', name: 'app_secure_internal_customer_request')]
-    public function index(CustomerRequestRepository $repository): Response
+    public function index(Request $request, CustomerRequestRepository $repository): Response
     {
-        $solicitudes = $repository->findBy([], ['createdAt' => 'DESC']);
+
+        $statusParam = $request->query->get('status') ?? CustomerRequestStatus::PENDIENTE->value;
+        if ($statusParam !== null) {
+            // Validar que sea un valor válido del enum
+            $statusParam = strtolower($statusParam);
+            $statusValido = array_map(fn($e) => $e->value, CustomerRequestStatus::cases());
+
+            if (in_array($statusParam, $statusValido, true)) {
+                $criteria['status'] = CustomerRequestStatus::from($statusParam);
+            }
+        }
+
+        $solicitudes = $repository->findBy($criteria, ['createdAt' => 'DESC']);
 
         return $this->render('secure/internal/customer_request/index.html.twig', [
             'solicitudes' => $solicitudes,
+            'statusFiltro' => $statusParam,
+            'estadosDisponibles' => CustomerRequestStatus::cases(),
         ]);
     }
 
@@ -77,6 +92,29 @@ final class CustomerRequestController extends AbstractController
         return $this->render('secure/internal/customer_request/review.html.twig', [
             'solicitud' => $solicitud,
             'clientes' => $clientes,
+        ]);
+    }
+
+    
+    #[Route('/{id}/ver', name: 'customer_secure_internal_request_show')]
+    public function show(CustomerRequest $solicitud, EntityManagerInterface $em): Response
+    {
+        if ($solicitud->getStatus() === CustomerRequestStatus::PENDIENTE) {
+            $this->addFlash('warning', 'Esta solicitud aún no ha sido procesada.');
+            return $this->redirectToRoute('app_secure_external_customer_request');
+        }
+
+        $clienteIdsAprobados = $em->getRepository(UserCustomer::class)
+            ->createQueryBuilder('uc')
+            ->select('uc.cliente')
+            ->where('uc.customerRequest = :req')
+            ->setParameter('req', $solicitud)
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        return $this->render('secure/internal/customer_request/show.html.twig', [
+            'solicitud' => $solicitud,
+            'aprobados' => $clienteIdsAprobados,
         ]);
     }
 }

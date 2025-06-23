@@ -1,62 +1,116 @@
 {% if facturas is not empty %}
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <p><strong>Razon Social:</strong> {{ facturas[0].razonSocial ?? '' }}</p>
-            </div>
-            <div class="col-md-6">
-                {# <p><strong>Artículo:</strong> {{ facturas[0].articulo ?? '' }}</p>
-                <p><strong>Nombre Artículo:</strong> {{ facturas[0].nombreArticulo ?? '' }}</p>
-                <p><strong>Moneda:</strong> {{ facturas[0].moneda ?? '' }}</p>
-                <p><strong>Cantidad:</strong> {{ facturas[0].cantidad ?? '' }}</p>
-                <p><strong>Precio:</strong> ${{ facturas[0].precio ?? '' }}</p>
-                <p><strong>Precio Cotizado:</strong>$ {{ facturas[0].precioCotizado ?? '' }}</p>
-                <p><strong>Importe Neto:</strong> ${{ facturas[0].importeNeto ?? '' }}</p>
-                <p><strong>Importe Neto Cotizado:</strong>$ {{ facturas[0].importeNetoCotizado ?? '' }}</p> #}
-            </div>
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <p>
+                <strong>
+                    Razon Social:
+                </strong>
+                {{ facturas[0].razonSocial ?? '' }}
+            </p>
         </div>
-        <div class="table-responsive">
-            <table class="table table-bordered table-sm small">
-                <thead>
+        <div class="col-md-6">{# <p><strong>Artículo:</strong> {{ facturas[0].articulo ?? '' }}</p>
+            <p><strong>Nombre Artículo:</strong> {{ facturas[0].nombreArticulo ?? '' }}</p>
+            <p><strong>Moneda:</strong> {{ facturas[0].moneda ?? '' }}</p>
+            <p><strong>Cantidad:</strong> {{ facturas[0].cantidad ?? '' }}</p>
+            <p><strong>Precio:</strong> $&nbsp;{{ facturas[0].precio ? facturas[0].precio|number_format(2, ',', '.') : '' }}</p>
+            <p><strong>Precio Cotizado:</strong>$&nbsp;{{ facturas[0].precioCotizado ? facturas[0].precioCotizado|number_format(2, ',', '.') : '' }}</p>
+            <p><strong>Importe Neto:</strong> $&nbsp;{{ facturas[0].importeNeto ? facturas[0].importeNeto|number_format(2, ',', '.') : '' }}</p>
+        <p><strong>Importe Neto Cotizado:</strong>$ {{ facturas[0].importeNetoCotizado ?facturas[0].importeNetoCotizado|number_format(2, ',', '.') : '' }}</p> #}
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-bordered table-sm small">
+            <thead>
+                <tr>
+                    <th class="text-center">
+                        Articulo
+                    </th>
+                    <th class="text-center">
+                        Nombre Articulo
+                    </th>
+                    <th class="text-center">
+                        Moneda
+                    </th>
+                    <th class="text-center">
+                        Cantidad
+                    </th>
+                    <th class="text-center">
+                        Precio
+                    </th>
+                    <th class="text-center">
+                        Precio Cotizado
+                    </th>
+                    <th class="text-center">
+                        Cotización
+                    </th>
+                    <th class="text-center">
+                        Importe Neto
+                    </th>
+                    <th class="text-center">
+                        Importe Neto Cotizado
+                    </th>
+                    <th class="text-center">
+                        Estado
+                    </th>
+                    <th class="text-center">
+                        Número de comprobante
+                    </th>
+                    <th class="text-center">
+                        Comprobante
+                    </th>
+                    <th class="text-center">
+                        Nombre del comprobante
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in facturas %}
                     <tr>
-                        <th>Articulo</th>
-                        <th>Nombre Articulo</th>
-                        <th>Moneda</th>
-                        <th>Cantidad</th>
-                        <th>Precio</th>
-                        <th>Precio Cotizado</th>
-                        <th>Cotización</th>
-                        <th>Importe Neto</th>
-                        <th>Importe Neto Cotizado</th>
-                        <th>Estado</th>
-                        <th>Número de comprobante</th>
-                        <th>Comprobante</th>
-                        <th>Nombre del comprobante</th>
+                        <td class="text-center">
+                            {{ item.articulo ?? '' }}
+                        </td>
+                        <td>
+                            {{ item.nombreArticulo ?? '' }}
+                        </td>
+                        <td>
+                            {{ item.moneda ?? '' }}
+                        </td>
+                        <td class="text-center">
+                            {{ item.cantidad ?? '' }}
+                        </td>
+                        <td>
+                            $&nbsp;{{ item.precio ? item.precio|number_format(2,',','.') : '' }}
+                        </td>
+                        <td> $&nbsp;{{ item.precioCotizado ? item.precioCotizado|number_format(2,',','.') : '' }}</td>
+                        <td>
+                            $&nbsp;{{ item.cotizacion ?? 'N/A' }}
+                        </td>
+                        <td>
+                            $&nbsp;{{ item.importeNeto ? item.importeNeto|number_format(2,',','.') : '' }}
+                        </td>
+                        <td class="text-center">
+                            $&nbsp;{{ item.importeNetoCotizado ? item.importeNetoCotizado|number_format(2,',','.') : '' }}
+                        </td>
+                        <td class="text-center">
+                            {{ item.estado ?? '' }}
+                        </td>
+                        <td>
+                            {{ item.numero ?? '' }}
+                        </td>
+                        <td>
+                            {{ item.comprobante ?? '' }}
+                        </td>
+                        <td>
+                            {{ item.nombreComprobante ?? '' }}
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    {% for item in facturas %}
-                        <tr>
-                            <td>{{ item.articulo ?? '' }}</td>
-                            <td>{{ item.nombreArticulo ?? '' }}</td>
-                            <td>{{ item.moneda ?? '' }}</td>
-                            <td>{{ item.cantidad ?? '' }}</td>
-                            <td>${{ item.precio ?? '' }}</td>
-                            <td>${{ item.precioCotizado ?? '' }}</td>
-                            <td>{{ item.cotizacion ?? 'N/A' }}</td>
-                            <td>${{ item.importeNeto ?? '' }}</td>
-                            <td>${{ item.importeNetoCotizado ?? '' }}</td>
-                            <td>{{ item.estado ?? '' }}</td>
-                            <td>{{ item.numero ?? '' }}</td>
-                            <td>{{ item.comprobante ?? '' }}</td>
-                            <td>{{ item.nombreComprobante ?? '' }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% else %}
     <div class="alert alert-info">
-        No se encontraron datos para la factura #{{ numero }}
+        No se encontraron datos para la factura #
+        {{ numero }}
     </div>
 {% endif %}

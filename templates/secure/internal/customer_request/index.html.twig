@@ -29,7 +29,17 @@
                     </div>
                 </div>
             </div>
-
+            <div class="row">
+                <div class="col-12 d-flex justify-content-end align-items-end mb-3">
+                    <div>
+                        {% for estado in estadosDisponibles %}
+                            <a href="{{ path('app_secure_internal_customer_request', { status: estado.value }) }}" class="btn btn-outline-primary {% if statusFiltro == estado.value %}active{% endif %}">
+                                {{ estado.label() }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
             {% for label, messages in app.flashes %}
                 {% for message in messages %}
                     <div class="alert alert-{{ label }} alert-dismissible fade show mt-2" role="alert">
@@ -49,6 +59,9 @@
                                 </th>
                                 <th>
                                     Usuario
+                                </th>
+                                <th>
+                                    Apellido y Nombre
                                 </th>
                                 <th>
                                     Tipo
@@ -74,6 +87,9 @@
                                         {{ solicitud.userRequest.email }}
                                     </td>
                                     <td>
+                                        {{ solicitud.userRequest.firstName ~ ' ' ~ solicitud.userRequest.lastName }}
+                                    </td>
+                                    <td>
                                         {{ solicitud.requestType.label() }}
                                     </td>
                                     <td>
@@ -83,14 +99,28 @@
                                         {{ solicitud.createdAt|date('d/m/Y H:i') }}
                                     </td>
                                     <td>
-                                        <a href="{{ path('app_secure_internal_customer_request_review', { id: solicitud.id }) }}" class="btn btn-sm btn-warning" data-turbo="false">
-                                            Revisar
-                                        </a>
+                                        {% if solicitud.status.label == 'Pendiente' %}
+                                            <a href="{{ path('app_secure_internal_customer_request_review', { id: solicitud.id }) }}" class="btn btn-sm btn-warning" data-turbo="false">
+                                                Revisar
+                                            </a>
+                                        {% else %}
+                                            <a href="{{ path('customer_secure_internal_request_show', { id: solicitud.id }) }}" class="btn btn-sm btn-secondary" data-turbo="false">
+                                                <i style="font-size:16px" class="ri-eye-fill"></i>
+                                            </a>
+                                        {% endif %}
                                     </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-12 text-end">
+                    <a class="btn btn-secondary" href="{{ path('app_home') }}">
+                        Volver
+                    </a>
                 </div>
             </div>
         </div>

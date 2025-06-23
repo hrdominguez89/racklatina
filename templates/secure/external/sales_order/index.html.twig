@@ -28,12 +28,12 @@
                 </div>
             </div>
             <div class="row">
-				<div class="col-12 d-flex justify-content-between align-items-center mb-3">
+				<div class="col-12 d-flex justify-content-end align-items-end mb-3">
 					<div>
-						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Todas'})}}" class="btn btn-outline-primary">Todas</a>
-						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Pendiente'})}}" class="btn btn-outline-primary">Pendiente</a>
-						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Remitido'})}}" class="btn btn-outline-primary">Remitido</a>
-						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Depurado'})}}" class="btn btn-outline-primary">Depurado</a>
+						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Todas'})}}" class="btn {{ status=='Todas'? 'active':'' }} btn-outline-primary">Todas</a>
+						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Pendiente'})}}" class="btn {{ status=='Pendiente'? 'active':'' }} btn-outline-primary">Pendiente</a>
+						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Remitido'})}}" class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">Remitido</a>
+						<a href="{{path('app_secure_external_sales_order_sales_order',{status:'Depurado'})}}" class="btn {{ status=='Depurado'? 'active':'' }} btn-outline-primary">Depurado</a>
 					</div>
 				</div>
 			</div>
@@ -78,7 +78,7 @@
                                     <td>
                                         {{ pedido.razonsocial }}
                                     </td>
-                                    <td>
+                                    <td data-order="{{ pedido.fechapedido ? pedido.fechapedido|date('Y-m-d') : '' }}">
                                         {{ pedido.fechapedido ? pedido.fechapedido|date('d/m/Y') : '' }}
                                     </td>
                                     <td>
@@ -88,7 +88,7 @@
                                         {{ pedido.estado }}
                                     </td>
                                     <td>
-                                        <a href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle', {'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente}) }}" class="btn btn-outline-primary btn-sm">
+                                        <a href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle', {'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente,'item':pedido.item}) }}" class="btn btn-outline-primary btn-sm">
                                             Detalle
                                         </a>
                                     </td>

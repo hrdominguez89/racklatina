@@ -18,36 +18,36 @@
             <table class="table table-bordered table-sm small">
                 <thead>
                     <tr>
-                        <th>Articulo</th>
-                        <th>Nombre Articulo</th>
-                        <th>Moneda</th>
-                        <th>Cantidad</th>
-                        <th>Precio</th>
-                        <th>Precio Cotizado</th>
-                        <th>Cotización</th>
-                        <th>Importe Neto</th>
-                        <th>Importe Neto Cotizado</th>
-                        <th>Estado</th>
-                        <th>Número de comprobante</th>
-                        <th>Comprobante</th>
-                        <th>Nombre del comprobante</th>
+                        <th class="text-center">Articulo</th>
+                        <th class="text-center">Nombre Articulo</th>
+                        <th class="text-center">Moneda</th>
+                        <th class="text-center">Cantidad</th>
+                        <th class="text-center">Precio</th>
+                        <th class="text-center">Precio Cotizado</th>
+                        <th class="text-center">Cotización</th>
+                        <th class="text-center">Importe Neto</th>
+                        <th class="text-center">Importe Neto Cotizado</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Número de comprobante</th>
+                        <th class="text-center">Comprobante</th>
+                        <th class="text-center">Nombre del comprobante</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in facturas %}
                         <tr>
-                            <td>{{ item.articulo ?? '' }}</td>
+                            <td class="text-center">{{ item.articulo ?? '' }}</td>
                             <td>{{ item.nombreArticulo ?? '' }}</td>
                             <td>{{ item.moneda ?? '' }}</td>
-                            <td>{{ item.cantidad ?? '' }}</td>
-                            <td>${{ item.precio ?? '' }}</td>
-                            <td>${{ item.precioCotizado ?? '' }}</td>
-                            <td>{{ item.cotizacion ?? 'N/A' }}</td>
-                            <td>${{ item.importeNeto ?? '' }}</td>
-                            <td>${{ item.importeNetoCotizado ?? '' }}</td>
-                            <td>{{ item.estado ?? '' }}</td>
-                            <td>{{ item.numero ?? '' }}</td>
-                            <td>{{ item.comprobante ?? '' }}</td>
+                            <td class="text-center">{{ item.cantidad ?? '' }}</td>
+                            <td class="text-center">${{ item.precio ?? '' }}</td>
+                            <td class="text-center">${{ item.precioCotizado ?? '' }}</td>
+                            <td class="text-center">{{ item.cotizacion ?? 'N/A' }}</td>
+                            <td class="text-center">${{ item.importeNeto ?? '' }}</td>
+                            <td class="text-center">${{ item.importeNetoCotizado ?? '' }}</td>
+                            <td class="text-center">{{ item.estado ?? '' }}</td>
+                            <td class="text-center">{{ item.numero ?? '' }}</td>
+                            <td class="text-center">{{ item.comprobante ?? '' }}</td>
                             <td>{{ item.nombreComprobante ?? '' }}</td>
                         </tr>
                     {% endfor %}

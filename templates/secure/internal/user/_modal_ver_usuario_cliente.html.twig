@@ -122,6 +122,29 @@
                         </div>
                     </div>
                 </div>
+                {% if representados|length > 0 %}
+                    <div class="row">
+                        <div class="col-12">
+                            Representa:
+                        </div>
+                        <div class="col-12">
+                            <table class="table table-sm table-striped table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Razón Social</th>
+                                    </tr>
+                                </thead>
+                                <tbody> 
+                                    {% for representado in representados %}
+                                        <tr>
+                                            <td>{{ representado.razonSocial }}</td>
+                                        </tr>
+                                    {% endfor %}    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>

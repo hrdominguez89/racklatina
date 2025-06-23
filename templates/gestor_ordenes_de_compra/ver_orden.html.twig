@@ -5,207 +5,283 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-{% endblock %}
-
-{% block body %}
-    <div class="container-fluid">
-        <!-- start page title -->
-        <div class="row">
-            <div class="col-12">
-                <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
-                    <div class="page-title-right">
-                        <ol class="breadcrumb m-0">
-                            <li class="breadcrumb-item">
-                                <a href="{{ path('app_home') }}">
-                                    Mi portal
-                                </a>
-                            </li>
-                            <li class="breadcrumb-item">
-                                <a href="{{ path('app_secure_external_sales_order_sales_order') }}">
-                                    Ordenes de compra
-                                </a>
-                            </li>
-                            <li class="breadcrumb-item active">
-                                Informacion de la orden de compra
-                            </li>
-                        </ol>
+    {% endblock %}
+    {% block body %}
+        <div class="container-fluid">
+            <!-- start page title -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                        <div class="page-title-right">
+                            <ol class="breadcrumb m-0">
+                                <li class="breadcrumb-item">
+                                    <a href="{{ path('app_home') }}">
+                                        Mi portal
+                                    </a>
+                                </li>
+                                <li class="breadcrumb-item">
+                                    <a href="{{ path('app_gestor_ordenes_de_compra', {status:app.request.get('status') ? app.request.get('status'):'Todas',ordenDeCompra: app.request.get('ordenDeCompra')}) }}">
+                                        Informes de Órdenes de Compra
+                                    </a>
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    Detalle
+                                </li>
+                            </ol>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="row mt-4">
-            <div class="col-12">
-                <h4>
-                    Informacion de la orden de compra (nro cliente) #
-                    {{ orden_de_compra.OrdenCompraCliente }}
-                </h4>
-                <p>
-                    <strong>Cliente:</strong>
-                    {{ orden_de_compra.usuario }}
-                </p>
-                <p>
-                    <strong>Nro. de pedido:</strong>
-                    {{ orden_de_compra.numero }}
-                </p>
-                <p>
-                    <strong>Informacion de la orden de compra:</strong>
-                    <table class="table table-striped table-sm">
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h4>
+                        Informacion de la orden de compra (nro cliente) #
+                        {{ orden_de_compra.OrdenCompraCliente }}
+                    </h4>
+                    <p>
+                        <strong>
+                            Cliente:
+                        </strong>
+                        {{ orden_de_compra.usuario }}
+                    </p>
+                    <p>
+                        <strong>
+                            Nro. de pedido:
+                        </strong>
+                        {{ orden_de_compra.numero }}
+                    </p>
+                    <p>
+                        <strong>
+                            Informacion de la orden de compra:
+                        </strong>
+                        <table class="table table-striped table-sm">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        Numero
+                                    </td>
+                                    <td>
+                                        {{ orden_de_compra.numero }}
+                                    </td>
+                                    <td>
+                                        Cliente
+                                    </td>
+                                    <td>
+                                        {{ orden_de_compra.razonsocial }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Orden de compra del cliente
+                                    </td>
+                                    <td>
+                                        {{ orden_de_compra.ordencompracliente }}
+                                    </td>
+                                    <td>
+                                        Fecha de pedido
+                                    </td>
+                                    <td>
+                                        {{ orden_de_compra.fechapedido ? orden_de_compra.fechapedido|date('d/m/Y') : '' }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Lugar de entrega
+                                    </td>
+                                    <td>
+                                        {{ orden_de_compra.lugar }}
+                                    </td>
+                                    <td>
+                                        Transporte
+                                    </td>
+                                    <td>
+                                        {{ orden_de_compra.transporte }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Forma de pago
+                                    </td>
+                                    <td>
+                                        {{ orden_de_compra.pago }}
+                                    </td>
+                                    <td>
+                                        Cobrador
+                                    </td>
+                                    <td>
+                                        {{ orden_de_compra.cobrador }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </p>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h5 class="mt-4">
+                        Ítems de la orden de compra
+                    </h5>
+                    <table class="table table-bordered table-striped table-sm" id="tabla-items">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>
+                                    Item
+                                </th>
+                                <th>
+                                    Artículo
+                                </th>
+                                <th>
+                                    Detalle
+                                </th>
+                                <th>
+                                    Estado
+                                </th>
+                                <th>
+                                    Cantidad
+                                </th>
+                                <th>
+                                    Precio USD
+                                </th>
+                                <th>
+                                    Importe USD
+                                </th>
+                                <th>
+                                    Remito
+                                </th>
+                                <th>
+                                    Factura
+                                </th>
+                            </tr>
+                        </thead>
                         <tbody>
-                            <tr>
-                                <td>Numero</td>
-                                <td>{{ orden_de_compra.numero }}</td>
-                                <td>Cliente</td>
-                                <td>{{ orden_de_compra.razonsocial }}</td>
-                            </tr>
-                            <tr>
-                                <td>Orden de compra del cliente</td>
-                                <td>{{ orden_de_compra.ordencompracliente }}</td>
-                                <td>Fecha de pedido</td>
-                                <td>{{ orden_de_compra.fechapedido ? orden_de_compra.fechapedido|date('d/m/Y') : '' }}</td>
-                            </tr>
-                            <tr>
-                                <td>Lugar de entrega</td>
-                                <td>{{ orden_de_compra.lugar }}</td>
-                                <td>Transporte</td>
-                                <td>{{ orden_de_compra.transporte }}</td>
-                            </tr>
-                            <tr>
-                                <td>Forma de pago</td>
-                                <td>{{ orden_de_compra.pago }}</td>
-                                <td>Cobrador</td>
-                                <td>{{ orden_de_compra.cobrador }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </p>
-            </div>
-        </div>
-        
-        <div class="row mt-4">
-            <div class="col-12">
-                <h5 class="mt-4">Ítems de la orden de compra</h5>
-                <table class="table table-bordered table-striped table-sm" id="tabla-items">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Item</th>
-                            <th>Artículo</th>
-                            <th>Detalle</th>
-                            <th>Estado</th>
-                            <th>Cantidad</th>
-                            <th>Precio USD</th>
-                            <th>Importe USD</th>
-                            <th>Remito</th>
-                            <th>Factura</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in ordenes_de_compra %}
-                            <tr>
-                                <td>{{ item.item }}</td>
-                                <td>{{ item.articulo }}</td>
-                                <td>{{ item.detalle }}</td>
-                                <td>{{ item.estado }}</td>
-                                <td>{{ item.cantidadoriginal }}</td>
-                                <td>$ {{ item.precioDolar|number_format(2, ',', '.') }}</td>
-                                <td>$ {{ item.importeDolar|number_format(2, ',', '.') }}</td>
-                                <td>
-                                    {% if item.remitos %}
-                                        {% for remito in item.remitos|split(' - ') %}
-                                            <a href="#" class="remito-link" data-remito="{{ remito|split(' ')[0] }}">
-                                                {{ remito }}
-                                            </a>
-                                            <br>
-                                        {% endfor %}
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if item.facturas %}
-                                        {% for factura in item.facturas|split(' - ') %}
-                                            <a href="#" class="factura-link" data-factura="{{ factura|split(' ')[0] }}">
-                                                {{ factura }}
-                                            </a>
-                                            <br>
-                                        {% endfor %}
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <div class="row mt-4">
-            <div class="col-12 text-end">
-                <a class="btn btn-secondary" href="{{ path('app_secure_external_sales_order_sales_order') }}">
-                    Volver
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Container para Remitos -->
-    <div class="modal fade" id="modalRemito" tabindex="-1" aria-labelledby="modalRemitoLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalRemitoLabel">Detalle de Remitos</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="modalRemitoBody">
-                    <!-- El contenido se cargará aquí via AJAX -->
-                    <div class="text-center">
-                        <div class="spinner-border" role="status">
-                            <span class="visually-hidden">Cargando...</span>
+                            {% for item in ordenes_de_compra %}
+                                <tr>
+                                    <td>
+                                        {{ item.item }}
+                                    </td>
+                                    <td>
+                                        {{ item.articulo }}
+                                    </td>
+                                    <td>
+                                        {{ item.detalle }}
+                                    </td>
+                                    <td>
+                                        {{ item.estado }}
+                                    </td>
+                                    <td>
+                                        {{ item.cantidadoriginal }}
+                                    </td>
+                                    <td>
+                                        $
+                                        {{ item.precioDolar|number_format(2, ',', '.') }}
+                                    </td>
+                                    <td>
+                                        $
+                                        {{ item.importeDolar|number_format(2, ',', '.') }}
+                                    </td>
+                                    <td>
+                                        {% if item.remitos %}
+                                            {% for remito in item.remitos|split(' - ') %}
+                                                <a href="#" class="remito-link" data-remito="{{ remito|split(' ')[0] }}">
+                                                    {{ remito }}
+                                                </a>
+                                                <br>
+                                                {% endfor %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.facturas %}
+                                                {% for factura in item.facturas|split(' - ') %}
+                                                    <a href="#" class="factura-link" data-factura="{{ factura|split(' ')[0] }}">
+                                                        {{ factura }}
+                                                    </a>
+                                                    <br>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12 text-end">
+                            <a class="btn btn-secondary" href="{{ path('app_gestor_ordenes_de_compra', {status:app.request.get('status') ? app.request.get('status'):'Todas',ordenDeCompra: app.request.get('ordenDeCompra')}) }}">
+                                Volver
+                            </a>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Container para Facturas -->
-    <div class="modal fade" id="modalFactura" tabindex="-1" aria-labelledby="modalFacturaLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalFacturaLabel">Detalle de Facturas</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="modalFacturaBody">
-                    <!-- El contenido se cargará aquí via AJAX -->
-                    <div class="text-center">
-                        <div class="spinner-border" role="status">
-                            <span class="visually-hidden">Cargando...</span>
+                <!-- Modal Container para Remitos -->
+                <div class="modal fade" id="modalRemito" tabindex="-1" aria-labelledby="modalRemitoLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalRemitoLabel">
+                                    Detalle de Remitos
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body" id="modalRemitoBody">
+                                <!-- El contenido se cargará aquí via AJAX -->
+                                <div class="text-center">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">
+                                            Cargando...
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    Cerrar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <!-- Modal Container para Facturas -->
+                <div class="modal fade" id="modalFactura" tabindex="-1" aria-labelledby="modalFacturaLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalFacturaLabel">
+                                    Detalle de Facturas
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body" id="modalFacturaBody">
+                                <!-- El contenido se cargará aquí via AJAX -->
+                                <div class="text-center">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">
+                                            Cargando...
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-    
-    <script>
+            {% endblock %}
+            {% block javascripts %}
+                {{ parent() }}
+                <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+                <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+                <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+                <script>
         $(document).ready(function() {
             // Manejar clicks en enlaces de remitos
             $('.remito-link').on('click', function(e) {
@@ -229,7 +305,7 @@
                 
                 // Cargar contenido via AJAX
                 $.ajax({
-                    url: "{{path('app_remito_show_int',{'numero':'PLACEHOLDER'})}}".replace('PLACEHOLDER', numeroRemito),
+                    url: "{{ path('app_remito_show_int',{'numero':'PLACEHOLDER'}) }}".replace('PLACEHOLDER', numeroRemito),
                     type: 'GET',
                     success: function(response) {
                         modalRemitoBody.html(response);
@@ -262,7 +338,7 @@
                 
                 // Cargar contenido via AJAX
                 $.ajax({
-                    url: "{{path('app_factura_show_int',{'numero':'PLACEHOLDER'})}}".replace('PLACEHOLDER', numeroFactura),
+                    url: "{{ path('app_factura_show_int',{'numero':'PLACEHOLDER'}) }}".replace('PLACEHOLDER', numeroFactura),
                     type: 'GET',
                     success: function(response) {
                         modalFacturaBody.html(response);
@@ -278,4 +354,5 @@
 
 
     </script>
-{% endblock %}
+            {% endblock %}
+            
