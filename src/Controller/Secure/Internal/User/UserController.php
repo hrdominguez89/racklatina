@@ -6,6 +6,7 @@ use App\Entity\ExternalUserData;
 use App\Entity\User;
 use App\Entity\UserCustomer;
 use App\Entity\UserRole;
+use App\Enum\UserRoleType;
 use App\Form\UsuarioClienteRacklatinaType;
 use App\Form\UsuarioRacklatinaType;
 use App\Repository\ClientesRepository;
@@ -202,7 +203,7 @@ final class UserController extends AbstractController
 
             $this->entityManager->persist($usuario_rol);
             $this->entityManager->flush();
-            $this->enviarMailDeAlta($usuario);
+            $this->enviarMailDeAlta($usuario,$password);
             return true;
         }
         return false;
@@ -253,7 +254,7 @@ final class UserController extends AbstractController
 
             $this->entityManager->persist($userRole);
             $this->entityManager->flush();
-            $this->enviarMailDeAlta($user);
+            $this->enviarMailDeAlta($user,$password);
             return true;
         }
         return false;
@@ -319,9 +320,6 @@ final class UserController extends AbstractController
     {
         $id = $request->request->get('id');
         $user = $this->userRepository->find($id) ?? null;
-
-        if (!$user) {
-        }
 
         if ($request->request->get('tipo_usuario') == "empleado") {
             $user->setEmail($request->request->get('email'));
@@ -418,15 +416,39 @@ final class UserController extends AbstractController
         }
     }
 
-    public function enviarMailDeAlta($user)
+    //FUNCION PARA ELIMINAR REPRESENTACION 
+    #[Route('/eliminarrepresentado', name: 'app_usuarios_eliminar_representado')] // faltan las rutas en el retorno
+    public function eliminarrepresentado(Request $request)
     {
+        $representado = $request->request->get('representado');
+        $user = $this->userRepository->find(2);
+        if ($user) {
+            $this->entityManager->remove($user);
+            $this->entityManager->flush();
+        }
+    }
+
+    public function enviarMailDeAlta($user,$password)
+    {
+        $id = $user->getId();
+        $userRoles = $this->userRoleRepository->findBy(['user' => $id]);
+        $template = null;
+        foreach ($userRoles as $userRole) {
+            if ($userRole->getRole()->getType() === UserRoleType::INTERNAL) {
+                $template = "emails/account_created_empleado.html.twig";
+            }
+        }
+        if(!$template)
+        {
+            $template = "emails/account_created_cliente.html.twig";
+        }
         $email = (new Email())
             ->from('no-reply@racklatina.com')
             ->to($user->getEmail())
             ->subject('¡Se creo su cuenta en Racklatina!')
-            ->html($this->renderView('emails/confirm_account.html.twig', [
+            ->html($this->renderView($template, [
                 'user' => $user,
-                'password' => $user->getPassword(),
+                'password' => $password,
             ]));
 
         $this->mailer->send($email);

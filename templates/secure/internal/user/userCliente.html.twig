@@ -113,7 +113,18 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         cargarTabla('clientes');
+        
     });
+    function eliminarRepresentado(representado)
+    {
+        fetch('{{path("app_usuarios_eliminar_representado")}}',{
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `representado=${representado}`
+        }).then(response=>response.text()).then().catch();
+    }
     function modalEditar(id) {
         fetch(`{{ path('app_usuarios_editar') }}`, {
             method: 'POST',
@@ -206,6 +217,7 @@ function initializarModalSector() {
             }
         });
     }
+   
 }
     </script>
     {% endblock %}
