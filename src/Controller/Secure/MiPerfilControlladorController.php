@@ -1,7 +1,7 @@
 <?php
 
-namespace App\Controller;
-
+namespace App\Controller\Secure;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use App\Repository\ExternalUserDataRepository;
 use App\Repository\SectorsRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -9,11 +9,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+#[Route('/secure/mi-perfil')]
 
 final class MiPerfilControlladorController extends AbstractController
 {
-
-
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ExternalUserDataRepository $externalUserDataRepository,
@@ -23,7 +22,7 @@ final class MiPerfilControlladorController extends AbstractController
         $this->externalUserDataRepository = $externalUserDataRepository;
         $this->sectorRepoitory = $sectorRepoitory;
     }
-    #[Route('/mi/perfil/controllador', name: 'app_mi_perfil_controllador')]
+    #[Route('/', name: 'app_mi_perfil_controllador')]
     public function index(): Response
     {
         return $this->render('mi_perfil_controllador/miPerfil.html.twig', [
@@ -31,7 +30,7 @@ final class MiPerfilControlladorController extends AbstractController
             'user' => $this->getUser()
         ]);
     }
-    #[Route('/mi/perfil/controllador/edicion', name: 'app_mi_perfil_controllador_edicion')]
+    #[Route('/edicion', name: 'app_mi_perfil_controllador_edicion')]
     public function editarPerfil(Request $request): Response
     {
         $externalUserData = $this->externalUserDataRepository->findOneBy(['user' => $this->getUser()->getId()]);
@@ -43,8 +42,9 @@ final class MiPerfilControlladorController extends AbstractController
         ]);
     }
 
-    #[Route('/mi/perfil/controllador/edicion/guardar', name: 'app_editar_perfil_guardar', methods: ['POST'])]
-    public function guardarCambiosPerfil(Request $request): Response
+    #[Route('/edicion/guardar', name: 'app_editar_perfil_guardar', methods: ['POST'])]
+        
+    public function guardarCambiosPerfil(Request $request,UserPasswordHasherInterface $passwordHasher): Response
     {
         $data = $request->request->all();
 
@@ -56,19 +56,23 @@ final class MiPerfilControlladorController extends AbstractController
         if ($data['password'] !== '') {
             $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
         }
-        $id = $user->getId();
-        $userExternalData = $this->externalUserDataRepository->findOneBy(['user' => $id]);
-        $userExternalData->setJobTitle($data['jobTitle'] ?? null);
-        $userExternalData->setCompanyName($data['companyName'] ?? null);
-        $userExternalData->setPais($data['country'] ?? null);
-        $userExternalData->setProvincia($data['province'] ?? null);
-        $userExternalData->setSegmento($data['segment'] ?? null);
-        $sector = $this->sectorRepoitory->find($data['sector'] ?? null);
-        $userExternalData->setSector($sector);
-        $userExternalData->setPhoneNumber($data['phoneNumber'] ?? null);
-        $userExternalData->setSectorExtraData($data['sectorExtraData'] ?? null);
-        $userExternalData->setProfileCompleted(true);
-        $this->entityManager->persist($userExternalData);
+        $flag = $data['jobTitle'] ?? null;
+        if($flag !=null)
+        {
+            $id = $user->getId();
+            $userExternalData = $this->externalUserDataRepository->findOneBy(['user' => $id]);
+            $userExternalData->setJobTitle($data['jobTitle'] ?? null);
+            $userExternalData->setCompanyName($data['companyName'] ?? null);
+            $userExternalData->setPais($data['country'] ?? null);
+            $userExternalData->setProvincia($data['province'] ?? null);
+            $userExternalData->setSegmento($data['segment'] ?? null);
+            $sector = $this->sectorRepoitory->find($data['sector'] ?? null);
+            $userExternalData->setSector($sector);
+            $userExternalData->setPhoneNumber($data['phoneNumber'] ?? null);
+            $userExternalData->setSectorExtraData($data['sectorExtraData'] ?? null);
+            $userExternalData->setProfileCompleted(true);
+            $this->entityManager->persist($userExternalData);
+        }
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 

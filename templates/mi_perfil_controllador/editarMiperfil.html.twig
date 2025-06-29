@@ -26,6 +26,43 @@
             <div class="col-12">
                     <h3 class="mb-4">Editar Perfil</h3>
             </div>
+            {% if (user.isInternal())%}
+            <form method="POST" action="{{ path('app_editar_perfil_guardar') }}">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="firstName" class="form-label">Nombre *</label>
+                        <input type="text" class="form-control" id="firstName" name="firstName" required value="{{ user.firstName ?? '' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="lastName" class="form-label">Apellido *</label>
+                        <input type="text" class="form-control" id="lastName" name="lastName" required value="{{ user.lastName ?? '' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="dni" class="form-label">DNI *</label>
+                        <input type="text" class="form-control" id="dni" name="dni" required maxlength="8" value="{{ user.nationalIdNumber ?? '' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="phoneNumber" class="form-label">Teléfono *</label>
+                        <input type="text" class="form-control" id="phoneNumber" name="phoneNumber" value="{{ external_user_data.phoneNumber ?? '' }}">
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="email" class="form-label">Correo Electrónico *</label>
+                        <input type="email" class="form-control" id="email" name="email" required value="{{ user.email ?? '' }}">
+                    </div>
+                    <div class="col-md-6 mb-3" title="Dejar en blanco si no desea cambiar la contraseña">
+                        <label for="password" class="form-label" >Contraseña</label>
+                        <input type="password" class="form-control" id="password" name="password">
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12 text-center">
+                            <a href="{{ path('app_home') }}" class="btn btn-secondary mx-3">Cancelar</a>
+                            <button type="submit" class="btn btn-primary mx-3">Guardar Cambios</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            {%else%}
             <form method="POST" action="{{ path('app_editar_perfil_guardar') }}">
                 <div class="row">
                     <div class="col-md-6 mb-3">
@@ -103,6 +140,7 @@
                     </div>
                 </div>
             </form>
+            {%endif%}
     </div>
 </div>
 
