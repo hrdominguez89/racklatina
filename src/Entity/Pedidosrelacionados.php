@@ -155,6 +155,12 @@ class Pedidosrelacionados
     #[ORM\Column(name: "HojaRuta", type: Types::TEXT, nullable: true)]
     private ?string $hojaruta = null;
 
+    #[ORM\Column(name: "FechaOC", type: Types::TEXT, nullable: true)]
+    private ?string $fechaoc = null;
+
+    #[ORM\Column(name: "Cantidad_Pendiente", type: Types::INTEGER, nullable: true)]
+    private ?string $cantidadPendiente = null;
+
     public function getDbschemaid(): ?string
     {
         return $this->dbschemaid;
@@ -731,6 +737,30 @@ class Pedidosrelacionados
         return $this;
     }
 
+    public function getFechaoc(): ?string
+    {
+        return $this->fechaoc;
+    }
+
+    public function setFechaoc(?string $fechaoc): static
+    {
+        $this->fechaoc = $fechaoc;
+
+        return $this;
+    }
+
+    public function getCantidadPendiente(): ?int
+    {
+        return $this->cantidadPendiente;
+    }
+
+    public function setCantidadPendiente(?int $cantidadPendiente): static
+    {
+        $this->cantidadPendiente = $cantidadPendiente;
+
+        return $this;
+    }
+
     public function getInfo()
     {
         $data = [
@@ -782,9 +812,10 @@ class Pedidosrelacionados
             'fecharemitos' => $this->fecharemitos,
             'fechaentregarem' => $this->fechaentregarem,
             'hojaruta' => $this->hojaruta,
+            'fechaoc' => $this->fechaoc,
+            'cantidaPendiente' => $this->cantidadPendiente,
         ];
 
         return json_encode($data);
-
     }
 }

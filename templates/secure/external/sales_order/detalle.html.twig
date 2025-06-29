@@ -56,8 +56,8 @@
                             <tr>
                                 <td>Orden de compra del cliente</td>
                                 <td>{{ orden_de_compra.ordencompracliente }}</td>
-                                <td>Fecha de pedido</td>
-                                <td>{{ orden_de_compra.fechapedido ? orden_de_compra.fechapedido|date('d/m/Y') : '' }}</td>
+                                <td>Fecha OC</td>
+                                <td>{{ orden_de_compra.fechaoc ?? '' }}</td>
                             </tr>
                             <tr>
                                 <td>Lugar de entrega</td>
@@ -83,13 +83,15 @@
                 <table class="table table-bordered table-striped table-sm" id="tabla-items">
                     <thead class="table-dark text-center">
                         <tr>
-                            <th>Item</th>
                             <th>Artículo</th>
                             <th>Detalle</th>
                             <th>Estado</th>
-                            <th>Cantidad</th>
-                            <th>Precio USD</th>
-                            <th>Importe USD</th>
+                            <th>Cant.<br>original</th>
+                            <th>Cant.<br>pendiente</th>
+                            <th>Cant.<br>entregada</th>
+                            <th>Fecha de<br>entrega</th>
+                            <th>Precio<br>USD</th>
+                            <th>Importe<br>USD</th>
                             <th>Remito</th>
                             <th>Factura</th>
                         </tr>
@@ -97,11 +99,13 @@
                     <tbody>
                         {% for item in ordenes_de_compra %}
                             <tr>
-                                <td class="text-center">{{ item.item }}</td>
                                 <td class="text-center">{{ item.articulo }}</td>
                                 <td>{{ item.detalle }}</td>
                                 <td class="text-center">{{ item.estado }}</td>
                                 <td class="text-center">{{ item.cantidadoriginal }}</td>
+                                <td class="text-center">{{ item.cantidadPendiente }}</td>
+                                <td class="text-center">{{ item.cantEnt }}</td>
+                                <td class="text-center bg-info">{{ item.fechaentrega? item.fechaentrega : (item.fechaEstimada??'') }}</td>
                                 <td class="text-center">$&nbsp;{{ item.precioDolar|number_format(2, ',', '.') }}</td>
                                 <td class="text-center">$&nbsp;{{ item.importeDolar|number_format(2, ',', '.') }}</td>
                                 <td>

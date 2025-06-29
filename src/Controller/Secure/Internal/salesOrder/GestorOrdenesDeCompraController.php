@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
+#[Route('secure/sales-order')]
 final class GestorOrdenesDeCompraController extends AbstractController
 {
     private EntityManagerInterface $entityManager;
@@ -161,7 +162,6 @@ final class GestorOrdenesDeCompraController extends AbstractController
             ["remitos" => $remitos]
         );
     }
-
 
     #[Route('/factura-int/{numero}', name: 'app_factura_show_int')]
     public function verFactura(string $numero, FacturasRepository $facturasRepository): Response
