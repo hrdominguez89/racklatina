@@ -51,18 +51,9 @@
                         <table class="table table-striped table-sm">
                             <tbody>
                                 <tr>
-                                    <td>
-                                        Numero
-                                    </td>
-                                    <td>
-                                        {{ orden_de_compra.numero }}
-                                    </td>
-                                    <td>
-                                        Cliente
-                                    </td>
-                                    <td>
-                                        {{ orden_de_compra.razonsocial }}
-                                    </td>
+                                    <td>Cliente</td>
+                                    <td>{{ orden_de_compra.razonsocial }}</td>
+                                    <td colspan="2"></td>
                                 </tr>
                                 <tr>
                                     <td>
@@ -72,10 +63,10 @@
                                         {{ orden_de_compra.ordencompracliente }}
                                     </td>
                                     <td>
-                                        Fecha de pedido
+                                        Fecha de OC
                                     </td>
                                     <td>
-                                        {{ orden_de_compra.fechapedido ? orden_de_compra.fechapedido|date('d/m/Y') : '' }}
+                                        {{ orden_de_compra.fechaoc ?? '' }}
                                     </td>
                                 </tr>
                                 <tr>
@@ -117,43 +108,25 @@
                         Ítems de la orden de compra
                     </h5>
                     <table class="table table-bordered table-striped table-sm" id="tabla-items">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>
-                                    Item
-                                </th>
-                                <th>
-                                    Artículo
-                                </th>
-                                <th>
-                                    Detalle
-                                </th>
-                                <th>
-                                    Estado
-                                </th>
-                                <th>
-                                    Cantidad
-                                </th>
-                                <th>
-                                    Precio USD
-                                </th>
-                                <th>
-                                    Importe USD
-                                </th>
-                                <th>
-                                    Remito
-                                </th>
-                                <th>
-                                    Factura
-                                </th>
-                            </tr>
-                        </thead>
+                        <thead class="table-dark text-center">
+                        <tr>
+                            <th>Artículo</th>
+                            <th>Detalle</th>
+                            <th>Estado</th>
+                            <th>Cant.<br>asignada</th>
+                            <th>Cant.<br>original</th>
+                            <th>Cant.<br>pendiente</th>
+                            <th>Cant.<br>entregada</th>
+                            <th>Fecha de<br>entrega</th>
+                            <th>Precio<br>USD</th>
+                            <th>Importe<br>USD</th>
+                            <th>Remito</th>
+                            <th>Factura</th>
+                        </tr>
+                    </thead>
                         <tbody>
                             {% for item in ordenes_de_compra %}
-                                <tr>
-                                    <td>
-                                        {{ item.item }}
-                                    </td>
+                                <tr class="align-middle">
                                     <td>
                                         {{ item.articulo }}
                                     </td>
@@ -163,22 +136,22 @@
                                     <td>
                                         {{ item.estado }}
                                     </td>
+                                    <td class="text-center">{{ item.cantidadasignada }}</td>
+                                    <td class="text-center">{{ item.cantidadoriginal }}</td>
+                                    <td class="text-center">{{ item.cantidadPendiente }}</td>
+                                    <td class="text-center">{{ item.cantEnt }}</td>
+                                    <td class="text-center bg-primary">{{ item.fechaentrega? item.fechaentrega : (item.fechaEstimada??'') }}</td>
                                     <td>
-                                        {{ item.cantidadoriginal }}
+                                        $&nbsp;{{ item.precioDolar|number_format(2, ',', '.') }}
                                     </td>
                                     <td>
-                                        $
-                                        {{ item.precioDolar|number_format(2, ',', '.') }}
-                                    </td>
-                                    <td>
-                                        $
-                                        {{ item.importeDolar|number_format(2, ',', '.') }}
+                                        $&nbsp;{{ item.importeDolar|number_format(2, ',', '.') }}
                                     </td>
                                     <td>
                                         {% if item.remitos %}
                                             {% for remito in item.remitos|split(' - ') %}
                                                 <a href="#" class="remito-link" data-remito="{{ remito|split(' ')[0] }}">
-                                                    {{ remito }}
+                                                    {{ (remito|replace({' ': '&nbsp;'}))|raw }}
                                                 </a>
                                                 <br>
                                                 {% endfor %}
@@ -190,7 +163,7 @@
                                             {% if item.facturas %}
                                                 {% for factura in item.facturas|split(' - ') %}
                                                     <a href="#" class="factura-link" data-factura="{{ factura|split(' ')[0] }}">
-                                                        {{ factura }}
+                                                        {{ (factura|replace({' ': '&nbsp;'}))|raw }}
                                                     </a>
                                                     <br>
                                                     {% endfor %}

@@ -284,6 +284,12 @@ a.btn.btn-sm.btn-warning:visited {
   transition: all 0.2s ease-in-out;
 }
 
+.bg-primary {
+  background-color: var(--rkl-primary)!important;
+  border-color: var(--rkl-primary)!important;
+  color: var(--rkl-primary-contrast)!important;
+}
+
 .btn-primary {
   background-color: var(--rkl-primary);
   border-color: var(--rkl-primary);
