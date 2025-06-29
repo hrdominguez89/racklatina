@@ -132,12 +132,16 @@
                                 <thead>
                                     <tr>
                                         <th>Razón Social</th>
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody> 
                                     {% for representado in representados %}
                                         <tr>
                                             <td>{{ representado.razonSocial }}</td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminarRepresentado({{representado.codigoCalipso}})">Eliminar</button>
+                                            </td>
                                         </tr>
                                     {% endfor %}    
                                 </tbody>
