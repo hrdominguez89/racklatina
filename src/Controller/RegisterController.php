@@ -65,7 +65,7 @@ final class RegisterController extends AbstractController
             );
 
             $email = (new Email())
-                ->from('no-reply@racklatina.com')
+                ->from($_ENV['MAIL_FROM'])
                 ->to($user->getEmail())
                 ->subject('Confirmación de cuenta - Racklatina')
                 ->html($this->renderView('emails/confirm_account.html.twig', [
@@ -99,7 +99,7 @@ final class RegisterController extends AbstractController
         $em->flush();
 
         $email = (new Email())
-            ->from('no-reply@racklatina.com')
+            ->from($_ENV['MAIL_FROM'])
             ->to($user->getEmail())
             ->subject('¡Cuenta verificada correctamente!')
             ->html($this->renderView('emails/account_verified.html.twig', [
@@ -153,7 +153,7 @@ final class RegisterController extends AbstractController
             );
 
             $email = (new Email())
-                ->from('no-reply@racklatina.com')
+                ->from($_ENV['MAIL_FROM'])
                 ->to($user->getEmail())
                 ->subject('Confirmación de cuenta - Racklatina')
                 ->html($this->renderView('emails/confirm_account.html.twig', [

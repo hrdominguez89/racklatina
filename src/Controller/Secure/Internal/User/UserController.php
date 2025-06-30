@@ -443,7 +443,7 @@ final class UserController extends AbstractController
             $template = "emails/account_created_cliente.html.twig";
         }
         $email = (new Email())
-            ->from('no-reply@racklatina.com')
+            ->from($_ENV['MAIL_FROM'])
             ->to($user->getEmail())
             ->subject('¡Se creo su cuenta en Racklatina!')
             ->html($this->renderView($template, [

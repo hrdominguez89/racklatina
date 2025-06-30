@@ -51,7 +51,7 @@ final class ForgotPasswordController extends AbstractController
                 );
 
                 $email = (new Email())
-                    ->from('no-reply@racklatina.com')
+                    ->from($_ENV['MAIL_FROM'])
                     ->to($user->getEmail())
                     ->subject('Recuperación de contraseña - Racklatina')
                     ->html($this->renderView('emails/reset_password.html.twig', [
@@ -110,7 +110,7 @@ final class ForgotPasswordController extends AbstractController
             $em->flush();
 
             $mail = (new Email())
-                ->from('no-reply@racklatina.com')
+                ->from($_ENV['MAIL_FROM'])
                 ->to($user->getEmail())
                 ->subject('Confirmación de cambio de contraseña')
                 ->html($this->renderView('emails/password_changed.html.twig', [
