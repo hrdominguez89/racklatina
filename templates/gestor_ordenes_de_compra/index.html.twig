@@ -4,7 +4,7 @@
 {% endblock %}
 {% block stylesheets %}
     {{ parent() }}
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
     {% endblock %}
     {% block body %}
         <div class="container-fluid">
@@ -143,7 +143,7 @@
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle', {'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente,status:app.request.get('status') ? app.request.get('status'):'Todas',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}" class="btn btn-outline-primary btn-sm">
+                                                <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle', {'numero_pedido':pedido.numero,'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente,status:app.request.get('status') ? app.request.get('status'):'Todas',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}" class="btn btn-outline-primary btn-sm">
                                                     Detalle
                                                 </a>
                                             </td>
@@ -171,14 +171,13 @@
     {% endblock %}
     {% block javascripts %}
         {{ parent() }}
-        <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-        <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+        <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
+        <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
         <script>
         document.addEventListener('DOMContentLoaded', function () {
             $('#tabla-pedidos').DataTable({
                 language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                    url: esDatatable
                 },
                 order: [[3, 'desc']]
             });

@@ -4,7 +4,54 @@
 {% endblock %}
 {% block stylesheets %}
     {{ parent() }}
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
+    
+    <style media="print">
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+
+    body {
+        font-size: 10pt;
+    }
+
+    table {
+        width: 100% !important;
+        table-layout: fixed;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        font-size: 9pt;
+        padding: 4px;
+        word-wrap: break-word;
+        border: 1px solid #000;
+    }
+
+    th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+
+    /* Evitar corte en filas */
+    tr, td, th {
+        page-break-inside: avoid !important;
+    }
+
+    /* Ocultar elementos innecesarios */
+    .dataTables_length,
+    .dataTables_filter,
+    .dataTables_info,
+    .dataTables_paginate,
+    .dt-buttons,
+    .btn,
+    .breadcrumb,
+    .navbar,
+    .d-print-none {
+        display: none !important;
+    }
+</style>
     {% endblock %}
     {% block body %}
         <div class="container-fluid">
@@ -32,6 +79,12 @@
                     </div>
                 </div>
             </div>
+            
+        <div class="row d-print-none">
+    <div class="col-12 text-end">
+        <button onclick="window.print()" class="btn btn-outline-primary">Imprimir</button>
+    </div>
+</div>
             <div class="row mt-4">
                 <div class="col-12">
                     <h4>
@@ -107,21 +160,21 @@
                     <h5 class="mt-4">
                         Ítems de la orden de compra
                     </h5>
-                    <table class="table table-bordered table-striped table-sm" id="tabla-items">
-                        <thead class="table-dark text-center">
+                    <table id="tabla-detalle"  class="table table-bordered table-striped table-sm">
+                        <thead>
                         <tr>
-                            <th>Artículo</th>
-                            <th>Detalle</th>
-                            <th>Estado</th>
-                            <th>Cant.<br>asignada</th>
-                            <th>Cant.<br>original</th>
-                            <th>Cant.<br>pendiente</th>
-                            <th>Cant.<br>entregada</th>
-                            <th>Fecha de<br>entrega</th>
-                            <th>Precio<br>USD</th>
-                            <th>Importe<br>USD</th>
-                            <th>Remito</th>
-                            <th>Factura</th>
+                            <th class="text-center">Artículo</th>
+                            <th class="text-center">Detalle</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center">Cant.<br>asignada</th>
+                            <th class="text-center">Cant.<br>original</th>
+                            <th class="text-center">Cant.<br>pendiente</th>
+                            <th class="text-center">Cant.<br>entregada</th>
+                            <th class="text-center">Fecha de<br>entrega</th>
+                            <th class="text-center">Precio<br>USD</th>
+                            <th class="text-center">Importe<br>USD</th>
+                            <th class="text-center">Remito</th>
+                            <th class="text-center">Factura</th>
                         </tr>
                     </thead>
                         <tbody>
@@ -244,10 +297,8 @@
             {% endblock %}
             {% block javascripts %}
                 {{ parent() }}
-                <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-                <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-                <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+                <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
+                <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
                 <script>
         $(document).ready(function() {
             // Manejar clicks en enlaces de remitos
@@ -314,6 +365,21 @@
                         modalFacturaBody.html('<div class="alert alert-danger">Error al cargar la factura</div>');
                     }
                 });
+            });
+
+            $('#tabla-detalle').DataTable({
+                language: {
+                    url: esDatatable
+                },
+                stateSave: true,
+                dom: 'Bfrtip',
+                buttons: [
+                    'colvis'
+                ],
+                dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
+     "<'row'<'col-sm-12'tr>>" +
+     "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                colReorder: true
             });
         });
 

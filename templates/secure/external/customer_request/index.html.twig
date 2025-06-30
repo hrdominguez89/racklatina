@@ -5,12 +5,11 @@
 {% endblock %}
 {% block stylesheets %}
 	{{ parent() }}
-	<link	rel="stylesheet"	href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+	<link	rel="stylesheet"	href="{{ asset('Datatables/datatables.min.css') }}">
 	{% endblock %}
 	{% block javascripts %}
 		{{ parent() }}
-		<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-		<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+		<script src="{{ asset('Datatables/datatables.min.js') }}"></script>
 		<script>
         document.addEventListener('DOMContentLoaded', function () {
             const tabla = document.querySelector('#tabla-solicitudes');
@@ -18,7 +17,7 @@
                 new DataTable(tabla, {
                     pageLength: 10,
                     language: {
-                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                        url: esDatatable
                     }
                 });
             }

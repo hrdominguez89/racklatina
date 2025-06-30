@@ -78,17 +78,20 @@ final class SalesOrderController extends AbstractController
     {
 
         $cliente_id = $request->query->get('cliente_id') ?? null;
+        $numero_pedido = $request->query->get('numero_pedido') ?? null;
         $orden_compra_cliente_id = $request->query->get('orden_compra_cliente_id') ?? null;
 
-        $ordenDeCompra =  $pedidosrelacionadosRepository->findOneBy(['cliente' => $cliente_id, 'ordencompracliente' => $orden_compra_cliente_id]);
+        $ordenDeCompra =  $pedidosrelacionadosRepository->findOneBy(['cliente' => $cliente_id, 'ordencompracliente' => $orden_compra_cliente_id,'numero' => $numero_pedido]);
 
         $ordenesDeCompra = $em->createQueryBuilder()
             ->select('p')
             ->from(Pedidosrelacionados::class, 'p')
             ->where('p.cliente = :cliente')
             ->andWhere('p.ordencompracliente = :orden')
+            ->andWhere('p.numero = :numero_pedido')
             ->setParameter('cliente', $cliente_id)
             ->setParameter('orden', $orden_compra_cliente_id)
+            ->setParameter('numero_pedido', $numero_pedido)
             ->getQuery()
             ->getArrayResult();
 
