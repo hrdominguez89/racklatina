@@ -171,6 +171,8 @@
                             <th class="text-center">Cant.<br>pendiente</th>
                             <th class="text-center">Cant.<br>entregada</th>
                             <th class="text-center">Fecha de<br>entrega</th>
+                            <th class="text-center">Fecha <br>remitos</th>
+                            <th class="text-center">Fecha de<br>entrega remitos</th>
                             <th class="text-center">Precio<br>USD</th>
                             <th class="text-center">Importe<br>USD</th>
                             <th class="text-center">Remito</th>
@@ -194,6 +196,8 @@
                                     <td class="text-center">{{ item.cantidadPendiente }}</td>
                                     <td class="text-center">{{ item.cantEnt }}</td>
                                     <td class="text-center bg-primary">{{ item.fechaentrega? item.fechaentrega : (item.fechaEstimada??'') }}</td>
+                                    <td class="text-center">{{ item.fecharemitos? item.fecharemitos : '' }}</td>
+                                    <td class="text-center">{{ item.fechaentregarem? item.fechaentregarem : '' }}</td>
                                     <td>
                                         $&nbsp;{{ item.precioDolar|number_format(2, ',', '.') }}
                                     </td>

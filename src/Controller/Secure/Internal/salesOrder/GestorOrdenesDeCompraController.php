@@ -67,6 +67,7 @@ final class GestorOrdenesDeCompraController extends AbstractController
                         'cliente' => $pedido['cliente'],
                         'razonsocial' => $pedido['razonsocial'],
                         'fechapedido' => $pedido['fechapedido'],
+                        'fechaoc' => $pedido['fechaoc'],
                         'pendientes' => 0,
                         'remitidos' => 0,
                     ];

@@ -111,6 +111,9 @@
                                             Fecha Pedido
                                         </th>
                                         <th>
+                                            Fecha OC
+                                        </th>
+                                        <th>
                                             Estado
                                         </th>
                                         <th>
@@ -132,6 +135,10 @@
                                             </td>
                                             <td data-order="{{ pedido.fechapedido ? pedido.fechapedido|date('Y-m-d') : '' }}">
                                                 {{ pedido.fechapedido|date('d/m/Y') }}
+                                            </td>
+                                            
+                                            <td data-order="{{ pedido.fechaoc ? pedido.fechaoc: '' }}">
+                                                {{ pedido.fechaoc }}
                                             </td>
                                             <td>
                                                 {% if status == 'Todas' %}
