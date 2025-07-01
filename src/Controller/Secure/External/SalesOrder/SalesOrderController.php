@@ -54,7 +54,7 @@ final class SalesOrderController extends AbstractController
                     'numero' => $pedido['numero'],
                     'cliente' => $pedido['cliente'],
                     'razonsocial' => $pedido['razonsocial'],
-                    'fechapedido' => $pedido['fechapedido'],
+                    'fechaoc' => $pedido['fechaoc'],
                     'pendientes' => 0,
                     'remitidos' => 0,
                 ];
