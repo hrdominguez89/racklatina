@@ -79,15 +79,18 @@
                             <a href="{{ path('app_gestor_ordenes_de_compra',{status:'Remitido',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}" class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">
                                 Remitido
                             </a>
-                            <a href="{{ path('app_secure_internal_sales_order_articulos',{status:'Remitido',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}"class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">Articulos Pendientes</a>
+                            <a href="{{ path('app_gestor_ordenes_de_compra',{status:'articulos_pendientes',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}"class="btn {{ status=='articulos_pendientes'? 'active':''}}  btn-outline-primary">Articulos Pendientes</a>
                         </div>
                     </div>
                 </div>
                 {% if pedidos %}
                     <div class="row mt-3 mb-3">
                         <div class="col-12">
+                            
+
                             <h2 class="text-center">
-                                Órdenes de compra encontradas para la busqueda:
+                                {{app.request.get('status') != 'articulos_pendientes' ? "Órdenes de compra" : "Articulos pendientes"}} encontradas para la busqueda:
+                                
                                 <strong>
                                     {{ app.request.get('search') }}
                                 </strong>
@@ -96,6 +99,7 @@
                     </div>
                     <div class="row">
                         <div class="col-12">
+                            {% if app.request.get('status') != 'articulos_pendientes' %}
                             <table id="tabla-pedidos" class="table table-striped">
                                 <thead>
                                     <tr>
@@ -159,6 +163,45 @@
                                     {% endfor %}
                                 </tbody>
                             </table>
+                            {% else %}
+                            <table id="tabla-pedidos" class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Código de articulo</th>
+                                    <th>Cantidad pendiente</th>
+                                    <th>Numero de pedido</th>
+                                    <th>Detalle</th>
+                                    <th>Fecha estimada</th>
+                                    <th>Fecha de pedido</th>
+                                    <th>Ver O.C. detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody> 
+                                {% for articulo in pedidos %}
+                                    <tr>
+                                        <td>{{ articulo.articulo }}</td>
+                                        <td>{{ articulo.cantidadPendiente }}</td>
+                                        <td>{{ articulo.numero }}</td>
+                                        <td>{{ articulo.detalle }}</td>
+                                        <td>{{ articulo.fechaEstimada }}</td>
+                                        <td>{{ articulo.fechapedido|date('d/m/Y') }}</td>
+                                        <td>
+                                            <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle',
+                                             {'numero_pedido':articulo.numero,
+                                             'cliente_id': articulo.cliente, 
+                                             'orden_compra_cliente_id': articulo.ordencompracliente,
+                                             status:app.request.get('status') ? app.request.get('status'):'Todas',
+                                             search: app.request.get('search'),searchType: app.request.get('searchType')}) }}"
+                                              class="btn btn-outline-primary btn-sm">
+                                                Detalle
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                            {% endif %}
+
                         </div>
                     </div>
                 {% else %}
@@ -187,9 +230,18 @@
                 language: {
                     url: esDatatable
                 },
-                order: [[3, 'desc']]
+                order: [[3, 'desc']],
+                
             });
+
         });
+
+
+
+
+
+
+
     </script>
     {% endblock %}
     

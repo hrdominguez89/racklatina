@@ -32,8 +32,18 @@ class LoginController extends AbstractController
             if ($this->getUser()->isInternal()) {
                 return $this->redirectToRoute('app_secure_internal_home');
             }
+            // $requets =  $this->getUser()->getUserRequests();
+            // if($requets)
+            // {
+            //     return $this->render('secure/external/home/index.html.twig');
+            // }
+            // $this->addFlash('info', 'No tiene empresas asignadas para administrar desde su usuario, por favor agregue las empresas que desee administrar desde su perfil.');
+            // return $this->redirectToRoute('app_secure_external_customer_request');
+
             return $this->redirectToRoute('app_secure_external_home');
         }
+
+
         // get the login error if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
         // last username entered by the user

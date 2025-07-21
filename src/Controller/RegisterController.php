@@ -90,7 +90,8 @@ final class RegisterController extends AbstractController
 
         if (!$user || $user->getAccountTokenExpiresAt() < new \DateTimeImmutable()) {
             //hacer mensaje de error.
-            throw $this->createNotFoundException('Token inválido o expirado.');
+            $this->addFlash('danger', 'El enlace de confirmación ha expirado o es inválido.');
+            return $this->redirectToRoute('app_login');
         }
 
         $user->getExternalUserData()->setVerified(true);

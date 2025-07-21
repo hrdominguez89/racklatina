@@ -3,11 +3,13 @@
 namespace App\Controller\Secure\External\SalesOrder;
 
 use App\Entity\Pedidosrelacionados;
+use App\Entity\Remitos;
 use App\Repository\FacturasRepository;
 use App\Repository\PedidosrelacionadosRepository;
 use App\Repository\RemitosRepository;
 use App\Repository\UserCustomerRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Dom\Entity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -104,9 +106,13 @@ final class SalesOrderController extends AbstractController
     #[Route('/remito/{numero}', name: 'app_remito_show')]
     public function verRemito(string $numero, RemitosRepository $remitosRepository): Response
     {
-        $remitos = $remitosRepository->findBy([
-            'remito' => $numero
-        ]);
+        // dd("estoy aca motherfucker");
+        $remitos = $remitosRepository->createQueryBuilder('r')
+            ->where('r.remito = :numero')
+            ->setParameter('numero:', $numero)
+            ->getQuery()
+            ->getArrayResult();
+        // dd($remitos);
         if (!$remitos) {
             $remitos = [];
         }
@@ -134,25 +140,25 @@ final class SalesOrderController extends AbstractController
         );
     }
     #[Route('/items', name: 'app_secure_external_sales_order_articulos')]
-    public function verItems(Request $request, EntityManagerInterface $em)
+    public function verItems(Request $request, EntityManagerInterface $em,UserCustomerRepository $userCustomerRepository)
     {
-        $data['status'] = $request->query->get('status') ?? null;
-        if(!$data)
+        $id = $this->getUser()->getId();
+        $clientes = $userCustomerRepository->findBy(["user" =>$id]);
+        $pedidos=[];
+        foreach($clientes as $cliente)
         {
-      
+            array_push(
+                $em->createQueryBuilder()
+                    ->select('p')
+                    ->from(Pedidosrelacionados::class, 'p')
+                    ->where('p.cliente = :cliente')
+                    ->andWhere("p.estado = 'Pendiente'")
+                    ->andWhere('p.cantidadoriginal != 0')
+                    ->setParameter('cliente', $cliente->getId())
+                    ->getQuery()
+                    ->getArrayResult(),$pedidos
+            );
         }
-        $data['cliente_id'] = $request->query->get('cliente_id') ?? null;
-
-        $pedidos = $em->createQueryBuilder()
-            ->select('p')
-            ->from(Pedidosrelacionados::class, 'p')
-            ->where('p.cliente = :cliente')
-            ->andWhere("p.estado = 'Pendiente'")
-            ->andWhere('p.cantidadoriginal != 0')
-            ->setParameter('cliente', $data['cliente_id'])
-            ->getQuery()
-            ->getArrayResult();
-        
 
         return $this->render('secure/external/sales_order/articulos_cliente.html.twig', ['pedidos' => $pedidos]);
     }

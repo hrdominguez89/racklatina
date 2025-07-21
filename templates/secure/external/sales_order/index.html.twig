@@ -40,8 +40,7 @@
                             Remitido
                         </a>
                         <a href="{{ path('app_secure_external_sales_order_articulos', {
-                                'status': 'pendiente',
-                                'cliente_id': pedidos[0].cliente
+                                'status': 'pendiente'
                             }) }}" class="btn {{ status=='Cancelado'? 'active':'' }} btn-outline-primary">
                             Articulos pendientes.
                         </a>

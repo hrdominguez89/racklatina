@@ -7,28 +7,50 @@
     <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
     {% endblock %}
     {% block body %}
+     <div class="container-fluid">
+            <!-- start page title -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                        <div class="page-title-right">
+                            <ol class="breadcrumb m-0">
+                                <li class="breadcrumb-item">
+                                    <a href="{{ path('app_home') }}">
+                                        Mi portal
+                                    </a>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
     <div class="row mt-4">
         <div class="col-12">
             <table id="tabla-articulos" class="table table-striped">
                 <thead>
                     <tr>
                         <th>Código de articulo</th>
-                        <th>Cantidad original</th>
+                        <th>Cantidad pendientes</th>
                         <th>Numero de orden de compra</th>
                         <th>Detalle</th>
                         <th>Fecha estimada</th>
                         <th>Fecha de pedido</th>
+                        <th>Ver detalle de la orden</th>
                     </tr>
                 </thead>
                 <tbody> 
                     {% for articulo in pedidos %}
                         <tr>
                             <td>{{ articulo.articulo }}</td>
-                            <td>{{ articulo.cantidadoriginal }}</td>
+                            <td>{{ articulo.cantidadPendiente  }}</td>
                             <td>{{ articulo.numero }}</td>
                             <td>{{ articulo.detalle }}</td>
                             <td>{{ articulo.fechaEstimada }}</td>
                             <td>{{ articulo.fechapedido|date('d/m/Y') }}</td>
+                            <td><a href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle', {'numero_pedido':articulo.numero,'cliente_id': articulo.cliente, 'orden_compra_cliente_id': articulo.ordencompracliente,status:app.request.get('status') ? app.request.get('status'):'Todas'}) }}" class="btn btn-outline-primary btn-sm">
+                                   Detalle
+                                </a>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>

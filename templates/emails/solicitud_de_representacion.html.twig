@@ -1,7 +1,9 @@
 <h2>Se creó una nueva solicitud de representación de cliente(s)</h2>
-<p>El usuario {{ representante.getFirstName() }} {{ representante.getLastName() }}</p>
-<p>mail: {{ representante.getEmail() }}</p>
+<p>Solicitud numero : {{solicitud_id}}.</p>
+<p>Estos son los datos del representante:</p>
+<p>El usuario {{ representante.firstName }} {{ representante.lastName }}</p>
+<p>mail: {{ representante.email }}</p>
 <p>ha solicitado la representación de los clientes:</p>
 {% for representado in representados %}
-    <p>{{ representado }}</p>
+    <p>Razon Social: {{ representado.razonSocial }} - CUIT: {{ representado.cuit }} </p>
 {% endfor %}

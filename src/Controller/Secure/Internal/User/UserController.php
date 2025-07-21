@@ -159,7 +159,7 @@ final class UserController extends AbstractController
                 if ($flag) {
                     $this->addFlash('success', 'Se dio de alta el usuario.');
                 } else {
-                    $this->addFlash('error', 'No se completo el alta de usuario empleado.');
+                    $this->addFlash('danger', 'No se completo el alta de usuario empleado.');
                 }
                 return $this->redirectToRoute('app_secure_internal_user_user_racklatina');
             case "cliente":
@@ -167,7 +167,7 @@ final class UserController extends AbstractController
                 if ($flag) {
                     $this->addFlash('success', 'Se dio de alta el usuario.');
                 } else {
-                    $this->addFlash('error', 'No se completo el alta de usuario cliente.');
+                    $this->addFlash('danger', 'No se completo el alta de usuario cliente.');
                 }
                 return $this->redirectToRoute('app_secure_internal_user_user_cliente');
         }

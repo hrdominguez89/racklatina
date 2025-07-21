@@ -166,15 +166,15 @@
                             <th class="text-center">Artículo</th>
                             <th class="text-center">Detalle</th>
                             <th class="text-center">Estado</th>
-                            <th class="text-center">Cant.<br>asignada</th>
-                            <th class="text-center">Cant.<br>original</th>
-                            <th class="text-center">Cant.<br>pendiente</th>
-                            <th class="text-center">Cant.<br>entregada</th>
-                            <th class="text-center">Fecha de<br>entrega</th>
-                            <th class="text-center">Fecha <br>emision remitos</th>
-                            <th class="text-center">Fecha de<br>entrega remitos</th>
-                            <th class="text-center">Precio<br>USD</th>
-                            <th class="text-center">Importe<br>USD</th>
+                            <th class="text-center">Cant.<br> asignada</th>
+                            <th class="text-center">Cant.<br> original</th>
+                            <th class="text-center">Cant.<br> pendiente</th>
+                            <th class="text-center">Cant.<br> entregada</th>
+                            <th class="text-center">Fecha de<br> entrega</th>
+                            <th class="text-center">Fecha<br> emision remitos</th>
+                            <th class="text-center">Fecha de<br> entrega remitos</th>
+                            <th class="text-center">Precio<br> USD</th>
+                            <th class="text-center">Importe<br> USD</th>
                             <th class="text-center">Remito</th>
                             <th class="text-center">Factura</th>
                         </tr>
@@ -190,11 +190,7 @@
                                         {{ item.detalle }}
                                     </td>
                                     <td>
-                                        {% if item.fechaentregarem == null %}
-                                        {{ item.estado }}
-                                        {% else %}
-                                        Entregado
-                                        {% endif %}
+                                        {{item.fechaentregarem ? 'Entregado' : item.estado }}
                                     </td>
                                     <td class="text-center">{{ item.cantidadasignada }}</td>
                                     <td class="text-center">{{ item.cantidadoriginal }}</td>
@@ -386,11 +382,15 @@
                 dom: 'Bfrtip',
                 buttons: [
                     'colvis',
-                    'excelHtml5'
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Orden de compra nro {{ orden_de_compra.OrdenCompraCliente }} pedido nro {{orden_de_compra.numero}} razon social {{orden_de_compra.razonsocial}}',
+                        filename: 'Orden_de_compra_nro_{{ orden_de_compra.OrdenCompraCliente }}_pedido_nro_{{orden_de_compra.numero}}'
+                    }
                 ],
                 dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
-     "<'row'<'col-sm-12'tr>>" +
-     "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                 colReorder: true
             });
         });

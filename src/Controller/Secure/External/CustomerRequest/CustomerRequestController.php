@@ -78,7 +78,7 @@ final class CustomerRequestController extends AbstractController
 
             $representante = $this->getUser();
             $representados = $clientes;
-            $this->enviarMailDeSolicitudDeRepresentacion($representante,$representados);
+            $this->enviarMailDeSolicitudDeRepresentacion($representante,$representados,$solicitud->getId());
             $this->addFlash('success', 'Solicitud enviada correctamente.');
             return $this->redirectToRoute('app_secure_external_customer_request');
         }
@@ -177,7 +177,7 @@ final class CustomerRequestController extends AbstractController
 
         return new JsonResponse($resultado);
     }
-    public function enviarMailDeSolicitudDeRepresentacion($representante,$representados)
+    public function enviarMailDeSolicitudDeRepresentacion($representante,$representados,$solicitud_id)
     {
         $template = "emails/solicitud_de_representacion.html.twig";
         $email = (new Email())
@@ -185,6 +185,7 @@ final class CustomerRequestController extends AbstractController
             ->to($_ENV['MAIL_CENTRO_RAC'])
             ->subject('Solicitud de Representación')
             ->html($this->renderView($template, [
+                'solicitud_id' => $solicitud_id,
                 'representante' => $representante,
                 'representados' => $representados
             ]));
