@@ -171,7 +171,7 @@
                             <th class="text-center">Cant.<br>pendiente</th>
                             <th class="text-center">Cant.<br>entregada</th>
                             <th class="text-center">Fecha de<br>entrega</th>
-                            <th class="text-center">Fecha <br>remitos</th>
+                            <th class="text-center">Fecha <br>emision remitos</th>
                             <th class="text-center">Fecha de<br>entrega remitos</th>
                             <th class="text-center">Precio<br>USD</th>
                             <th class="text-center">Importe<br>USD</th>
@@ -181,6 +181,7 @@
                     </thead>
                         <tbody>
                             {% for item in ordenes_de_compra %}
+                            {% if item.cantidadoriginal > 0 %}
                                 <tr class="align-middle">
                                     <td>
                                         {{ item.articulo }}
@@ -189,7 +190,11 @@
                                         {{ item.detalle }}
                                     </td>
                                     <td>
+                                        {% if item.fechaentregarem == null %}
                                         {{ item.estado }}
+                                        {% else %}
+                                        Entregado
+                                        {% endif %}
                                     </td>
                                     <td class="text-center">{{ item.cantidadasignada }}</td>
                                     <td class="text-center">{{ item.cantidadoriginal }}</td>
@@ -229,7 +234,9 @@
                                                 {% endif %}
                                             </td>
                                         </tr>
+                                        {% endif %}
                                     {% endfor %}
+                                
                                 </tbody>
                             </table>
                         </div>
@@ -378,7 +385,8 @@
                 stateSave: true,
                 dom: 'Bfrtip',
                 buttons: [
-                    'colvis'
+                    'colvis',
+                    'excelHtml5'
                 ],
                 dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
      "<'row'<'col-sm-12'tr>>" +

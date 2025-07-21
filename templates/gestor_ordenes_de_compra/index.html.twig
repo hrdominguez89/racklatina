@@ -79,6 +79,7 @@
                             <a href="{{ path('app_gestor_ordenes_de_compra',{status:'Remitido',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}" class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">
                                 Remitido
                             </a>
+                            <a href="{{ path('app_secure_internal_sales_order_articulos',{status:'Remitido',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}"class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">Articulos Pendientes</a>
                         </div>
                     </div>
                 </div>

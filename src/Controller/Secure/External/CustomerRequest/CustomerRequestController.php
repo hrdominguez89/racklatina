@@ -14,11 +14,18 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mailer\MailerInterface;
 
 #[Route('secure/clientes/mis-solicitudes')]
 final class CustomerRequestController extends AbstractController
 {
+    public function __construct(private MailerInterface $mailer)
+    {
+        $this->mailer = $mailer;
+    }
     #[Route('/', name: 'app_secure_external_customer_request')]
+        
     public function index(Request $request, CustomerRequestRepository $repository): Response
     {
         $statusParam = $request->query->get('status');
@@ -69,6 +76,9 @@ final class CustomerRequestController extends AbstractController
             $em->persist($solicitud);
             $em->flush();
 
+            $representante = $this->getUser();
+            $representados = $clientes;
+            $this->enviarMailDeSolicitudDeRepresentacion($representante,$representados);
             $this->addFlash('success', 'Solicitud enviada correctamente.');
             return $this->redirectToRoute('app_secure_external_customer_request');
         }
@@ -147,9 +157,6 @@ final class CustomerRequestController extends AbstractController
         ]);
     }
 
-
-
-
     #[Route('/buscar-clientes-por-cuit', name: 'app_secure_external_customer_request_buscar_clientes', methods: ['GET'])]
     public function buscarClientesPorCuit(Request $request, ClientesRepository $clientesRepository): JsonResponse
     {
@@ -169,5 +176,18 @@ final class CustomerRequestController extends AbstractController
         ], $clientes);
 
         return new JsonResponse($resultado);
+    }
+    public function enviarMailDeSolicitudDeRepresentacion($representante,$representados)
+    {
+        $template = "emails/solicitud_de_representacion.html.twig";
+        $email = (new Email())
+            ->from($_ENV['MAIL_FROM'])
+            ->to($_ENV['MAIL_CENTRO_RAC'])
+            ->subject('Solicitud de Representación')
+            ->html($this->renderView($template, [
+                'representante' => $representante,
+                'representados' => $representados
+            ]));
+        $this->mailer->send($email);
     }
 }

@@ -1,0 +1,7 @@
+<h2>Se creó una nueva solicitud de representación de cliente(s)</h2>
+<p>El usuario {{ representante.getFirstName() }} {{ representante.getLastName() }}</p>
+<p>mail: {{ representante.getEmail() }}</p>
+<p>ha solicitado la representación de los clientes:</p>
+{% for representado in representados %}
+    <p>{{ representado }}</p>
+{% endfor %}

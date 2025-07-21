@@ -127,10 +127,33 @@ final class SalesOrderController extends AbstractController
         $factura = $facturasRepository->findBy([
             'numero' => $numeroLimpio
         ]);
-        // dd($facturas);
+        
         return $this->render(
             'secure/external/sales_order/_modalFactura.html.twig',
             ['facturas' => $factura]
         );
+    }
+    #[Route('/items', name: 'app_secure_external_sales_order_articulos')]
+    public function verItems(Request $request, EntityManagerInterface $em)
+    {
+        $data['status'] = $request->query->get('status') ?? null;
+        if(!$data)
+        {
+      
+        }
+        $data['cliente_id'] = $request->query->get('cliente_id') ?? null;
+
+        $pedidos = $em->createQueryBuilder()
+            ->select('p')
+            ->from(Pedidosrelacionados::class, 'p')
+            ->where('p.cliente = :cliente')
+            ->andWhere("p.estado = 'Pendiente'")
+            ->andWhere('p.cantidadoriginal != 0')
+            ->setParameter('cliente', $data['cliente_id'])
+            ->getQuery()
+            ->getArrayResult();
+        
+
+        return $this->render('secure/external/sales_order/articulos_cliente.html.twig', ['pedidos' => $pedidos]);
     }
 }

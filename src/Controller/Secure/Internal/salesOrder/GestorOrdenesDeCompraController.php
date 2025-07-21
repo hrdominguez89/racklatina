@@ -182,4 +182,49 @@ final class GestorOrdenesDeCompraController extends AbstractController
             ['facturas' => $factura]
         );
     }
+    #[Route('/items', name: 'app_secure_internal_sales_order_articulos')]
+    public function verItems(Request $request, EntityManagerInterface $em)
+    {
+        $busqueda_tipo = $request->query->get('searchType');
+        $datoBuscar = $request->query->get('search');
+        switch($busqueda_tipo)
+        {
+            case "cliente":
+                $pedidos = $em->createQueryBuilder()
+                ->select('p')
+                ->from(Pedidosrelacionados::class, 'p')
+                ->where('p.cliente = :cliente')
+                ->andWhere("p.estado = 'Pendiente'")
+                ->andWhere('p.cantidadoriginal != 0')
+                ->setParameter('cliente', $datoBuscar)
+                ->getQuery()
+                ->getArrayResult();
+                break;
+            case "orden":
+                $pedidos = $em->createQueryBuilder()
+                    ->select('p')
+                    ->from(Pedidosrelacionados::class, 'p')
+                    ->where('p.ordencompracliente = :ordencompra')
+                    ->andWhere("p.estado = 'Pendiente'")
+                    ->andWhere('p.cantidadoriginal != 0')
+                    ->setParameter('ordencompra', $datoBuscar)
+                    ->getQuery()
+                    ->getArrayResult();
+                break;
+            case "pedido":
+                 $pedidos = $em->createQueryBuilder()
+                    ->select('p')
+                    ->from(Pedidosrelacionados::class, 'p')
+                    ->where('p.numero = :numero')
+                    ->andWhere("p.estado = 'Pendiente'")
+                    ->andWhere('p.cantidadoriginal != 0')
+                    ->setParameter('numero', $datoBuscar)
+                    ->getQuery()
+                    ->getArrayResult();
+                break;
+        }
+        
+
+        return $this->render('gestor_ordenes_de_compra/articulos_cliente_interno.html.twig', ['pedidos' => $pedidos]);
+    }
 }
