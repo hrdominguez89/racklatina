@@ -142,24 +142,27 @@ final class SalesOrderController extends AbstractController
     #[Route('/items', name: 'app_secure_external_sales_order_articulos')]
     public function verItems(Request $request, EntityManagerInterface $em,UserCustomerRepository $userCustomerRepository)
     {
-        $id = $this->getUser()->getId();
-        $clientes = $userCustomerRepository->findBy(["user" =>$id]);
+        $usuario = $this->getUser();
+        $clientes = $userCustomerRepository->createQueryBuilder('uc')
+            ->select('uc.cliente')
+            ->where('uc.user = :usuario')
+            ->setParameter('usuario', $usuario)
+            ->getQuery()
+            ->getSingleColumnResult();
         $pedidos=[];
         foreach($clientes as $cliente)
         {
-            array_push(
-                $em->createQueryBuilder()
+            $aux = $em->createQueryBuilder()
                     ->select('p')
                     ->from(Pedidosrelacionados::class, 'p')
                     ->where('p.cliente = :cliente')
                     ->andWhere("p.estado = 'Pendiente'")
                     ->andWhere('p.cantidadoriginal != 0')
-                    ->setParameter('cliente', $cliente->getId())
+                    ->setParameter('cliente', $cliente)
                     ->getQuery()
-                    ->getArrayResult(),$pedidos
-            );
+                    ->getArrayResult();
+            array_push($pedidos,$aux);
         }
-
         return $this->render('secure/external/sales_order/articulos_cliente.html.twig', ['pedidos' => $pedidos]);
     }
 }

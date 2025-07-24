@@ -5,6 +5,9 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.dataTables.min.css">
+    <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
+
     {% endblock %}
     {% block body %}
      <div class="container-fluid">
@@ -29,37 +32,51 @@
             <table id="tabla-articulos" class="table table-striped">
                 <thead>
                     <tr>
+                        <th>Orden de compra</th>
                         <th>Código de articulo</th>
                         <th>Cantidad pendientes</th>
                         <th>Numero de orden de compra</th>
                         <th>Detalle</th>
-                        <th>Fecha estimada</th>
+                        <th class="bg-primary">Fecha estimada</th>
                         <th>Fecha de pedido</th>
                         <th>Ver detalle de la orden</th>
                     </tr>
                 </thead>
                 <tbody> 
-                    {% for articulo in pedidos %}
-                        <tr>
-                            <td>{{ articulo.articulo }}</td>
-                            <td>{{ articulo.cantidadPendiente  }}</td>
-                            <td>{{ articulo.numero }}</td>
-                            <td>{{ articulo.detalle }}</td>
-                            <td>{{ articulo.fechaEstimada }}</td>
-                            <td>{{ articulo.fechapedido|date('d/m/Y') }}</td>
-                            <td><a href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle', {'numero_pedido':articulo.numero,'cliente_id': articulo.cliente, 'orden_compra_cliente_id': articulo.ordencompracliente,status:app.request.get('status') ? app.request.get('status'):'Todas'}) }}" class="btn btn-outline-primary btn-sm">
-                                   Detalle
-                                </a>
-                            </td>
-                        </tr>
+                    {% for pedido in pedidos %}
+                        {% for articulo in pedido %}
+                            <tr>
+                                <td>{{ articulo.ordencompracliente }}</td>
+                                <td>{{ articulo.articulo }}</td>
+                                <td>{{ articulo.cantidadPendiente  }}</td>
+                                <td>{{ articulo.numero }}</td>
+                                <td>{{ articulo.detalle }}</td>
+                                <td  class="bg-primary" >{{ articulo.fechaEstimada }}</td>
+                                <td>{{ articulo.fechapedido|date('d/m/Y') }}</td>
+                                <td><a href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle', {'numero_pedido':articulo.numero,'cliente_id': articulo.cliente, 'orden_compra_cliente_id': articulo.ordencompracliente,status:app.request.get('status') ? app.request.get('status'):'Todas'}) }}" class="btn btn-outline-primary btn-sm">
+                                        Detalle
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+         <div class="row mt-4">
+                <div class="col-12 text-end">
+                    <a class="btn btn-secondary" href="{{ path('app_home') }}">
+                        Volver
+                    </a>
+                </div>
+            </div>
     </div>
     {% endblock %}
+    
     {% block javascripts %}
         {{ parent() }}
+        <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
+
         <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
         <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
         <script>
@@ -68,7 +85,17 @@
                 language: {
                     url: esDatatable
                 },
-                order: [[3, 'desc']]
+                order: [[3, 'desc']],
+                dom: 'Bfrtip',
+                colReorder: true,
+                buttons: [
+                    'colvis',
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Items pendientes',
+                        filename: 'Items pendientes'
+                    }
+                ],
             });
         });
     </script>

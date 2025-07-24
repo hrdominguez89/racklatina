@@ -5,6 +5,8 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.dataTables.min.css">
+
     {% endblock %}
     {% block body %}
         <div class="container-fluid">
@@ -120,6 +122,8 @@
     {% endblock %}
     {% block javascripts %}
         {{ parent() }}
+        <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
+        
         <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
         <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
         <script>
@@ -128,7 +132,17 @@
                 language: {
                     url: esDatatable
                 },
-                order: [[3, 'desc']]
+                order: [[3, 'desc']],
+                colReorder: true,
+                 buttons: [
+                    'colvis',
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Items pendientes',
+                        filename: 'Items pendientes'
+                    }
+                ],
+
             });
         });
     </script>

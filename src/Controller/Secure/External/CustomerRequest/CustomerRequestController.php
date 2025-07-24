@@ -82,6 +82,9 @@ final class CustomerRequestController extends AbstractController
             $this->addFlash('success', 'Solicitud enviada correctamente.');
             return $this->redirectToRoute('app_secure_external_customer_request');
         }
+        $this->addFlash('warning', "Para representar una empresa debe agregar al menos un cliente y enviar la solicitud.\n1)Ingrese un cuit.\n2)Haga click en 'Buscar clientes'.\n3)Puede buscar y seleccionar más de uno.\n4)Al finalizar la selección hacer click en 'Enviar solicitud'.\nSu solicitud será aprobada por un empleado de RackLatina a la brevedad.");
+
+
 
         return $this->render('secure/external/customer_request/form.html.twig', [
             'form' => $form->createView(),
