@@ -5,7 +5,6 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
-    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.dataTables.min.css">
 
     {% endblock %}
     {% block body %}
@@ -41,9 +40,9 @@
                         <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Remitido'}) }}" class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">
                             Remitido
                         </a>
-                        <a href="{{ path('app_secure_external_sales_order_articulos', {
-                                'status': 'pendiente'
-                            }) }}" class="btn {{ status=='Cancelado'? 'active':'' }} btn-outline-primary">
+                        <a href="{{ path('app_secure_external_sales_order_sales_order', {
+                                'status': 'articulos_pendientes'
+                            }) }}" class="btn {{ status=='articulos_pendientes'? 'active':'' }} btn-outline-primary">
                             Articulos pendientes.
                         </a>
                     </div>
@@ -51,6 +50,7 @@
             </div>
             <div class="row mt-4">
                 <div class="col-12">
+                    {% if app.request.get('status') != 'articulos_pendientes' %}
                     <table id="tabla-pedidos" class="table table-striped">
                         <thead>
                             <tr>
@@ -109,6 +109,46 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    {% else %}
+                    <table id="tabla-pedidos" class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Orden de compra</th>
+                                    <th>Código de articulo</th>
+                                    <th>Cantidad pendiente</th>
+                                    <th>Numero de pedido</th>
+                                    <th>Detalle</th>
+                                    <th >Fecha estimada</th>
+                                    <th>Fecha de pedido</th>
+                                    <th>Ver O.C. detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody> 
+                                {% for articulo in pedidos %}
+                                    <tr>
+                                        <td>{{ articulo.ordencompracliente}}</td>
+                                        <td>{{ articulo.articulo }}</td>
+                                        <td>{{ articulo.cantidadPendiente }}</td>
+                                        <td>{{ articulo.numero }}</td>
+                                        <td>{{ articulo.detalle }}</td>
+                                        <td class="bg-primary">{{ articulo.fechaEstimada }}</td>
+                                        <td>{{ articulo.fechapedido|date('d/m/Y') }}</td>
+                                        <td>
+                                            <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle',
+                                             {'numero_pedido':articulo.numero,
+                                             'cliente_id': articulo.cliente, 
+                                             'orden_compra_cliente_id': articulo.ordencompracliente,
+                                             status:app.request.get('status') ? app.request.get('status'):'Todas',
+                                             search: app.request.get('search'),searchType: app.request.get('searchType')}) }}"
+                                              class="btn btn-outline-primary btn-sm">
+                                                Detalle
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                            {% endif %}
                 </div>
             </div>
             <div class="row mt-4">
@@ -119,11 +159,10 @@
                 </div>
             </div>
         </div>
+        
     {% endblock %}
     {% block javascripts %}
         {{ parent() }}
-        <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
-        
         <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
         <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
         <script>
@@ -132,9 +171,10 @@
                 language: {
                     url: esDatatable
                 },
+                stateSave: true,
                 order: [[3, 'desc']],
                 colReorder: true,
-                 buttons: [
+                buttons: [
                     'colvis',
                     {
                         extend: 'excelHtml5',
@@ -142,7 +182,9 @@
                         filename: 'Items pendientes'
                     }
                 ],
-
+                dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
             });
         });
     </script>

@@ -168,7 +168,8 @@
                             {% else %}
                             <table id="tabla-pedidos" class="table table-striped">
                             <thead>
-                                <tr>
+                                <tr>}
+                                    <th>Orden de compra</th>
                                     <th>Código de articulo</th>
                                     <th>Cantidad pendiente</th>
                                     <th>Numero de pedido</th>
@@ -181,6 +182,7 @@
                             <tbody> 
                                 {% for articulo in pedidos %}
                                     <tr>
+                                        <td>{{ articulo.ordencompracliente}}</td>
                                         <td>{{ articulo.articulo }}</td>
                                         <td>{{ articulo.cantidadPendiente }}</td>
                                         <td>{{ articulo.numero }}</td>
@@ -225,7 +227,6 @@
     {% block javascripts %}
         {{ parent() }}
         <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
-
         <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
         <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
         <script>

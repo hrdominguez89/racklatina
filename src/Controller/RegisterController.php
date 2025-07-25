@@ -7,7 +7,10 @@ use App\Entity\User;
 use App\Entity\UserRole;
 use App\Form\RegistrationFormType;
 use App\Repository\RoleRepository;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\Schema\UniqueConstraint;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -56,28 +59,38 @@ final class RegisterController extends AbstractController
             $em->persist($user);
             $em->persist($external);
             $em->persist($userRole);
-            $em->flush();
-
-            $confirmationUrl = $this->generateUrl(
+            try
+            {
+                $em->flush();
+                $confirmationUrl = $this->generateUrl(
                 'app_confirm_account',
                 ['token' => $user->getAccountToken()],
                 UrlGeneratorInterface::ABSOLUTE_URL
-            );
+                );
+                $email = (new Email())
+                    ->from($_ENV['MAIL_FROM'])
+                    ->to($user->getEmail())
+                    ->subject('Confirmación de cuenta - Racklatina')
+                    ->html($this->renderView('emails/confirm_account.html.twig', [
+                        'user' => $user,
+                        'confirmationUrl' => $confirmationUrl
+                    ]));
 
-            $email = (new Email())
-                ->from($_ENV['MAIL_FROM'])
-                ->to($user->getEmail())
-                ->subject('Confirmación de cuenta - Racklatina')
-                ->html($this->renderView('emails/confirm_account.html.twig', [
-                    'user' => $user,
-                    'confirmationUrl' => $confirmationUrl
-                ]));
+                $mailer->send($email);
 
-            $mailer->send($email);
-
-            return $this->redirectToRoute('app_login');
+                return $this->redirectToRoute('app_login');
+            }
+            catch(UniqueConstraintViolationException $ex)
+            {
+                $this->addFlash('danger', 'El DNI ingresado ya se encuentra registrado.');
+                return $this->redirectToRoute('app_register');
+            }
+            catch(Exception $ex)
+            {
+                $this->addFlash('danger', 'Error: '.$ex->getMessage());
+                return $this->redirectToRoute('app_register');
+            }
         }
-
         return $this->render('register/register.html.twig', [
             'form' => $form->createView(),
         ]);

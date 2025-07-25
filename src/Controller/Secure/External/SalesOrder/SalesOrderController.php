@@ -23,9 +23,37 @@ final class SalesOrderController extends AbstractController
     public function index(
         Request $request,
         PedidosrelacionadosRepository $pedidosrelacionadosRepository,
-        UserCustomerRepository $userCustomerRepository
+        UserCustomerRepository $userCustomerRepository,
+        EntityManagerInterface $em
     ): Response {
         $data['status'] = $request->query->get('status') ?? 'Todas';
+        if($data['status'] =="articulos_pendientes")
+        {
+            $usuario = $this->getUser();
+            $clientes = $userCustomerRepository->createQueryBuilder('uc')
+                ->select('uc.cliente')
+                ->where('uc.user = :usuario')
+                ->setParameter('usuario', $usuario)
+                ->getQuery()
+                ->getSingleColumnResult();
+            $data['pedidos']=[];
+            foreach($clientes as $cliente)
+            {
+                $aux = $em->createQueryBuilder()
+                        ->select('p')
+                        ->from(Pedidosrelacionados::class, 'p')
+                        ->where('p.cliente = :cliente')
+                        ->andWhere("p.estado = 'Pendiente'")
+                        ->andWhere('p.cantidadoriginal != 0')
+                        ->setParameter('cliente', $cliente)
+                        ->getQuery()
+                        ->getArrayResult();
+                $data['pedidos']=$aux;
+                // array_push($data['pedidos'],$aux);
+            }
+            return $this->render('secure/external/sales_order/index.html.twig', $data);
+
+        }
         $usuario = $this->getUser();
         // Obtener los códigos de cliente que el usuario tiene autorizados
         $clientes = $userCustomerRepository->createQueryBuilder('uc')
