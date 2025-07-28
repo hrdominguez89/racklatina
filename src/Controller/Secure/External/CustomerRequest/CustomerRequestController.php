@@ -14,11 +14,18 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mailer\MailerInterface;
 
 #[Route('secure/clientes/mis-solicitudes')]
 final class CustomerRequestController extends AbstractController
 {
+    public function __construct(private MailerInterface $mailer)
+    {
+        $this->mailer = $mailer;
+    }
     #[Route('/', name: 'app_secure_external_customer_request')]
+        
     public function index(Request $request, CustomerRequestRepository $repository): Response
     {
         $statusParam = $request->query->get('status');
@@ -69,9 +76,15 @@ final class CustomerRequestController extends AbstractController
             $em->persist($solicitud);
             $em->flush();
 
+            $representante = $this->getUser();
+            $representados = $clientes;
+            $this->enviarMailDeSolicitudDeRepresentacion($representante,$representados,$solicitud->getId());
             $this->addFlash('success', 'Solicitud enviada correctamente.');
             return $this->redirectToRoute('app_secure_external_customer_request');
         }
+        $this->addFlash('warning', "Para representar una empresa debe agregar al menos un cliente y enviar la solicitud.\n1)Ingrese un cuit.\n2)Haga click en 'Buscar clientes'.\n3)Puede buscar y seleccionar más de uno.\n4)Al finalizar la selección hacer click en 'Enviar solicitud'.\nSu solicitud será aprobada por un empleado de RackLatina a la brevedad.");
+
+
 
         return $this->render('secure/external/customer_request/form.html.twig', [
             'form' => $form->createView(),
@@ -147,9 +160,6 @@ final class CustomerRequestController extends AbstractController
         ]);
     }
 
-
-
-
     #[Route('/buscar-clientes-por-cuit', name: 'app_secure_external_customer_request_buscar_clientes', methods: ['GET'])]
     public function buscarClientesPorCuit(Request $request, ClientesRepository $clientesRepository): JsonResponse
     {
@@ -169,5 +179,19 @@ final class CustomerRequestController extends AbstractController
         ], $clientes);
 
         return new JsonResponse($resultado);
+    }
+    public function enviarMailDeSolicitudDeRepresentacion($representante,$representados,$solicitud_id)
+    {
+        $template = "emails/solicitud_de_representacion.html.twig";
+        $email = (new Email())
+            ->from($_ENV['MAIL_FROM'])
+            ->to($_ENV['MAIL_CENTRO_RAC'])
+            ->subject('Solicitud de Representación')
+            ->html($this->renderView($template, [
+                'solicitud_id' => $solicitud_id,
+                'representante' => $representante,
+                'representados' => $representados
+            ]));
+        $this->mailer->send($email);
     }
 }

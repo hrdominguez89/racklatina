@@ -6,6 +6,8 @@
             <th>Estado</th>
             <th>Cantidad</th>
             <th>Acciones</th>
+            <th>Emision</th>
+            <th>Entrega</th>
         </tr>
     </thead>
     <tbody>
@@ -15,6 +17,8 @@
                 <td>{{ remito.fecha|date('d/m/Y') }}</td>
                 <td>{{ remito.estado }}</td>
                 <td>{{ remito.cantidad }}</td>
+                <td>{{ remito.FechaRemitos }}</td>
+                <td>{{ remito.FechaEntregaRem }}</td>
                 <td>
                     <button onclick="abrirModalRemito({{ remito.numero }})" class="btn btn-sm btn-outline-info">Ver detalle</button>
                 </td>

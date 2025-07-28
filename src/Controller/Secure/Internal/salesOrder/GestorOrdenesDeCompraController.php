@@ -47,22 +47,34 @@ final class GestorOrdenesDeCompraController extends AbstractController
                     $query->where('p.razonsocial like :razonsocial')
                         ->setParameter('razonsocial', '%' . $search . '%');
                     break;
+
             }
 
             if ($data['status'] !== 'Todas') {
-                $query->andWhere('p.estado = :estado')
-                    ->setParameter('estado', $data['status']);
+                if($data["status"] == "articulos_pendientes")
+                {
+                    $query->andWhere("p.estado = 'Pendiente'")
+                        ->andWhere('p.cantidadoriginal != 0');
+                }
+                else
+                {
+                    $query->andWhere('p.estado = :estado')
+                        ->setParameter('estado', $data['status']);
+                }
             }
+
             $data['pedidos'] = $query->getQuery()
                 ->getArrayResult();
             $agrupados = [];
+            if($data["status"] != "articulos_pendientes")
+            {
 
-            foreach ($data['pedidos'] as $pedido) {
-                $key = $pedido['ordencompracliente'] . '|' . $pedido['numero'];
-
-                if (!isset($agrupados[$key])) {
-                    $agrupados[$key] = [
-                        'ordencompracliente' => $pedido['ordencompracliente'],
+                foreach ($data['pedidos'] as $pedido) {
+                    $key = $pedido['ordencompracliente'] . '|' . $pedido['numero'];
+                    
+                    if (!isset($agrupados[$key])) {
+                        $agrupados[$key] = [
+                            'ordencompracliente' => $pedido['ordencompracliente'],
                         'numero' => $pedido['numero'],
                         'cliente' => $pedido['cliente'],
                         'razonsocial' => $pedido['razonsocial'],
@@ -80,8 +92,9 @@ final class GestorOrdenesDeCompraController extends AbstractController
                     $agrupados[$key]['remitidos']++;
                 }
             }
-
             $data['pedidos'] = array_values($agrupados);
+            }
+
         }
 
 
@@ -154,9 +167,11 @@ final class GestorOrdenesDeCompraController extends AbstractController
     #[Route('/remito-int/{numero}', name: 'app_remito_show_int')]
     public function verRemito(string $numero, RemitosRepository $remitosRepository): Response
     {
-        $remitos = $remitosRepository->findBy([
-            'remito' => $numero
-        ]);
+        $remitos = $remitosRepository->createQueryBuilder('r')
+            ->where('r.remito = :numero')
+            ->setParameter('numero:', $numero)
+            ->getQuery()
+            ->getArrayResult();
         if (!$remitos) {
             $remitos = [];
         }

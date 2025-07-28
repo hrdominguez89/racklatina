@@ -150,41 +150,43 @@
                     </thead>
                     <tbody>
                         {% for item in ordenes_de_compra %}
-                            <tr class="align-middle">
-                                <td class="text-center">{{ item.articulo }}</td>
-                                <td>{{ item.detalle }}</td>
-                                <td class="text-center">{{ item.estado }}</td>
-                                <td class="text-center">{{ item.cantidadoriginal }}</td>
-                                <td class="text-center">{{ item.cantidadPendiente }}</td>
-                                <td class="text-center">{{ item.cantEnt }}</td>
-                                <td class="text-center bg-primary">{{ item.fechaentrega? item.fechaentrega : (item.fechaEstimada??'') }}</td>
-                                <td class="text-center">$&nbsp;{{ item.precioDolar|number_format(2, ',', '.') }}</td>
-                                <td class="text-center">$&nbsp;{{ item.importeDolar|number_format(2, ',', '.') }}</td>
-                                <td>
-                                    {% if item.remitos %}
-                                        {% for remito in item.remitos|split(' - ') %}
-                                            <a href="#" class="remito-link" data-remito="{{ remito|split(' ')[0] }}">
-                                                {{ (remito|replace({' ': '&nbsp;'}))|raw }}
-                                            </a>
-                                            <br>
-                                        {% endfor %}
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if item.facturas %}
-                                        {% for factura in item.facturas|split(' - ') %}
-                                            <a href="#" class="factura-link" data-factura="{{ factura|split(' ')[0] }}">
-                                                {{ (factura|replace({' ': '&nbsp;'}))|raw}}
-                                            </a>
-                                            <br>
-                                        {% endfor %}
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                            </tr>
+                            {% if item.cantidadoriginal != 0 %}
+                                <tr class="align-middle">
+                                    <td class="text-center">{{ item.articulo }}</td>
+                                    <td>{{ item.detalle }}</td>
+                                    <td class="text-center">{{ item.estado }}</td>
+                                    <td class="text-center">{{ item.cantidadoriginal }}</td>
+                                    <td class="text-center">{{ item.cantidadPendiente }}</td>
+                                    <td class="text-center">{{ item.cantEnt }}</td>
+                                    <td class="text-center bg-primary">{{ item.fechaentrega? item.fechaentrega : (item.fechaEstimada??'') }}</td>
+                                    <td class="text-center">$&nbsp;{{ item.precioDolar|number_format(2, ',', '.') }}</td>
+                                    <td class="text-center">$&nbsp;{{ item.importeDolar|number_format(2, ',', '.') }}</td>
+                                    <td>
+                                        {% if item.remitos %}
+                                            {% for remito in item.remitos|split(' - ') %}
+                                                <a href="#" class="remito-link" data-remito="{{ remito|split(' ')[0] }}">
+                                                    {{ (remito|replace({' ': '&nbsp;'}))|raw }}
+                                                </a>
+                                                <br>
+                                            {% endfor %}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.facturas %}
+                                            {% for factura in item.facturas|split(' - ') %}
+                                                <a href="#" class="factura-link" data-factura="{{ factura|split(' ')[0] }}">
+                                                    {{ (factura|replace({' ': '&nbsp;'}))|raw}}
+                                                </a>
+                                                <br>
+                                            {% endfor %}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>
@@ -327,11 +329,16 @@
                 stateSave: true,
                 dom: 'Bfrtip',
                 buttons: [
-                    'colvis'
-                ],
+                        'colvis',
+                        {
+                            extend: 'excelHtml5',
+                            title: 'Orden de compra nro {{ orden_de_compra.OrdenCompraCliente }} pedido nro {{orden_de_compra.numero}} razon social {{orden_de_compra.razonsocial}}',
+                            filename: 'Orden_de_compra_nro_{{ orden_de_compra.OrdenCompraCliente }}_pedido_nro_{{orden_de_compra.numero}}'
+                        }
+                    ],
                 dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
-     "<'row'<'col-sm-12'tr>>" +
-     "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                 colReorder: true
             });
         });
