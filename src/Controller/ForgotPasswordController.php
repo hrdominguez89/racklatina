@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,7 +25,8 @@ final class ForgotPasswordController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         MailerInterface $mailer,
-        CsrfTokenManagerInterface $csrfTokenManager
+        CsrfTokenManagerInterface $csrfTokenManager,
+        UserRepository $userRepository
     ): Response {
         if ($request->isMethod('POST')) {
             $submittedToken = $request->request->get('_csrf_token');
@@ -33,9 +35,9 @@ final class ForgotPasswordController extends AbstractController
                 throw $this->createAccessDeniedException('Token CSRF inválido.');
             }
 
-            $dni = $request->request->get('dni');
+            $dni = (int)$request->request->get('dni');
 
-            $user = $em->getRepository(User::class)->findOneBy(['nationalIdNumber' => $dni]);
+            $user = $userRepository->findOneBy(['nationalIdNumber' => $dni]);
 
             if ($user && !$user->getDeletedAt()) {
                 $user->setResetPasswordToken(Uuid::v4()->toRfc4122());
