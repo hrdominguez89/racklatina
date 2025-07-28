@@ -12,6 +12,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Gedmo\Mapping\Annotation as Gedmo;
 use Doctrine\DBAL\Types\Types;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_NATIONAL_ID_NUMBER', fields: ['nationalIdNumber'])]
@@ -58,6 +59,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $lastName = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'El DNI es obligatorio')]
+    #[Assert\Range(
+        min: 1000000,   // mínimo 7 dígitos (1.000.000)
+        max: 99999999,  // máximo 8 dígitos (99.999.999)
+        notInRangeMessage: 'El DNI debe tener entre 7 y 8 dígitos'
+    )]
     private ?int $nationalIdNumber = null;
 
     #[ORM\Column(type: Types::GUID, nullable: true)]
@@ -258,7 +265,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setNationalIdNumber(int $nationalIdNumber): static
     {
         $this->nationalIdNumber = $nationalIdNumber;
-      
+
         return $this;
     }
 
