@@ -1,5 +1,3 @@
 data_dog_audit:
     entities: ~  # Audita todas las entidades automáticamente
-    audited_entities: []  # (Opcional) Si querés definir manualmente qué entidades auditar
-    unaudited_entities: [] # (Opcional) Si querés excluir algunas entidades
     blame_impersonator: false # Si usás impersonación de usuario

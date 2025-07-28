@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\CustomerRequest;
+use App\Enum\CustomerRequestStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -16,28 +17,18 @@ class CustomerRequestRepository extends ServiceEntityRepository
         parent::__construct($registry, CustomerRequest::class);
     }
 
-    //    /**
-    //     * @return CustomerRequest[] Returns an array of CustomerRequest objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('c.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function findByStatusWithActiveUsers(?CustomerRequestStatus $status = null): array
+    {
+        $qb = $this->createQueryBuilder('cr')
+            ->join('cr.userRequest', 'u')
+            ->andWhere('u.deletedAt IS NULL')
+            ->orderBy('cr.createdAt', 'DESC');
 
-    //    public function findOneBySomeField($value): ?CustomerRequest
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        if ($status !== null) {
+            $qb->andWhere('cr.status = :status')
+                ->setParameter('status', $status);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

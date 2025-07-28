@@ -30,7 +30,8 @@ final class CustomerRequestController extends AbstractController
             }
         }
 
-        $solicitudes = $repository->findBy($criteria, ['createdAt' => 'DESC']);
+        $solicitudes = $repository->findByStatusWithActiveUsers($criteria['status'] ?? null);
+
 
         return $this->render('secure/internal/customer_request/index.html.twig', [
             'solicitudes' => $solicitudes,
