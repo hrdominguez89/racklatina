@@ -187,7 +187,7 @@
                                         <td>{{ articulo.cantidadPendiente }}</td>
                                         <td>{{ articulo.numero }}</td>
                                         <td>{{ articulo.detalle }}</td>
-                                        <td class="bg-primary">{{ articulo.fechaEstimada }}</td>
+                                        <td class="bg-primary">{{ articulo.fechaentrega? articulo.fechaentrega : (articulo.fechaEstimada??'') }}</td>
                                         <td>{{ articulo.fechapedido|date('d/m/Y') }}</td>
                                         <td>
                                             <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle',
