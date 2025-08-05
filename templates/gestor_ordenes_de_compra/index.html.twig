@@ -187,7 +187,14 @@
                                         <td>{{ articulo.cantidadPendiente }}</td>
                                         <td>{{ articulo.numero }}</td>
                                         <td>{{ articulo.detalle }}</td>
-                                        <td class="bg-primary">{{ articulo.fechaentrega? articulo.fechaentrega : (articulo.fechaEstimada??'') }}</td>
+                                         {% set fecha_visible = articulo.fechaentrega ? articulo.fechaentrega : (articulo.fechaEstimada ?? '') %}
+                                        {% if fecha_visible %}
+                                            {% set partes = fecha_visible|split('/') %}
+                                            {% set fecha_orden = partes[2] ~ '-' ~ partes[1] ~ '-' ~ partes[0] %}
+                                            <td class="bg-primary" data-order="{{ fecha_orden }}">{{ fecha_visible }}</td>
+                                        {% else %}
+                                            <td class="bg-primary" data-order="9999-12-31"></td> {# Si no hay fecha, se ordena último #}
+                                        {% endif %}
                                         <td>{{ articulo.fechapedido|date('d/m/Y') }}</td>
                                         <td>
                                             <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle',
