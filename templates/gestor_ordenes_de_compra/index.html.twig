@@ -141,12 +141,16 @@
                                                 {{ pedido.razonsocial }}
                                             </td>
                                             <td data-order="{{ pedido.fechapedido ? pedido.fechapedido|date('Y-m-d') : '' }}">
-                                                {{ pedido.fechapedido|date('d/m/Y') }}
+                                                {{ pedido.fechapedido|date('Y/m/d') }}
                                             </td>
-                                            
-                                            <td data-order="{{ pedido.fechaoc ? pedido.fechaoc: '' }}">
-                                                {{ pedido.fechaoc }}
-                                            </td>
+                                            {% set fecha_visible = pedido.fechaoc ? pedido.fechaoc: ''  %}
+                                            {% if fecha_visible %}
+                                                {% set fecha = fecha_visible|split('/') %}
+                                                {% set fecha_ordenada = fecha[2] ~ '-' ~ fecha[1] ~ '-' ~ fecha[0] %}
+                                                <td data-order="{{ fecha_ordenada }}"> {{fecha_visible}}</td>
+                                            {% else %}
+                                                <td data-order="9999-12-31"></td>
+                                            {% endif %}
                                             <td>
                                                 {% if status == 'Todas' %}
                                                     Pendientes&nbsp;{{ pedido.pendientes }}&nbsp;/Remitidos&nbsp;{{ pedido.remitidos }}
@@ -187,7 +191,7 @@
                                         <td>{{ articulo.cantidadPendiente }}</td>
                                         <td>{{ articulo.numero }}</td>
                                         <td>{{ articulo.detalle }}</td>
-                                         {% set fecha_visible = articulo.fechaentrega ? articulo.fechaentrega : (articulo.fechaEstimada ?? '') %}
+                                        {% set fecha_visible = articulo.fechaentrega ? articulo.fechaentrega : (articulo.fechaEstimada ?? '') %}
                                         {% if fecha_visible %}
                                             {% set partes = fecha_visible|split('/') %}
                                             {% set fecha_orden = partes[2] ~ '-' ~ partes[1] ~ '-' ~ partes[0] %}

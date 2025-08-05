@@ -157,8 +157,16 @@
                                     <td class="text-center">{{ item.estado }}</td>
                                     <td class="text-center">{{ item.cantidadoriginal }}</td>
                                     <td class="text-center">{{ item.cantidadPendiente }}</td>
-                                    <td class="text-center">{{ item.cantEnt }}</td>
-                                    <td class="text-center bg-primary">{{ item.fechaentrega? item.fechaentrega : (item.fechaEstimada??'') }}</td>
+                                    <td class="text-center bg-primary">{{ item.cantEnt }}</td>
+                                    {% set fecha_visible = item.fechaentrega? item.fechaentrega : (item.fechaEstimada??'') %}
+                                    {% if fecha_visible %}
+                                        {% set fecha = fecha_visible|split('/') %}
+                                        {% set fecha_ordenada = fecha[2] ~ '-' ~ fecha[1] ~ '-' ~ fecha[0] %}
+                                        <td data-order="{{ fecha_ordenada }}"> {{fecha_visible}}</td>
+                                    {% else %}
+                                        <td data-order="9999-12-31"></td>
+                                    {% endif %}
+                                    
                                     <td class="text-center">$&nbsp;{{ item.precioDolar|number_format(2, ',', '.') }}</td>
                                     <td class="text-center">$&nbsp;{{ item.importeDolar|number_format(2, ',', '.') }}</td>
                                     <td>

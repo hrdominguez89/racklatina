@@ -86,9 +86,14 @@
                                     <td>
                                         {{ pedido.razonsocial }}
                                     </td>
-                                    <td data-order="{{ pedido.fechaoc ? pedido.fechaoc : '' }}">
-                                        {{ pedido.fechaoc }}
-                                    </td>
+                                    {% set fecha_visible = pedido.fechaoc ? pedido.fechaoc : null  %}
+                                    {% if fecha_visible %}
+                                        {% set fecha = fecha_visible|split('/') %}
+                                        {% set fecha_ordenada = fecha[2] ~ '-' ~ fecha[1] ~ '-' ~ fecha[0] %}
+                                        <td data-order="{{ fecha_ordenada }}"> {{fecha_visible}}</td>
+                                    {% else %}
+                                        <td data-order="9999-12-31"></td>
+                                    {% endif %}
                                     <td>
                                         {% if status == 'Todas' %}
                                             Pendientes&nbsp;{{ pedido.pendientes }}&nbsp;/Remitidos&nbsp;{{ pedido.remitidos }}
