@@ -140,9 +140,14 @@
                                             <td>
                                                 {{ pedido.razonsocial }}
                                             </td>
-                                            <td data-order="{{ pedido.fechapedido ? pedido.fechapedido|date('Y-m-d') : '' }}">
-                                                {{ pedido.fechapedido|date('Y/m/d') }}
-                                            </td>
+                                            {% set fecha_visible = pedido.fechapedido ? pedido.fechapedido|date('d-m-Y'): ''  %}
+                                            {% if fecha_visible %}
+                                                {% set fecha = fecha_visible|split('-') %}
+                                                {% set fecha_ordenada = fecha[2] ~ '-' ~ fecha[1] ~ '-' ~ fecha[0] %}
+                                                <td data-order="{{ fecha_ordenada }}"> {{fecha_visible}}</td>
+                                            {% else %}
+                                                <td data-order="9999-12-31"></td>
+                                            {% endif %}
                                             {% set fecha_visible = pedido.fechaoc ? pedido.fechaoc: ''  %}
                                             {% if fecha_visible %}
                                                 {% set fecha = fecha_visible|split('/') %}
@@ -178,7 +183,7 @@
                                     <th>Cantidad pendiente</th>
                                     <th>Numero de pedido</th>
                                     <th>Detalle</th>
-                                    <th >Fecha estimada</th>
+                                    <th>Fecha estimada</th>
                                     <th>Fecha de pedido</th>
                                     <th>Ver O.C. detalle</th>
                                 </tr>
@@ -199,7 +204,15 @@
                                         {% else %}
                                             <td class="bg-primary" data-order="9999-12-31"></td> {# Si no hay fecha, se ordena último #}
                                         {% endif %}
-                                        <td>{{ articulo.fechapedido|date('d/m/Y') }}</td>
+                                        {% set fecha_visible = articulo.fechapedido ? articulo.fechaentrega :  '' %}
+                                        {% if fecha_visible %}
+                                            {% set partes = fecha_visible|split('/') %}
+                                            {% set fecha_orden = partes[2] ~ '-' ~ partes[1] ~ '-' ~ partes[0] %}
+                                            <td class="bg-primary" data-order="{{ fecha_orden }}">{{ fecha_visible }}</td>
+                                        {% else %}
+                                            <td class="bg-primary" data-order="9999-12-31"></td> 
+                                        {% endif %}
+                                        
                                         <td>
                                             <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle',
                                              {'numero_pedido':articulo.numero,
