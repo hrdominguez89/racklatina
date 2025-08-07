@@ -196,10 +196,10 @@
                                     <td class="text-center">{{ item.cantidadoriginal }}</td>
                                     <td class="text-center">{{ item.cantidadPendiente }}</td>
                                     <td class="text-center">{{ item.cantEnt }}</td>
-                                    {% set fecha_visible = item.fechaentrega ? item.fechaentrega : item.fechastimada ?? null %}
+                                    {% set fecha_visible = item.fechaentrega ? item.fechaentrega : item.fechaestimada ?? null %}
                                     {% if fecha_visible %}
                                         {% set fecha = fecha_visible|split('/') %}
-                                        {% set fecha_ordenada = fecha[2] ~ '-' ~ fecha[1] ~ '-' ~ fecha[0] %}
+                                        {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
                                         <td data-order="{{ fecha_ordenada }}"> {{fecha_visible}}</td>
                                     {% else %}
                                         <td data-order="9999-12-31"></td>
@@ -207,7 +207,7 @@
                                     {% set fecha_visible = item.fecharemitos ? item.fecharemitos : null  %}
                                     {% if fecha_visible %}
                                         {% set fecha = fecha_visible|split('/') %}
-                                        {% set fecha_ordenada = fecha[2] ~ '-' ~ fecha[1] ~ '-' ~ fecha[0] %}
+                                        {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
                                         <td data-order="{{ fecha_ordenada }}"> {{fecha_visible}}</td>
                                     {% else %}
                                         <td data-order="9999-12-31"></td>
@@ -215,7 +215,7 @@
                                      {% set fecha_visible = item.fechaentregarem ? item.fechaentregarem : null  %}
                                     {% if fecha_visible %}
                                         {% set fecha = fecha_visible|split('/') %}
-                                        {% set fecha_ordenada = fecha[2] ~ '-' ~ fecha[1] ~ '-' ~ fecha[0] %}
+                                        {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
                                         <td data-order="{{ fecha_ordenada }}"> {{fecha_visible}}</td>
                                     {% else %}
                                         <td data-order="9999-12-31"></td>
