@@ -161,7 +161,7 @@
                                     {% set fecha_visible = item.fechaentrega? item.fechaentrega : (item.fechaEstimada??'') %}
                                     {% if fecha_visible %}
                                         {% set fecha = fecha_visible|split('/') %}
-                                        {% set fecha_ordenada = fecha[2] ~ '-' ~ fecha[1] ~ '-' ~ fecha[0] %}
+                                        {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
                                         <td data-order="{{ fecha_ordenada }}"> {{fecha_visible}}</td>
                                     {% else %}
                                         <td data-order="9999-12-31"></td>

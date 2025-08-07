@@ -196,13 +196,13 @@
                                     <td class="text-center">{{ item.cantidadoriginal }}</td>
                                     <td class="text-center">{{ item.cantidadPendiente }}</td>
                                     <td class="text-center">{{ item.cantEnt }}</td>
-                                    {% set fecha_visible = item.fechaentrega ? item.fechaentrega : item.fechaestimada ?? null %}
+                                    {% set fecha_visible = item.fechaentrega ? item.fechaentrega : item.fechaEstimada ?? null %}
                                     {% if fecha_visible %}
                                         {% set fecha = fecha_visible|split('/') %}
                                         {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
-                                        <td data-order="{{ fecha_ordenada }}"> {{fecha_visible}}</td>
+                                        <td data-order="{{ fecha_ordenada }}" class="bg-primary text-center"> {{fecha_visible}}</td>
                                     {% else %}
-                                        <td data-order="9999-12-31"></td>
+                                        <td data-order="9999-12-31" class="bg-primary text-center"></td>
                                     {% endif %}
                                     {% set fecha_visible = item.fecharemitos ? item.fecharemitos : null  %}
                                     {% if fecha_visible %}

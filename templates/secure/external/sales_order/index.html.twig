@@ -89,7 +89,7 @@
                                     {% set fecha_visible = pedido.fechaoc ? pedido.fechaoc : null  %}
                                     {% if fecha_visible %}
                                         {% set fecha = fecha_visible|split('/') %}
-                                        {% set fecha_ordenada = fecha[2] ~ '-' ~ fecha[1] ~ '-' ~ fecha[0] %}
+                                        {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
                                         <td data-order="{{ fecha_ordenada }}"> {{fecha_visible}}</td>
                                     {% else %}
                                         <td data-order="9999-12-31"></td>
@@ -140,7 +140,7 @@
                                         {% set fecha_visible = articulo.fechaentrega ? articulo.fechaentrega : (articulo.fechaEstimada ?? '') %}
                                         {% if fecha_visible %}
                                             {% set partes = fecha_visible|split('/') %}
-                                            {% set fecha_orden = partes[2] ~ '-' ~ partes[1] ~ '-' ~ partes[0] %}
+                                            {% set fecha_orden = partes[2] ~ '/' ~ partes[1] ~ '/' ~ partes[0] %}
                                             <td class="bg-primary" data-order="{{ fecha_orden }}">{{ fecha_visible }}</td>
                                         {% else %}
                                             <td class="bg-primary" data-order="9999-12-31"></td> {# Si no hay fecha, se ordena último #}
