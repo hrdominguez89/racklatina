@@ -140,8 +140,8 @@
                                             <td>
                                                 {{ pedido.razonsocial }}
                                             </td>
-                                            {% set fecha_visible = pedido.fechapedido ? pedido.fechapedido|date('d-m-Y'): ''  %}
-                                                {% set fecha = fecha_visible|split('-') %}
+                                            {% set fecha_visible = pedido.fechapedido ? pedido.fechapedido|date('d/m/Y'): ''  %}
+                                                {% set fecha = fecha_visible|split('/') %}
                                                 {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
                                                 <td data-order="{{ fecha_visible? fecha_ordenada:'9999-12-31' }}"> {{fecha_visible}}</td>
                                             {% set fecha_visible = pedido.fechaoc ? pedido.fechaoc: ''  %}
