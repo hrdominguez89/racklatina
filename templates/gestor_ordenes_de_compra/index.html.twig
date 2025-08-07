@@ -200,7 +200,7 @@
                                         {% else %}
                                             <td class="bg-primary" data-order="9999-12-31"></td> {# Si no hay fecha, se ordena último #}
                                         {% endif %}
-                                        {% set fecha_visible = articulo.fechapedido ? articulo.fechaentrega :  '' %}
+                                        {% set fecha_visible = articulo.fechapedido ? articulo.fechapedido|date('d/m/Y') : (articulo.fechaEstimada ?? '') %}
                                         {% if fecha_visible %}
                                             {% set partes = fecha_visible|split('/') %}
                                             {% set fecha_orden = partes[2] ~ '/' ~ partes[1] ~ '/' ~ partes[0] %}
