@@ -88,16 +88,8 @@
         modal.show();
     });
 }
-    function EliminarUsuarioEmpleado(id)
-    {
-        fetch(`{{ path('app_usuarios_eliminar') }}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `id=${id}`
-        });
-        location.reload();
+    function EliminarUsuarioEmpleado(id) {
+    mostrarModalConfirmacion(id, 'empleado');
     }
     function modalEditarEmpleado(id) {
         fetch(`{{ path('app_usuarios_editar') }}`, {
@@ -161,6 +153,84 @@
         // Cargar empleados por defecto
         cargarTabla('empleados');
     });
+    // HTML del modal de confirmación (agregar dentro del div modal-container o al final del body)
+    const modalConfirmacionHTML = `
+    <div class="modal fade" id="modalConfirmarEliminacion" tabindex="-1" aria-labelledby="modalConfirmarEliminacionLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalConfirmarEliminacionLabel">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 3rem;"></i>
+                        <h6>¿Está seguro que desea eliminar este usuario?</h6>
+                        <p class="text-muted">Esta acción no se puede deshacer.</p>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary bg-primary" id="btnConfirmarEliminacion">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+
+    // Variable global para almacenar el ID del usuario a eliminar
+    let usuarioAEliminar = null;
+    let tipoUsuarioAEliminar = null;
+
+    // Función para mostrar el modal de confirmación
+    function mostrarModalConfirmacion(id, tipo = 'cliente') {
+        usuarioAEliminar = id;
+        tipoUsuarioAEliminar = tipo;
+        
+        // Insertar el modal si no existe
+        if (!document.getElementById('modalConfirmarEliminacion')) {
+            document.body.insertAdjacentHTML('beforeend', modalConfirmacionHTML);
+        }
+        
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('modalConfirmarEliminacion'));
+        modal.show();
+        
+        // Agregar event listener al botón de confirmación
+        const btnConfirmar = document.getElementById('btnConfirmarEliminacion');
+        btnConfirmar.onclick = function() {
+            confirmarEliminacion();
+            modal.hide();
+            window.location.reload();
+        };
+    }
+
+    // Función que ejecuta la eliminación real
+    function confirmarEliminacion() {
+        if (usuarioAEliminar) {
+            fetch(`{{ path('app_usuarios_eliminar') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `id=${usuarioAEliminar}`
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Error al eliminar el usuario');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+            
+            // Limpiar variables
+            usuarioAEliminar = null;
+            tipoUsuarioAEliminar = null;
+        }
+    }
+
     </script>
     {% endblock %}
     

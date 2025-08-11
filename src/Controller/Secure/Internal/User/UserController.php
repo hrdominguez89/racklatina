@@ -174,6 +174,11 @@ final class UserController extends AbstractController
     }
     public function crearEmpleado($data, UserPasswordHasherInterface $passwordHasher)
     {
+        $aux = $this->reutilizarUsuario($data);
+        if($aux)
+        {
+            return true;
+        }
         $form = $this->createForm(UsuarioRacklatinaType::class);
         $form->submit($data);
 
@@ -210,6 +215,11 @@ final class UserController extends AbstractController
     }
     public function crearCliente($data, UserPasswordHasherInterface $passwordHasher)
     {
+        $aux = $this->reutilizarUsuario($data);
+        if($aux)
+        {
+            return true;
+        }
         $form = $this->createForm(UsuarioClienteRacklatinaType::class);
         $form->submit($data);
         if ($form->isValid()) {
@@ -413,6 +423,8 @@ final class UserController extends AbstractController
         if ($user) {
             $this->entityManager->remove($user);
             $this->entityManager->flush();
+            return $this->json([
+                'status' => true]);
         }
     }
 
@@ -452,5 +464,19 @@ final class UserController extends AbstractController
             ]));
 
         $this->mailer->send($email);
+    }
+    public function reutilizarUsuario($data)
+    {
+        $this->entityManager->getFilters()->disable('softdeleteable');
+        $user = $this->userRepository->findOneBy(["email" => $data["email"]]);
+        if ($user) {
+            $user->setDeletedAt(null);
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+            $this->entityManager->getFilters()->enable('softdeleteable');
+            return true;
+        }
+        $this->entityManager->getFilters()->enable('softdeleteable');
+        return false;
     }
 }
