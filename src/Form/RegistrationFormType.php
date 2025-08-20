@@ -34,14 +34,10 @@ class RegistrationFormType extends AbstractType
                 'label_html' => true,
                 'required' => true,
             ])
-            ->add('nationalIdNumber', IntegerType::class, [
-                'label' => 'DNI <span style="color:red">*</span>',
+            ->add('cuit', TextType::class, [
+                'mapped' => false,
+                'label' => 'CUIT <span style="color:red">*</span>',
                 'label_html' => true,
-                'attr' => [
-                    'autocomplete' => 'off',
-                    'min' => 1000000,    // 7 dígitos
-                    'max' => 99999999,   // 8 dígitos
-                ],
                 'required' => true,
             ])
 

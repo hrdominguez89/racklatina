@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\CustomerRequest;
 use App\Entity\ExternalUserData;
 use App\Entity\User;
 use App\Entity\UserRole;
+use App\Enum\CustomerRequestStatus;
+use App\Enum\CustomerRequestType;
 use App\Form\RegistrationFormType;
 use App\Repository\RoleRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -23,6 +26,10 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class RegisterController extends AbstractController
 {
+    public function __construct(private MailerInterface $mailer)
+    {
+        $this->mailer = $mailer;
+    }
     #[Route('/registro', name: 'app_register')]
     public function index(
         Request $request,
@@ -77,7 +84,15 @@ final class RegisterController extends AbstractController
                     ]));
 
                 $mailer->send($email);
-
+                // MODIFICAR LA ENTIDAD PARA QUE DNI SEA NULEABLE TODO
+                // TESTEAR EL CASO EN EL QUE EL CLIENTE NO HAYA VERIFICADO SSU CUENTA Y SE LE APRUEBE LA SOLICITUD TODO
+                // TESTEAR EL EMAIL. TODO
+                $clientesJson = $request->request->get('clientes');
+                $clientes = json_decode($clientesJson, true);
+                $user = $this->getUser();
+                $representados = $clientes;
+                $solicitud = $this->generarSolicitudDeRepresentacion($user,$em,$clientes);
+                $this->enviarMailDeSolicitudDeRepresentacion($user,$representados,$solicitud->getId());
                 return $this->redirectToRoute('app_login');
             }
             catch(UniqueConstraintViolationException $ex)
@@ -183,5 +198,32 @@ final class RegisterController extends AbstractController
 
         // Renderizar formulario
         return $this->render('register/resend_token_validation.html.twig');
+    }
+
+    public function generarSolicitudDeRepresentacion($user,$em,$clientes)
+    {
+        $solicitud = new CustomerRequest();
+        $solicitud->setRequestType(CustomerRequestType::REPRESENTACION);
+        $solicitud->setStatus(CustomerRequestStatus::PENDIENTE);
+        $solicitud->setUserRequest($this->getUser());
+        $solicitud->setData($clientes);
+
+        $em->persist($solicitud);
+        $em->flush();
+        return $solicitud;
+    }
+    public function enviarMailDeSolicitudDeRepresentacion($representante,$representados,$solicitud_id)
+    {
+         $template = "emails/solicitud_de_representacion.html.twig";
+        $email = (new Email())
+            ->from($_ENV['MAIL_FROM'])
+            ->to($_ENV['MAIL_CENTRO_RAC'])
+            ->subject('Solicitud de Representación')
+            ->html($this->renderView($template, [
+                'solicitud_id' => $solicitud_id,
+                'representante' => $representante,
+                'representados' => $representados
+            ]));
+        $this->mailer->send($email);
     }
 }
