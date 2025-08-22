@@ -35,9 +35,9 @@ final class ForgotPasswordController extends AbstractController
                 throw $this->createAccessDeniedException('Token CSRF inválido.');
             }
 
-            $dni = (int)$request->request->get('dni');
+            $email = $request->request->get('email');
 
-            $user = $userRepository->findOneBy(['nationalIdNumber' => $dni]);
+            $user = $userRepository->findOneBy(['email' => $email]);
 
             if ($user && !$user->getDeletedAt()) {
                 $user->setResetPasswordToken(Uuid::v4()->toRfc4122());
