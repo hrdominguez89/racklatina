@@ -9,15 +9,17 @@
 
 	<!-- end row -->
 
-		<div class="row justify-content-center"> <div class="col-md-8 col-lg-6 col-xl-5">
+		<div class="row justify-content-center"> <div class="col-8">
 			<div class="card mt-4 card-bg-fill">
 
 				<div class="card-body p-4">
-					<div class="text-center mt-2">
-						<h5 class="text-rkl-secondary">Registro de clientes</h5>
-						{# <p class="text-muted"></p> #}
+					<div class="row">
+						<div class="col-12 text-center mt-2 mb-4">
+							<h4 class="text-rkl-secondary">Registro de clientes</h4>
+							{# <p class="text-muted"></p> #}
+						</div>
 					</div>
-					<div class="p-2 mt-4">
+					<div class="row">
 						{{ form_start(form, {attr: {'data-turbo': 'false',class: 'needs-validation'}}) }}
 						{% for error in form.vars.errors %}
 							<div class="alert alert-danger">{{ error.message }}</div>
@@ -27,56 +29,65 @@
 								{{ form_errors(form) }}
 							</div>
 						{% endif %}
-
-						<div class="mb-3">
+					</div>
+						
+					<div class="row">
+						<div class="col-12 col-md-4 mb-3">
 							{{ form_label(form.firstName) }}
 							{{ form_widget(form.firstName, {'attr': {'class': 'form-control'}}) }}
 							{{ form_errors(form.firstName) }}
 						</div>
-
-						<div class="mb-3">
+						<div class="col-12 col-md-4 mb-3">
 							{{ form_label(form.lastName) }}
 							{{ form_widget(form.lastName, {'attr': {'class': 'form-control'}}) }}
 							{{ form_errors(form.lastName) }}
 						</div>
-
-						<div class="mb-3">
-							{{ form_label(form.cuit) }}
-							{{ form_widget(form.cuit, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.cuit) }}
-						</div>
-
-						<div class="mb-3">
-							{{ form_label(form.email) }}
-							{{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.email) }}
-						</div>
-
-						<div class="mb-3">
-							{{ form_label(form.plainPassword) }}
-							{{ form_widget(form.plainPassword, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.plainPassword) }}
-						</div>
-
-						<div class="mb-3">
-							{{ form_label(form.companyName) }}
-							{{ form_widget(form.companyName, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.companyName) }}
-						</div>
-
-						<div class="mb-3">
+						<div class="col-12 col-md-4 mb-3">
 							{{ form_label(form.phoneNumber) }}
 							{{ form_widget(form.phoneNumber, {'attr': {'class': 'form-control'}}) }}
 							{{ form_errors(form.phoneNumber) }}
 						</div>
+						<div class="col-12 col-md-6 mb-3">
+							{{ form_label(form.email) }}
+							{{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+							{{ form_errors(form.email) }}
+						</div>
+						<div class="col-12 col-md-6 mb-3">
+							{{ form_label(form.plainPassword) }}
+							{{ form_widget(form.plainPassword, {'attr': {'class': 'form-control'}}) }}
+							{{ form_errors(form.plainPassword) }}
+						</div>
+					</div>
+					<hr>
+					<div class="row">
+						<div class="col-12 text-center mt-2 mb-4">
+							<h5 class="text-rkl-secondary">Información de la empresa</h5>
+						</div>
+					</div>
+					<div class="row">
 
-						<div class="mb-3">
+						<div class="col-12 col-md-6 mb-3">
+							{{ form_label(form.companyName) }}
+							{{ form_widget(form.companyName, {'attr': {'class': 'form-control'}}) }}
+							{{ form_errors(form.companyName) }}
+						</div>
+						<div class="col-12 col-md-6 mb-3">
+							{{ form_label(form.cuit) }}
+							{{ form_widget(form.cuit, {'attr': {'class': 'form-control'}}) }}
+							{{ form_errors(form.cuit) }}
+						</div>
+						<div class="col-12 col-md-6 mb-3">
 							{{ form_label(form.jobTitle) }}
 							{{ form_widget(form.jobTitle, {'attr': {'class': 'form-control'}}) }}
 							{{ form_errors(form.jobTitle) }}
 						</div>
+						{# <div class="col-6 mb-3">
+							{{ form_label(form.nationalIdNumber) }}
+							{{ form_widget(form.nationalIdNumber, {'attr': {'class': 'form-control'}}) }}
+							{{ form_errors(form.nationalIdNumber) }}
+						</div> #}
 
-						<div class="mb-3">
+						<div class="col-12 col-md-6 mb-3">
 							{{ form_label(form.role) }}
 							{{ form_widget(form.role, {'attr': {'class': 'form-select'}}) }}
 							{{ form_errors(form.role) }}
@@ -96,7 +107,7 @@
 								</p>
 							</div>
 						</div>
-
+					
 					</div>
 				</div>
 				<!-- end card body -->

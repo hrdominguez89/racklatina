@@ -58,13 +58,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 60)]
     private ?string $lastName = null;
 
-    #[ORM\Column]
-    #[Assert\NotBlank(message: 'El DNI es obligatorio')]
-    #[Assert\Range(
-        min: 1000000,   // mínimo 7 dígitos (1.000.000)
-        max: 99999999,  // máximo 8 dígitos (99.999.999)
-        notInRangeMessage: 'El DNI debe tener entre 7 y 8 dígitos'
-    )]
+    #[ORM\Column(nullable: true)]
     private ?int $nationalIdNumber = null;
 
     #[ORM\Column(type: Types::GUID, nullable: true)]

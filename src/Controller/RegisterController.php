@@ -9,6 +9,7 @@ use App\Entity\UserRole;
 use App\Enum\CustomerRequestStatus;
 use App\Enum\CustomerRequestType;
 use App\Form\RegistrationFormType;
+use App\Repository\ClientesRepository;
 use App\Repository\RoleRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Schema\UniqueConstraint;
@@ -26,9 +27,10 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class RegisterController extends AbstractController
 {
-    public function __construct(private MailerInterface $mailer)
+    public function __construct(private MailerInterface $mailer,private ClientesRepository $clienteRepository)
     {
         $this->mailer = $mailer;
+        $this->clienteRepository = $clienteRepository;
     }
     #[Route('/registro', name: 'app_register')]
     public function index(
@@ -84,15 +86,20 @@ final class RegisterController extends AbstractController
                     ]));
 
                 $mailer->send($email);
-                // MODIFICAR LA ENTIDAD PARA QUE DNI SEA NULEABLE TODO
-                // TESTEAR EL CASO EN EL QUE EL CLIENTE NO HAYA VERIFICADO SSU CUENTA Y SE LE APRUEBE LA SOLICITUD TODO
                 // TESTEAR EL EMAIL. TODO
-                $clientesJson = $request->request->get('clientes');
-                $clientes = json_decode($clientesJson, true);
-                $user = $this->getUser();
-                $representados = $clientes;
-                $solicitud = $this->generarSolicitudDeRepresentacion($user,$em,$clientes);
-                $this->enviarMailDeSolicitudDeRepresentacion($user,$representados,$solicitud->getId());
+                
+                // $user = $this->getUser();
+                $clientes =$request->request->all();
+                $cuit = $clientes["registration_form"]["cuit"];
+                $cliente = $this->clienteRepository->findOneBy(['cuit' => $cuit]);
+                $data = [
+                    'cuit' => $clientes["registration_form"]["cuit"],
+                    'id' => $cliente->getCodigoCalipso(),
+                    'razonSocial' => $cliente->getRazonSocial(),
+                ];
+                
+                $solicitud = $this->generarSolicitudDeRepresentacion($user,$em,$data);
+                $this->enviarMailDeSolicitudDeRepresentacion($user,(object)$data,$solicitud->getId());
                 return $this->redirectToRoute('app_login');
             }
             catch(UniqueConstraintViolationException $ex)
@@ -205,7 +212,7 @@ final class RegisterController extends AbstractController
         $solicitud = new CustomerRequest();
         $solicitud->setRequestType(CustomerRequestType::REPRESENTACION);
         $solicitud->setStatus(CustomerRequestStatus::PENDIENTE);
-        $solicitud->setUserRequest($this->getUser());
+        $solicitud->setUserRequest($user);
         $solicitud->setData($clientes);
 
         $em->persist($solicitud);

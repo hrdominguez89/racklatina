@@ -3,20 +3,24 @@
 namespace App\Form;
 
 use App\Entity\User;
-use App\Entity\ExternalUserData;
 use App\Enum\UserRoleType;
+use App\Repository\ClientesRepository;
 use App\Repository\RoleRepository;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\{EmailType, PasswordType, TextType, IntegerType, ChoiceType, SubmitType};
+use Symfony\Component\Form\Extension\Core\Type\{EmailType, PasswordType, TextType, ChoiceType};
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Callback;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 class RegistrationFormType extends AbstractType
 {
     private RoleRepository $roleRepository;
 
-    public function __construct(RoleRepository $roleRepository)
+    public function __construct(RoleRepository $roleRepository,private ClientesRepository $clienteRepository)
     {
+        $this->clienteRepository = $clienteRepository;
         $this->roleRepository = $roleRepository;
     }
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -39,11 +43,27 @@ class RegistrationFormType extends AbstractType
                 'label' => 'CUIT <span style="color:red">*</span>',
                 'label_html' => true,
                 'required' => true,
+                'constraints' => [
+                    new NotBlank(['message' => 'El CUIT es obligatorio.']),
+                    new Callback(function ($cuit, ExecutionContextInterface $context) {
+                        $cliente = $this->clienteRepository->findOneBy(['cuit' => $cuit]);
+                        if (!$cliente) {
+                            $context
+                                ->buildViolation('El CUIT no existe en la base de datos de clientes.')
+                                ->addViolation();
+                        }
+                    }),
+                ],
             ])
+            // ->add('nationalIdNumber', IntegerType::class, [
+            //     'label' => 'nationalIdNumber <span style="color:red">*</span>',
+            //     'label_html' => true,
+            //     'required' => true,
+            //     'mapped' => false,
 
-
+            // ])
             ->add('email', EmailType::class, [
-                'label' => 'Email de contacto <span style="color:red">*</span>',
+                'label' => 'Email <span style="color:red">*</span>',
                 'label_html' => true,
                 'required' => true,
             ])
@@ -56,7 +76,7 @@ class RegistrationFormType extends AbstractType
             ])
             ->add('companyName', TextType::class, [
                 'mapped' => false,
-                'label' => 'Razón social <span style="color:red">*</span>',
+                'label' => 'Empresa <span style="color:red">*</span>',
                 'label_html' => true
             ])
             ->add('phoneNumber', TextType::class, [
@@ -80,9 +100,8 @@ class RegistrationFormType extends AbstractType
                 'placeholder' => 'Seleccione un perfil',
             ]);
     }
-
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => User::class]);
+        $resolver->setDefaults(['data_class' => User::class, 'csrf_protection' => false]);
     }
 }
