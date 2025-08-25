@@ -92,7 +92,7 @@ final class RegisterController extends AbstractController
                 $clientes =$request->request->all();
                 $cuit = $clientes["registration_form"]["cuit"];
                 $cliente = $this->clienteRepository->findOneBy(['cuit' => $cuit]);
-                $data = [
+                $data[] = [
                     'cuit' => $clientes["registration_form"]["cuit"],
                     'id' => $cliente->getCodigoCalipso(),
                     'razonSocial' => $cliente->getRazonSocial(),
