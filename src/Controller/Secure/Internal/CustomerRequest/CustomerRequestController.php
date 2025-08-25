@@ -10,13 +10,21 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('secure/customer-request')]
 final class CustomerRequestController extends AbstractController
 {
+    public function __construct(
+    private MailerInterface $mailer) 
+    {
+        $this->mailer = $mailer;
+    }
     #[Route('/', name: 'app_secure_internal_customer_request')]
-    public function index(Request $request, CustomerRequestRepository $repository): Response
+    public function index(Request $request,
+     CustomerRequestRepository $repository): Response
     {
 
         $statusParam = $request->query->get('status') ?? CustomerRequestStatus::PENDIENTE->value;
@@ -82,7 +90,9 @@ final class CustomerRequestController extends AbstractController
             } else {
                 $solicitud->setStatus(CustomerRequestStatus::PARCIALMENTE_APROBADO);
             }
-
+            if ($cantidadAprobada === 0) {
+            $this->notificarCliente($solicitud->getUserRequest()->getEmail());
+            }
             $solicitud->setUserUpdate($this->getUser());
             $em->flush();
 
@@ -117,5 +127,15 @@ final class CustomerRequestController extends AbstractController
             'solicitud' => $solicitud,
             'aprobados' => $clienteIdsAprobados,
         ]);
+    }
+    public function notificarCliente($adress)
+    {
+        $email = (new Email())
+            ->from($_ENV['MAIL_FROM'])
+            ->to($adress)
+            ->subject('Solicitud de Representación aprobada')
+            ->html($this->renderView('emails/solicitud_aprobada.html.twig'));
+
+        $this->mailer->send($email);
     }
 }
