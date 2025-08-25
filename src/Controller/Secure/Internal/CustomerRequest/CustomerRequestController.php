@@ -91,7 +91,7 @@ final class CustomerRequestController extends AbstractController
             } else {
                 $solicitud->setStatus(CustomerRequestStatus::PARCIALMENTE_APROBADO);
             }
-            if ($cantidadAprobada === 0) {
+            if ($cantidadAprobada !== 0) {
             $this->notificarCliente($solicitud->getUserRequest()->getEmail());
             }
             $solicitud->setUserUpdate($this->getUser());
