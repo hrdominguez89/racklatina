@@ -99,6 +99,12 @@
 										Fecha
 									</th>
 									<th>
+										Empresa
+									</th>
+									<th>
+										Cuit
+									</th>
+									<th>
 										Acciones
 									</th>
 								</tr>
@@ -117,6 +123,16 @@
 										</td>
 										<td>
 											{{ solicitud.createdAt|date('d/m/Y H:i') }}
+										</td>
+										<td>
+											{% for sol in solicitud.data %}
+												{{sol.razonSocial}}/
+											{% endfor %}
+										</td>
+										<td>
+											{% for sol in solicitud.data %}
+												{{sol.cuit}}/
+											{% endfor %}
 										</td>
 										<td>
 											{% if solicitud.status.label == 'Pendiente'  %}
