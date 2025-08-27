@@ -19,7 +19,7 @@
                             <div class="card-body">
                                 <p class="mb-2"><strong>Nombre:</strong> {{ user.firstName }}</p>
                                 <p class="mb-2"><strong>Apellido:</strong> {{ user.lastName }}</p>
-                                <p class="mb-2"><strong>DNI:</strong> {{ user.nationalIdNumber }}</p>
+                                <p class="mb-2"><strong>DNI:</strong> {{ user.nationalIdNumber ?? 'No disponible'}}</p>
                                 <p class="mb-2"><strong>Fecha de Nacimiento:</strong> {{ user.birthDate is defined ? user.birthDate|date('Y-m-d') : 'No disponible' }}</p>
                                 
                             </div>

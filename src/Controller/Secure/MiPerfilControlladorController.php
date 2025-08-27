@@ -51,7 +51,11 @@ final class MiPerfilControlladorController extends AbstractController
         $user = $this->getUser();
         $user->setFirstName($data['firstName'] ?? null);
         $user->setLastName($data['lastName'] ?? null);
-        $user->setNationalIdNumber($data['dni'] ?? null);
+        $dni = $data['dni'] ?? null;
+        if($dni != null)
+        {
+            $user->setNationalIdNumber($dni);
+        }
         if ($data['password'] !== '') {
             $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
         }

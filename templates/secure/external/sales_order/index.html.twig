@@ -27,6 +27,9 @@
                         </div>
                     </div>
                 </div>
+                {% for message in app.flashes('info') %}
+                    <div class="alert alert-info">{{ message }}</div>
+                {% endfor %}
             </div>
             <div class="row">
                 <div class="col-12 d-flex justify-content-end align-items-end mb-3">

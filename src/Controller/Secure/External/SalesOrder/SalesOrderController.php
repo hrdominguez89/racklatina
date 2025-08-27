@@ -4,6 +4,8 @@ namespace App\Controller\Secure\External\SalesOrder;
 
 use App\Entity\Pedidosrelacionados;
 use App\Entity\Remitos;
+use App\Enum\CustomerRequestStatus;
+use App\Repository\CustomerRequestRepository;
 use App\Repository\FacturasRepository;
 use App\Repository\PedidosrelacionadosRepository;
 use App\Repository\RemitosRepository;
@@ -24,8 +26,29 @@ final class SalesOrderController extends AbstractController
         Request $request,
         PedidosrelacionadosRepository $pedidosrelacionadosRepository,
         UserCustomerRepository $userCustomerRepository,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        CustomerRequestRepository $repository
     ): Response {
+        $user = $this->getUser();
+
+        $criteria = ['userRequest' => $user];
+        $criteria['status'] = CustomerRequestStatus::PENDIENTE;
+        $solicitudes = $repository->findBy($criteria, ['createdAt' => 'DESC']);
+        
+        if($solicitudes != null)
+        {
+            $mensaje = "Te enviaremos un email de confirmación una vez que sea aprobada.
+            Tu solicitud está siendo evaluada para representar a la empresa:";
+            foreach($solicitudes as $solicitud)
+            {
+                if($solicitud->getStatus() == CustomerRequestStatus::PENDIENTE)
+                {
+                    $mensaje = $mensaje . " " . $solicitud?->getData()[0]['razonSocial']  . "\n";
+                }
+            }
+            
+            $this->addFlash('info', $mensaje);
+        }
         $data['status'] = $request->query->get('status') ?? 'Todas';
         if($data['status'] =="articulos_pendientes")
         {
@@ -99,7 +122,6 @@ final class SalesOrderController extends AbstractController
         }
 
         $data['pedidos'] = array_values($agrupados);
-
         return $this->render('secure/external/sales_order/index.html.twig', $data);
     }
     #[Route('/detalle', name: 'app_secure_external_sales_order_sales_order_ver_en_detalle', methods: ['GET'])]
