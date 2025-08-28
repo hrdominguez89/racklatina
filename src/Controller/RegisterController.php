@@ -86,7 +86,6 @@ final class RegisterController extends AbstractController
                     ]));
 
                 $mailer->send($email);
-                // TESTEAR EL EMAIL. TODO
                 
                 // $user = $this->getUser();
                 $clientes =$request->request->all();
@@ -100,6 +99,7 @@ final class RegisterController extends AbstractController
                 
                 $solicitud = $this->generarSolicitudDeRepresentacion($user,$em,$data);
                 $this->enviarMailDeSolicitudDeRepresentacion($user,(object)$data,$solicitud->getId());
+                $this->addFlash('success','Se le envio un email a su cuenta para confirmar el registro.');
                 return $this->redirectToRoute('app_login');
             }
             catch(UniqueConstraintViolationException $ex)

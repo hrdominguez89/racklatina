@@ -78,6 +78,7 @@ final class CustomerRequestController extends AbstractController
                     $relacion->setCliente($cliente['id']);
                     $relacion->setCustomerRequest($solicitud);
                     $em->persist($relacion);
+                    $data["clientes"] = $cliente["razonSocial"];
                 }
             }
 
@@ -92,7 +93,8 @@ final class CustomerRequestController extends AbstractController
                 $solicitud->setStatus(CustomerRequestStatus::PARCIALMENTE_APROBADO);
             }
             if ($cantidadAprobada !== 0) {
-            $this->notificarCliente($solicitud->getUserRequest()->getEmail());
+            $data["nombre"] = $solicitud->getUserRequest()->getNombre();
+            $this->notificarCliente($solicitud->getUserRequest()->getEmail(),$data);
             }
             $solicitud->setUserUpdate($this->getUser());
             $em->flush();
@@ -129,13 +131,13 @@ final class CustomerRequestController extends AbstractController
             'aprobados' => $clienteIdsAprobados,
         ]);
     }
-    public function notificarCliente($adress)
+    public function notificarCliente($adress,$data)
     {
         $email = (new Email())
             ->from($_ENV['MAIL_FROM'])
             ->to($adress)
             ->subject('Solicitud de Representación aprobada')
-            ->html($this->renderView('emails/solicitud_aprobada.html.twig'));
+            ->html($this->renderView('emails/solicitud_aprobada.html.twig',$data));
 
         $this->mailer->send($email);
     }

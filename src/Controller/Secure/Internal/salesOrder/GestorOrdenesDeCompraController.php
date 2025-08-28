@@ -47,9 +47,7 @@ final class GestorOrdenesDeCompraController extends AbstractController
                     $query->where('p.razonsocial like :razonsocial')
                         ->setParameter('razonsocial', '%' . $search . '%');
                     break;
-
             }
-
             if ($data['status'] !== 'Todas') {
                 if($data["status"] == "articulos_pendientes")
                 {
@@ -62,16 +60,13 @@ final class GestorOrdenesDeCompraController extends AbstractController
                         ->setParameter('estado', $data['status']);
                 }
             }
-
             $data['pedidos'] = $query->getQuery()
                 ->getArrayResult();
             $agrupados = [];
             if($data["status"] != "articulos_pendientes")
             {
-
                 foreach ($data['pedidos'] as $pedido) {
                     $key = $pedido['ordencompracliente'] . '|' . $pedido['numero'];
-                    
                     if (!isset($agrupados[$key])) {
                         $agrupados[$key] = [
                             'ordencompracliente' => $pedido['ordencompracliente'],
@@ -82,9 +77,9 @@ final class GestorOrdenesDeCompraController extends AbstractController
                         'fechaoc' => $pedido['fechaoc'],
                         'pendientes' => 0,
                         'remitidos' => 0,
+                        'articulos' =>$pedido["articulo"]
                     ];
                 }
-
                 // Contar estados
                 if ($pedido['estado'] === 'Pendiente') {
                     $agrupados[$key]['pendientes']++;
@@ -94,10 +89,7 @@ final class GestorOrdenesDeCompraController extends AbstractController
             }
             $data['pedidos'] = array_values($agrupados);
             }
-
         }
-
-
         return $this->render('gestor_ordenes_de_compra/index.html.twig', $data);
     }
 
