@@ -125,14 +125,18 @@
 											{{ solicitud.createdAt|date('d/m/Y H:i') }}
 										</td>
 										<td>
-											{% for sol in solicitud.data %}
-												{{sol.razonSocial}}/
-											{% endfor %}
+											{% if solicitud.data|length > 1 %}
+												{{ solicitud.data|map(d => d.razonSocial)|join('/') }}
+											{% else %}
+												{{ solicitud.data[0].razonSocial }}
+											{% endif %}
 										</td>
 										<td>
-											{% for sol in solicitud.data %}
-												{{sol.cuit}}/
-											{% endfor %}
+											{% if solicitud.data|length > 1 %}
+												{{ solicitud.data|map(d => d.cuit)|join('/') }}
+											{% else %}
+												{{ solicitud.data[0].cuit }}
+											{% endif %}
 										</td>
 										<td>
 											{% if solicitud.status.label == 'Pendiente'  %}

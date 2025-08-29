@@ -65,10 +65,19 @@
 						</div>
 					</div>
 					<div class="row">
-
 						<div class="col-12 col-md-6 mb-3">
 							{{ form_label(form.companyName) }}
-							{{ form_widget(form.companyName, {'attr': {'class': 'form-control'}}) }}
+							<div id="company-search-message" class="text-danger small mb-1" style="display: none;">
+								* No se encontró empresa con ese CUIT
+							</div>
+							<div class="position-relative">
+								{{ form_widget(form.companyName, {'attr': {'class': 'form-control', 'readonly': true, 'placeholder': 'Se completará automáticamente'}}) }}
+								<div id="company-loading" class="position-absolute top-50 end-0 translate-middle-y me-2" style="display: none;">
+									<div class="spinner-border spinner-border-sm text-primary" role="status">
+										<span class="visually-hidden">Buscando...</span>
+									</div>
+								</div>
+							</div>
 							{{ form_errors(form.companyName) }}
 						</div>
 						<div class="col-12 col-md-6 mb-3">
@@ -81,12 +90,6 @@
 							{{ form_widget(form.jobTitle, {'attr': {'class': 'form-control'}}) }}
 							{{ form_errors(form.jobTitle) }}
 						</div>
-						{# <div class="col-6 mb-3">
-							{{ form_label(form.nationalIdNumber) }}
-							{{ form_widget(form.nationalIdNumber, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.nationalIdNumber) }}
-						</div> #}
-
 						<div class="col-12 col-md-6 mb-3">
 							{{ form_label(form.role) }}
 							{{ form_widget(form.role, {'attr': {'class': 'form-select'}}) }}
@@ -118,4 +121,135 @@
 		</div>
 	</div>
 	<!-- end row -->
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			// Elementos DOM
+			const cuitInput = document.querySelector('input[name*="cuit"]');
+			const companyNameInput = document.querySelector('input[name*="companyName"]');
+			const loadingIndicator = document.getElementById('company-loading');
+			const errorMessage = document.getElementById('company-search-message');
+			
+			// Verificar que todos los elementos existen
+			if (!cuitInput || !companyNameInput || !loadingIndicator || !errorMessage) {
+				console.error('No se encontraron todos los elementos DOM necesarios');
+				return;
+			}
+			
+			// Configuración
+			const SEARCH_URL = '{{ path("reg_cliente_cuit") }}';
+			let searchTimeout;
+			
+			// Función para limpiar estados
+			function clearStates() {
+				hideLoading();
+				hideError();
+			}
+			
+			// Función para mostrar loading
+			function showLoading() {
+				loadingIndicator.style.display = 'block';
+			}
+			
+			// Función para ocultar loading
+			function hideLoading() {
+				loadingIndicator.style.display = 'none';
+			}
+			
+			// Función para mostrar error
+			function showError() {
+				errorMessage.style.display = 'block';
+			}
+			
+			// Función para ocultar error
+			function hideError() {
+				errorMessage.style.display = 'none';
+			}
+			
+			// Función para limpiar nombre de empresa
+			function clearCompanyName() {
+				companyNameInput.value = '';
+			}
+			
+			// Función para establecer nombre de empresa
+			function setCompanyName(name) {
+				companyNameInput.value = name;
+			}
+			
+			// Función para validar CUIT (básica)
+			function isValidCuitLength(cuit) {
+				const cleaned = cuit.replace(/\D/g, '');
+				return cleaned.length >= 8; // Mínimo para hacer búsqueda
+			}
+			
+			// Función principal de búsqueda
+			async function searchCompanyByCuit(cuit) {
+				if (!isValidCuitLength(cuit)) {
+					clearStates();
+					clearCompanyName();
+					return;
+				}
+				
+				try {
+					showLoading();
+					hideError();
+					
+					const response = await fetch(SEARCH_URL, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-Requested-With': 'XMLHttpRequest'
+						},
+						body: JSON.stringify({ cuit: cuit })
+					});
+					
+					const data = await response.json();
+					
+					if (response.ok && data.success) {
+						setCompanyName(data.companyName);
+						hideError();
+					} else {
+						clearCompanyName();
+						showError();
+					}
+				} catch (error) {
+					console.error('Error en búsqueda:', error);
+					clearCompanyName();
+					showError();
+				} finally {
+					hideLoading();
+				}
+			}
+			
+			// Event listener para el input de CUIT
+			cuitInput.addEventListener('input', function(e) {
+				const cuit = e.target.value.trim();
+				
+				// Limpiar timeout anterior
+				clearTimeout(searchTimeout);
+				
+				// Si el CUIT está vacío, limpiar todo
+				if (!cuit) {
+					clearStates();
+					clearCompanyName();
+					return;
+				}
+				
+				// Debounce: esperar 500ms después de que el usuario termine de escribir
+				searchTimeout = setTimeout(() => {
+					searchCompanyByCuit(cuit);
+				}, 500);
+			});
+			
+			// Event listener para cuando el usuario sale del campo (backup)
+			cuitInput.addEventListener('blur', function(e) {
+				const cuit = e.target.value.trim();
+				if (cuit && isValidCuitLength(cuit)) {
+					// Cancelar cualquier búsqueda pendiente y ejecutar inmediatamente
+					clearTimeout(searchTimeout);
+					searchCompanyByCuit(cuit);
+				}
+			});
+		});
+	</script>
 {% endblock %}

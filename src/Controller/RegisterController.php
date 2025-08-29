@@ -16,6 +16,7 @@ use Doctrine\DBAL\Schema\UniqueConstraint;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -233,4 +234,25 @@ final class RegisterController extends AbstractController
             ]));
         $this->mailer->send($email);
     }
+    #[Route('/registro/obtener', name: 'reg_cliente_cuit', methods: ['POST'])]
+public function obtenerSRLcuit(Request $request): JsonResponse
+{
+    $data = json_decode($request->getContent(), true);
+    $cuit = $data["cuit"] ?? null;
+    
+    if (!$cuit) {
+        return $this->json(['success' => false, 'message' => 'CUIT requerido']);
+    }
+    
+    $cliente = $this->clienteRepository->findOneBy(["cuit" => $cuit]);
+    
+    if (!$cliente) {
+        return $this->json(['success' => false, 'message' => 'Cliente no encontrado']);
+    }
+    
+    return $this->json([
+        'success' => true, 
+        'companyName' => $cliente->getRazonSocial()
+    ]);
+}
 }
