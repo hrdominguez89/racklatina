@@ -20,6 +20,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('secure/clientes/sales-order')]
 final class SalesOrderController extends AbstractController
 {
+    public function __construct(private EntityManagerInterface $em)
+    {
+        $this->em = $em;
+    }
     #[Route('/', name: 'app_secure_external_sales_order_sales_order', methods: ['GET'])]
 
     public function index(
@@ -102,6 +106,7 @@ final class SalesOrderController extends AbstractController
             $key = $pedido['ordencompracliente'] . '|' . $pedido['numero'];
 
             if (!isset($agrupados[$key])) {
+                $articulos = $this->obtenerArticulosDeOrden($pedido['cliente'],$pedido['ordencompracliente'], $pedido['numero']);
                 $agrupados[$key] = [
                     'ordencompracliente' => $pedido['ordencompracliente'],
                     'numero' => $pedido['numero'],
@@ -110,6 +115,7 @@ final class SalesOrderController extends AbstractController
                     'fechaoc' => $pedido['fechaoc'],
                     'pendientes' => 0,
                     'remitidos' => 0,
+                    'articulos' => $articulos
                 ];
             }
 
@@ -214,5 +220,25 @@ final class SalesOrderController extends AbstractController
             array_push($pedidos,$aux);
         }
         return $this->render('secure/external/sales_order/articulos_cliente.html.twig', ['pedidos' => $pedidos]);
+    }
+    public function obtenerArticulosDeOrden($cliente_id,$orden_compra_cliente_id,$numero_pedido)
+    {
+        $ordenesDeCompra = $this->em->createQueryBuilder()
+            ->select('p')
+            ->from(Pedidosrelacionados::class, 'p')
+            ->where('p.cliente = :cliente')
+            ->andWhere('p.ordencompracliente = :orden')
+            ->andWhere('p.numero = :numero_pedido')
+            ->setParameter('cliente', $cliente_id)
+            ->setParameter('orden', $orden_compra_cliente_id)
+            ->setParameter('numero_pedido', $numero_pedido)
+            ->getQuery()
+            ->getArrayResult();
+        $return=[];
+        foreach($ordenesDeCompra as $ordC)
+        {
+            $return[]=$ordC["articulo"];
+        }
+        return $return;
     }
 }

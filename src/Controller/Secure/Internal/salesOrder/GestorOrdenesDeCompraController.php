@@ -67,6 +67,7 @@ final class GestorOrdenesDeCompraController extends AbstractController
             {
                 foreach ($data['pedidos'] as $pedido) {
                     $key = $pedido['ordencompracliente'] . '|' . $pedido['numero'];
+                    $articulos = $this->obtenerArticulosDeOrden($pedido['cliente'],$pedido['ordencompracliente'], $pedido['numero']);
                     if (!isset($agrupados[$key])) {
                         $agrupados[$key] = [
                             'ordencompracliente' => $pedido['ordencompracliente'],
@@ -77,7 +78,7 @@ final class GestorOrdenesDeCompraController extends AbstractController
                         'fechaoc' => $pedido['fechaoc'],
                         'pendientes' => 0,
                         'remitidos' => 0,
-                        'articulos' =>$pedido["articulo"]
+                        'articulos' =>$articulos
                     ];
                 }
                 // Contar estados
@@ -188,5 +189,25 @@ final class GestorOrdenesDeCompraController extends AbstractController
             'gestor_ordenes_de_compra/_modalFactura.html.twig',
             ['facturas' => $factura]
         );
+    }
+     public function obtenerArticulosDeOrden($cliente_id,$orden_compra_cliente_id,$numero_pedido)
+    {
+        $ordenesDeCompra = $this->entityManager->createQueryBuilder()
+            ->select('p')
+            ->from(Pedidosrelacionados::class, 'p')
+            ->where('p.cliente = :cliente')
+            ->andWhere('p.ordencompracliente = :orden')
+            ->andWhere('p.numero = :numero_pedido')
+            ->setParameter('cliente', $cliente_id)
+            ->setParameter('orden', $orden_compra_cliente_id)
+            ->setParameter('numero_pedido', $numero_pedido)
+            ->getQuery()
+            ->getArrayResult();
+        $return=[];
+        foreach($ordenesDeCompra as $ordC)
+        {
+            $return[]=$ordC["articulo"];
+        }
+        return $return;
     }
 }
