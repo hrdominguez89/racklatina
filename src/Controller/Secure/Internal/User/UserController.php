@@ -227,14 +227,17 @@ final class UserController extends AbstractController
             $apellido = $data['lastName'];
             $email = $data['email'];
             $password = $data['password'];
-            $dni = $data['dni'];
+            $dni = $data['dni'] ?? null;
 
             $user = new User();
             $user->setEmail($email);
             $user->setPassword($passwordHasher->hashPassword($user, $password));
             $user->setFirstName($nombre);
             $user->setLastName($apellido);
-            $user->setNationalIdNumber($dni);
+            if($dni != null && is_int($dni))
+            {
+                $user->setNationalIdNumber($dni);
+            }
 
             $this->entityManager->persist($user);
             $this->entityManager->flush();
