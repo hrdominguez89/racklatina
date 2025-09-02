@@ -44,11 +44,13 @@ final class GestorOrdenesDeCompraController extends AbstractController
                     break;
                 case 'cliente':
                 default:
+                    
                     $query->where('p.razonsocial like :razonsocial')
                         ->setParameter('razonsocial', '%' . $search . '%');
                     break;
             }
             if ($data['status'] !== 'Todas') {
+                
                 if($data["status"] == "articulos_pendientes")
                 {
                     $query->andWhere("p.estado = 'Pendiente'")
@@ -67,7 +69,8 @@ final class GestorOrdenesDeCompraController extends AbstractController
             {
                 foreach ($data['pedidos'] as $pedido) {
                     $key = $pedido['ordencompracliente'] . '|' . $pedido['numero'];
-                    $articulos = $this->obtenerArticulosDeOrden($pedido['cliente'],$pedido['ordencompracliente'], $pedido['numero']);
+                    $articulos = $searchType != 'cliente' ? $this->obtenerArticulosDeOrden($pedido['cliente'],$pedido['ordencompracliente'], $pedido['numero']) : "";
+                    
                     if (!isset($agrupados[$key])) {
                         $agrupados[$key] = [
                             'ordencompracliente' => $pedido['ordencompracliente'],
