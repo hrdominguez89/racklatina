@@ -15,9 +15,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_NATIONAL_ID_NUMBER', fields: ['nationalIdNumber'])]
 #[UniqueEntity(fields: ['email'], message: 'Este email ya está en uso')]
-#[UniqueEntity(fields: ['nationalIdNumber'], message: 'Este DNI ya está en uso')]
 #[Gedmo\SoftDeleteable(fieldName: 'deletedAt', timeAware: false)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {

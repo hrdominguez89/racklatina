@@ -6,7 +6,7 @@ use App\Repository\RemitosRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Table(name: 'Remitos')]
+#[ORM\Table(name: 'remitos')]
 #[ORM\Entity(repositoryClass: RemitosRepository::class, readOnly: true)]
 class Remitos
 {
