@@ -41,6 +41,7 @@ class RegistrationFormType extends AbstractType
             ->add('cuit', TextType::class, [
                 'mapped' => false,
                 'label' => 'CUIT <span style="color:red">*</span>',
+                'attr' => ['placeholder' => 'Ejemplo: 30-67969632-3'],
                 'label_html' => true,
                 'required' => true,
                 'constraints' => [
@@ -76,7 +77,7 @@ class RegistrationFormType extends AbstractType
             ])
             ->add('companyName', TextType::class, [
                 'mapped' => false,
-                'label' => 'Empresa <span style="color:red">*</span>',
+                'label' => 'Empresa',
                 'label_html' => true
             ])
             ->add('phoneNumber', TextType::class, [
