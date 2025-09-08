@@ -19,14 +19,14 @@
 					</div>
 
 					<div class="alert border-0 alert-warning text-center mb-2 mx-2" role="alert">
-						Ingrese su DNI y le enviaremos un enlace para verificar su cuenta.
+						Ingrese su E-Mail y le enviaremos un enlace para verificar su cuenta.
 					</div>
 					<div class="p-2">
 						<form method="post">
 							<input type="hidden" name="_csrf_token" value="{{ csrf_token('app_resend_confirmation') }}">
 							<div class="mb-4">
-								<label class="form-label" for="dni">DNI</label>
-								<input type="text" name="dni" pattern="\d{7,8}" inputmode="numeric" title="El DNI debe tener entre 7 y 8 dígitos" class="form-control" required>
+								<label class="form-label" for="email">E-Mail</label>
+								<input type="email" name="email" title="El E-Mail debe ser válido" class="form-control" required>
 							</div>
 
 							<div class="text-center mt-4">

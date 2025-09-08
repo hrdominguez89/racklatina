@@ -156,18 +156,18 @@ final class RegisterController extends AbstractController
         MailerInterface $mailer
     ): Response {
         if ($request->isMethod('POST')) {
-            $dni = $request->request->get('dni');
+            $email = $request->request->get('email');
 
-            if (!$dni || !is_numeric($dni)) {
-                $this->addFlash('danger', 'Debés ingresar un DNI válido.');
+            if (!$email) {
+                $this->addFlash('danger', 'Debés ingresar un E-Mail válido.');
                 return $this->redirectToRoute('app_resend_confirmation');
             }
 
-            $user = $em->getRepository(User::class)->findOneBy(['nationalIdNumber' => $dni]);
+            $user = $em->getRepository(User::class)->findOneBy(['email' => $email]);
 
             if (!$user || $user->isInternal()) {
                 // No revelar existencia del usuario
-                $this->addFlash('success', 'Se te envió un nuevo correo de confirmación.');
+                $this->addFlash('success', 'Su cuenta no se encuentra en nuestros registros.');
                 return $this->redirectToRoute('app_login');
             }
 
