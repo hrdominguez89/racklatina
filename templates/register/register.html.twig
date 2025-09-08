@@ -66,6 +66,11 @@
 					</div>
 					<div class="row">
 						<div class="col-12 col-md-6 mb-3">
+							{{ form_label(form.cuit) }}
+							{{ form_widget(form.cuit, {'attr': {'class': 'form-control'}}) }}
+							{{ form_errors(form.cuit) }}
+						</div>
+						<div class="col-12 col-md-6 mb-3">
 							{{ form_label(form.companyName) }}
 							<div id="company-search-message" class="text-danger small mb-1" style="display: none;">
 								* No se encontró empresa con ese CUIT
@@ -79,11 +84,6 @@
 								</div>
 							</div>
 							{{ form_errors(form.companyName) }}
-						</div>
-						<div class="col-12 col-md-6 mb-3">
-							{{ form_label(form.cuit) }}
-							{{ form_widget(form.cuit, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.cuit) }}
 						</div>
 						<div class="col-12 col-md-6 mb-3">
 							{{ form_label(form.jobTitle) }}
