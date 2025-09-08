@@ -5,6 +5,8 @@ namespace App\Controller\Secure\External\Home;
 use App\Entity\CustomerRequest;
 use App\Enum\CustomerRequestStatus;
 use App\Repository\CustomerRequestRepository;
+use App\Repository\EstadoClientesRepository;
+use App\Repository\UserCustomerRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -18,10 +20,18 @@ final class HomeController extends AbstractController
         $this->repository = $repository;
     }
     #[Route('/', name: 'app_secure_external_home')]
-    public function index(CustomerRequestRepository $customerRequestRepository): Response
+    public function index(CustomerRequestRepository $customerRequestRepository,
+    UserCustomerRepository $userCustomerRepository,
+    EstadoClientesRepository $estadoCuentaRepository): Response
     {
         $data['user'] = $this->getUser();
-        $requests = $customerRequestRepository->findOneBy(["userRequest" => $data["user"]->getId()]);
+        $user_id = $data["user"]->getId();
+        $requests = $customerRequestRepository->findOneBy(["userRequest" => $user_id]);
+        // $usuario_cliente = $userCustomerRepository->findOneBy(["user"=>$user_id ]);
+        // $cliente = $usuario_cliente->getCliente();
+        // $estado_cliente = $cliente->getEstado();
+        // $estadoCuenta = $estadoCuentaRepository->findOneBy(["nombreEstado"=>$estado_cliente]);
+        // $this->addFlash("info",$estadoCuenta->getDetalleEstado());
         if(!empty($requests))
         {
             $this->auxiliar();

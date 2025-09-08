@@ -20,7 +20,14 @@ class CuentascorrientesRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Cuentascorrientes::class);
     }
-
+      public function findComprobantesSaldados(string $cliente_id): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.codigoCliente = :cliente_id')
+            ->setParameter('cliente_id', $cliente_id)
+            ->getQuery()
+            ->getArrayResult();
+    }
 //    /**
 //     * @return Cuentascorrientes[] Returns an array of Cuentascorrientes objects
 //     */

@@ -25,10 +25,10 @@ class Comprobantesimpagos
     #[ORM\Column(name: "FechaVencimiento", type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $fechavencimiento = null;
 
-    #[ORM\Column(name: "[D/Imp]", length: 30, nullable: true)]
+    #[ORM\Column(name: '`[D/Imp]`', length: 30, nullable: true)]
     private ?string $d_imp = 'NULL';
 
-    #[ORM\Column(name: "[D/Vto]", length: 30, nullable: true)]
+    #[ORM\Column(name: '`[D/Vto]`', length: 30, nullable: true)]
     private ?string $d_vto = 'NULL';
 
     #[ORM\Column(name: "Codigo", length: 2, nullable: true)]
