@@ -67,7 +67,7 @@
                                     </a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="{{ path('app_gestor_ordenes_de_compra', {status:app.request.get('status') ? app.request.get('status'):'Todas',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}">
+                                    <a href="{{ path('app_gestor_ordenes_de_compra', {status:app.request.get('status') ? app.request.get('status'):'Todas',search: app.request.get('search'),searchType: app.request.get('searchType'),'searchArticulo':app.request.get('searchArticulo')??''}) }}">
                                         Informes de Órdenes de Compra
                                     </a>
                                 </li>
@@ -260,7 +260,7 @@
                     </div>
                     <div class="row mt-4">
                         <div class="col-12 text-end">
-                            <a class="btn btn-secondary" href="{{ path('app_gestor_ordenes_de_compra', {status:app.request.get('status') ? app.request.get('status'):'Todas',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}">
+                            <a class="btn btn-secondary" href="{{ path('app_gestor_ordenes_de_compra', {status:app.request.get('status') ? app.request.get('status'):'Todas',search: app.request.get('search'),searchType: app.request.get('searchType'),'searchArticulo':app.request.get('searchArticulo')??''}) }}">
                                 Volver
                             </a>
                         </div>

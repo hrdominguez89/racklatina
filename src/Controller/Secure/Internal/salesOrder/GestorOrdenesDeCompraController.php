@@ -31,7 +31,9 @@ final class GestorOrdenesDeCompraController extends AbstractController
         $data['pedidos'] = [];
         $searchType = $request->query->get('searchType') ?? null;
         $search = $request->query->get('search') ?? null;
-        if ($searchType && $search) {
+        $searchArticulo = $request->query->get('searchArticulo') ?? null;
+        
+        if ($searchType && (($searchType === 'cliente_y_articulo' && $searchArticulo) || ($searchType !== 'cliente_y_articulo' && $search))) {
             $query = $pedidosrelacionadosRepository->createQueryBuilder('p');
             switch ($searchType) {
                 case 'orden':
@@ -41,6 +43,12 @@ final class GestorOrdenesDeCompraController extends AbstractController
                 case 'pedido':
                     $query->where('p.numero like :numero')
                         ->setParameter('numero', '%' . $search . '%');
+                    break;
+                case 'cliente_y_articulo':
+                    $query->where('p.razonsocial like :razonsocial')
+                        ->andWhere('p.articulo like :articulo')
+                        ->setParameter('razonsocial', '%' . $search . '%')
+                        ->setParameter('articulo', '%' . $searchArticulo . '%');
                     break;
                 case 'cliente':
                 default:

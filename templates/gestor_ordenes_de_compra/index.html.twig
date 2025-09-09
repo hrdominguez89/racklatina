@@ -5,252 +5,358 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
-    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.dataTables.min.css">
-
-    {% endblock %}
-    {% block body %}
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-12">
-                    <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
-                        <div class="page-title-right">
-                            <ol class="breadcrumb m-0">
-                                <li class="breadcrumb-item">
-                                    <a href="{{ path('app_home') }}">
-                                        Mi portal
-                                    </a>
-                                </li>
-                                <li class="breadcrumb-item active">
-                                    Informes de Órdenes de Compra
-                                </li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row mt-4">
-                <div class="col-12 mb-4">
-                    <form method="get">
-                        <div class="row">
-                            <div class="col-3">
-                                <div class="mb-3">
-                                    <label for="searchType" class="form-label">
-                                        Tipo de busqueda
-                                    </label>
-                                    <select name="searchType" id="searchType" class="form-select">
-                                        <option value="orden" {{ app.request.get('searchType') == 'orden' ? 'selected' : '' }}>
-                                            Nro de Orden de Compra
-                                        </option>
-                                        <option value="pedido" {{ app.request.get('searchType') == 'pedido' ? 'selected' : '' }}>
-                                            Nro de pedido
-                                        </option>
-                                        <option value="cliente" {{ app.request.get('searchType') == 'cliente' ? 'selected' : '' }}>
-                                            Cliente
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-3">
-                                <div class="mb-3">
-                                    <label for="search" class="form-label" id="searchLabel">
-                                        Valor a buscar
-                                    </label>
-                                    <input type="search" id="search" name="search" value="{{ app.request.get('search') }}" class="form-control" />
-                                </div>
-                            </div>
-                            <div class="col-3 text-start align-self-end">
-                                <button type="submit" id="buscar-ordenes" class="btn btn-secondary mb-3">
-                                    <i class="ri-search-line align-middle me-1"></i>
-                                    Buscar órdenes
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            {% if  app.request.get('search') and app.request.get('searchType') %}
+        <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.dataTables.min.css">
+        {% endblock %}
+        {% block body %}
+            <div class="container-fluid">
                 <div class="row">
-                    <div class="col-12 d-flex justify-content-end align-items-end mb-3">
-                        <div>
-                            <a href="{{ path('app_gestor_ordenes_de_compra',{status:'Todas',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}" class="btn {{ status=='Todas'? 'active':'' }} btn-outline-primary">
-                                Todas
-                            </a>
-                            <a href="{{ path('app_gestor_ordenes_de_compra',{status:'Pendiente',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}" class="btn {{ status=='Pendiente'? 'active':'' }} btn-outline-primary">
-                                Pendiente
-                            </a>
-                            <a href="{{ path('app_gestor_ordenes_de_compra',{status:'Remitido',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}" class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">
-                                Remitido
-                            </a>
-                            <a href="{{ path('app_gestor_ordenes_de_compra',{status:'articulos_pendientes',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}"class="btn {{ status=='articulos_pendientes'? 'active':''}}  btn-outline-primary">Articulos Pendientes</a>
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    <li class="breadcrumb-item">
+                                        <a href="{{ path('app_home') }}">
+                                            Mi portal
+                                        </a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Informes de Órdenes de Compra
+                                    </li>
+                                </ol>
+                            </div>
                         </div>
                     </div>
                 </div>
-                {% if pedidos %}
-                    <div class="row mt-3 mb-3">
-                        <div class="col-12">
-                            
-
-                            <h2 class="text-center">
-                                {{app.request.get('status') != 'articulos_pendientes' ? "Órdenes de compra" : "Articulos pendientes"}} encontradas para la busqueda:
-                                
-                                <strong>
-                                    {{ app.request.get('search') }}
-                                </strong>
-                            </h2>
+                <div class="row mt-4">
+                    <div class="col-12 mb-4">
+                        <form method="get">
+                            <div class="row">
+                                <div class="col-3">
+                                    <div class="mb-3">
+                                        <label for="searchType" class="form-label">
+                                            Tipo de busqueda
+                                        </label>
+                                        <select name="searchType" id="searchType" class="form-select">
+                                            <option value="orden" {{ app.request.get('searchType') == 'orden' ? 'selected' : '' }}>
+                                                Nro de Orden de Compra
+                                            </option>
+                                            <option value="pedido" {{ app.request.get('searchType') == 'pedido' ? 'selected' : '' }}>
+                                                Nro de pedido
+                                            </option>
+                                            <option value="cliente" {{ app.request.get('searchType') == 'cliente' ? 'selected' : '' }}>
+                                                Cliente
+                                            </option>
+                                            <option value="cliente_y_articulo" {{ app.request.get('searchType') == 'cliente_y_articulo' ? 'selected' : '' }}>
+                                                Cliente y artículo
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-3" id="searchDiv">
+                                    <div class="mb-3">
+                                        <label for="search" class="form-label" id="searchLabel">
+                                            Valor a buscar
+                                        </label>
+                                        <input type="search" id="search" name="search" value="{{ app.request.get('search') }}" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="col-3" id="articuloDiv" style="display: none;">
+                                    <div class="mb-3">
+                                        <label for="searchArticulo" class="form-label">
+                                            Artículo
+                                        </label>
+                                        <input type="search" id="searchArticulo" name="searchArticulo" value="{{ app.request.get('searchArticulo') }}" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="col-3 text-start align-self-end">
+                                    <button type="submit" id="buscar-ordenes" class="btn btn-secondary mb-3">
+                                        <i class="ri-search-line align-middle me-1"></i>
+                                        Buscar órdenes
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% if  (app.request.get('search') and app.request.get('searchType')) %}
+                    <div class="row">
+                        <div class="col-12 d-flex justify-content-end align-items-end mb-3">
+                            <div>
+                                {% set searchParams = app.request.get('searchType') == 'cliente_y_articulo' ? 
+                                {search: app.request.get('search'), searchArticulo: app.request.get('searchArticulo'), searchType: app.request.get('searchType')} : 
+                                {search: app.request.get('search'), searchType: app.request.get('searchType')} %}
+                                <a href="{{ path('app_gestor_ordenes_de_compra', searchParams|merge({status:'Todas'})) }}" class="btn {{ status=='Todas'? 'active':'' }} btn-outline-primary">
+                                    Todas
+                                </a>
+                                <a href="{{ path('app_gestor_ordenes_de_compra', searchParams|merge({status:'Pendiente'})) }}" class="btn {{ status=='Pendiente'? 'active':'' }} btn-outline-primary">
+                                    Pendiente
+                                </a>
+                                <a href="{{ path('app_gestor_ordenes_de_compra', searchParams|merge({status:'Remitido'})) }}" class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">
+                                    Remitido
+                                </a>
+                                <a href="{{ path('app_gestor_ordenes_de_compra', searchParams|merge({status:'articulos_pendientes'})) }}" class="btn {{ status=='articulos_pendientes'? 'active':'' }}  btn-outline-primary">
+                                    Articulos Pendientes
+                                </a>
+                            </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-12">
-                            {% if app.request.get('status') != 'articulos_pendientes' %}
-                            <table id="tabla-pedidos" class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>
-                                            Orden Compra Cliente
-                                        </th>
-                                        <th>
-                                            Nro pedido
-                                        </th>
-                                        <th>
-                                            Razón Social
-                                        </th>
-                                        <th>
-                                            Fecha Pedido
-                                        </th>
-                                        <th>
-                                            Fecha OC
-                                        </th>
-                                        <th>
-                                            Estado
-                                        </th>
-                                        <th>
-                                            Acciones
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for pedido in pedidos %}
-                                        <tr>
-                                            <td data-search="{{ pedido.articulos|join(', ') }}">
-                                                {{ pedido.ordencompracliente }}
-                                            </td>
-                                            <td>
-                                                {{ pedido.numero }}
-                                            </td>
-                                            <td>
-                                                {{ pedido.razonsocial }}
-                                            </td>
-                                            {% set fecha_visible = pedido.fechapedido ? pedido.fechapedido|date('d/m/Y'): ''  %}
-                                                {% set fecha = fecha_visible|split('/') %}
-                                                {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
-                                                <td data-order="{{ fecha_visible? fecha_ordenada:'9999-12-31' }}"> {{fecha_visible}}</td>
-                                            {% set fecha_visible = pedido.fechaoc ? pedido.fechaoc: ''  %}
-                                            {% if fecha_visible %}
-                                                {% set fecha = fecha_visible|split('/') %}
-                                                {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
-                                                <td data-order="{{ fecha_ordenada }}"> {{fecha_visible}}</td>
-                                            {% else %}
-                                                <td data-order="9999-12-31"></td>
-                                            {% endif %}
-                                            <td>
-                                                {% if status == 'Todas' %}
-                                                    Pendientes&nbsp;{{ pedido.pendientes }}&nbsp;/Remitidos&nbsp;{{ pedido.remitidos }}
-                                                {% elseif status == 'Pendiente' %}
-                                                    Pendientes&nbsp;{{ pedido.pendientes }}
-                                                {% elseif status == 'Remitido' %}
-                                                    Remitidos&nbsp;{{ pedido.remitidos }}
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle', {'numero_pedido':pedido.numero,'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente,status:app.request.get('status') ? app.request.get('status'):'Todas',search: app.request.get('search'),searchType: app.request.get('searchType')}) }}" class="btn btn-outline-primary btn-sm">
+                    {% if pedidos %}
+                        <div class="row mt-3 mb-3">
+                            <div class="col-12">
+                                <h2 class="text-center">
+                                    {{ app.request.get('status') != 'articulos_pendientes' ? "Órdenes de compra" : "Articulos pendientes" }}
+                                    encontradas para la busqueda:
+                                    <strong>
+                                        {% if app.request.get('searchType') == 'cliente_y_articulo' %}
+                                            <br>Cliente:
+                                            {{ app.request.get('search') }}
+                                            - Artículo:
+                                            {{ app.request.get('searchArticulo') }}
+                                        {% else %}
+                                            {{ app.request.get('search') }}
+                                        {% endif %}
+                                    </strong>
+                                </h2>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                {% if app.request.get('status') != 'articulos_pendientes' %}
+                                    <table id="tabla-pedidos" class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>
+                                                    Orden Compra Cliente
+                                                </th>
+                                                <th>
+                                                    Nro pedido
+                                                </th>
+                                                <th>
+                                                    Razón Social
+                                                </th>
+                                                <th>
+                                                    Fecha Pedido
+                                                </th>
+                                                <th>
+                                                    Fecha OC
+                                                </th>
+                                                <th>
+                                                    Estado
+                                                </th>
+                                                <th>
+                                                    Acciones
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for pedido in pedidos %}
+                                                <tr>
+                                                    <td data-search="{{ pedido.articulos|join(', ') }}">
+                                                        {{ pedido.ordencompracliente }}
+                                                    </td>
+                                                    <td>
+                                                        {{ pedido.numero }}
+                                                    </td>
+                                                    <td>
+                                                        {{ pedido.razonsocial }}
+                                                    </td>
+                                                    {% set fecha_visible = pedido.fechapedido ? pedido.fechapedido|date('d/m/Y'): '' %}
+                                                    {% set fecha = fecha_visible|split('/') %}
+                                                    {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
+                                                    <td data-order="{{ fecha_visible? fecha_ordenada:'9999-12-31' }}">
+                                                        {{ fecha_visible }}
+                                                    </td>
+                                                    {% set fecha_visible = pedido.fechaoc ? pedido.fechaoc: '' %}
+                                                    {% if fecha_visible %}
+                                                        {% set fecha = fecha_visible|split('/') %}
+                                                        {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
+                                                        <td data-order="{{ fecha_ordenada }}">
+                                                            {{ fecha_visible }}
+                                                        </td>
+                                                    {% else %}
+                                                        <td data-order="9999-12-31"></td>
+                                                    {% endif %}
+                                                    <td>
+                                                        {% if status == 'Todas' %}
+                                                            Pendientes&nbsp;
+                                                            {{ pedido.pendientes }}
+                                                            &nbsp;/Remitidos&nbsp;
+                                                            {{ pedido.remitidos }}
+                                                        {% elseif status == 'Pendiente' %}
+                                                            Pendientes&nbsp;
+                                                            {{ pedido.pendientes }}
+                                                        {% elseif status == 'Remitido' %}
+                                                            Remitidos&nbsp;
+                                                            {{ pedido.remitidos }}
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle', {'numero_pedido':pedido.numero,'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente,status:app.request.get('status') ? app.request.get('status'):'Todas',search: app.request.get('search'),searchType: app.request.get('searchType'),searchArticulo: app.request.get('searchArticulo')??''}) }}" class="btn btn-outline-primary btn-sm">
+                                                            Detalle
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                {% else %}
+                                    <table id="tabla-pedidos" class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>
+                                                    Orden de compra
+                                                </th>
+                                                <th>
+                                                    Código de articulo
+                                                </th>
+                                                <th>
+                                                    Cantidad pendiente
+                                                </th>
+                                                <th>
+                                                    Numero de pedido
+                                                </th>
+                                                <th>
                                                     Detalle
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                            {% else %}
-                            <table id="tabla-pedidos" class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Orden de compra</th>
-                                    <th>Código de articulo</th>
-                                    <th>Cantidad pendiente</th>
-                                    <th>Numero de pedido</th>
-                                    <th>Detalle</th>
-                                    <th>Fecha estimada</th>
-                                    <th>Fecha de pedido</th>
-                                    <th>Ver O.C. detalle</th>
-                                </tr>
-                            </thead>
-                            <tbody> 
-                                {% for articulo in pedidos %}
-                                    <tr>
-                                        <td>{{ articulo.ordencompracliente}}</td>
-                                        <td>{{ articulo.articulo }}</td>
-                                        <td>{{ articulo.cantidadPendiente }}</td>
-                                        <td>{{ articulo.numero }}</td>
-                                        <td>{{ articulo.detalle }}</td>
-                                        {% set fecha_visible = articulo.fechaentrega ? articulo.fechaentrega : (articulo.fechaEstimada ?? '') %}
-                                        {% if fecha_visible %}
-                                            {% set partes = fecha_visible|split('/') %}
-                                            {% set fecha_orden = partes[2] ~ '/' ~ partes[1] ~ '/' ~ partes[0] %}
-                                            <td class="bg-primary" data-order="{{ fecha_orden }}">{{ fecha_visible }}</td>
-                                        {% else %}
-                                            <td class="bg-primary" data-order="9999-12-31"></td> {# Si no hay fecha, se ordena último #}
-                                        {% endif %}
-                                        {% set fecha_visible = articulo.fechapedido ? articulo.fechapedido|date('d/m/Y') : (articulo.fechaEstimada ?? '') %}
-                                        {% if fecha_visible %}
-                                            {% set partes = fecha_visible|split('/') %}
-                                            {% set fecha_orden = partes[2] ~ '/' ~ partes[1] ~ '/' ~ partes[0] %}
-                                            <td  data-order="{{ fecha_orden }}">{{ fecha_visible }}</td>
-                                        {% else %}
-                                            <td  data-order="9999-12-31"></td> 
-                                        {% endif %}
-                                        
-                                        <td>
-                                            <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle',
+                                                </th>
+                                                <th>
+                                                    Fecha estimada
+                                                </th>
+                                                <th>
+                                                    Fecha de pedido
+                                                </th>
+                                                <th>
+                                                    Ver O.C. detalle
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for articulo in pedidos %}
+                                                <tr>
+                                                    <td>
+                                                        {{ articulo.ordencompracliente }}
+                                                    </td>
+                                                    <td>
+                                                        {{ articulo.articulo }}
+                                                    </td>
+                                                    <td>
+                                                        {{ articulo.cantidadPendiente }}
+                                                    </td>
+                                                    <td>
+                                                        {{ articulo.numero }}
+                                                    </td>
+                                                    <td>
+                                                        {{ articulo.detalle }}
+                                                    </td>
+                                                    {% set fecha_visible = articulo.fechaentrega ? articulo.fechaentrega : (articulo.fechaEstimada ?? '') %}
+                                                    {% if fecha_visible %}
+                                                        {% set partes = fecha_visible|split('/') %}
+                                                        {% set fecha_orden = partes[2] ~ '/' ~ partes[1] ~ '/' ~ partes[0] %}
+                                                        <td class="bg-primary" data-order="{{ fecha_orden }}">
+                                                            {{ fecha_visible }}
+                                                        </td>
+                                                    {% else %}
+                                                        <td class="bg-primary" data-order="9999-12-31"></td>
+                                                    {# Si no hay fecha, se ordena último #}
+                                                    {% endif %}
+                                                    {% set fecha_visible = articulo.fechapedido ? articulo.fechapedido|date('d/m/Y') : (articulo.fechaEstimada ?? '') %}
+                                                    {% if fecha_visible %}
+                                                        {% set partes = fecha_visible|split('/') %}
+                                                        {% set fecha_orden = partes[2] ~ '/' ~ partes[1] ~ '/' ~ partes[0] %}
+                                                        <td data-order="{{ fecha_orden }}">
+                                                            {{ fecha_visible }}
+                                                        </td>
+                                                    {% else %}
+                                                        <td data-order="9999-12-31"></td>
+                                                    {% endif %}
+                                                    <td>
+                                                        <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle',
                                              {'numero_pedido':articulo.numero,
-                                             'cliente_id': articulo.cliente, 
+                                             'cliente_id': articulo.cliente,
                                              'orden_compra_cliente_id': articulo.ordencompracliente,
                                              status:app.request.get('status') ? app.request.get('status'):'Todas',
-                                             search: app.request.get('search'),searchType: app.request.get('searchType')}) }}"
-                                              class="btn btn-outline-primary btn-sm">
-                                                Detalle
-                                            </a>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                            {% endif %}
-
+                                             search: app.request.get('search'),searchType: app.request.get('searchType')}) }}" class="btn btn-outline-primary btn-sm">
+                                                            Detalle
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
-                {% else %}
-                    <div class="alert alert-warning text-center" role="alert">
-                        No se encontraron órdenes de compra para el valor proporcionado:
-                        {{ app.request.get('search') }}
-                    </div>
+                    {% else %}
+                        <div class="alert alert-warning text-center" role="alert">
+                            No se encontraron órdenes de compra para el valor proporcionado:
+                            {% if app.request.get('searchType') == 'cliente_y_articulo' %}
+                                Cliente:
+                                {{ app.request.get('search') }}
+                                - Artículo:
+                                {{ app.request.get('searchArticulo') }}
+                            {% else %}
+                                {{ app.request.get('search') }}
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 {% endif %}
-            {% endif %}
-            <div class="row mt-4">
-                <div class="col-12 text-end">
-                    <a class="btn btn-secondary" href="{{ path('app_home') }}">
-                        Volver
-                    </a>
+                <div class="row mt-4">
+                    <div class="col-12 text-end">
+                        <a class="btn btn-secondary" href="{{ path('app_home') }}">
+                            Volver
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
-    {% endblock %}
-    {% block javascripts %}
-        {{ parent() }}
-        <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
-        <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
-        <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
-        <script>
+        {% endblock %}
+        {% block javascripts %}
+            {{ parent() }}
+            <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
+            <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
+            <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
+            <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const searchTypeSelect = document.getElementById('searchType');
+            const searchDiv = document.getElementById('searchDiv');
+            const articuloDiv = document.getElementById('articuloDiv');
+            const searchInput = document.getElementById('search');
+            const searchArticuloInput = document.getElementById('searchArticulo');
+            const searchLabel = document.getElementById('searchLabel');
+
+            function updateFormVisibility() {
+                const selectedType = searchTypeSelect.value;
+                
+
+                if (selectedType === 'cliente_y_articulo') {
+                    articuloDiv.style.display = 'block';
+                    searchArticuloInput.required = true;
+                } else {
+                    articuloDiv.style.display = 'none';
+                    searchArticuloInput.required = false;
+                    searchArticuloInput.value = '';
+                }
+                    
+                switch(selectedType) {
+                    case 'orden':
+                        searchLabel.textContent = 'Nro de Orden de Compra';
+                        break;
+                    case 'pedido':
+                        searchLabel.textContent = 'Nro de Pedido';
+                        break;
+                    case 'cliente':
+                    case 'cliente_y_articulo':
+                        searchLabel.textContent = 'Cliente';
+                        break;
+                    default:
+                        searchLabel.textContent = 'Valor a buscar';
+                }
+            }
+
+            // Ejecutar al cargar la página
+            updateFormVisibility();
+            
+            // Ejecutar cuando cambie la selección
+            searchTypeSelect.addEventListener('change', updateFormVisibility);
+
             $('#tabla-pedidos').DataTable({
                 language: {
                     url: esDatatable
@@ -280,5 +386,5 @@
 
 
     </script>
-    {% endblock %}
-    
+        {% endblock %}
+        
