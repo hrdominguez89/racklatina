@@ -2,16 +2,24 @@
 
 namespace App\Controller\Secure\Internal\Account;
 
+use App\Repository\ClientesRepository;
 use App\Repository\ComprobantesimpagosRepository;
 use App\Repository\CuentascorrientesRepository;
 use Exception;
+use Symfony\Component\Mime\Email;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 #[Route('/seccion')]
 final class SeccionCuentaController extends AbstractController{
+    public function __construct(private MailerInterface $mailer) 
+    {
+        $this->mailer = $mailer;
+    }
     #[Route('/cuenta', name: 'app_seccion_cuenta')]
     public function index(): Response
     {
@@ -30,57 +38,137 @@ final class SeccionCuentaController extends AbstractController{
             "cuentas" => $cuentas
         ]);
     }
-    //
+    
     #[Route('/cuenta/comprobantesSaldados',"app_comprobantes_saldados")]
     public function comprobantesSaldados(Request $request,
     CuentascorrientesRepository $cuentascorrientesRepository
     )
     {
-        $comprobantesSaldados = $cuentascorrientesRepository->findComprobantesSaldados("01000602");
-        return $this->render('secure/internal/seccion_cuenta/comprobantes_saldados.html.twig', [
-            'controller_name' => 'SeccionCuentaController',
-            "comprobantes" => $comprobantesSaldados
-        ]);
+        return $this->render('secure/internal/seccion_cuenta/comprobantes_saldados.html.twig');
     }
+
+    #[Route("/cuenta/obtenerSaldados","app_c_saldados")]
+    public function obtenerSaldados(Request $request,
+    CuentascorrientesRepository $cuentascorrientesRepository,
+    ClientesRepository $clientesRepository)
+    {
+        $search = $request->query->get('search');
+        $comprobantes = [];
+        if ($search) {
+            $clientes = $clientesRepository->findClientesPorRazonSocial($search);
+        }
+        if($clientes)
+        {
+            foreach($clientes as $cliente)
+            {
+                $comprobantes = $cuentascorrientesRepository->findComprobantesSaldados($cliente["codigoCalipso"]);
+            }
+        }
+        return $this->render(
+            'secure/internal/seccion_cuenta/comprobantes_saldados.html.twig',
+            [
+                'controller_name' => 'SeccionCuentaController',
+                'comprobantes' => $comprobantes
+            ]
+        );
+    }
+
+
+
     #[Route('/cuenta/comprobantesImpagos',"app_comprobantes_impagos")]
     public function ComprobantesImpagos(Request $request,
     ComprobantesimpagosRepository $comprobantesimpagosRepository): Response
     {
-        $comprobantes = $comprobantesimpagosRepository->findComprobantesImpagosByCliente("01000052");
-        return $this->render(
-      'secure/internal/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig', 
-['controller_name' => 'SeccionCuentaController',
-            "comprobantes" => $comprobantes
-        ]);
+        return $this->render('secure/internal/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig');
     }
-    #[Route('/obtenerFacturas',"prueba_facturas")]
+    #[Route('/obtenerComprobantesImpagos',"app_c_impagos")]
+    public function obtenerImpagos(Request $request,
+     ComprobantesimpagosRepository $comprobantesimpagosRepository,
+     ClientesRepository $clientesRepository): Response
+    {
+        $search = $request->query->get('search');
+        $comprobantes = [];
+        $clientes=[];
+        if ($search) {
+            $clientes = $clientesRepository->findClientesPorRazonSocial($search);
+        }
+        if($clientes)
+        {
+            foreach($clientes as $cliente)
+            {
+                $comprobantes = $comprobantesimpagosRepository->findComprobantesImpagosByCliente($cliente["codigoCalipso"]);
+            }
+        }
+        return $this->render(
+            'secure/internal/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig',
+            [
+                'controller_name' => 'SeccionCuentaController',
+                'comprobantes' => $comprobantes
+            ]
+        );
+    }
+
+    #[Route('/obtenerFacturas',"descarga_facturas")]
     public function obtenerFactura(Request $request,HttpClientInterface $httpClient)
     {
-        // busco el pdf en la carpeta facturas
-        // FA0019900000071
-        if (file_exists("../Facturas/FA0019900000071.pdf"))
-        {
-            dd(63);
-        }
-        try
-        {
-            $response = $httpClient->request('GET', 'https://192.168.16.104/appserver/api/?action=generapdf&token=eyJhIjoiREVTQVJST0xMTzUiLCJ1IjoiUE9SVEFMIiwicCI6IlJAY2suMjAyNSEifQ',
+        $fileName = $request->query->get("factura");
+        // $nombreArchivo = 'FA0019900000071.pdf';
+        $rutaArchivo = "../Facturas/{$fileName}";
+
+        try {
+            $response = $httpClient->request('POST', 'https://192.168.16.104/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
             [
                 'verify_peer' => false,
                 'verify_host' => false,
                 'json' => [
                     'modulo' => 'VENTAS',
-                    'comprobante' => 'FA0019900000071'
-                    ]
+                    'comprobante' => $fileName
+                ]
             ]);
+            
             $statusCode = $response->getStatusCode();
-            $content = $response->getContent(); // string
-            $data = $response->toArray(); // array si es JSON
-            return $this->json($data);
+            
+            if ($statusCode === 200) {
+                if (file_exists($rutaArchivo)) {
+                    // return $this->file($rutaArchivo);
+                    
+                    return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+                } else {
+                    return $this->json(['error' => 'El archivo no se generó correctamente'], 404);
+                }
+            } else {
+                return $this->json(['error' => 'Error en la API'], $statusCode);
+            }
+            
+        } catch(Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
         }
-        catch(Exception $e)
-        {
-            dd($e->getMessage());
+    }
+    #[Route('/enviarMail','app_notificar_pago')]
+    public function enviarNotificacion(Request $request)
+    {
+        $data["mensaje"] = $request->query->get("mensaje");
+        $archivos = $request->files->get('archivos');
+
+        $email = (new Email())
+            ->from($_ENV['MAIL_FROM'])
+            ->to($_ENV["MAIL_FROM"])
+            ->subject('Notificacion de pago.')
+            ->html($this->renderView('emails/_notificacion_de_pago.html.twig',$data));
+
+        // Adjuntar archivos si existen
+        if ($archivos) {
+            foreach ($archivos as $archivo) {
+                if ($archivo) {
+                    $email->attach(
+                        $archivo->getContent(),
+                        $archivo->getClientOriginalName(),
+                        $archivo->getMimeType()
+                    );
+                }
+            }
         }
+
+        $this->mailer->send($email);
     }
 }

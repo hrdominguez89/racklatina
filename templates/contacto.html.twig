@@ -1,0 +1,137 @@
+<!-- Modal de Contacto -->
+<div class="modal fade" id="contactoModal" tabindex="-1" aria-labelledby="contactoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="contactoModalLabel">
+                    <i class="ri-mail-line me-2"></i>Contactar con soporte
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="contactoForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="mensaje" class="form-label">Mensaje <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="mensaje" name="mensaje" rows="6" 
+                                    placeholder="Escriba su mensaje aquí..." required></textarea>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese su mensaje.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="adjuntos" class="form-label">Adjuntos (opcional)</label>
+                                <input type="file" class="form-control" id="adjuntos" name="adjuntos[]" multiple 
+                                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif">
+                                <div class="form-text">
+                                    Puede adjuntar múltiples archivos. Formatos permitidos: PDF, DOC, DOCX, TXT, JPG, PNG, GIF. Tamaño máximo: 10MB por archivo.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12" id="archivosSeleccionados" style="display: none;">
+                            <div class="alert alert-info">
+                                <h6 class="mb-2">Archivos seleccionados:</h6>
+                                <ul id="listaArchivos" class="mb-0"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="ri-close-line me-1"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="btnEnviar">
+                        <i class="ri-send-plane-line me-1"></i>Enviar mensaje
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const contactoForm = document.getElementById('contactoForm');
+    const adjuntosInput = document.getElementById('adjuntos');
+    const archivosSeleccionados = document.getElementById('archivosSeleccionados');
+    const listaArchivos = document.getElementById('listaArchivos');
+    const btnEnviar = document.getElementById('btnEnviar');
+
+    // Mostrar archivos seleccionados
+    adjuntosInput.addEventListener('change', function() {
+        const files = this.files;
+        
+        if (files.length > 0) {
+            listaArchivos.innerHTML = '';
+            archivosSeleccionados.style.display = 'block';
+            
+            Array.from(files).forEach(file => {
+                const li = document.createElement('li');
+                li.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                listaArchivos.appendChild(li);
+            });
+        } else {
+            archivosSeleccionados.style.display = 'none';
+        }
+    });
+
+    // Enviar formulario
+    contactoForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const mensaje = document.getElementById('mensaje').value.trim();
+        
+        if (!mensaje) {
+            document.getElementById('mensaje').classList.add('is-invalid');
+            return;
+        }
+        
+        document.getElementById('mensaje').classList.remove('is-invalid');
+        
+        // Deshabilitar botón mientras se envía
+        btnEnviar.disabled = true;
+        btnEnviar.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Enviando...';
+        
+        const formData = new FormData(this);
+        
+        // Aquí se hará la llamada al endpoint cuando esté listo
+        // Por ahora, simular envío exitoso
+        setTimeout(() => {
+            // Mostrar mensaje de éxito
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                <i class="ri-check-line me-2"></i>Su mensaje ha sido enviado correctamente. Nos pondremos en contacto con usted a la brevedad.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Insertar alerta después del header del modal
+            const modalBody = document.querySelector('#contactoModal .modal-body');
+            modalBody.insertBefore(alertDiv, modalBody.firstChild);
+            
+            // Limpiar formulario
+            contactoForm.reset();
+            archivosSeleccionados.style.display = 'none';
+            
+            // Restaurar botón
+            btnEnviar.disabled = false;
+            btnEnviar.innerHTML = '<i class="ri-send-plane-line me-1"></i>Enviar mensaje';
+            
+            // Cerrar modal después de 2 segundos
+            setTimeout(() => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('contactoModal'));
+                modal.hide();
+                // Remover alerta cuando se cierre el modal
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 500);
+            }, 2000);
+        }, 1500);
+    });
+});
+</script>
