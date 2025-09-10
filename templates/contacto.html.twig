@@ -8,14 +8,14 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="contactoForm" enctype="multipart/form-data">
+            <form id="contactoForm" enctype="multipart/form-data" >
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-12">
                             <div class="mb-3">
                                 <label for="mensaje" class="form-label">Mensaje <span class="text-danger">*</span></label>
                                 <textarea class="form-control" id="mensaje" name="mensaje" rows="6" 
-                                    placeholder="Escriba su mensaje aquÌ..." required></textarea>
+                                    placeholder="Escriba su mensaje aqui..." required></textarea>
                                 <div class="invalid-feedback">
                                     Por favor ingrese su mensaje.
                                 </div>
@@ -23,12 +23,7 @@
                         </div>
                         <div class="col-12">
                             <div class="mb-3">
-                                <label for="adjuntos" class="form-label">Adjuntos (opcional)</label>
-                                <input type="file" class="form-control" id="adjuntos" name="adjuntos[]" multiple 
-                                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif">
-                                <div class="form-text">
-                                    Puede adjuntar m˙ltiples archivos. Formatos permitidos: PDF, DOC, DOCX, TXT, JPG, PNG, GIF. TamaÒo m·ximo: 10MB por archivo.
-                                </div>
+                               <div id="drag-drop-area" ></div>
                             </div>
                         </div>
                         <div class="col-12" id="archivosSeleccionados" style="display: none;">
@@ -51,34 +46,32 @@
         </div>
     </div>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const contactoForm = document.getElementById('contactoForm');
-    const adjuntosInput = document.getElementById('adjuntos');
+    // const adjuntosInput = document.getElementById('adjuntos');
     const archivosSeleccionados = document.getElementById('archivosSeleccionados');
-    const listaArchivos = document.getElementById('listaArchivos');
+    // const listaArchivos = document.getElementById('listaArchivos');
     const btnEnviar = document.getElementById('btnEnviar');
 
     // Mostrar archivos seleccionados
-    adjuntosInput.addEventListener('change', function() {
-        const files = this.files;
+    // adjuntosInput.addEventListener('change', function() {
+    //     const files = this.files;
         
-        if (files.length > 0) {
-            listaArchivos.innerHTML = '';
-            archivosSeleccionados.style.display = 'block';
+    //     if (files.length > 0) {
+    //         listaArchivos.innerHTML = '';
+    //         archivosSeleccionados.style.display = 'block';
             
-            Array.from(files).forEach(file => {
-                const li = document.createElement('li');
-                li.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-                listaArchivos.appendChild(li);
-            });
-        } else {
-            archivosSeleccionados.style.display = 'none';
-        }
-    });
+    //         Array.from(files).forEach(file => {
+    //             const li = document.createElement('li');
+    //             li.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+    //             listaArchivos.appendChild(li);
+    //         });
+    //     } else {
+    //         archivosSeleccionados.style.display = 'none';
+    //     }
+    // });
 
-    // Enviar formulario
     contactoForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -89,49 +82,34 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        document.getElementById('mensaje').classList.remove('is-invalid');
-        
-        // Deshabilitar botÛn mientras se envÌa
         btnEnviar.disabled = true;
-        btnEnviar.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Enviando...';
+        btnEnviar.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Enviando...';
         
         const formData = new FormData(this);
-        
-        // AquÌ se har· la llamada al endpoint cuando estÈ listo
-        // Por ahora, simular envÌo exitoso
-        setTimeout(() => {
-            // Mostrar mensaje de Èxito
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-success alert-dismissible fade show';
-            alertDiv.innerHTML = `
-                <i class="ri-check-line me-2"></i>Su mensaje ha sido enviado correctamente. Nos pondremos en contacto con usted a la brevedad.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            
-            // Insertar alerta despuÈs del header del modal
-            const modalBody = document.querySelector('#contactoModal .modal-body');
-            modalBody.insertBefore(alertDiv, modalBody.firstChild);
-            
-            // Limpiar formulario
-            contactoForm.reset();
-            archivosSeleccionados.style.display = 'none';
-            
-            // Restaurar botÛn
+        console.log(94)
+        // Llamada real al endpoint
+        fetch("{{path('app_contacto_enviar')}}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Mostrar mensaje de √©xito
+                // ... c√≥digo de √©xito
+            } else {
+                throw new Error(data.message || 'Error al enviar');
+            }
+        })
+        .catch(error => {
+            // Mostrar error
+            alert('Error: ' + error.message);
+        })
+        .finally(() => {
+            // Restaurar bot√≥n
             btnEnviar.disabled = false;
             btnEnviar.innerHTML = '<i class="ri-send-plane-line me-1"></i>Enviar mensaje';
-            
-            // Cerrar modal despuÈs de 2 segundos
-            setTimeout(() => {
-                const modal = bootstrap.Modal.getInstance(document.getElementById('contactoModal'));
-                modal.hide();
-                // Remover alerta cuando se cierre el modal
-                setTimeout(() => {
-                    if (alertDiv.parentNode) {
-                        alertDiv.remove();
-                    }
-                }, 500);
-            }, 2000);
-        }, 1500);
-    });
-});
+        });
+    }); // ‚Üê Faltaba esta llave de cierre
+}); // ‚Üê Esta estaba bien
 </script>

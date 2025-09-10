@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\Secure;
+namespace App\Controller\Secure\External\Contacto;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -11,22 +11,20 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\Mime\Part\File;
-use Psr\Log\LoggerInterface;
 
-#[Route('/secure/contacto')]
+#[Route('/contacto')]
 final class ContactoController extends AbstractController
 {
     #[Route('/enviar', name: 'app_contacto_enviar', methods: ['POST'])]
     public function enviarContacto(
         Request $request, 
-        MailerInterface $mailer,
-        LoggerInterface $logger
+        MailerInterface $mailer
     ): JsonResponse {
         try {
+            
             $mensaje = $request->request->get('mensaje');
             $adjuntos = $request->files->get('adjuntos', []);
             
-            // Validar mensaje
             if (empty(trim($mensaje))) {
                 return new JsonResponse([
                     'success' => false,
@@ -34,19 +32,15 @@ final class ContactoController extends AbstractController
                 ], 400);
             }
 
-            // Obtener informaci�n del usuario actual
             $user = $this->getUser();
             $userName = $user ? ($user->getFirstName()." ".$user->getLastName() ?? 'Usuario') : 'Usuario Desconocido';
 
-            // Crear el email
             $email = (new Email())
-                ->from($_ENV["FROM"])
-                ->to('soporte@racklatina.com') // Cambiar por el email de soporte real
+                ->from($_ENV["MAIL_FROM"])
+                ->to($_ENV["MAIL_FROM"]) // Cambiar por el email de soporte real
                 ->subject('Nuevo mensaje de contacto desde el portal')
                 ->html($this->renderView('emails/contacto.html.twig', [
                     'mensaje' => $mensaje,
-                    'usuario_nombre' => $userName,
-                    'usuario_email' => $_ENV["FROM"],
                     'fecha' => new \DateTime(),
                     'tiene_adjuntos' => !empty($adjuntos)
                 ]));
@@ -87,21 +81,14 @@ final class ContactoController extends AbstractController
                     
                     $archivosAdjuntos[] = [
                         'nombre' => $archivo->getClientOriginalName(),
-                        'tama�o' => $this->formatBytes($archivo->getSize()),
+                        'tamaño' => $this->formatBytes($archivo->getSize()),
                         'tipo' => $archivo->getMimeType()
                     ];
                 }
             }
-
+           
             // Enviar el email
             $mailer->send($email);
-
-            // Log del env�o
-            $logger->info('Mensaje de contacto enviado', [
-                'usuario' => $user->getId(),
-                'adjuntos' => count($archivosAdjuntos),
-                'fecha' => date('Y-m-d H:i:s')
-            ]);
 
             return new JsonResponse([
                 'success' => true,
@@ -113,14 +100,10 @@ final class ContactoController extends AbstractController
             ]);
 
         } catch (\Exception $e) {
-            $logger->error('Error al enviar mensaje de contacto', [
-                'error' => $e->getMessage(),
-                'usuario' => $this->getUser() ? $this->getUser()->getUserIdentifier() : 'desconocido'
-            ]);
 
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Ha ocurrido un error al enviar su mensaje. Por favor, int�ntelo nuevamente.'
+                'message' => 'Ha ocurrido un error al enviar su mensaje. Por favor, int�ntelo nuevamente.' . $e->getMessage(),  
             ], 500);
         }
     }

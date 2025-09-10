@@ -35,12 +35,15 @@
 		<!-- App Css-->
 		<link
 		href="{{ asset('css/app.min.css') }}" rel="stylesheet" type="text/css"/>
+		<!-- uppy-->
+		<link
+		href="{{ asset('uppy/uppy.min.css') }}" rel="stylesheet" type="text/css"/>
 		<!-- custom Css-->
 		<link href="{{ asset('css/custom.min.css') }}" rel="stylesheet" type="text/css"/>
 
 		<link href="{{ asset('styles/app.css') }}" rel="stylesheet" type="text/css"/> {% block stylesheets %}{% endblock %}
 
-
+			
 		{% block javascripts %}
 			{% block importmap %}
 				{{ importmap('app') }}
@@ -110,7 +113,61 @@ ae:"{{ asset('images/flags/ae.svg') }}"
 			<script src="{{ asset('libs/feather-icons/feather.min.js') }}"></script>
 			<script src="{{ asset('js/pages/plugins/lord-icon-2.1.0.js') }}"></script>
 			<script src="{{ asset('js/plugins.js') }}"></script>
-
+			<script src="{{ asset('uppy/uppy.min.js') }}"></script>
+			<script>
+				// Inicializar Uppy
+				const { Uppy } = window;
+				
+				// Crear instancia global de Uppy
+				window.uppy = new Uppy({
+					debug: false,
+					autoProceed: false,
+					allowMultipleUploads: true,
+					restrictions: {
+						maxFileSize: 10000000, // 10MB
+						maxNumberOfFiles: 10,
+						minNumberOfFiles: 1,
+						allowedFileTypes: null // Permitir todos los tipos de archivo por defecto
+					}
+				});
+				
+				// Agregar plugins básicos
+				uppy.use(Uppy.Dashboard, {
+					inline: false,
+					target: 'body',
+					replaceTargetContents: false,
+					showProgressDetails: true,
+					width: 750,
+					height: 550,
+					thumbnailWidth: 280,
+					showLinkToFileUploadResult: true,
+					showProgressDetails: true,
+					hideUploadButton: false,
+					hideRetryButton: false,
+					hidePauseResumeButton: false,
+					hideCancelButton: false,
+					hideProgressAfterFinish: false,
+					doneButtonHandler: () => {
+						uppy.close();
+					}
+				});
+				
+				// Plugin para envío XHR
+				uppy.use(Uppy.XHRUpload, {
+					endpoint: '/upload', // Ajusta esta URL según tu endpoint
+					formData: true,
+					fieldName: 'files[]'
+				});
+				
+				// Event listeners globales
+				uppy.on('complete', (result) => {
+					console.log('Upload complete! We ve uploaded these files:', result.successful);
+				});
+				
+				uppy.on('error', (error) => {
+					console.error('Upload error:', error);
+				});
+			</script>
 			<!-- App js -->
 			<script src="{{ asset('js/app.js') }}"></script>
 		</body>
