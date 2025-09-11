@@ -8,11 +8,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
-use Symfony\Component\Mime\Part\DataPart;
-use Symfony\Component\Mime\Part\File;
+use App\Email\ContactoEmailWithAttachments;
+use App\Entity\User;
 
-#[Route('/contacto')]
+#[Route('secure/clientes/contacto')]
 final class ContactoController extends AbstractController
 {
     #[Route('/enviar', name: 'app_contacto_enviar', methods: ['POST'])]
@@ -21,9 +20,7 @@ final class ContactoController extends AbstractController
         MailerInterface $mailer
     ): JsonResponse {
         try {
-            
             $mensaje = $request->request->get('mensaje');
-            $adjuntos = $request->files->get('adjuntos', []);
             
             if (empty(trim($mensaje))) {
                 return new JsonResponse([
@@ -33,38 +30,76 @@ final class ContactoController extends AbstractController
             }
 
             $user = $this->getUser();
-            $userName = $user ? ($user->getFirstName()." ".$user->getLastName() ?? 'Usuario') : 'Usuario Desconocido';
+            $userName = 'Usuario Desconocido';
+            $userEmail = null;
+            
+            if ($user instanceof User) {
+                $userName = $user->getFirstName() . " " . $user->getLastName();
+                $userEmail = $user->getEmail();
+            }
 
-            $email = (new Email())
+            $email = (new ContactoEmailWithAttachments())
                 ->from($_ENV["MAIL_FROM"])
-                ->to($_ENV["MAIL_FROM"]) // Cambiar por el email de soporte real
-                ->subject('Nuevo mensaje de contacto desde el portal')
+                ->to($_ENV["MAIL_FROM"])
+                ->subject('Nuevo mensaje de contacto desde el portal - ' . $userName)
                 ->html($this->renderView('emails/contacto.html.twig', [
                     'mensaje' => $mensaje,
+                    'usuario' => $userName,
+                    'email_usuario' => $userEmail,
                     'fecha' => new \DateTime(),
-                    'tiene_adjuntos' => !empty($adjuntos)
                 ]));
 
-            // Procesar adjuntos
+            // Agregar replyTo si el usuario tiene email
+            if ($userEmail) {
+                $email->replyTo($userEmail);
+            }
+
+            // Procesar adjuntos codificándolos en base64 para el envío asíncrono
             $archivosAdjuntos = [];
-            $maxFileSize = 10 * 1024 * 1024; // 10MB
+            $maxFileSize = 4 * 1024 * 1024; // 4MB por archivo
+            $maxTotalSize = 20 * 1024 * 1024; // 20MB total
+            $maxFiles = 5;
             $allowedMimeTypes = [
                 'application/pdf',
                 'application/msword',
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'text/plain',
                 'image/jpeg',
-                'image/png',
-                'image/gif'
+                'image/jpg',
+                'image/png'
             ];
 
-            if (!empty($adjuntos)) {
-                foreach ($adjuntos as $archivo) {
-                    // Validar tama�o
+            $uploadedFiles = $request->files->all();
+            $totalSize = 0;
+            $fileCount = 0;
+
+            // Buscar archivos que vienen de Uppy (pueden tener nombres como archivo_0, archivo_1, etc.)
+            foreach ($uploadedFiles as $key => $archivo) {
+                if ($archivo && $archivo->isValid()) {
+                    $fileCount++;
+                    
+                    // Validar número máximo de archivos
+                    if ($fileCount > $maxFiles) {
+                        return new JsonResponse([
+                            'success' => false,
+                            'message' => 'Solo se permiten máximo ' . $maxFiles . ' archivos.'
+                        ], 400);
+                    }
+
+                    // Validar tamaño individual
                     if ($archivo->getSize() > $maxFileSize) {
                         return new JsonResponse([
                             'success' => false,
-                            'message' => 'El archivo ' . $archivo->getClientOriginalName() . ' excede el tama�o m�ximo de 10MB.'
+                            'message' => 'El archivo "' . $archivo->getClientOriginalName() . '" excede el tamaño máximo de 4MB.'
+                        ], 400);
+                    }
+
+                    $totalSize += $archivo->getSize();
+
+                    // Validar tamaño total
+                    if ($totalSize > $maxTotalSize) {
+                        return new JsonResponse([
+                            'success' => false,
+                            'message' => 'El tamaño total de los archivos excede el límite de 20MB.'
                         ], 400);
                     }
 
@@ -72,12 +107,24 @@ final class ContactoController extends AbstractController
                     if (!in_array($archivo->getMimeType(), $allowedMimeTypes)) {
                         return new JsonResponse([
                             'success' => false,
-                            'message' => 'El archivo ' . $archivo->getClientOriginalName() . ' no tiene un formato permitido.'
+                            'message' => 'El archivo "' . $archivo->getClientOriginalName() . '" no tiene un formato permitido. Solo se aceptan: PNG, JPEG, JPG, PDF, DOC, DOCX.'
                         ], 400);
                     }
 
-                    // Agregar adjunto al email
-                    $email->addPart(new DataPart(new File($archivo->getPathname()), $archivo->getClientOriginalName()));
+                    // Leer el contenido del archivo y agregarlo codificado en base64
+                    $fileContent = file_get_contents($archivo->getPathname());
+                    if ($fileContent === false) {
+                        return new JsonResponse([
+                            'success' => false,
+                            'message' => 'Error al leer el archivo "' . $archivo->getClientOriginalName() . '".'
+                        ], 500);
+                    }
+                    
+                    $email->addAttachmentData(
+                        $fileContent,
+                        $archivo->getClientOriginalName(),
+                        $archivo->getMimeType()
+                    );
                     
                     $archivosAdjuntos[] = [
                         'nombre' => $archivo->getClientOriginalName(),
@@ -86,8 +133,8 @@ final class ContactoController extends AbstractController
                     ];
                 }
             }
-           
-            // Enviar el email
+
+            // Enviar el email (los adjuntos se procesarán automáticamente en el listener)
             $mailer->send($email);
 
             return new JsonResponse([
@@ -95,15 +142,15 @@ final class ContactoController extends AbstractController
                 'message' => 'Su mensaje ha sido enviado correctamente. Nos pondremos en contacto con usted a la brevedad.',
                 'data' => [
                     'adjuntos_procesados' => count($archivosAdjuntos),
+                    'tamaño_total' => $this->formatBytes($totalSize),
                     'fecha_envio' => date('Y-m-d H:i:s')
                 ]
             ]);
 
         } catch (\Exception $e) {
-
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Ha ocurrido un error al enviar su mensaje. Por favor, int�ntelo nuevamente.' . $e->getMessage(),  
+                'message' => 'Ha ocurrido un error al enviar su mensaje. Por favor, inténtelo nuevamente.',  
             ], 500);
         }
     }

@@ -1,6 +1,6 @@
 <!-- Modal de Contacto -->
 <div class="modal fade" id="contactoModal" tabindex="-1" aria-labelledby="contactoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="contactoModalLabel">
@@ -8,28 +8,31 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="contactoForm" enctype="multipart/form-data" >
+            <form id="contactoForm" enctype="multipart/form-data">
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-12">
+                        <div class="col-12 col-md-6">
                             <div class="mb-3">
                                 <label for="mensaje" class="form-label">Mensaje <span class="text-danger">*</span></label>
-                                <textarea class="form-control" id="mensaje" name="mensaje" rows="6" 
-                                    placeholder="Escriba su mensaje aqui..." required></textarea>
+                                <textarea class="form-control" id="mensaje" name="mensaje" 
+                                    style="height: 200px; resize: vertical;" 
+                                    placeholder="Escriba su mensaje aquí..." required></textarea>
                                 <div class="invalid-feedback">
                                     Por favor ingrese su mensaje.
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12">
+                        <div class="col-12 col-md-6">
                             <div class="mb-3">
-                               <div id="drag-drop-area" ></div>
-                            </div>
-                        </div>
-                        <div class="col-12" id="archivosSeleccionados" style="display: none;">
-                            <div class="alert alert-info">
-                                <h6 class="mb-2">Archivos seleccionados:</h6>
-                                <ul id="listaArchivos" class="mb-0"></ul>
+                                <label class="form-label">
+                                    Archivos adjuntos 
+                                    <small class="text-muted">(máximo 5 archivos)</small>
+                                </label>
+                                <div id="drag-drop-area" style="min-height: 200px;"></div>
+                                <small class="form-text text-muted">
+                                    <i class="ri-information-line"></i> 
+                                    Máximo 5 archivos, 4MB cada uno. Tipos: PNG, JPEG, JPG, PDF, DOC, DOCX
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -38,78 +41,11 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="ri-close-line me-1"></i>Cancelar
                     </button>
-                    <button type="submit" class="btn btn-primary" id="btnEnviar">
+                    <button type="submit" class="btn btn-primary">
                         <i class="ri-send-plane-line me-1"></i>Enviar mensaje
                     </button>
                 </div>
             </form>
         </div>
     </div>
-</div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const contactoForm = document.getElementById('contactoForm');
-    // const adjuntosInput = document.getElementById('adjuntos');
-    const archivosSeleccionados = document.getElementById('archivosSeleccionados');
-    // const listaArchivos = document.getElementById('listaArchivos');
-    const btnEnviar = document.getElementById('btnEnviar');
-
-    // Mostrar archivos seleccionados
-    // adjuntosInput.addEventListener('change', function() {
-    //     const files = this.files;
-        
-    //     if (files.length > 0) {
-    //         listaArchivos.innerHTML = '';
-    //         archivosSeleccionados.style.display = 'block';
-            
-    //         Array.from(files).forEach(file => {
-    //             const li = document.createElement('li');
-    //             li.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-    //             listaArchivos.appendChild(li);
-    //         });
-    //     } else {
-    //         archivosSeleccionados.style.display = 'none';
-    //     }
-    // });
-
-    contactoForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const mensaje = document.getElementById('mensaje').value.trim();
-        
-        if (!mensaje) {
-            document.getElementById('mensaje').classList.add('is-invalid');
-            return;
-        }
-        
-        btnEnviar.disabled = true;
-        btnEnviar.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Enviando...';
-        
-        const formData = new FormData(this);
-        console.log(94)
-        // Llamada real al endpoint
-        fetch("{{path('app_contacto_enviar')}}", {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Mostrar mensaje de éxito
-                // ... código de éxito
-            } else {
-                throw new Error(data.message || 'Error al enviar');
-            }
-        })
-        .catch(error => {
-            // Mostrar error
-            alert('Error: ' + error.message);
-        })
-        .finally(() => {
-            // Restaurar botón
-            btnEnviar.disabled = false;
-            btnEnviar.innerHTML = '<i class="ri-send-plane-line me-1"></i>Enviar mensaje';
-        });
-    }); // ← Faltaba esta llave de cierre
-}); // ← Esta estaba bien
-</script>
+</div>               
