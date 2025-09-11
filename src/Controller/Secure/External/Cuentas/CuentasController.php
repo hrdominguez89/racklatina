@@ -75,7 +75,10 @@ final class CuentasController extends AbstractController
     {
         $fileName = $request->query->get("factura");
         $rutaArchivo = "../Facturas/{$fileName}";
-
+        if (file_exists($rutaArchivo))
+        {
+            return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+        }
         try {
             $response = $httpClient->request('POST', 'https://192.168.16.104/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
             [
@@ -103,20 +106,53 @@ final class CuentasController extends AbstractController
             return $this->json(['error' => $e->getMessage()], 500);
         }
     }
-
+     #[Route('/obtenerRemito', name: 'descarga_remito_external')]
+    public function obtenerComprobante(Request $request, HttpClientInterface $httpClient): Response
+    {
+        $fileName = $request->query->get("factura");
+        $rutaArchivo = "../Facturas/{$fileName}";
+        if (file_exists($rutaArchivo))
+        {
+            return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+        }
+        try {
+            $response = $httpClient->request('POST', 'https://192.168.16.104/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
+            [
+                'verify_peer' => false,
+                'verify_host' => false,
+                'json' => [
+                    'modulo' => 'COBRANZAS',
+                    'comprobante' => $fileName
+                ]
+            ]);
+            
+            $statusCode = $response->getStatusCode();
+            
+            if ($statusCode === 200) {
+                if (file_exists($rutaArchivo)) {
+                    return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+                } else {
+                    return $this->json(['error' => 'El archivo no se generó correctamente'], 404);
+                }
+            } else {
+                return $this->json(['error' => 'Error en la API'], $statusCode);
+            }
+            
+        } catch(Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
+    }
+    
     #[Route('/enviarMail', name: 'app_notificar_pago_external')]
     public function enviarNotificacion(Request $request): Response
     {
-        $data["mensaje"] = $request->query->get("mensaje");
+        $data["mensaje"] = $request->request->get("mensaje");
         $archivos = $request->files->get('archivos');
-
         $email = (new Email())
             ->from($_ENV['MAIL_FROM'])
             ->to($_ENV["MAIL_FROM"])
             ->subject('Notificacion de pago.')
             ->html($this->renderView('emails/_notificacion_de_pago.html.twig',$data));
-
-        // Adjuntar archivos si existen
         if ($archivos) {
             foreach ($archivos as $archivo) {
                 if ($archivo) {
@@ -128,9 +164,7 @@ final class CuentasController extends AbstractController
                 }
             }
         }
-
         $this->mailer->send($email);
-        
         return $this->redirectToRoute('app_comprobantes_saldados_external');
     }
 }
