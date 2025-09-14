@@ -1,0 +1,185 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Comprobantes impagos y vencimientos{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
+{% endblock %}
+
+{% block body %}    
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item">
+                            <a href="{{ path('app_home') }}">
+                                Mi portal
+                            </a>
+                        </li>
+                         <li class="breadcrumb-item">
+                            <a href="{{ path('app_seccion_cuenta_external') }}">
+                                Cuentas
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active">
+                            Comprobantes impagos y vencimientos
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show mt-2" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {% if comprobantes is not empty %}
+        <div class="row mt-3 mb-3">
+            <div class="col-12">
+                <h2 class="text-center">
+                    Mis Comprobantes Impagos y Vencimientos
+                </h2>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Comprobantes Impagos y Vencimientos</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="tabla-comprobantes" class="table table-sm table-striped table-bordered text-center">
+                            <thead>
+                                 <tr class="align-middle">
+                                    <th>Fecha</th>
+                                    <th>Fecha vto</th>
+                                    <th>D/imp</th>
+                                    <th>D/Vto</th>
+                                    <th>Comprobante</th>
+                                    <th>Ord. compra</th>
+                                    <th>Total al Vto</th>
+                                    <th>Imp a cobrar</th>
+                                    <th>Obs</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if comprobantes is empty %}
+                                    <tr class="align-middle">
+                                        <td colspan="12" class="text-center">
+                                            <div class="alert alert-info" role="alert">
+                                                <i class="ri-information-line me-2"></i>
+                                                <strong>Sin comprobantes impagos</strong><br>
+                                                No tienes comprobantes impagos o vencimientos pendientes.
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    {% set totalTotalPesos = 0 %}
+                                    {% set totalPendientePesos = 0 %}
+                                    {% set totalSaldoCobrar = 0 %}
+                                    {% for comprobante in comprobantes %}
+                                        {% set totalTotalPesos = totalTotalPesos + comprobante.totalpesos %}
+                                        {% set totalPendientePesos = totalPendientePesos + comprobante.pendientepesos %}
+                                        <tr class="align-middle">
+                                            {% set fecha_visible = comprobante.fecha ? comprobante.fecha|date('d/m/Y') : '' %}
+                                            {% if fecha_visible %}
+                                                {% set fecha = fecha_visible|split('/') %}
+                                                {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
+                                                <td data-order="{{ fecha_ordenada }}">{{ fecha_visible }}</td>
+                                            {% else %}
+                                                <td data-order="9999-12-31"></td>
+                                            {% endif %}
+                                            
+                                            {% set fecha_visible = comprobante.fechavencimiento ? comprobante.fechavencimiento|date('d/m/Y') : '' %}
+                                            {% if fecha_visible %}
+                                                {% set fecha = fecha_visible|split('/') %}
+                                                {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
+                                                <td data-order="{{ fecha_ordenada }}">{{ fecha_visible }}</td>
+                                            {% else %}
+                                                <td data-order="9999-12-31"></td>
+                                            {% endif %}
+                                            
+                                            <td>{{ comprobante.d_imp }}</td>
+                                            <td>{{ comprobante.d_vto }}</td>
+                                            <td>{{ comprobante.comprobante }}</td>
+                                            <td>{{ comprobante.oc }}</td>
+                                            <td>{{ comprobante.totalpesos|number_format(2, ',', '.') }}</td>
+                                            <td>{{ comprobante.pendientepesos|number_format(2, ',', '.') }}</td>
+                                            <td>{{ comprobante.observaciones }}</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{{ path('descarga_facturas_external', {'factura': comprobante.comprobante}) }}" 
+                                                    class="btn btn-sm btn-outline-primary">
+                                                        <i class="mdi mdi-file-download mdi-24px"></i>Factura
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    <tfoot class="table-secondary">
+                                        <tr>
+                                            <td colspan="6" class="text-center fw-bold">Total:</td>
+                                            <td class="text-center">{{ totalTotalPesos|number_format(2, ',', '.') }}</td>
+                                            <td class="text-center">{{ totalPendientePesos|number_format(2, ',', '.') }}</td>
+                                            <td colspan="3"></td>
+                                        </tr>
+                                    </tfoot>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12 text-end">
+            <a class="btn btn-secondary" href="{{ path('app_seccion_cuenta_external') }}">
+                Volver
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
+    {# {% if comprobantes is not empty %} #}
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            $('#tabla-comprobantes').DataTable({
+                language: {
+                    url: esDatatable
+                },
+                order: [[0, 'desc']], // Ordenar por fecha descendente
+                buttons: [
+                    'colvis',
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Mis_Comprobantes_Impagos',
+                        filename: 'Mis_Comprobantes_Impagos'
+                    }
+                ],
+                dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                colReorder: true
+            });
+        });
+        </script>
+    {# {% endif %} #}
+{% endblock %}

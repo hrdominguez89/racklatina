@@ -1,0 +1,51 @@
+<!-- Modal de Contacto -->
+<div class="modal fade" id="contactoModal" tabindex="-1" aria-labelledby="contactoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="contactoModalLabel">
+                    <i class="ri-mail-line me-2"></i>Contactar con soporte
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="contactoForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12 col-md-6">
+                            <div class="mb-3">
+                                <label for="mensaje" class="form-label">Mensaje <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="mensaje" name="mensaje" 
+                                    style="height: 200px; resize: vertical;" 
+                                    placeholder="Escriba su mensaje aquí..." required></textarea>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese su mensaje.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    Archivos adjuntos 
+                                    <small class="text-muted">(máximo 5 archivos)</small>
+                                </label>
+                                <div id="drag-drop-area" style="min-height: 200px;"></div>
+                                <small class="form-text text-muted">
+                                    <i class="ri-information-line"></i> 
+                                    Máximo 5 archivos, 4MB cada uno. Tipos: PNG, JPEG, JPG, PDF, DOC, DOCX
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="ri-close-line me-1"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ri-send-plane-line me-1"></i>Enviar mensaje
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>               

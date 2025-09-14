@@ -21,6 +21,15 @@ class ClientesRepository extends ServiceEntityRepository
         parent::__construct($registry, Clientes::class);
     }
 
+    public function findClientesPorRazonSocial($razonsocial)
+    {
+        return  $this->createQueryBuilder("c")
+        ->where('c.razonSocial like :razonsocial')
+         ->setParameter('razonsocial', '%' . $razonsocial . '%')
+        ->getQuery()
+        ->getArrayResult();
+    }
+
 //    /**
 //     * @return Clientes[] Returns an array of Clientes objects
 //     */
