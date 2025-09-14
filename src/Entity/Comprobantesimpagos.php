@@ -6,7 +6,7 @@ use App\Repository\ComprobantesimpagosRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Table(name: 'comprobantesimpagos')]
+#[ORM\Table(name: 'ComprobantesImpagos')]
 #[ORM\Entity(repositoryClass: ComprobantesimpagosRepository::class , readOnly: true)]
 class Comprobantesimpagos
 {

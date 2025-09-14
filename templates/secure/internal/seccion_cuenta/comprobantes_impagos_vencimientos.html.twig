@@ -20,7 +20,7 @@
                             </a>
                         </li>
                          <li class="breadcrumb-item">
-                            <a href="{{ path('app_seccion_cuenta') }}">
+                            <a href="{{ path('app_seccion_cuenta_internal') }}">
                                 Cuentas
                             </a>
                         </li>
@@ -99,8 +99,6 @@
                                         <th>Ord. compra</th>
                                         <th>Total al Vto</th>
                                         <th>Imp a cobrar</th>
-                                        <th>Saldo a Cobrar</th>
-                                        <th>Nro interno</th>
                                         <th>Obs</th>
                                         <th>Acciones</th>
                                     </tr>
@@ -144,12 +142,10 @@
                                                 <td>{{ comprobante.oc }}</td>
                                                 <td>{{ comprobante.totalpesos|number_format(2, ',', '.') }}</td>
                                                 <td>{{ comprobante.pendientepesos|number_format(2, ',', '.') }}</td>
-                                                <td>Consultar "saldo a cobrar"</td>
-                                                <td>Consultar "Numero interno"</td>
                                                 <td>{{ comprobante.observaciones }}</td>
                                                 <td>
                                                     <div class="btn-group" role="group">
-                                                        <a href="{{ path('descarga_facturas', {'factura': comprobante.comprobante}) }}" 
+                                                        <a href="{{ path('descarga_facturas_internal', {'factura': comprobante.comprobante}) }}" 
                                                         class="btn btn-sm btn-outline-primary">
                                                             <i class="mdi mdi-file-download mdi-24px"></i>Factura
                                                         </a>
@@ -159,16 +155,8 @@
                                         {% endfor %}
                                         <tfoot class="table-secondary">
                                             <tr>
-                                                <td colspan="6" class="text-center fw-bold">Subtotal:</td>
-                                                <td class="text-center">Falta agregar variables para subtotales</td>
-                                                <td class="text-center">Falta agregar variables para subtotales</td>
-                                                <td class="text-center">Falta agregar variables para subtotales</td>
-                                                <td colspan="3"></td>
-                                            </tr>
-                                            <tr>
                                                 <td colspan="6" class="text-center fw-bold">Total:</td>
                                                 <td class="text-center">{{ totalTotalPesos|number_format(2, ',', '.') }}</td>
-                                                <td class="text-center">{{ totalPendientePesos|number_format(2, ',', '.') }}</td>
                                                 <td class="text-center">{{ totalPendientePesos|number_format(2, ',', '.') }}</td>
                                                 <td colspan="3"></td>
                                             </tr>
@@ -192,7 +180,7 @@
 
     <div class="row mt-4">
         <div class="col-12 text-end">
-            <a class="btn btn-secondary" href="{{ path('app_seccion_cuenta') }}">
+            <a class="btn btn-secondary" href="{{ path('app_seccion_cuenta_internal') }}">
                 Volver
             </a>
         </div>

@@ -20,7 +20,7 @@
                             </a>
                         </li>
                         <li class="breadcrumb-item">
-                            <a href="{{ path('app_seccion_cuenta') }}">
+                            <a href="{{ path('app_seccion_cuenta_internal') }}">
                                 Cuentas
                             </a>
                         </li>
@@ -118,9 +118,10 @@
                                                          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAsunto">
                                                             Notificar pago
                                                         </button>
-                                                        <button type="button" class="btn btn-sm btn-outline-primary">
-                                                            <i class="mdi mdi-file-download mdi-24px"></i>Factura
-                                                        </button>
+                                                        <a href="{{ path('descarga_remito_internal', {'documento': comprobante}) }}" 
+                                                            class="btn btn-sm btn-outline-primary">
+                                                            <i class="mdi mdi-file-download mdi-24px"></i>Documento
+                                                        </a>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -139,7 +140,7 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <form id="formularioModal" action ="{{ path('app_notificar_pago')}}" method="POST"  enctype="multipart/form-data">
+                                    <form id="formularioModal" action ="{{ path('app_notificar_pago_internal')}}" method="POST"  enctype="multipart/form-data">
                                         <div class="mb-3">
                                             <label for="asunto" class="form-label">Asunto:</label>
                                             <input type="text" class="form-control" id="asunto" name="asunto" required>
@@ -182,7 +183,7 @@
 
     <div class="row mt-4">
         <div class="col-12 text-end">
-            <a class="btn btn-secondary" href="{{ path('app_seccion_cuenta') }}">
+            <a class="btn btn-secondary" href="{{ path('app_seccion_cuenta_internal') }}">
                 Volver
             </a>
         </div>

@@ -20,7 +20,7 @@ final class SeccionCuentaController extends AbstractController{
     {
         $this->mailer = $mailer;
     }
-    #[Route('/cuenta', name: 'app_seccion_cuenta')]
+    #[Route('/cuenta-i', name: 'app_seccion_cuenta_internal')]
     public function index(): Response
     {
         return $this->render('secure/internal/seccion_cuenta/index.html.twig', [
@@ -39,7 +39,7 @@ final class SeccionCuentaController extends AbstractController{
         ]);
     }
     
-    #[Route('/cuenta/comprobantesSaldados',"app_comprobantes_saldados")]
+    #[Route('/comprobantesSaldados',"app_comprobantes_saldados_internal")]
     public function comprobantesSaldados(Request $request,
     CuentascorrientesRepository $cuentascorrientesRepository
     )
@@ -75,7 +75,7 @@ final class SeccionCuentaController extends AbstractController{
 
 
 
-    #[Route('/cuenta/comprobantesImpagos',"app_comprobantes_impagos")]
+    #[Route('/comprobantesImpagos',"app_comprobantes_impagos_internal")]
     public function ComprobantesImpagos(Request $request,
     ComprobantesimpagosRepository $comprobantesimpagosRepository): Response
     {
@@ -108,13 +108,17 @@ final class SeccionCuentaController extends AbstractController{
         );
     }
 
-    #[Route('/obtenerFacturas',"descarga_facturas")]
-    public function obtenerFactura(Request $request,HttpClientInterface $httpClient)
+    #[Route('/obtenerFacturas-i', name: 'descarga_facturas_internal')]
+    public function obtenerFactura(Request $request, HttpClientInterface $httpClient)
     {
-        $fileName = $request->query->get("factura");
-        // $nombreArchivo = 'FA0019900000071.pdf';
+        $factura = $request->query->get("factura");
+        $fileName = str_replace(" ","",$factura).".pdf";
         $rutaArchivo = "../Facturas/{$fileName}";
 
+        if (file_exists($rutaArchivo))
+        {
+            return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+        }
         try {
             $response = $httpClient->request('POST', 'https://192.168.16.104/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
             [
@@ -128,35 +132,70 @@ final class SeccionCuentaController extends AbstractController{
             
             $statusCode = $response->getStatusCode();
             
-            if ($statusCode === 200) {
+            if ($statusCode === 200) 
+            {
+                sleep(15);
                 if (file_exists($rutaArchivo)) {
-                    // return $this->file($rutaArchivo);
-                    
                     return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
                 } else {
-                    return $this->json(['error' => 'El archivo no se generó correctamente'], 404);
+                    $this->addFlash("danger","No se descargo el archivo.");
+                    return $this->render('secure/internal/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig');
                 }
             } else {
-                return $this->json(['error' => 'Error en la API'], $statusCode);
+                $this->addFlash("danger","La api no responde.");
+                return $this->render('secure/internal/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig');
             }
-            
         } catch(Exception $e) {
-            return $this->json(['error' => $e->getMessage()], 500);
+                $this->addFlash("danger",$e->getMessage());
+                return $this->render('secure/internal/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig');
         }
     }
-    #[Route('/enviarMail','app_notificar_pago')]
-    public function enviarNotificacion(Request $request)
+     #[Route('/obtenerRemito-i', name: 'descarga_remito_internal')]
+    public function obtenerComprobante(Request $request, HttpClientInterface $httpClient): Response
     {
-        $data["mensaje"] = $request->query->get("mensaje");
+        $queryParams = $request->query->all();
+        $remitoData = $queryParams["documento"] ?? [];
+        $fileName = $remitoData["documento"].  $remitoData["claseComprobante"] . $remitoData["numeroComprobante"];
+        $rutaArchivo = "../Recibos/{$fileName}";
+        if (file_exists($rutaArchivo))
+        {
+            return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+        }
+        try {
+            $response = $httpClient->request('POST', 'https://192.168.16.104/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
+            [
+                'verify_peer' => false,
+                'verify_host' => false,
+                'json' => [
+                    'modulo' => 'COBRANZAS',
+                    'comprobante' => $fileName
+                ]
+            ]);
+            $statusCode = $response->getStatusCode();
+            if ($statusCode === 200) {
+                if (file_exists($rutaArchivo)) {
+                    return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+                } else {
+                    // return $this->json(['error' => 'El archivo no se generó correctamente'], 404);
+                }
+            } else {
+                // return $this->json(['error' => 'Error en la API'], $statusCode);
+            }
+        } catch(Exception $e) {
+            // return $this->json(['error' => $e->getMessage()], 500);
+        }
+        return $this->render('secure/internal/seccion_cuenta/comprobantes_saldados.html.twig');
+    }
+    #[Route('/enviarMail-i', name: 'app_notificar_pago_internal')]
+    public function enviarNotificacion(Request $request): Response
+    {
+        $data["mensaje"] = $request->request->get("mensaje");
         $archivos = $request->files->get('archivos');
-
         $email = (new Email())
             ->from($_ENV['MAIL_FROM'])
             ->to($_ENV["MAIL_FROM"])
             ->subject('Notificacion de pago.')
             ->html($this->renderView('emails/_notificacion_de_pago.html.twig',$data));
-
-        // Adjuntar archivos si existen
         if ($archivos) {
             foreach ($archivos as $archivo) {
                 if ($archivo) {
@@ -168,7 +207,7 @@ final class SeccionCuentaController extends AbstractController{
                 }
             }
         }
-
         $this->mailer->send($email);
+        return $this->redirectToRoute('app_comprobantes_saldados_internal');
     }
 }

@@ -6,7 +6,7 @@ use App\Repository\PaisRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Table(name: 'pais')]
+#[ORM\Table(name: 'Pais')]
 #[ORM\Entity(repositoryClass: PaisRepository::class,readOnly: true)]
 class Pais
 {

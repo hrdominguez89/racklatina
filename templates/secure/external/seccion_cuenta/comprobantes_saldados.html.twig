@@ -91,9 +91,9 @@
                                                      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAsunto">
                                                         Notificar pago
                                                     </button>
-                                                    <a href="{{ path('descarga_remito_external', {'factura': comprobante.comprobante}) }}" 
-                                                    class="btn btn-sm btn-outline-primary">
-                                                        <i class="mdi mdi-file-download mdi-24px"></i>Factura
+                                                    <a href="{{ path('descarga_remito_external', {'remito': comprobante.documento ~ comprobante.claseComprobante ~ comprobante.numeroComprobante}) }}" 
+                                                        class="btn btn-sm btn-outline-primary">
+                                                        <i class="mdi mdi-file-download mdi-24px"></i>Documento
                                                     </a>
                                                 </div>
                                             </td>

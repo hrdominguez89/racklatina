@@ -16,7 +16,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-#[Route('/seccion')]
+#[Route('/seccion/clientes')]
 final class CuentasController extends AbstractController
 {
     public function __construct(private MailerInterface $mailer) 
@@ -54,14 +54,13 @@ final class CuentasController extends AbstractController
     public function comprobantesImpagos(
         Request $request,
         ComprobantesimpagosRepository $comprobantesimpagosRepository,
-        UserCustomerRepository $userCustomerRepository, ClientesRepository $clientesRepository
+        UserCustomerRepository $userCustomerRepository, 
+        ClientesRepository $clientesRepository
+        ): Response {
 
-    ): Response {
-        // Get current user's client code
         $user = $this->getUser();
         $user_customer = $userCustomerRepository->findOneBy(["user"=>$user->getId()]);
         $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso();
-        
         $comprobantes = $comprobantesimpagosRepository->findComprobantesImpagosByCliente($codigoCalipso);
         
         return $this->render('secure/external/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig', [
@@ -71,10 +70,15 @@ final class CuentasController extends AbstractController
     }
 
     #[Route('/obtenerFacturas', name: 'descarga_facturas_external')]
-    public function obtenerFactura(Request $request, HttpClientInterface $httpClient): Response
+    public function obtenerFactura(Request $request, HttpClientInterface $httpClient,
+     ComprobantesimpagosRepository $comprobantesimpagosRepository,
+    UserCustomerRepository $userCustomerRepository, 
+    ClientesRepository $clientesRepository): Response
     {
-        $fileName = $request->query->get("factura");
+        $factura = $request->query->get("factura");
+        $fileName = str_replace(" ","",$factura).".pdf";
         $rutaArchivo = "../Facturas/{$fileName}";
+
         if (file_exists($rutaArchivo))
         {
             return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
@@ -89,28 +93,57 @@ final class CuentasController extends AbstractController
                     'comprobante' => $fileName
                 ]
             ]);
-            
             $statusCode = $response->getStatusCode();
-            
-            if ($statusCode === 200) {
+            if ($statusCode === 200)
+            {
+                sleep(15);
                 if (file_exists($rutaArchivo)) {
                     return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
                 } else {
-                    return $this->json(['error' => 'El archivo no se generó correctamente'], 404);
+                    $comprobantes = $this->auxiliar(
+                          $comprobantesimpagosRepository,
+                         $userCustomerRepository, 
+                         $clientesRepository);
+                    $this->addFlash("danger",'El archivo no se generó correctamente');
+                    return $this->render('secure/external/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig', [
+                                'controller_name' => 'CuentasController',
+                                'comprobantes' => $comprobantes
+                    ]);
                 }
             } else {
-                return $this->json(['error' => 'Error en la API'], $statusCode);
+                $comprobantes = $this->auxiliar(
+                          $comprobantesimpagosRepository,
+                         $userCustomerRepository, 
+                         $clientesRepository);
+                $this->addFlash("danger",'Error en la API');
+                return $this->render('secure/external/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig', [
+                    'controller_name' => 'CuentasController',
+                    'comprobantes' => $comprobantes
+                ]);
             }
-            
         } catch(Exception $e) {
-            return $this->json(['error' => $e->getMessage()], 500);
+                $comprobantes = $this->auxiliar(
+                          $comprobantesimpagosRepository,
+                         $userCustomerRepository, 
+                         $clientesRepository);
+                $this->addFlash("danger",$e->getMessage());
+                return $this->render('secure/external/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig', [
+                'controller_name' => 'CuentasController',
+                'comprobantes' => $comprobantes
+                ]);
         }
     }
      #[Route('/obtenerRemito', name: 'descarga_remito_external')]
-    public function obtenerComprobante(Request $request, HttpClientInterface $httpClient): Response
+    public function obtenerComprobante(Request $request,
+     HttpClientInterface $httpClient,
+    ComprobantesimpagosRepository $comprobantesimpagosRepository,
+    UserCustomerRepository $userCustomerRepository, 
+    ClientesRepository $clientesRepository): Response
     {
-        $fileName = $request->query->get("factura");
-        $rutaArchivo = "../Facturas/{$fileName}";
+        $queryParams = $request->query->all();
+        $fileName = $queryParams["remito"].".pdf" ?? null;
+        $rutaArchivo = "../Recibos/{$fileName}";
+        
         if (file_exists($rutaArchivo))
         {
             return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
@@ -125,22 +158,36 @@ final class CuentasController extends AbstractController
                     'comprobante' => $fileName
                 ]
             ]);
-            
             $statusCode = $response->getStatusCode();
             
             if ($statusCode === 200) {
                 if (file_exists($rutaArchivo)) {
                     return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
                 } else {
-                    return $this->json(['error' => 'El archivo no se generó correctamente'], 404);
+                    $comprobantes = $this->auxiliar(
+                          $comprobantesimpagosRepository,
+                         $userCustomerRepository, 
+                         $clientesRepository);
+                    $this->addFlash("danger",'El archivo no se generó correctamente');
                 }
             } else {
-                return $this->json(['error' => 'Error en la API'], $statusCode);
+                $comprobantes = $this->auxiliar(
+                          $comprobantesimpagosRepository,
+                         $userCustomerRepository, 
+                         $clientesRepository);
+                $this->addFlash("danger",'Error en la API');
             }
-            
         } catch(Exception $e) {
-            return $this->json(['error' => $e->getMessage()], 500);
-        }
+            $comprobantes = $this->auxiliar(
+                          $comprobantesimpagosRepository,
+                         $userCustomerRepository, 
+                         $clientesRepository);
+                $this->addFlash("danger",$e->getMessage());
+            }
+            return $this->redirectToRoute("app_comprobantes_saldados_external", [
+            'controller_name' => 'CuentasController',
+            'comprobantes' => $comprobantes
+            ]);
     }
     
     #[Route('/enviarMail', name: 'app_notificar_pago_external')]
@@ -166,5 +213,16 @@ final class CuentasController extends AbstractController
         }
         $this->mailer->send($email);
         return $this->redirectToRoute('app_comprobantes_saldados_external');
+    }
+
+    public function auxiliar(ComprobantesimpagosRepository $comprobantesimpagosRepository,
+                        UserCustomerRepository $userCustomerRepository, 
+                        ClientesRepository $clientesRepository)
+    {
+          $user = $this->getUser();
+        $user_customer = $userCustomerRepository->findOneBy(["user"=>$user->getId()]);
+        $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso();
+        $comprobantes = $comprobantesimpagosRepository->findComprobantesImpagosByCliente($codigoCalipso);
+        return $comprobantes;
     }
 }
