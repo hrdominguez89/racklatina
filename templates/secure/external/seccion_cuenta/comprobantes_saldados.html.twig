@@ -106,12 +106,14 @@
                                             <td>{{ comprobante.estado }}</td>
                                             <td>
                                                 <div class="btn-group" role="group">
-                                                    
-                                                    
-                                                    <a href="{{ path('descarga_remito_external', {'remito': comprobante.documento ~ comprobante.claseComprobante ~ comprobante.numeroComprobante}) }}" 
+                                                    {% if comprobante.nombreComprobante == 'Factura de Venta'
+                                                        or comprobante.nombreComprobante == 'Recibo'
+                                                        or comprobante.nombreComprobante == 'Factura de Venta Exportación'%}
+                                                        <a href="{{ path('descarga_remito_external', {'remito': comprobante.documento ~ comprobante.claseComprobante ~ comprobante.numeroComprobante}) }}" 
                                                         class="btn btn-sm btn-outline-primary">
                                                         <i class="mdi mdi-file-download mdi-24px"></i>Documento
-                                                    </a>
+                                                        </a>
+                                                    {% endif %}
                                                 </div>
                                             </td>
                                         </tr>

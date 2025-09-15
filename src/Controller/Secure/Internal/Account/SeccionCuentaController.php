@@ -145,23 +145,21 @@ final class SeccionCuentaController extends AbstractController{
             
             $statusCode = $response->getStatusCode();
             
-            if ($statusCode === 200) 
+            if ($statusCode === 200)
             {
                 sleep(15);
                 if (file_exists($rutaArchivo)) {
                     return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
                 } else {
                     $this->addFlash("danger","No se descargo el archivo.");
-                    return $this->render('secure/internal/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig');
                 }
             } else {
                 $this->addFlash("danger","La api no responde.");
-                return $this->render('secure/internal/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig');
             }
         } catch(Exception $e) {
-                $this->addFlash("danger",$e->getMessage());
-                return $this->render('secure/internal/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig');
+            $this->addFlash("danger",$e->getMessage());
         }
+        return $this->render('secure/internal/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig');
     }
      #[Route('/obtenerRemito-i', name: 'descarga_remito_internal')]
     public function obtenerComprobante(Request $request, HttpClientInterface $httpClient): Response

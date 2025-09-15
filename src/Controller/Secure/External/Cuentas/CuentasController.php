@@ -9,6 +9,7 @@ use App\Repository\UserCustomerRepository;
 use Exception;
 use Symfony\Component\Mime\Email;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -79,6 +80,8 @@ final class CuentasController extends AbstractController
         $fileName = str_replace(" ","",$factura).".pdf";
         $rutaArchivo = "../Facturas/{$fileName}";
 
+       
+
         if (file_exists($rutaArchivo))
         {
             return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
@@ -94,44 +97,26 @@ final class CuentasController extends AbstractController
                 ]
             ]);
             $statusCode = $response->getStatusCode();
+
             if ($statusCode === 200)
             {
                 sleep(15);
                 if (file_exists($rutaArchivo)) {
                     return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
                 } else {
-                    $comprobantes = $this->auxiliar(
-                          $comprobantesimpagosRepository,
-                         $userCustomerRepository, 
-                         $clientesRepository);
-                    $this->addFlash("danger",'El archivo no se generó correctamente');
-                    return $this->render('secure/external/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig', [
-                                'controller_name' => 'CuentasController',
-                                'comprobantes' => $comprobantes
-                    ]);
+                    $message = "Error al descargar la factura : " . "no existio el archivo al momento de la descarga";
                 }
             } else {
-                $comprobantes = $this->auxiliar(
-                          $comprobantesimpagosRepository,
-                         $userCustomerRepository, 
-                         $clientesRepository);
-                $this->addFlash("danger",'Error en la API');
-                return $this->render('secure/external/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig', [
-                    'controller_name' => 'CuentasController',
-                    'comprobantes' => $comprobantes
-                ]);
+                $message = "Error al descargar la factura : " . "respuesta ". $statusCode;
             }
         } catch(Exception $e) {
-                $comprobantes = $this->auxiliar(
-                          $comprobantesimpagosRepository,
-                         $userCustomerRepository, 
-                         $clientesRepository);
-                $this->addFlash("danger",$e->getMessage());
-                return $this->render('secure/external/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig', [
-                'controller_name' => 'CuentasController',
-                'comprobantes' => $comprobantes
-                ]);
+                $message ="Error al descargar la factura :" . $e->getMessage();
         }
+         return new JsonResponse([
+                'success' => false,
+                'error' => true,
+                'message' => $message
+            ], 400);
     }
      #[Route('/obtenerRemito', name: 'descarga_remito_external')]
     public function obtenerComprobante(Request $request,

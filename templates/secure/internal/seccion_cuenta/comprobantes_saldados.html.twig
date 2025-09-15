@@ -79,32 +79,16 @@
     <div class="row">
   <div class="col-12 d-flex justify-content-end align-items-end mb-3">
       {% set tipo = app.request.get('tipo') ? app.request.get('tipo') : 'TODAS'  %}
+      {% set tipo_b =  app.request.get('tipo_busqueda') %}
+      {% set busqueda =   app.request.get('search') %}
       <div> 
-          <a href="{{ path('app_c_saldados',{tipo:'TODAS',
-                search: app.request.get('search'),
-                tipo_busqueda: app.request.get('tipo_busqueda')}) }}" class="btn {{ tipo=='TODAS'? 'active':'' }} btn-outline-primary">Todas</a>
-          <a href="{{ path('app_c_saldados', {
-                tipo: 'F',
-                search: app.request.get('search'),
-                tipo_busqueda: app.request.get('tipo_busqueda')
-            }) }}" class="btn {{ tipo=='F'? 'active':'' }} btn-outline-primary">
-                Factura de venta
-            </a>
-          <a href="{{ path('app_c_saldados',{tipo:'H',
-                search: app.request.get('search'),
-                tipo_busqueda: app.request.get('tipo_busqueda')}) }}" class="btn {{ tipo=='H'? 'active':'' }} btn-outline-primary">Factura de exportacion</a>
-          <a href="{{ path('app_c_saldados',{tipo:'R',
-                search: app.request.get('search'),
-                tipo_busqueda: app.request.get('tipo_busqueda')}) }}" class="btn {{ tipo=='R'? 'active':'' }} btn-outline-primary">Recibos</a>
-          <a href="{{ path('app_c_saldados',{tipo:'D',
-                search: app.request.get('search'),
-                tipo_busqueda: app.request.get('tipo_busqueda')}) }}" class="btn {{ tipo=='D'? 'active':'' }} btn-outline-primary">Notas de debito</a>
-          <a href="{{ path('app_c_saldados',{tipo:'C',
-                search: app.request.get('search'),
-                tipo_busqueda: app.request.get('tipo_busqueda')}) }}" class="btn {{ tipo=='C'? 'active':'' }} btn-outline-primary">Notas de credito de ventas</a>
-          <a href="{{ path('app_c_saldados',{tipo:'I',
-                search: app.request.get('search'),
-                tipo_busqueda: app.request.get('tipo_busqueda')}) }}" class="btn {{ tipo=='I'? 'active':'' }} btn-outline-primary">Notas de credito de exportacion</a>
+          <a href="{{ path('app_c_saldados',{tipo:'TODAS',search: busqueda,tipo_busqueda: tipo_b}) }}" class="btn {{ tipo=='TODAS'? 'active':'' }} btn-outline-primary">Todas</a>
+          <a href="{{ path('app_c_saldados',{tipo:'F',search: busqueda,tipo_busqueda: tipo_b}) }}" class="btn {{ tipo=='F'? 'active':'' }} btn-outline-primary">Factura de venta</a>
+          <a href="{{ path('app_c_saldados',{tipo:'H',search: busqueda,tipo_busqueda: tipo_b}) }}" class="btn {{ tipo=='H'? 'active':'' }} btn-outline-primary">Factura de exportacion</a>
+          <a href="{{ path('app_c_saldados',{tipo:'R',search: busqueda,tipo_busqueda: tipo_b}) }}" class="btn {{ tipo=='R'? 'active':'' }} btn-outline-primary">Recibos</a>
+          <a href="{{ path('app_c_saldados',{tipo:'D',search: busqueda,tipo_busqueda: tipo_b}) }}" class="btn {{ tipo=='D'? 'active':'' }} btn-outline-primary">Notas de debito</a>
+          <a href="{{ path('app_c_saldados',{tipo:'C',search: busqueda,tipo_busqueda: tipo_b}) }}" class="btn {{ tipo=='C'? 'active':'' }} btn-outline-primary">Notas de credito de ventas</a>
+          <a href="{{ path('app_c_saldados',{tipo:'I',search: busqueda,tipo_busqueda: tipo_b}) }}" class="btn {{ tipo=='I'? 'active':'' }} btn-outline-primary">Notas de credito de exportacion</a>
       </div>
   </div>
     </div>

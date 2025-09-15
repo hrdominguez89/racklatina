@@ -11,7 +11,16 @@
             <form id="contactoForm" enctype="multipart/form-data">
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-12 col-md-6">
+                        <div class="col-12 col-md-9">
+                            <label>Asunto:</label>
+                            <select name="Asunto" id ="asunto"class="form-label">
+                                <option value ="solicitud de cotización" class="form-label">Solicitud de cotización</option>
+                                <option value ="solicitud de contacto comercial" class="form-label">Solicitud de contacto comercial</option>
+                                <option value ="consulta administrativa" class="form-label">Consulta administrativa</option>
+                                <option value ="consulta técnica" class="form-label">Consulta técnica</option>
+                                <option value ="consulta general" class="form-label">Consulta general</option>
+                                <option value ="reclamo" class="form-label">Reclamo</option>
+                            </select>
                             <div class="mb-3">
                                 <label for="mensaje" class="form-label">Mensaje <span class="text-danger">*</span></label>
                                 <textarea class="form-control" id="mensaje" name="mensaje" 
@@ -22,7 +31,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12 col-md-6">
+                        <div class="col-12 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label">
                                     Archivos adjuntos 

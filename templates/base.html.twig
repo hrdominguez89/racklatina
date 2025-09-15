@@ -425,6 +425,7 @@ ae:"{{ asset('images/flags/ae.svg') }}"
 					e.preventDefault();
 					
 					const mensaje = $('#mensaje').val().trim();
+					const asunto = $('#asunto').val().trim();
 					if (!mensaje) {
 						Swal.fire({
 							icon: 'error',
@@ -478,6 +479,7 @@ ae:"{{ asset('images/flags/ae.svg') }}"
 					// Preparar datos
 					const formData = new FormData();
 					formData.append('mensaje', mensaje);
+					formData.append('asunto', asunto);
 					
 					// Agregar archivos
 					if (uppyInstance) {

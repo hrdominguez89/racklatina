@@ -65,8 +65,8 @@
                                  <tr class="align-middle">
                                     <th>Fecha</th>
                                     <th>Fecha vto</th>
-                                    <th>D/imp</th>
-                                    <th>D/Vto</th>
+                                    <th>Días de emisión</th>
+                                    <th>Días vencidos</th>
                                     <th>Comprobante</th>
                                     <th>Ord. compra</th>
                                     <th>Total al Vto</th>
@@ -119,13 +119,14 @@
                                             <td>{{ comprobante.pendientepesos|number_format(2, ',', '.') }}</td>
                                             <td>
                                                 <div class="btn-group" role="group">
-                                                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAsunto">
+                                                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#contactoModal">
                                                         Notificar pago
                                                     </button>
-                                                    <a href="{{ path('descarga_facturas_external', {'factura': comprobante.comprobante}) }}" 
-                                                    class="btn btn-sm btn-outline-primary">
+                                                    <button type="button" 
+                                                        class="btn btn-sm btn-outline-primary" 
+                                                        onclick="descargarFactura('{{ comprobante.comprobante }}')">
                                                         <i class="mdi mdi-file-download mdi-24px"></i>Factura
-                                                    </a>
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -207,25 +208,17 @@
                 colReorder: true
             });
         });
-        </script>
+    </script>
     {# {% endif %} #}
      <script>
         function enviarFormulario() {
             const mensaje = document.getElementById('mensaje').value;
             const archivos = document.getElementById('archivos').files;
-            
-            
-            // Crear FormData para enviar archivos
             const formData = new FormData();
             formData.append('mensaje', mensaje);
-            
-            // Agregar cada archivo
             for (let i = 0; i < archivos.length; i++) {
                 formData.append('archivos[]', archivos[i]);
             }
-            
-            //console.log('Archivos seleccionados:', archivos.length);
-            
             const form = document.getElementById('formularioModal');
             if (form.checkValidity()) {
                 form.submit();
@@ -233,7 +226,34 @@
                 alert('Por favor complete todos los campos');
             }
         }
-        </script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    function descargarFactura(numeroComprobante) {
+    const url = "{{ path('descarga_facturas_external', {'factura': '__TEMP__'}) }}".replace('__TEMP__', numeroComprobante);
+    
+    $.ajax({
+        url: url,
+        type: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest' // Marca como AJAX
+        },
+        xhrFields: {
+            responseType: 'blob'
+        },
+        success: function(data, status, xhr) {
+            // Descarga exitosa
+            const blob = new Blob([data]);
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = 'factura_' + numeroComprobante + '.pdf';
+            link.click();
+        },
+        error: function(xhr, status, error) {
+            // AQUÍ se activa el modal cuando hay error
+            $('#contactoModal').modal('show');
+        }
+    });
+}
+    </script>
 {% endblock %}
