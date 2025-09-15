@@ -32,7 +32,7 @@ final class CuentasController extends AbstractController
         ]);
     }
 
-    #[Route('/cuenta/comprobantesSaldados', name: 'app_comprobantes_saldados_external')]
+    #[Route('/cuenta/comprobantesSaldados/{tipo}', name: 'app_comprobantes_saldados_external', methods:['POST','GET'])]
     public function comprobantesSaldados(
         Request $request,
         CuentascorrientesRepository $cuentascorrientesRepository,
@@ -41,8 +41,8 @@ final class CuentasController extends AbstractController
         $user = $this->getUser();
         $user_customer = $userCustomerRepository->findOneBy(["user"=>$user->getId()]);
         $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso(); // Adjust according to your User entity
-        
-        $comprobantes = $cuentascorrientesRepository->findComprobantesSaldados($codigoCalipso);
+        $tipo = $request->get('tipo') ?? 'TODAS';
+        $comprobantes = $cuentascorrientesRepository->findComprobantesSaldados($codigoCalipso,$tipo);
         
         return $this->render('secure/external/seccion_cuenta/comprobantes_saldados.html.twig', [
             'controller_name' => 'CuentasController',

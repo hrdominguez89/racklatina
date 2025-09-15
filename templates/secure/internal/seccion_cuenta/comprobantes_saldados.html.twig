@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Comprobantes saldados{% endblock %}
+{% block title %}Comprobantes{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -25,7 +25,7 @@
                             </a>
                         </li>
                         <li class="breadcrumb-item active">
-                            Comprobantes Saldados
+                            Comprobantes 
                         </li>
                     </ol>
                 </div>
@@ -44,13 +44,18 @@
 
     <div class="row mt-4">
         <div class="col-12 mb-4">
-            <form method="get" action="{{ path('app_c_saldados') }}">
+            <form method="get" action="{{ path('app_c_saldados',{tipo:"TODAS"}) }}">
                 <div class="row">
                     <div class="col-4">
                         <div class="mb-3">
-                            <label for="search" class="form-label">
-                                Cliente
-                            </label>
+                            <select name="tipo_busqueda" id="tipo_busqueda" class="form-control">
+                                <option value="cliente" {{ app.request.get('tipo_busqueda') == 'cliente' ? 'selected' : '' }}>
+                                    Cliente
+                                </option>
+                                <option value="OC" {{ app.request.get('tipo_busqueda') == 'OC' ? 'selected' : '' }}>
+                                    Orden de compra
+                                </option>
+                            </select>
                             <input type="search" id="search" name="search" 
                                    value="{{ app.request.get('search') }}" 
                                    class="form-control" 
@@ -68,12 +73,47 @@
         </div>
     </div>
 
+  
     {% if app.request.get('search') %}
+     <!--Row de busqueda-->
+    <div class="row">
+  <div class="col-12 d-flex justify-content-end align-items-end mb-3">
+      {% set tipo = app.request.get('tipo') ? app.request.get('tipo') : 'TODAS'  %}
+      <div> 
+          <a href="{{ path('app_c_saldados',{tipo:'TODAS',
+                search: app.request.get('search'),
+                tipo_busqueda: app.request.get('tipo_busqueda')}) }}" class="btn {{ tipo=='TODAS'? 'active':'' }} btn-outline-primary">Todas</a>
+          <a href="{{ path('app_c_saldados', {
+                tipo: 'F',
+                search: app.request.get('search'),
+                tipo_busqueda: app.request.get('tipo_busqueda')
+            }) }}" class="btn {{ tipo=='F'? 'active':'' }} btn-outline-primary">
+                Factura de venta
+            </a>
+          <a href="{{ path('app_c_saldados',{tipo:'H',
+                search: app.request.get('search'),
+                tipo_busqueda: app.request.get('tipo_busqueda')}) }}" class="btn {{ tipo=='H'? 'active':'' }} btn-outline-primary">Factura de exportacion</a>
+          <a href="{{ path('app_c_saldados',{tipo:'R',
+                search: app.request.get('search'),
+                tipo_busqueda: app.request.get('tipo_busqueda')}) }}" class="btn {{ tipo=='R'? 'active':'' }} btn-outline-primary">Recibos</a>
+          <a href="{{ path('app_c_saldados',{tipo:'D',
+                search: app.request.get('search'),
+                tipo_busqueda: app.request.get('tipo_busqueda')}) }}" class="btn {{ tipo=='D'? 'active':'' }} btn-outline-primary">Notas de debito</a>
+          <a href="{{ path('app_c_saldados',{tipo:'C',
+                search: app.request.get('search'),
+                tipo_busqueda: app.request.get('tipo_busqueda')}) }}" class="btn {{ tipo=='C'? 'active':'' }} btn-outline-primary">Notas de credito de ventas</a>
+          <a href="{{ path('app_c_saldados',{tipo:'I',
+                search: app.request.get('search'),
+                tipo_busqueda: app.request.get('tipo_busqueda')}) }}" class="btn {{ tipo=='I'? 'active':'' }} btn-outline-primary">Notas de credito de exportacion</a>
+      </div>
+  </div>
+    </div>
+     <!--Row de busqueda-->
         {% if comprobantes is not empty %}
             <div class="row mt-3 mb-3">
                 <div class="col-12">
                     <h2 class="text-center">
-                        Comprobantes saldados encontrados para el cliente: 
+                        Comprobantes  encontrados para el cliente: 
                         <strong>{{ app.request.get('search') }}</strong>
                     </h2>
                 </div>
@@ -83,7 +123,7 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">Comprobantes Saldados</h4>
+                            <h4 class="card-title">Comprobantes </h4>
                         </div>
                         <div class="card-body">
                                    
@@ -92,7 +132,9 @@
                                     <thead>
                                         <tr class="align-middle">
                                             <th>Fecha</th>
-                                            <th>Comprobante</th>
+                                            <th>Tipo</th>
+                                            <th>Clase</th>
+                                            <th>Numero</th>
                                             <th>Orden de compra</th>
                                             <th>Estado</th>
                                             <th>Acciones</th>
@@ -110,14 +152,14 @@
                                                     <td data-order="9999-12-31"></td>
                                                 {% endif %}
                                                 
-                                                <td>{{ comprobante.comprobante }}</td>
+                                                <td>{{ comprobante.nombreComprobante }}</td>
+                                                <td>{{ comprobante.claseComprobante }}</td>
+                                                <td>{{ comprobante.numeroComprobante }}</td>
                                                 <td>{{ comprobante.ordencompra }}</td>
                                                 <td>{{ comprobante.estado }}</td>
                                                 <td>
                                                     <div class="btn-group" role="group">
-                                                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAsunto">
-                                                            Notificar pago
-                                                        </button>
+                                                        
                                                         <a href="{{ path('descarga_remito_internal', {'documento': comprobante}) }}" 
                                                             class="btn btn-sm btn-outline-primary">
                                                             <i class="mdi mdi-file-download mdi-24px"></i>Documento
@@ -131,35 +173,7 @@
                             </div>
                         </div>
                     </div>
-                     <!-- Modal -->
-                    <div class="modal fade" id="modalAsunto" tabindex="-1" aria-labelledby="modalAsuntoLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="modalAsuntoLabel">Nuevo Mensaje</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <form id="formularioModal" action ="{{ path('app_notificar_pago_internal')}}" method="POST"  enctype="multipart/form-data">
-                                        <div class="mb-3">
-                                            <label for="asunto" class="form-label">Asunto:</label>
-                                            <input type="text" class="form-control" id="asunto" name="asunto" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="mensaje" class="form-label">Mensaje:</label>
-                                            <textarea class="form-control" id="mensaje" name="mensaje" rows="6" required></textarea>
-                                        </div>
-                                    </form>
-                                </div>
-                                <div class="modal-footer">
-                                    <label for="archivos" class="form-label">Adjuntar archivos:</label>
-                                    <input type="file" class="form-control" id="archivos" name="archivos[]" multiple>
-                                    <div class="form-text">Puede seleccionar múltiples archivos</div>
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                    <button type="button" class="btn btn-primary" onclick="enviarFormulario()">Enviar</button>
-                                </div>
-                            </div>
-                        </div>  <!-- Modal -->
+                    
                 </div>
                 
             </div>
@@ -170,7 +184,7 @@
                     No se encontraron resultados
                 </h4>
                 <p class="mb-0">
-                    No se encontraron comprobantes saldados para el cliente: 
+                    No se encontraron comprobantes  para el cliente: 
                     <strong>{{ app.request.get('search') }}</strong>
                 </p>
                 <hr>
@@ -209,8 +223,8 @@
                     'colvis',
                     {
                         extend: 'excelHtml5',
-                        title: 'Comprobantes_Saldados',
-                        filename: 'Comprobantes_Saldados'
+                        title: 'Comprobantes',
+                        filename: 'Comprobantes'
                     }
                 ],
                 dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
@@ -221,36 +235,5 @@
         });
         </script>
         {% endif %}
-         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-        function enviarFormulario() {
-            const asunto = document.getElementById('asunto').value;
-            const mensaje = document.getElementById('mensaje').value;
-            const archivos = document.getElementById('archivos').files;
-            
-            if (asunto.trim() === '' || mensaje.trim() === '') {
-                alert('Por favor complete todos los campos');
-                return;
-            }
-            
-            // Crear FormData para enviar archivos
-            const formData = new FormData();
-            formData.append('asunto', asunto);
-            formData.append('mensaje', mensaje);
-            
-            // Agregar cada archivo
-            for (let i = 0; i < archivos.length; i++) {
-                formData.append('archivos[]', archivos[i]);
-            }
-            
-            console.log('Archivos seleccionados:', archivos.length);
-            
-            const form = document.getElementById('formularioModal');
-            if (form.checkValidity()) {
-                form.submit();
-            } else {
-                alert('Por favor complete todos los campos');
-            }
-        }
-        </script>
+        
 {% endblock %}

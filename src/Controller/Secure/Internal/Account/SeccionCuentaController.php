@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 #[Route('/seccion')]
 final class SeccionCuentaController extends AbstractController{
-    public function __construct(private MailerInterface $mailer) 
+    public function __construct(private MailerInterface $mailer)
     {
         $this->mailer = $mailer;
     }
@@ -47,22 +47,35 @@ final class SeccionCuentaController extends AbstractController{
         return $this->render('secure/internal/seccion_cuenta/comprobantes_saldados.html.twig');
     }
 
-    #[Route("/cuenta/obtenerSaldados","app_c_saldados")]
+    #[Route("/cuenta/obtenerSaldados/{tipo}","app_c_saldados")]
     public function obtenerSaldados(Request $request,
     CuentascorrientesRepository $cuentascorrientesRepository,
     ClientesRepository $clientesRepository)
     {
+        
         $search = $request->query->get('search');
+        $tipoBusqueda = $request->get('tipo_busqueda') ?? null;
+        $tipoComprobante = $request->get('tipo') ?? 'TODAS';
         $comprobantes = [];
-        if ($search) {
+        $clientes=[];
+        if ($tipoBusqueda =='cliente') {
             $clientes = $clientesRepository->findClientesPorRazonSocial($search);
         }
         if($clientes)
         {
             foreach($clientes as $cliente)
             {
-                $comprobantes = $cuentascorrientesRepository->findComprobantesSaldados($cliente["codigoCalipso"]);
+                $comprobantesCliente = $cuentascorrientesRepository->findComprobantesSaldados(
+                $cliente["codigoCalipso"],
+                $tipoComprobante
+            );
+            // Acumular resultados en lugar de sobrescribir
+            $comprobantes = array_merge($comprobantes, $comprobantesCliente);
             }
+        }
+        else
+        {
+            $comprobantes = $cuentascorrientesRepository->findComprobantesSaldadosPorOrdenDeCompra($search,$tipoComprobante);
         }
         return $this->render(
             'secure/internal/seccion_cuenta/comprobantes_saldados.html.twig',
