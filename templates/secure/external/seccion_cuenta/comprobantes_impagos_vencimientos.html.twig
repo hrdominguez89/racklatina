@@ -4,7 +4,6 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
 {% endblock %}
 
 {% block body %}    
@@ -119,7 +118,7 @@
                                             <td>{{ comprobante.pendientepesos|number_format(2, ',', '.') }}</td>
                                             <td>
                                                 <div class="btn-group" role="group">
-                                                     <button type="button" class="btn btn-primary" >
+                                                     <button type="button" class="btn btn-primary" data-bs-toggle="modal"	data-bs-target="#contactoModal"	data-key="t-contact">
                                                         Notificar pago
                                                     </button>
                                                     <button type="button" 
@@ -143,31 +142,6 @@
                             </tbody>
                         </table>
                     </div>
-                     <!-- Modal -->
-                <div class="modal fade" id="modalAsunto" tabindex="-1" aria-labelledby="modalAsuntoLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="modalAsuntoLabel">Nuevo Mensaje</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form id="formularioModal" action ="{{ path('app_notificar_pago_external')}}" method="POST"  enctype="multipart/form-data">
-                                    <div class="mb-3">
-                                        <label for="mensaje" class="form-label">Mensaje:</label>
-                                        <textarea class="form-control" id="mensaje" name="mensaje" rows="6" required></textarea>
-                                    </div>
-                                    <label for="archivos" class="form-label">Adjuntar archivos:</label>
-                                    <input type="file" class="form-control" id="archivos" name="archivos[]" multiple>
-                                    <div class="form-text">Puede seleccionar múltiples archivos</div>
-                                </form>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                <button type="button" class="btn btn-primary" onclick="enviarFormulario()">Enviar</button>
-                            </div>
-                        </div>
-                    </div>  <!-- Modal -->
                 </div>
             </div>
         </div>
@@ -185,85 +159,67 @@
 {% block javascripts %}
     {{ parent() }}
         <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            $('#tabla-comprobantes').DataTable({
-                language: {
-                    url: esDatatable
-                },
-                order: [[0, 'desc']], // Ordenar por fecha descendente
-                buttons: [
-                    'colvis',
-                    {
-                        extend: 'excelHtml5',
-                        title: 'Mis_Comprobantes_Impagos',
-                        filename: 'Mis_Comprobantes_Impagos'
-                    }
-                ],
-                dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
-                    "<'row'<'col-sm-12'tr>>" +
-                    "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                colReorder: true
+            document.addEventListener('DOMContentLoaded', function () {
+                $('#tabla-comprobantes').DataTable({
+                    language: {
+                        url: esDatatable
+                    },
+                    order: [[0, 'desc']], // Ordenar por fecha descendente
+                    buttons: [
+                        'colvis',
+                        {
+                            extend: 'excelHtml5',
+                            title: 'Mis_Comprobantes_Impagos',
+                            filename: 'Mis_Comprobantes_Impagos'
+                        }
+                    ],
+                    dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                    colReorder: true
+                });
             });
-        });
-    </script>
-     <script>
-        function enviarFormulario() {
-            const mensaje = document.getElementById('mensaje').value;
-            const archivos = document.getElementById('archivos').files;
-            const formData = new FormData();
-            formData.append('mensaje', mensaje);
-            for (let i = 0; i < archivos.length; i++) {
-                formData.append('archivos[]', archivos[i]);
+        </script>
+        <script>
+            function descargarFactura(numeroComprobante) {
+            const url = "{{ path('descarga_facturas_external', {'factura': '__TEMP__'}) }}".replace('__TEMP__', numeroComprobante);
+            
+            $.ajax({
+                url: url,
+                type: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' // Marca como AJAX
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(data, status, xhr) {
+                    // Descarga exitosa
+                    const blob = new Blob([data]);
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = 'factura_' + numeroComprobante + '.pdf';
+                    link.click();
+                    setInterval(() => {
+                        eleminiarDocumento(numeroComprobante,url)
+                    },3000);
+                },
+                error: function(xhr, status, error) {
+                    $('#contactoModal').modal('show');
+                }
+            });
+        }
+            function eleminiarDocumento(numeroComprobante,url)
+            {
+                
+                $.ajax({
+                url: url,
+                body:{"numeroComprobante":numeroComprobante},
+                type: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' // Marca como AJAX
+                }
+                });
             }
-            const form = document.getElementById('formularioModal');
-            if (form.checkValidity()) {
-                form.submit();
-            } else {
-                alert('Por favor complete todos los campos');
-            }
-        }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-    function descargarFactura(numeroComprobante) {
-    const url = "{{ path('descarga_facturas_external', {'factura': '__TEMP__'}) }}".replace('__TEMP__', numeroComprobante);
-    
-    $.ajax({
-        url: url,
-        type: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest' // Marca como AJAX
-        },
-        xhrFields: {
-            responseType: 'blob'
-        },
-        success: function(data, status, xhr) {
-            // Descarga exitosa
-            const blob = new Blob([data]);
-            const link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.download = 'factura_' + numeroComprobante + '.pdf';
-            link.click();
-            setInterval(() => {
-                eleminiarDocumento(numeroComprobante,url)
-            },3000);
-        },
-        error: function(xhr, status, error) {
-            $('#contactoModal').modal('show');
-        }
-    });
-}
-    function eleminiarDocumento(numeroComprobante,url)
-    {
-        
-        $.ajax({
-        url: url,
-        body:{"numeroComprobante":numeroComprobante},
-        type: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest' // Marca como AJAX
-        }
-        });
-    }
-    </script>
+        </script>
 {% endblock %}
