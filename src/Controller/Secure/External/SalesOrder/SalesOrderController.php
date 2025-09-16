@@ -25,7 +25,6 @@ final class SalesOrderController extends AbstractController
         $this->em = $em;
     }
     #[Route('/', name: 'app_secure_external_sales_order_sales_order', methods: ['GET'])]
-
     public function index(
         Request $request,
         PedidosrelacionadosRepository $pedidosrelacionadosRepository,
@@ -76,10 +75,8 @@ final class SalesOrderController extends AbstractController
                         ->getQuery()
                         ->getArrayResult();
                 $data['pedidos']=$aux;
-                // array_push($data['pedidos'],$aux);
             }
             return $this->render('secure/external/sales_order/index.html.twig', $data);
-
         }
         $usuario = $this->getUser();
         // Obtener los códigos de cliente que el usuario tiene autorizados
@@ -118,7 +115,6 @@ final class SalesOrderController extends AbstractController
                     'articulos' => $articulos
                 ];
             }
-
             // Contar estados
             if ($pedido['estado'] === 'Pendiente') {
                 $agrupados[$key]['pendientes']++;

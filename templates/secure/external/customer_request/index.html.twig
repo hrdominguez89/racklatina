@@ -5,26 +5,8 @@
 {% endblock %}
 {% block stylesheets %}
 	{{ parent() }}
-	<link	rel="stylesheet"	href="{{ asset('Datatables/datatables.min.css') }}">
 	{% endblock %}
-	{% block javascripts %}
-		{{ parent() }}
-		<script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
-		<script src="{{ asset('Datatables/datatables.min.js') }}"></script>
-		<script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const tabla = document.querySelector('#tabla-solicitudes');
-            if (tabla) {
-                new DataTable(tabla, {
-                    pageLength: 10,
-                    language: {
-                        url: esDatatable
-                    }
-                });
-            }
-        });
-    </script>
-	{% endblock %}
+	
 	{% block body %}
 		<div	class="container-fluid">
 
@@ -84,7 +66,7 @@
 							No tenés solicitudes en este estado.
 						</div>
 					{% else %}
-						<table	class="table table-hover">
+						<table	class="table table-hover" id="tabla-solicitudes">
 							<thead>
 								<tr>
 									<th>
@@ -170,5 +152,22 @@
 
 		</div>
 
+	{% endblock %}
+	{% block javascripts %}
+		{{ parent() }}
+		
+		<script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabla = document.querySelector('#tabla-solicitudes');
+            if (tabla) {
+                new DataTable(tabla, {
+                    pageLength: 10,
+                    language: {
+                        url: esDatatable
+                    }
+                });
+            }
+        });
+    </script>
 	{% endblock %}
 	

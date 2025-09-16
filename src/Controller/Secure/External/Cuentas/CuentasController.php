@@ -79,9 +79,10 @@ final class CuentasController extends AbstractController
         $factura = $request->query->get("factura");
         $fileName = str_replace(" ","",$factura).".pdf";
         $rutaArchivo = "../Facturas/{$fileName}";
-
-       
-
+        if($request->getMethod() === 'POST')
+        {
+            unlink($rutaArchivo);
+        }
         if (file_exists($rutaArchivo))
         {
             return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
@@ -112,7 +113,7 @@ final class CuentasController extends AbstractController
         } catch(Exception $e) {
                 $message ="Error al descargar la factura :" . $e->getMessage();
         }
-         return new JsonResponse([
+        return new JsonResponse([
                 'success' => false,
                 'error' => true,
                 'message' => $message
