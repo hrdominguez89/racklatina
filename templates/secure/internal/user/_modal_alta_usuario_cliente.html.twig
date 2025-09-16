@@ -123,6 +123,24 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label">Perfiles <span style="color:red">*</span></label>
+                                <div class="d-flex flex-column gap-2 mt-2">
+                                    {% for rol in roles %}
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="{{ rol.id }}" id="role_{{ rol.id }}" name="roles[]">
+                                            <label class="form-check-label" for="role_{{ rol.id }}">
+                                                {{ rol.nombre }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -186,9 +204,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
+            // Validar que al menos un rol esté seleccionado
+            const rolesChecked = document.querySelectorAll('input[name="roles[]"]:checked');
+            
             if (!email || !password) {
                 e.preventDefault();
                 alert('Email y contraseña son requeridos');
+                return;
+            }
+            
+            if (rolesChecked.length === 0) {
+                e.preventDefault();
+                alert('Debe seleccionar al menos un perfil');
+                return;
             }
         });
     }

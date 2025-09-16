@@ -260,12 +260,29 @@ final class UserController extends AbstractController
 
             $this->entityManager->flush();
 
-            $userRole = new UserRole();
-
-            $userRole->setUser($user);
-            $userRole->setRole($this->roleRepository->find(id: 2));
-
-            $this->entityManager->persist($userRole);
+            // Asignar múltiples roles si están especificados
+            $roles = $data['roles'] ?? [2]; // Por defecto rol con ID 2 si no se especifican roles
+            if (is_array($roles)) {
+                foreach ($roles as $roleId) {
+                    $role = $this->roleRepository->find($roleId);
+                    if ($role) {
+                        $userRole = new UserRole();
+                        $userRole->setUser($user);
+                        $userRole->setRole($role);
+                        $this->entityManager->persist($userRole);
+                    }
+                }
+            } else {
+                // Si no es array, tratar como rol único
+                $role = $this->roleRepository->find($roles);
+                if ($role) {
+                    $userRole = new UserRole();
+                    $userRole->setUser($user);
+                    $userRole->setRole($role);
+                    $this->entityManager->persist($userRole);
+                }
+            }
+            
             $this->entityManager->flush();
             $this->enviarMailDeAlta($user,$password);
             return true;
@@ -287,10 +304,21 @@ final class UserController extends AbstractController
             }, $roles);
             return $this->render('secure/internal/user/_modal_alta_usuario.html.twig', ["roles" => $roles_aux]);
         } else {
+            $roles = $this->roleRepository->findBy(["type" => "external"]);
+            $roles_aux = array_map(function ($rol) {
+                $aux =  str_replace("ROLE_", "", $rol->getName());
+                $aux =  str_replace("_", " ", $aux);
+                return [
+                    "id" => $rol->getId(),
+                    "nombre" => $aux
+                ];
+            }, $roles);
+            
             $data["sectores"] = $sectorsRepository->findAll();
             $data["segmentos"] = [];
             $data["paises"] = [];
             $data["provincias"] = [];
+            $data["roles"] = $roles_aux;
 
             return $this->render('secure/internal/user/_modal_alta_usuario_cliente.html.twig', $data);
         }
@@ -316,6 +344,24 @@ final class UserController extends AbstractController
 
         $externalUserData = $this->externalUserDataRepository->findOneBy(['user' => $user->getId()]) ?? null; // Aquí deberías obtener los datos del UserCustomer si tienes esa entidad
         $sectores = $this->sectoresRepository->findAll();
+        
+        // Obtener todos los roles externos disponibles
+        $roles = $this->roleRepository->findBy(["type" => "external"]);
+        $roles_aux = array_map(function ($rol) {
+            $aux =  str_replace("ROLE_", "", $rol->getName());
+            $aux =  str_replace("_", " ", $aux);
+            return [
+                "id" => $rol->getId(),
+                "nombre" => $aux
+            ];
+        }, $roles);
+        
+        // Obtener los roles actuales del usuario
+        $userRoles = $this->userRoleRepository->findBy(['user' => $user->getId()]);
+        $currentRoleIds = array_map(function($userRole) {
+            return $userRole->getRole()->getId();
+        }, $userRoles);
+        
         $data = [
             "user" => $user,
             "externalUserData" => $externalUserData,
@@ -324,6 +370,8 @@ final class UserController extends AbstractController
             "paises" => ["Argentina", "Chile"],
             "sectores" => $sectores,
             "segmentos" => ["Consumo", "Produccion"],
+            "roles" => $roles_aux,
+            "currentRoleIds" => $currentRoleIds,
             "isViewMode" => true // Flag para indicar que es modo vista
         ];
         return $this->render('secure/internal/user/_modal_editar_usuario_cliente.html.twig', $data);
@@ -370,6 +418,28 @@ final class UserController extends AbstractController
 
             $this->entityManager->persist($externalUserData);
             $this->entityManager->persist($user);
+            
+            // Actualizar roles del usuario
+            // Primero eliminar todos los roles actuales del usuario
+            $currentUserRoles = $this->userRoleRepository->findBy(['user' => $user->getId()]);
+            foreach ($currentUserRoles as $userRole) {
+                $this->entityManager->remove($userRole);
+            }
+            
+            // Agregar los nuevos roles seleccionados
+            $selectedRoles = $request->request->all('roles') ?? [];
+            if (!empty($selectedRoles)) {
+                foreach ($selectedRoles as $roleId) {
+                    $role = $this->roleRepository->find($roleId);
+                    if ($role) {
+                        $userRole = new UserRole();
+                        $userRole->setUser($user);
+                        $userRole->setRole($role);
+                        $this->entityManager->persist($userRole);
+                    }
+                }
+            }
+            
             $this->entityManager->flush();
 
             return $this->redirectToRoute('app_secure_internal_user_user_cliente');
@@ -403,6 +473,15 @@ final class UserController extends AbstractController
                 return $cliente !== null;
             })->toArray();
 
+            // Obtener los roles del usuario para mostrar en el modal
+            $userRoles = $this->userRoleRepository->findBy(['user' => $user->getId()]);
+            $rolesUsuario = array_map(function($userRole) {
+                $roleName = $userRole->getRole()->getName();
+                $aux = str_replace("ROLE_", "", $roleName);
+                $aux = str_replace("_", " ", $aux);
+                return ucfirst(strtolower($aux));
+            }, $userRoles);
+
             $data = [
                 "user" => $user,
                 "externalDataUser" => $externalDataUser,
@@ -412,6 +491,7 @@ final class UserController extends AbstractController
                 "provincias" => [],
                 "isViewMode" => true,
                 "representados" => $clientesRepresentados,
+                "rolesUsuario" => $rolesUsuario,
             ];
             return $this->render('secure/internal/user/_modal_ver_usuario_cliente.html.twig', $data);
         }
