@@ -85,8 +85,8 @@ final class CuentasController extends AbstractController
         try {
             $response = $httpClient->request('POST', 'https://192.168.16.104/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
             [
-                'verify_peer' => false,
-                'verify_host' => false,
+                // 'verify_peer' => false,
+                // 'verify_host' => false,
                 'json' => [
                     'modulo' => 'VENTAS',
                     'comprobante' => $fileName
@@ -131,8 +131,8 @@ final class CuentasController extends AbstractController
         try {
             $response = $httpClient->request('POST', 'https://192.168.16.104/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
             [
-                'verify_peer' => false,
-                'verify_host' => false,
+                // 'verify_peer' => false,
+                // 'verify_host' => false,
                 'json' => [
                     'modulo' => 'COBRANZAS',
                     'comprobante' => $fileName
