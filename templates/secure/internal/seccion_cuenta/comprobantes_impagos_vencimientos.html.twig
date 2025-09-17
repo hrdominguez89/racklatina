@@ -265,9 +265,9 @@
                     const blob = new Blob([data]);
                     const link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = 'factura_' + numeroComprobante + '.pdf';
+                    link.download =  numeroComprobante + '.pdf';
                     link.click();
-                    setInterval(() => {
+                    setTimeout(() => {
                         eleminiarDocumento(numeroComprobante,url)
                     },3000);
                 },
