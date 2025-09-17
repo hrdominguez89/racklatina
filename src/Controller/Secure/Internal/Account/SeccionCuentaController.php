@@ -6,6 +6,7 @@ use App\Repository\ClientesRepository;
 use App\Repository\ComprobantesimpagosRepository;
 use App\Repository\CuentascorrientesRepository;
 use Exception;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Mime\Email;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -127,14 +128,12 @@ final class SeccionCuentaController extends AbstractController{
         $factura = $request->query->get("factura");
         $fileName = str_replace(" ","",$factura).".pdf";
         $rutaArchivo = "/../Facturas/{$fileName}";
-        dd($rutaArchivo);
         if($request->getMethod() === 'POST')
         {
             unlink($rutaArchivo);
         }
         if (file_exists($rutaArchivo))
         {
-            dd($this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT));
             return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
         }
         try {
@@ -147,24 +146,26 @@ final class SeccionCuentaController extends AbstractController{
                     'comprobante' => $fileName
                 ]
             ]);
-            
             $statusCode = $response->getStatusCode();
-            
             if ($statusCode === 200)
             {
                 sleep(15);
                 if (file_exists($rutaArchivo)) {
                     return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
                 } else {
-                    $this->addFlash("danger","No se descargo el archivo.");
+                    $message = "No se descargo el archivo.";
                 }
             } else {
-                $this->addFlash("danger","La api no responde.");
+                $message = "La api no responde.";
             }
         } catch(Exception $e) {
-            $this->addFlash("danger",$e->getMessage());
+            $message = $e->getMessage();
         }
-        return $this->render('secure/internal/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig');
+        return new JsonResponse([
+                'success' => false,
+                'error' => true,
+                'message' => $message
+            ], 400);
     }
      #[Route('/obtenerRemito-i', name: 'descarga_remito_internal')]
     public function obtenerComprobante(Request $request, HttpClientInterface $httpClient): Response
