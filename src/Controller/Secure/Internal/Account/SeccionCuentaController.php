@@ -127,6 +127,7 @@ final class SeccionCuentaController extends AbstractController{
         $factura = $request->query->get("factura");
         $fileName = str_replace(" ","",$factura).".pdf";
         $rutaArchivo = "/../Facturas/{$fileName}";
+        dd($rutaArchivo);
         if($request->getMethod() === 'POST')
         {
             unlink($rutaArchivo);
