@@ -127,7 +127,10 @@ final class SeccionCuentaController extends AbstractController{
         $factura = $request->query->get("factura");
         $fileName = str_replace(" ","",$factura).".pdf";
         $rutaArchivo = "../Facturas/{$fileName}";
-
+        if($request->getMethod() === 'POST')
+        {
+            unlink($rutaArchivo);
+        }
         if (file_exists($rutaArchivo))
         {
             return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
@@ -165,9 +168,12 @@ final class SeccionCuentaController extends AbstractController{
     public function obtenerComprobante(Request $request, HttpClientInterface $httpClient): Response
     {
         $queryParams = $request->query->all();
-        $remitoData = $queryParams["documento"] ?? [];
-        $fileName = $remitoData["documento"].  $remitoData["claseComprobante"] . $remitoData["numeroComprobante"];
-        $rutaArchivo = "../Recibos/{$fileName}";
+        $fileName = $queryParams["remito"] ?? [];
+        $rutaArchivo = "../Recibos/{$fileName}".".pdf";
+        if($request->getMethod() === 'POST')
+        {
+            unlink($rutaArchivo);
+        }
         if (file_exists($rutaArchivo))
         {
             return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);

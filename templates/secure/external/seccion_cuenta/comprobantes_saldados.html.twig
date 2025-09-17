@@ -109,10 +109,12 @@
                                                     {% if comprobante.nombreComprobante == 'Factura de Venta'
                                                         or comprobante.nombreComprobante == 'Recibo'
                                                         or comprobante.nombreComprobante == 'Factura de Venta Exportación'%}
-                                                        <a href="{{ path('descarga_remito_external', {'remito': comprobante.documento ~ comprobante.claseComprobante ~ comprobante.numeroComprobante}) }}" 
-                                                        class="btn btn-sm btn-outline-primary">
-                                                        <i class="mdi mdi-file-download mdi-24px"></i>Documento
-                                                        </a>
+
+                                                        <button type="button" 
+                                                        class="btn btn-sm btn-outline-primary" 
+                                                        onclick="descargarRemito('{{ comprobante.documento ~ comprobante.claseComprobante ~ comprobante.numeroComprobante }}')">
+                                                        <i class="mdi mdi-file-download mdi-24px"></i>Factura
+                                                        </button>
                                                     {% endif %}
                                                 </div>
                                             </td>
@@ -176,5 +178,46 @@
                 colReorder: true
             });
         });
+    </script>
+    <script>
+    function descargarRemito(numeroComprobante) {
+    const url = "{{ path('descarga_remito_external', {'remito': '__TEMP__'}) }}".replace('__TEMP__', numeroComprobante);
+    
+    $.ajax({
+        url: url,
+        type: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest' // Marca como AJAX
+        },
+        xhrFields: {
+            responseType: 'blob'
+        },
+        success: function(data, status, xhr) {
+            // Descarga exitosa
+            const blob = new Blob([data]);
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = 'factura_' + numeroComprobante + '.pdf';
+            link.click();
+            setInterval(() => {
+                eleminiarDocumento(numeroComprobante,url)
+            },3000);
+        },
+        error: function(xhr, status, error) {
+            $('#contactoModal').modal('show');
+        }
+    });
+}
+    function eleminiarDocumento(numeroComprobante,url)
+    {
+        $.ajax({
+        url: url,
+        body:{"numeroComprobante":numeroComprobante},
+        type: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest' // Marca como AJAX
+        }
+        });
+    }
     </script>
 {% endblock %}

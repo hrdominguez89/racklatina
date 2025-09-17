@@ -44,13 +44,11 @@ final class CuentasController extends AbstractController
         $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso(); // Adjust according to your User entity
         $tipo = $request->get('tipo') ?? 'TODAS';
         $comprobantes = $cuentascorrientesRepository->findComprobantesSaldados($codigoCalipso,$tipo);
-        
         return $this->render('secure/external/seccion_cuenta/comprobantes_saldados.html.twig', [
             'controller_name' => 'CuentasController',
             'comprobantes' => $comprobantes
         ]);
     }
-
     #[Route('/cuenta/comprobantesImpagos', name: 'app_comprobantes_impagos_external')]
     public function comprobantesImpagos(
         Request $request,
@@ -58,22 +56,19 @@ final class CuentasController extends AbstractController
         UserCustomerRepository $userCustomerRepository, 
         ClientesRepository $clientesRepository
         ): Response {
-
         $user = $this->getUser();
         $user_customer = $userCustomerRepository->findOneBy(["user"=>$user->getId()]);
         $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso();
         $comprobantes = $comprobantesimpagosRepository->findComprobantesImpagosByCliente($codigoCalipso);
-        
         return $this->render('secure/external/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig', [
             'controller_name' => 'CuentasController',
             'comprobantes' => $comprobantes
         ]);
     }
-
     #[Route('/obtenerFacturas', name: 'descarga_facturas_external')]
     public function obtenerFactura(Request $request, HttpClientInterface $httpClient,
      ComprobantesimpagosRepository $comprobantesimpagosRepository,
-    UserCustomerRepository $userCustomerRepository, 
+    UserCustomerRepository $userCustomerRepository,
     ClientesRepository $clientesRepository): Response
     {
         $factura = $request->query->get("factura");
@@ -119,17 +114,16 @@ final class CuentasController extends AbstractController
                 'message' => $message
             ], 400);
     }
-     #[Route('/obtenerRemito', name: 'descarga_remito_external')]
-    public function obtenerComprobante(Request $request,
-     HttpClientInterface $httpClient,
-    ComprobantesimpagosRepository $comprobantesimpagosRepository,
-    UserCustomerRepository $userCustomerRepository, 
-    ClientesRepository $clientesRepository): Response
+    #[Route('/obtenerRemito', name: 'descarga_remito_external')]
+    public function obtenerComprobante(Request $request,HttpClientInterface $httpClient,ComprobantesimpagosRepository $comprobantesimpagosRepository,UserCustomerRepository $userCustomerRepository,ClientesRepository $clientesRepository): Response
     {
         $queryParams = $request->query->all();
-        $fileName = $queryParams["remito"].".pdf" ?? null;
-        $rutaArchivo = "../Recibos/{$fileName}";
-        
+        $fileName = $queryParams["remito"];
+        $rutaArchivo = "../Recibos/{$fileName}".".pdf";
+        if($request->getMethod() === 'POST')
+        {
+            unlink($rutaArchivo);
+        }
         if (file_exists($rutaArchivo))
         {
             return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
@@ -175,7 +169,6 @@ final class CuentasController extends AbstractController
             'comprobantes' => $comprobantes
             ]);
     }
-    
     #[Route('/enviarMail', name: 'app_notificar_pago_external')]
     public function enviarNotificacion(Request $request): Response
     {
@@ -200,12 +193,11 @@ final class CuentasController extends AbstractController
         $this->mailer->send($email);
         return $this->redirectToRoute('app_comprobantes_saldados_external');
     }
-
     public function auxiliar(ComprobantesimpagosRepository $comprobantesimpagosRepository,
-                        UserCustomerRepository $userCustomerRepository, 
-                        ClientesRepository $clientesRepository)
+    UserCustomerRepository $userCustomerRepository, 
+    ClientesRepository $clientesRepository)
     {
-          $user = $this->getUser();
+        $user = $this->getUser();
         $user_customer = $userCustomerRepository->findOneBy(["user"=>$user->getId()]);
         $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso();
         $comprobantes = $comprobantesimpagosRepository->findComprobantesImpagosByCliente($codigoCalipso);
