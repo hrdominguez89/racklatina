@@ -73,7 +73,7 @@ final class CuentasController extends AbstractController
     {
         $factura = $request->query->get("factura");
         $fileName = str_replace(" ","",$factura).".pdf";
-        $rutaArchivo = "../Facturas/{$fileName}";
+        $rutaArchivo = "/../Facturas/{$fileName}";
         if($request->getMethod() === 'POST')
         {
             unlink($rutaArchivo);
@@ -119,7 +119,7 @@ final class CuentasController extends AbstractController
     {
         $queryParams = $request->query->all();
         $fileName = $queryParams["remito"];
-        $rutaArchivo = "../Recibos/{$fileName}".".pdf";
+        $rutaArchivo = "/../Recibos/{$fileName}".".pdf";
         if($request->getMethod() === 'POST')
         {
             unlink($rutaArchivo);
