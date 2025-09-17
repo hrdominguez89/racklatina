@@ -81,7 +81,7 @@
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `id=${id}`
+        body: `id=${id}&tipo_usuario=cliente`
     })
     .then(response => response.text())
     .then(html => {
@@ -130,7 +130,7 @@
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: `id=${id}`
+            body: `id=${id}&tipo_usuario=cliente`
         })
         .then(response => response.text())
         .then(html => {
