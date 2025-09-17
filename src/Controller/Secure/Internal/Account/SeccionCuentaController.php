@@ -133,6 +133,7 @@ final class SeccionCuentaController extends AbstractController{
         }
         if (file_exists($rutaArchivo))
         {
+            dd($this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT));
             return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
         }
         try {
