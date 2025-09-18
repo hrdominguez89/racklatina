@@ -250,7 +250,7 @@
          <script>
             function descargarFactura(numeroComprobante) {
             const url = "{{ path('descarga_facturas_internal', {'factura': '__TEMP__'}) }}".replace('__TEMP__', numeroComprobante);
-            window.location.href = url;
+            // window.location.href = url;
             $.ajax({
                 url: url,
                 type: 'GET',
@@ -262,9 +262,8 @@
                 },
                 success: function(data, status, xhr) {
                     // Descarga exitosa
-                    const blob = new Blob([data]);
                     const link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
+                    link.href = window.URL.createObjectURL(data);
                     link.download =  numeroComprobante + '.pdf';
                     link.click();
                     setTimeout(() => {

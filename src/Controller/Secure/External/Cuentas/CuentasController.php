@@ -73,7 +73,7 @@ final class CuentasController extends AbstractController
     {
         $factura = $request->query->get("factura");
         $fileName = str_replace(" ","",$factura).".pdf";
-        $rutaArchivo = "/../Facturas/{$fileName}";
+        $rutaArchivo = $this->getParameter('kernel.project_dir') ."/Facturas/{$fileName}";
         if($request->getMethod() === 'POST')
         {
             unlink($rutaArchivo);

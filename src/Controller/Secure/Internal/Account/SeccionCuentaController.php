@@ -127,7 +127,8 @@ final class SeccionCuentaController extends AbstractController{
     {
         $factura = $request->query->get("factura");
         $fileName = str_replace(" ","",$factura).".pdf";
-        $rutaArchivo = "/../Facturas/{$fileName}";
+        $rutaArchivo = $this->getParameter('kernel.project_dir') ."/Facturas/{$fileName}";
+        
         if($request->getMethod() === 'POST')
         {
             unlink($rutaArchivo);
@@ -136,6 +137,7 @@ final class SeccionCuentaController extends AbstractController{
         {
             return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
         }
+        dd($rutaArchivo);
         try {
             $response = $httpClient->request('POST', 'https://192.168.16.104/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
             [

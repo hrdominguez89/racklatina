@@ -118,14 +118,15 @@
                                             <td>{{ comprobante.pendientepesos|number_format(2, ',', '.') }}</td>
                                             <td>
                                                 <div class="btn-group" role="group">
-                                                     <button type="button" class="btn btn-primary" data-bs-toggle="modal"	data-bs-target="#contactoModal"	data-key="t-contact">
-                                                        Notificar pago
-                                                    </button>
                                                     <button type="button" 
                                                         class="btn btn-sm btn-outline-primary" 
                                                         onclick="descargarFactura('{{ comprobante.comprobante }}')">
                                                         <i class="mdi mdi-file-download mdi-24px"></i>Factura
                                                     </button>
+                                                     <button type="button" class="btn btn-primary" id="btn_notificar">
+                                                        Notificar pago
+                                                    </button>
+                                                    <input type="checkbox" id='{{ comprobante.comprobante }}'>
                                                 </div>
                                             </td>
                                         </tr>
@@ -178,10 +179,41 @@
                         "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                     colReorder: true
                 });
+                //obtengo los checkboxs
+                // const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+                // checkboxes.addEventListener("change",
+                //     function()
+                //     {
+                //         //todo esto deberia pasar dentro de la funcion que llama la modal
+                //         //la idea seria que cuando se show el modal 
+                //         // tome los datos de los seleccionados.
+                //     }
+                // );
+                //les agrego un evento al change
+                //objetivo al clickear notificar pago cargar los nombress de las facturas en el modal
+                // la idea seria mostrar como siempre el nombre del usuario, la empresa y los numeros de los
+                // comprobantes . 
+                // Debe tambien seleccionar la opcion de notificar pago en el asunto del modal. 
+                
+                btnNotificar = document.getElementById("btn_notificar");
+                btnNotificar.addEventListener("click", function() {
+                    // Obtener el modal y mostrarlo
+                    const modal = document.getElementById('contactoModal');
+                    const bsModal = new bootstrap.Modal(modal);
+                    
+                    // Setear el asunto
+                    const asuntoSelect = document.getElementById('asunto');
+                    asuntoSelect.value = 'notificacionDePago';
+                    
+                    // Mostrar modal
+                    bsModal.show();
+                });
             });
         </script>
         <script>
+           
             function descargarFactura(numeroComprobante) {
+                
             const url = "{{ path('descarga_facturas_external', {'factura': '__TEMP__'}) }}".replace('__TEMP__', numeroComprobante);
             
             $.ajax({
@@ -205,13 +237,14 @@
                     },3000);
                 },
                 error: function(xhr, status, error) {
-                    $('#contactoModal').modal('show');
+                $('#contactoModal')
+                    .data('asunto', 'errorEnDescarga')
+                    .modal('show');
                 }
             });
         }
             function eleminiarDocumento(numeroComprobante,url)
             {
-                
                 $.ajax({
                 url: url,
                 body:{"numeroComprobante":numeroComprobante},

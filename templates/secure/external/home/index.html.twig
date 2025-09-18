@@ -75,7 +75,7 @@
 					</div>
 				</a>
 			</div>
-
+			{% if is_granted('ROLE_ADMISTRACION') %}
 			<!-- end card -->
 				<div	class="col-12 col-sm-6 col-lg-4">
 					<!-- Simple card -->
@@ -95,6 +95,7 @@
 					</a>
 				<!-- end card -->
 				</div>
+			{% endif %}
 			</div>
 		<!-- end col -->
 		</div>
