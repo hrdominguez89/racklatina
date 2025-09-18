@@ -116,17 +116,20 @@
                                             <td>{{ comprobante.oc }}</td>
                                             <td>{{ comprobante.totalpesos|number_format(2, ',', '.') }}</td>
                                             <td>{{ comprobante.pendientepesos|number_format(2, ',', '.') }}</td>
-                                            <td>
-                                                <div class="btn-group" role="group">
+                                            <td class="align-middle text-center">
+                                                <div class="btn-group" role="group" >
                                                     <button type="button" 
                                                         class="btn btn-sm btn-outline-primary" 
                                                         onclick="descargarFactura('{{ comprobante.comprobante }}')">
                                                         <i class="mdi mdi-file-download mdi-24px"></i>Factura
                                                     </button>
-                                                     <button type="button" class="btn btn-primary" id="btn_notificar">
+                                                     <button type="button" class="btn btn-primary" name="btn_notificar" id='{{ comprobante.comprobante }}'  >
                                                         Notificar pago
                                                     </button>
-                                                    <input type="checkbox" id='{{ comprobante.comprobante }}'>
+                                                    <input type="checkbox" 
+                                                    id='{{ comprobante.comprobante }}' 
+                                                    class="checkbox checkbox-primary"
+                                                    style="width: 25px; height: 25px; accent-color: #ffc107; cursor: pointer;">
                                                 </div>
                                             </td>
                                         </tr>
@@ -179,34 +182,27 @@
                         "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                     colReorder: true
                 });
-                //obtengo los checkboxs
-                // const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-                // checkboxes.addEventListener("change",
-                //     function()
-                //     {
-                //         //todo esto deberia pasar dentro de la funcion que llama la modal
-                //         //la idea seria que cuando se show el modal 
-                //         // tome los datos de los seleccionados.
-                //     }
-                // );
-                //les agrego un evento al change
-                //objetivo al clickear notificar pago cargar los nombress de las facturas en el modal
-                // la idea seria mostrar como siempre el nombre del usuario, la empresa y los numeros de los
-                // comprobantes . 
-                // Debe tambien seleccionar la opcion de notificar pago en el asunto del modal. 
-                
-                btnNotificar = document.getElementById("btn_notificar");
-                btnNotificar.addEventListener("click", function() {
-                    // Obtener el modal y mostrarlo
-                    const modal = document.getElementById('contactoModal');
-                    const bsModal = new bootstrap.Modal(modal);
-                    
-                    // Setear el asunto
-                    const asuntoSelect = document.getElementById('asunto');
-                    asuntoSelect.value = 'notificacionDePago';
-                    
-                    // Mostrar modal
-                    bsModal.show();
+                btnsNotificar = document.querySelectorAll('button[name="btn_notificar"]');
+                btnsNotificar.forEach(btnNotificar => {
+                    btnNotificar.addEventListener("click", function() {
+                        
+                        
+                        const modal = document.getElementById('contactoModal');
+                        const bsModal = new bootstrap.Modal(modal);
+                        const asuntoSelect = document.getElementById('asunto');//
+                        asuntoSelect.value = 'notificacionDePago';
+                        const mensaje = document.getElementById('mensaje');//
+                        mensaje.value = "Se notifica del pago de la factura :";
+                        mensaje.value += btnNotificar.id;
+                        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+                        checkboxes.forEach(ch =>{
+                            if (ch.checked && ch.id != btnNotificar.id)
+                            {
+                                mensaje.value += ch.id;
+                            }
+                        });
+                        bsModal.show();
+                    });
                 });
             });
         </script>
