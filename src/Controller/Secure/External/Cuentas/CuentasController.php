@@ -119,7 +119,14 @@ final class CuentasController extends AbstractController
     {
         $queryParams = $request->query->all();
         $fileName = $queryParams["remito"];
-        $rutaArchivo = "/../Recibos/{$fileName}".".pdf";
+        if($fileName[0]=="F")
+        {
+            $rutaArchivo = "/../Facturas/{$fileName}".".pdf";
+        }
+        else
+        {
+            $rutaArchivo = "/../Recibos/{$fileName}".".pdf";
+        }
         if($request->getMethod() === 'POST')
         {
             unlink($rutaArchivo);
