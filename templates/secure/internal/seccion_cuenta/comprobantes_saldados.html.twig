@@ -48,18 +48,26 @@
                 <div class="row">
                     <div class="col-4">
                         <div class="mb-3">
-                            <select name="tipo_busqueda" id="tipo_busqueda" class="form-control">
-                                <option value="cliente" {{ app.request.get('tipo_busqueda') == 'cliente' ? 'selected' : '' }}>
-                                    Cliente
-                                </option>
-                                <option value="OC" {{ app.request.get('tipo_busqueda') == 'OC' ? 'selected' : '' }}>
-                                    Orden de compra
-                                </option>
-                            </select>
-                            <input type="search" id="search" name="search" 
-                                   value="{{ app.request.get('search') }}" 
-                                   class="form-control" 
-                                   placeholder="Buscar por cliente..." />
+                            <div class="row">
+                                <div class="col-12">
+                                    <select name="tipo_busqueda" id="tipo_busqueda" class="form-select">
+                                        <option value="cliente" {{ app.request.get('tipo_busqueda') == 'cliente' ? 'selected' : '' }}>
+                                            Cliente
+                                        </option>
+                                        <option value="OC" {{ app.request.get('tipo_busqueda') == 'OC' ? 'selected' : '' }}>
+                                            Orden de compra
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                                <div class="row mt-3">
+                                    <div class="col-12">
+                                        <input type="search" id="search" name="search" 
+                                        value="{{ app.request.get('search') }}" 
+                                        class="form-control" 
+                                        placeholder="{{ app.request.get('tipo_busqueda') == 'OC' ? 'Buscar por orden de compra...' : 'Buscar por cliente...' }}" />
+                                    </div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-3 text-start align-self-end">
@@ -263,5 +271,26 @@
         }
         });
     }
+
+    // Cambiar placeholder del input según el tipo de búsqueda seleccionado
+    document.addEventListener('DOMContentLoaded', function () {
+        const tipoBusquedaSelect = document.getElementById('tipo_busqueda');
+        const searchInput = document.getElementById('search');
+
+        function updatePlaceholder() {
+            const tipoSelected = tipoBusquedaSelect.value;
+            if (tipoSelected === 'OC') {
+                searchInput.placeholder = 'Buscar por orden de compra...';
+            } else {
+                searchInput.placeholder = 'Buscar por cliente...';
+            }
+        }
+
+        // Actualizar placeholder al cambiar el select
+        tipoBusquedaSelect.addEventListener('change', updatePlaceholder);
+        
+        // Inicializar el placeholder correcto al cargar la página
+        updatePlaceholder();
+    });
     </script>
 {% endblock %}

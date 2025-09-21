@@ -17,7 +17,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-#[Route('/seccion/clientes')]
+#[Route('secure/seccion-cuenta/clientes')]
 final class CuentasController extends AbstractController
 {
     public function __construct(private MailerInterface $mailer) 
@@ -25,7 +25,7 @@ final class CuentasController extends AbstractController
         $this->mailer = $mailer;
     }
     
-    #[Route('/cuenta', name: 'app_seccion_cuenta_external')]
+    #[Route('/', name: 'app_seccion_cuenta_external')]
     public function index(): Response
     {
         return $this->render('secure/external/seccion_cuenta/index.html.twig', [
@@ -33,7 +33,7 @@ final class CuentasController extends AbstractController
         ]);
     }
 
-    #[Route('/cuenta/comprobantesSaldados/{tipo}', name: 'app_comprobantes_saldados_external', methods:['POST','GET'])]
+    #[Route('/comprobantesSaldados/{tipo}', name: 'app_comprobantes_saldados_external', methods:['POST','GET'])]
     public function comprobantesSaldados(
         Request $request,
         CuentascorrientesRepository $cuentascorrientesRepository,
@@ -49,7 +49,7 @@ final class CuentasController extends AbstractController
             'comprobantes' => $comprobantes
         ]);
     }
-    #[Route('/cuenta/comprobantesImpagos', name: 'app_comprobantes_impagos_external')]
+    #[Route('/comprobantesImpagos', name: 'app_comprobantes_impagos_external')]
     public function comprobantesImpagos(
         Request $request,
         ComprobantesimpagosRepository $comprobantesimpagosRepository,

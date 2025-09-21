@@ -15,13 +15,13 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-#[Route('/seccion')]
+#[Route('/secure/seccion-cuenta')]
 final class SeccionCuentaController extends AbstractController{
     public function __construct(private MailerInterface $mailer)
     {
         $this->mailer = $mailer;
     }
-    #[Route('/cuenta-i', name: 'app_seccion_cuenta_internal')]
+    #[Route('/', name: 'app_seccion_cuenta_internal')]
     public function index(): Response
     {
         return $this->render('secure/internal/seccion_cuenta/index.html.twig', [
@@ -29,7 +29,7 @@ final class SeccionCuentaController extends AbstractController{
         ]);
 
     }
-    #[Route('/cuenta/cuentasCorrientes',"app_cuentas_corrientes")]
+    #[Route('/cuentasCorrientes',"app_cuentas_corrientes")]
     public function cuentasCorrientes(Request $request,
     CuentascorrientesRepository $cuentasCorrientesRepository)
     {
@@ -48,7 +48,7 @@ final class SeccionCuentaController extends AbstractController{
         return $this->render('secure/internal/seccion_cuenta/comprobantes_saldados.html.twig');
     }
 
-    #[Route("/cuenta/obtenerSaldados/{tipo}","app_c_saldados")]
+    #[Route("/obtenerSaldados/{tipo}","app_c_saldados")]
     public function obtenerSaldados(Request $request,
     CuentascorrientesRepository $cuentascorrientesRepository,
     ClientesRepository $clientesRepository)
@@ -122,7 +122,7 @@ final class SeccionCuentaController extends AbstractController{
         );
     }
 
-    #[Route('/obtenerFacturas-i', name: 'descarga_facturas_internal')]
+    #[Route('/obtenerFacturas', name: 'descarga_facturas_internal')]
     public function obtenerFactura(Request $request, HttpClientInterface $httpClient)
     {
         $factura = $request->query->get("factura");
@@ -169,7 +169,7 @@ final class SeccionCuentaController extends AbstractController{
                 'message' => $message
             ], 400);
     }
-     #[Route('/obtenerRemito-i', name: 'descarga_remito_internal')]
+     #[Route('/obtenerRemito', name: 'descarga_remito_internal')]
     public function obtenerComprobante(Request $request, HttpClientInterface $httpClient): Response
     {
         $queryParams = $request->query->all();
@@ -215,7 +215,7 @@ final class SeccionCuentaController extends AbstractController{
         }
         return $this->render('secure/internal/seccion_cuenta/comprobantes_saldados.html.twig');
     }
-    #[Route('/enviarMail-i', name: 'app_notificar_pago_internal')]
+    #[Route('/enviarMail', name: 'app_notificar_pago_internal')]
     public function enviarNotificacion(Request $request): Response
     {
         $data["mensaje"] = $request->request->get("mensaje");

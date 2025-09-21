@@ -60,13 +60,13 @@
                                     </select>
                                 </div>
                             </div>
-                                <div class="row mt-3">
-                                    <div class="col-12">
-                                        <input type="search" id="search" name="search" 
-                                        value="{{ app.request.get('search') }}" 
-                                        class="form-control" 
-                                        placeholder="Buscar por cliente..." />
-                                    </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <input type="search" id="search" name="search" 
+                                    value="{{ app.request.get('search') }}" 
+                                    class="form-control" 
+                                    placeholder="{{ app.request.get('tipo_busqueda') == 'OC' ? 'Buscar por orden de compra...' : 'Buscar por cliente...' }}" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -245,6 +245,25 @@
                     "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                 colReorder: true
             });
+
+            // Cambiar placeholder del input según el tipo de búsqueda seleccionado
+            const tipoBusquedaSelect = document.getElementById('tipo_busqueda');
+            const searchInput = document.getElementById('search');
+
+            function updatePlaceholder() {
+                const tipoSelected = tipoBusquedaSelect.value;
+                if (tipoSelected === 'OC') {
+                    searchInput.placeholder = 'Buscar por orden de compra...';
+                } else {
+                    searchInput.placeholder = 'Buscar por cliente...';
+                }
+            }
+
+            // Actualizar placeholder al cambiar el select
+            tipoBusquedaSelect.addEventListener('change', updatePlaceholder);
+            
+            // Inicializar el placeholder correcto al cargar la página
+            updatePlaceholder();
         });
     </script>
          <script>
