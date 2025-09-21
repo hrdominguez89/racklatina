@@ -202,23 +202,7 @@
                 btnsNotificar = document.querySelectorAll('button[name="btn_notificar"]');
                 btnsNotificar.forEach(btnNotificar => {
                     btnNotificar.addEventListener("click", function() {
-                        
-                        
-                        const modal = document.getElementById('contactoModal');
-                        const bsModal = new bootstrap.Modal(modal);
-                        const asuntoSelect = document.getElementById('asunto');//
-                        asuntoSelect.value = 'notificacionDePago';
-                        const mensaje = document.getElementById('mensaje');//
-                        mensaje.value = "Se notifica del pago de la factura :";
-                        mensaje.value += btnNotificar.id;
-                        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-                        checkboxes.forEach(ch =>{
-                            if (ch.checked && ch.id != btnNotificar.id)
-                            {
-                                mensaje.value += ch.id;
-                            }
-                        });
-                        bsModal.show();
+                        abrirModalNotificarPago(btnNotificar.id);
                     });
                 });
             });
@@ -302,6 +286,55 @@
                 
                 // Llenar el mensaje con la información
                 const mensaje = `Error al descargar la Factura: ${numeroComprobante}, Orden de compra: ${ordenCompra}`;
+                $('#contactoModal #mensaje').val(mensaje);
+                
+                // Abrir el modal
+                $('#contactoModal').modal('show');
+            }
+
+            function abrirModalNotificarPago(numeroComprobante) {
+                // Marcar que no se debe limpiar automáticamente
+                window.noLimpiarModal = true;
+                
+                // Buscar la fila del comprobante para obtener toda la información
+                let ordenCompra = 'No disponible';
+                let totalAlVto = 'No disponible';
+                let impACobrar = 'No disponible';
+                
+                // Buscar en la tabla el comprobante correspondiente
+                $('#tabla-comprobantes tbody tr').each(function() {
+                    const comprobanteCelda = $(this).find('td:eq(4)').text().trim(); // Columna 5 (Comprobante)
+                    if (comprobanteCelda === numeroComprobante) {
+                        ordenCompra = $(this).find('td:eq(5)').text().trim(); // Columna 6 (Ord. compra)
+                        totalAlVto = $(this).find('td:eq(6)').text().trim(); // Columna 7 (Total al Vto)
+                        impACobrar = $(this).find('td:eq(7)').text().trim(); // Columna 8 (Imp a cobrar)
+                        return false; // Salir del each
+                    }
+                });
+                
+                // Verificar checkboxes adicionales seleccionados
+                let facturas = [numeroComprobante];
+                const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(ch => {
+                    if (ch.checked && ch.id !== numeroComprobante) {
+                        facturas.push(ch.id);
+                    }
+                });
+                
+                // Seleccionar la opción de notificación de pago
+                $('#contactoModal #asunto').val('notificacionDePago');
+                
+                // Crear el mensaje con toda la información
+                let mensaje = `Se notifica del pago de la factura: ${numeroComprobante}`;
+                mensaje += `\nOrden de compra: ${ordenCompra}`;
+                mensaje += `\nTotal al Vto: ${totalAlVto}`;
+                mensaje += `\nImp a cobrar: ${impACobrar}`;
+                
+                // Si hay facturas adicionales seleccionadas, agregarlas
+                if (facturas.length > 1) {
+                    mensaje += `\n\nFacturas adicionales: ${facturas.slice(1).join(', ')}`;
+                }
+                
                 $('#contactoModal #mensaje').val(mensaje);
                 
                 // Abrir el modal
