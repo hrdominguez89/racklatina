@@ -200,6 +200,9 @@
     </div>
 </div>
 
+<!-- Incluir modal de contacto -->
+{% include 'contacto.html.twig' %}
+
 {% endblock %}
 
 {% block javascripts %}
@@ -256,10 +259,36 @@
             },3000);
         },
         error: function(xhr, status, error) {
-            $('#contactoModal').modal('show');
+            // Error en la descarga - abrir modal de contacto
+            abrirModalContactoErrorFactura(numeroComprobante);
         }
     });
     }
+    
+    function abrirModalContactoErrorFactura(numeroComprobante) {
+        // Buscar la fila del comprobante para obtener la orden de compra
+        let ordenCompra = 'No disponible';
+        
+        // Buscar en la tabla el comprobante correspondiente
+        $('#tabla-comprobantes-saldados tbody tr').each(function() {
+            const comprobanteCelda = $(this).find('td:eq(4)').text().trim(); // Columna 5 (Comprobante)
+            if (comprobanteCelda === numeroComprobante) {
+                ordenCompra = $(this).find('td:eq(5)').text().trim(); // Columna 6 (Ord. compra)
+                return false; // Salir del each
+            }
+        });
+        
+        // Seleccionar la opción de error en descarga de factura
+        $('#contactoModal #asunto').val('errorEnDescargaFactura');
+        
+        // Llenar el mensaje con la información
+        const mensaje = `Error al intentar descargar la factura ${numeroComprobante}. Orden de compra: ${ordenCompra}`;
+        $('#contactoModal #mensaje').val(mensaje);
+        
+        // Abrir el modal
+        $('#contactoModal').modal('show');
+    }
+    
     function eleminiarDocumento(numeroComprobante,url)
     {
         $.ajax({
