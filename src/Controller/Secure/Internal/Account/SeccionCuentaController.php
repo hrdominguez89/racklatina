@@ -139,9 +139,16 @@ final class SeccionCuentaController extends AbstractController{
             return new JsonResponse(['success' => true, 'message' => 'Archivo eliminado']);
         }
         
+        // DEBUG TEMPORAL: Log de ruta calculada
+        error_log("DEBUG DESCARGA FACTURA - Ruta calculada: " . $rutaArchivo);
+        error_log("DEBUG DESCARGA FACTURA - Archivo existe: " . (file_exists($rutaArchivo) ? 'SI' : 'NO'));
+        error_log("DEBUG DESCARGA FACTURA - kernel.project_dir: " . $this->getParameter('kernel.project_dir'));
+        error_log("DEBUG DESCARGA FACTURA - dirname(kernel.project_dir): " . dirname($this->getParameter('kernel.project_dir')));
+        
         // 1. Verificar si el archivo ya existe
         if (file_exists($rutaArchivo))
         {
+            error_log("DEBUG DESCARGA FACTURA - Descargando archivo existente: " . $rutaArchivo);
             return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
         }
         

@@ -300,23 +300,12 @@
             });
         }
             
-            function limpiarModalContacto() {
-                // Limpiar select de asunto (primera opción)
-                $('#contactoModal #asunto').prop('selectedIndex', 0);
-                // Limpiar textarea
-                $('#contactoModal #mensaje').val('');
-                // Limpiar archivos si existe
-                if ($('#contactoModal #archivos').length) {
-                    $('#contactoModal #archivos').val('');
-                }
-                // Remover clases de validación
-                $('#contactoModal .is-invalid').removeClass('is-invalid');
-                $('#contactoModal .is-valid').removeClass('is-valid');
-            }
-            
             function abrirModalContactoErrorFactura(numeroComprobante) {
-                // Primero limpiar el modal
-                limpiarModalContacto();
+                // Marcar que no se debe limpiar automáticamente
+                window.noLimpiarModal = true;
+                
+                // Limpiar manualmente
+                window.limpiarModalContactoGlobal();
                 
                 // Buscar la fila del comprobante para obtener la orden de compra
                 let ordenCompra = 'No disponible';
@@ -340,16 +329,6 @@
                 // Abrir el modal
                 $('#contactoModal').modal('show');
             }
-            
-            // Event listener para limpiar modal cuando se abre manualmente
-            $(document).ready(function() {
-                $('#contactoModal').on('show.bs.modal', function(e) {
-                    // Solo limpiar si no viene de error de factura
-                    if (!$(e.relatedTarget).hasClass('error-factura')) {
-                        limpiarModalContacto();
-                    }
-                });
-            });
             
             function eleminiarDocumento(numeroComprobante,url)
             {

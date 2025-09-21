@@ -85,9 +85,16 @@ final class CuentasController extends AbstractController
             return new JsonResponse(['success' => true, 'message' => 'Archivo eliminado']);
         }
         
+        // DEBUG TEMPORAL: Log de ruta calculada
+        error_log("DEBUG DESCARGA FACTURA EXTERNA - Ruta calculada: " . $rutaArchivo);
+        error_log("DEBUG DESCARGA FACTURA EXTERNA - Archivo existe: " . (file_exists($rutaArchivo) ? 'SI' : 'NO'));
+        error_log("DEBUG DESCARGA FACTURA EXTERNA - kernel.project_dir: " . $this->getParameter('kernel.project_dir'));
+        error_log("DEBUG DESCARGA FACTURA EXTERNA - dirname(kernel.project_dir): " . dirname($this->getParameter('kernel.project_dir')));
+        
         // 1. Verificar si el archivo ya existe
         if (file_exists($rutaArchivo))
         {
+            error_log("DEBUG DESCARGA FACTURA EXTERNA - Descargando archivo existente: " . $rutaArchivo);
             return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
         }
         
