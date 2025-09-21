@@ -87,16 +87,9 @@ final class CuentasController extends AbstractController
             return new JsonResponse(['success' => true, 'message' => 'Archivo eliminado']);
         }
         
-        // DEBUG TEMPORAL: Log de ruta calculada
-        error_log("DEBUG DESCARGA FACTURA EXTERNA - Ruta calculada: " . $rutaArchivo);
-        error_log("DEBUG DESCARGA FACTURA EXTERNA - Archivo existe: " . (file_exists($rutaArchivo) ? 'SI' : 'NO'));
-        error_log("DEBUG DESCARGA FACTURA EXTERNA - kernel.project_dir: " . $this->getParameter('kernel.project_dir'));
-        error_log("DEBUG DESCARGA FACTURA EXTERNA - dirname(kernel.project_dir): " . dirname($this->getParameter('kernel.project_dir')));
-        
         // 1. Verificar si el archivo ya existe
         if (file_exists($rutaArchivo))
         {
-            error_log("DEBUG DESCARGA FACTURA EXTERNA - Descargando archivo existente: " . $rutaArchivo);
             return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
         }
         
@@ -113,7 +106,7 @@ final class CuentasController extends AbstractController
             }
             // En producción, mantener verificación SSL activa para seguridad
             
-            $response = $httpClient->request('POST', 'https://192.168.16.104/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
+            $response = $httpClient->request('POST', $_ENV['CALIPSO_URL'].'/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
             array_merge([
                 'json' => [
                     'modulo' => 'VENTAS',
@@ -223,7 +216,7 @@ final class CuentasController extends AbstractController
             }
             // En producción, mantener verificación SSL activa para seguridad
             
-            $response = $httpClient->request('POST', 'https://192.168.16.104/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
+            $response = $httpClient->request('POST', $_ENV['CALIPSO_URL'].'/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
             array_merge([
                 'json' => [
                     'modulo' => 'COBRANZAS',
