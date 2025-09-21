@@ -150,6 +150,9 @@
     </div>
 </div>
 
+<!-- Incluir modal de contacto -->
+{% include 'contacto.html.twig' %}
+
 {% endblock %}
 
 {% block javascripts %}
@@ -204,10 +207,31 @@
             },3000);
         },
         error: function(xhr, status, error) {
-            $('#contactoModal').modal('show');
+            // Error en la descarga - abrir modal de contacto
+            abrirModalContactoErrorRemito(numeroComprobante);
         }
     });
 }
+    function abrirModalContactoErrorRemito(numeroComprobante) {
+        // Marcar que no se debe limpiar automáticamente
+        window.noLimpiarModal = true;
+        
+        // Limpiar manualmente
+        if (typeof window.limpiarModalContactoGlobal === 'function') {
+            window.limpiarModalContactoGlobal();
+        }
+        
+        // Seleccionar la opción de error en descarga de remito
+        $('#contactoModal #asunto').val('errorEnDescargaRemito');
+        
+        // Llenar el mensaje con la información
+        const mensaje = `Error al intentar descargar el remito ${numeroComprobante}.`;
+        $('#contactoModal #mensaje').val(mensaje);
+        
+        // Abrir el modal
+        $('#contactoModal').modal('show');
+    }
+    
     function eleminiarDocumento(numeroComprobante,url)
     {
         $.ajax({

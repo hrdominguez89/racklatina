@@ -231,8 +231,12 @@ final class CuentasController extends AbstractController
                 // Verificar el formato de respuesta de la API
                 if (isset($responseData['resultado'])) {
                     if ($responseData['resultado'] === 'ERROR') {
-                        $this->addFlash("danger", $responseData['detalle'] ?? 'Error desconocido en la API');
-                        return $this->redirectToRoute("app_comprobantes_impagos_external");
+                        $message = "Error al descargar el remito: " . ($responseData['detalle'] ?? 'Error desconocido en la API');
+                        return new JsonResponse([
+                            'success' => false,
+                            'error' => true,
+                            'message' => $message
+                        ], 400);
                     } else if ($responseData['resultado'] === 'OK') {
                         // Esperar tiempo prudencial para la generación del archivo
                         sleep(15);
@@ -250,20 +254,24 @@ final class CuentasController extends AbstractController
                             
                             return $response;
                         } else {
-                            $this->addFlash("danger",'El archivo no se generó en el tiempo esperado');
+                            $message = "Error al descargar el remito: el archivo no se generó en el tiempo esperado";
                         }
                     }
                 } else {
-                    $this->addFlash("danger",'Respuesta de API en formato inesperado');
+                    $message = "Error al descargar el remito: respuesta de API en formato inesperado";
                 }
             } else {
-                $this->addFlash("danger",'Error en la API - Código: ' . $statusCode);
+                $message = "Error al descargar el remito: la API respondió con código " . $statusCode;
             }
         } catch(Exception $e) {
-            $this->addFlash("danger", $e->getMessage());
+            $message = "Error al descargar el remito: " . $e->getMessage();
         }
         
-        return $this->redirectToRoute("app_comprobantes_impagos_external");
+        return new JsonResponse([
+            'success' => false,
+            'error' => true,
+            'message' => $message
+        ], 400);
     }
     #[Route('/enviarMail', name: 'app_notificar_pago_external')]
     public function enviarNotificacion(Request $request): Response
