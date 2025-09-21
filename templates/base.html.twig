@@ -400,8 +400,32 @@ ae:"{{ asset('images/flags/ae.svg') }}"
 					document.getElementById('drag-drop-area').innerHTML = fallbackHTML;
 				}
 
+				// Función global para limpiar el modal (para uso de funciones de error)
+				window.limpiarModalContactoGlobal = function() {
+					$('#contactoForm')[0].reset();
+					$('#asunto').val('');
+					$('#mensaje').val('');
+					if (uppyInstance) {
+						uppyInstance.getFiles().forEach(file => {
+							uppyInstance.removeFile(file.id);
+						});
+					}
+				};
+
 				// Inicializar cuando se abra el modal
 				$('#contactoModal').on('shown.bs.modal', function() {
+					// Limpiar formulario si no está siendo usado por funciones de error específicas
+					if (!window.noLimpiarModal) {
+						// Resetear el formulario
+						$('#contactoForm')[0].reset();
+						// Asegurar que el select del asunto esté vacío
+						$('#asunto').val('');
+						// Limpiar el textarea
+						$('#mensaje').val('');
+					}
+					// Resetear la bandera
+					window.noLimpiarModal = false;
+					
 					if (!uppyInstance) {
 						setTimeout(function() {
 							initUppy();
