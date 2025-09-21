@@ -150,6 +150,23 @@
     </div>
 </div>
 
+<!-- Spinner Modal -->
+<div class="modal fade" id="spinnerModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Descargando...</span>
+                </div>
+                <div class="mt-3">
+                    <h5>Descargando...</h5>
+                    <p class="text-muted mb-0">Por favor espere</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Incluir modal de contacto -->
 {% include 'contacto.html.twig' %}
 
@@ -184,6 +201,10 @@
     </script>
     <script>
     function descargarRemito(numeroComprobante) {
+    // Mostrar spinner
+    const spinnerModal = new bootstrap.Modal(document.getElementById('spinnerModal'));
+    spinnerModal.show();
+    
     const url = "{{ path('descarga_remito_external', {'remito': '__TEMP__'}) }}".replace('__TEMP__', numeroComprobante);
     
     $.ajax({
@@ -196,6 +217,9 @@
             responseType: 'blob'
         },
         success: function(data, status, xhr) {
+            // Ocultar spinner
+            spinnerModal.hide();
+            
             // Descarga exitosa
             const blob = new Blob([data]);
             const link = document.createElement('a');
@@ -207,6 +231,9 @@
             },3000);
         },
         error: function(xhr, status, error) {
+            // Ocultar spinner
+            spinnerModal.hide();
+            
             // Error en la descarga - abrir modal de contacto
             abrirModalContactoErrorRemito(numeroComprobante);
         }
