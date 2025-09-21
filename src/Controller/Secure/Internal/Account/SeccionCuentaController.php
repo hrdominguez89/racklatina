@@ -147,13 +147,24 @@ final class SeccionCuentaController extends AbstractController{
         
         // 2. Si no existe, generar a través de la API
         try {
+            // Configuración SSL según entorno
+            $sslOptions = [];
+            if ($_ENV['APP_ENV'] === 'dev' || $_ENV['APP_ENV'] === 'test') {
+                // Solo en desarrollo/testing - desactivar verificación SSL
+                $sslOptions = [
+                    'verify_peer' => false,
+                    'verify_host' => false,
+                ];
+            }
+            // En producción, mantener verificación SSL activa para seguridad
+            
             $response = $httpClient->request('POST', 'https://192.168.16.104/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
-            [
+            array_merge([
                 'json' => [
                     'modulo' => 'VENTAS',
                     'comprobante' => $fileName
                 ]
-            ]);
+            ], $sslOptions));
             
             $statusCode = $response->getStatusCode();
             if ($statusCode === 200)
@@ -247,13 +258,24 @@ final class SeccionCuentaController extends AbstractController{
         
         // 2. Si no existe, generar a través de la API
         try {
+            // Configuración SSL según entorno
+            $sslOptions = [];
+            if ($_ENV['APP_ENV'] === 'dev' || $_ENV['APP_ENV'] === 'test') {
+                // Solo en desarrollo/testing - desactivar verificación SSL
+                $sslOptions = [
+                    'verify_peer' => false,
+                    'verify_host' => false,
+                ];
+            }
+            // En producción, mantener verificación SSL activa para seguridad
+            
             $response = $httpClient->request('POST', 'https://192.168.16.104/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
-            [
+            array_merge([
                 'json' => [
                     'modulo' => 'COBRANZAS',
                     'comprobante' => $fileName
                 ]
-            ]);
+            ], $sslOptions));
             
             $statusCode = $response->getStatusCode();
             if ($statusCode === 200) {
