@@ -73,40 +73,76 @@ final class CuentasController extends AbstractController
     {
         $factura = $request->query->get("factura");
         $fileName = str_replace(" ","",$factura).".pdf";
-        $rutaArchivo = $this->getParameter('kernel.project_dir') ."/Facturas/{$fileName}";
+        // Ruta portable que funciona en Windows y Linux
+        $rutaArchivo = dirname($this->getParameter('kernel.project_dir')) . DIRECTORY_SEPARATOR . 'Facturas' . DIRECTORY_SEPARATOR . $fileName;
+        
+        // Si es POST, eliminar el archivo
         if($request->getMethod() === 'POST')
         {
-            unlink($rutaArchivo);
+            if (file_exists($rutaArchivo)) {
+                unlink($rutaArchivo);
+            }
+            return new JsonResponse(['success' => true, 'message' => 'Archivo eliminado']);
         }
+        
+        // 1. Verificar si el archivo ya existe
         if (file_exists($rutaArchivo))
         {
             return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
         }
+        
+        // 2. Si no existe, generar a través de la API
         try {
             $response = $httpClient->request('POST', 'https://192.168.16.104/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
             [
-                // 'verify_peer' => false,
-                // 'verify_host' => false,
                 'json' => [
                     'modulo' => 'VENTAS',
                     'comprobante' => $fileName
                 ]
             ]);
+            
             $statusCode = $response->getStatusCode();
-
             if ($statusCode === 200)
             {
-                sleep(15);
-                if (file_exists($rutaArchivo)) {
-                    return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+                $responseData = $response->toArray();
+                
+                // Verificar el formato de respuesta de la API
+                if (isset($responseData['resultado'])) {
+                    if ($responseData['resultado'] === 'ERROR') {
+                        $message = "Error al descargar la factura: " . ($responseData['detalle'] ?? 'Error desconocido en la API');
+                        return new JsonResponse([
+                            'success' => false,
+                            'error' => true,
+                            'message' => $message
+                        ], 400);
+                    } else if ($responseData['resultado'] === 'OK') {
+                        // Esperar tiempo prudencial para la generación del archivo
+                        sleep(15);
+                        
+                        if (file_exists($rutaArchivo)) {
+                            // 3. Descargar y programar eliminación
+                            $response = $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+                            
+                            // Eliminar archivo después de la descarga
+                            register_shutdown_function(function() use ($rutaArchivo) {
+                                if (file_exists($rutaArchivo)) {
+                                    unlink($rutaArchivo);
+                                }
+                            });
+                            
+                            return $response;
+                        } else {
+                            $message = "Error al descargar la factura: el archivo no se generó en el tiempo esperado";
+                        }
+                    }
                 } else {
-                    $message = "Error al descargar la factura : " . "no existio el archivo al momento de la descarga";
+                    $message = "Error al descargar la factura: respuesta de API en formato inesperado";
                 }
             } else {
-                $message = "Error al descargar la factura : " . "respuesta ". $statusCode;
+                $message = "Error al descargar la factura: respuesta " . $statusCode;
             }
         } catch(Exception $e) {
-                $message ="Error al descargar la factura :" . $e->getMessage();
+                $message ="Error al descargar la factura: " . $e->getMessage();
         }
         return new JsonResponse([
                 'success' => false,
@@ -118,63 +154,92 @@ final class CuentasController extends AbstractController
     public function obtenerComprobante(Request $request,HttpClientInterface $httpClient,ComprobantesimpagosRepository $comprobantesimpagosRepository,UserCustomerRepository $userCustomerRepository,ClientesRepository $clientesRepository): Response
     {
         $queryParams = $request->query->all();
-        $fileName = $queryParams["remito"];
+        $fileName = $queryParams["remito"] ?? '';
+        
+        if (empty($fileName)) {
+            return new JsonResponse([
+                'success' => false,
+                'error' => true,
+                'message' => 'Nombre de archivo no proporcionado'
+            ], 400);
+        }
+        
+        // Determinar la ruta según el tipo de comprobante - portable para Windows y Linux
+        $baseDir = dirname($this->getParameter('kernel.project_dir'));
         if($fileName[0]=="F")
         {
-            $rutaArchivo = "/../Facturas/{$fileName}".".pdf";
+            $rutaArchivo = $baseDir . DIRECTORY_SEPARATOR . 'Facturas' . DIRECTORY_SEPARATOR . $fileName . '.pdf';
         }
         else
         {
-            $rutaArchivo = "/../Recibos/{$fileName}".".pdf";
+            $rutaArchivo = $baseDir . DIRECTORY_SEPARATOR . 'Recibos' . DIRECTORY_SEPARATOR . $fileName . '.pdf';
         }
+        
+        // Si es POST, eliminar el archivo
         if($request->getMethod() === 'POST')
         {
-            unlink($rutaArchivo);
+            if (file_exists($rutaArchivo)) {
+                unlink($rutaArchivo);
+            }
+            return new JsonResponse(['success' => true, 'message' => 'Archivo eliminado']);
         }
+        
+        // 1. Verificar si el archivo ya existe
         if (file_exists($rutaArchivo))
         {
-            return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+            return $this->file($rutaArchivo, $fileName.'.pdf', ResponseHeaderBag::DISPOSITION_ATTACHMENT);
         }
+        
+        // 2. Si no existe, generar a través de la API
         try {
             $response = $httpClient->request('POST', 'https://192.168.16.104/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
             [
-                // 'verify_peer' => false,
-                // 'verify_host' => false,
                 'json' => [
                     'modulo' => 'COBRANZAS',
                     'comprobante' => $fileName
                 ]
             ]);
-            $statusCode = $response->getStatusCode();
             
+            $statusCode = $response->getStatusCode();
             if ($statusCode === 200) {
-                if (file_exists($rutaArchivo)) {
-                    return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+                $responseData = $response->toArray();
+                
+                // Verificar el formato de respuesta de la API
+                if (isset($responseData['resultado'])) {
+                    if ($responseData['resultado'] === 'ERROR') {
+                        $this->addFlash("danger", $responseData['detalle'] ?? 'Error desconocido en la API');
+                        return $this->redirectToRoute("app_comprobantes_impagos_external");
+                    } else if ($responseData['resultado'] === 'OK') {
+                        // Esperar tiempo prudencial para la generación del archivo
+                        sleep(15);
+                        
+                        if (file_exists($rutaArchivo)) {
+                            // 3. Descargar y programar eliminación
+                            $response = $this->file($rutaArchivo, $fileName.'.pdf', ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+                            
+                            // Eliminar archivo después de la descarga
+                            register_shutdown_function(function() use ($rutaArchivo) {
+                                if (file_exists($rutaArchivo)) {
+                                    unlink($rutaArchivo);
+                                }
+                            });
+                            
+                            return $response;
+                        } else {
+                            $this->addFlash("danger",'El archivo no se generó en el tiempo esperado');
+                        }
+                    }
                 } else {
-                    $comprobantes = $this->auxiliar(
-                          $comprobantesimpagosRepository,
-                         $userCustomerRepository, 
-                         $clientesRepository);
-                    $this->addFlash("danger",'El archivo no se generó correctamente');
+                    $this->addFlash("danger",'Respuesta de API en formato inesperado');
                 }
             } else {
-                $comprobantes = $this->auxiliar(
-                          $comprobantesimpagosRepository,
-                         $userCustomerRepository, 
-                         $clientesRepository);
-                $this->addFlash("danger",'Error en la API');
+                $this->addFlash("danger",'Error en la API - Código: ' . $statusCode);
             }
         } catch(Exception $e) {
-            $comprobantes = $this->auxiliar(
-                          $comprobantesimpagosRepository,
-                         $userCustomerRepository, 
-                         $clientesRepository);
-                $this->addFlash("danger",$e->getMessage());
-            }
-            return $this->redirectToRoute("app_comprobantes_saldados_external", [
-            'controller_name' => 'CuentasController',
-            'comprobantes' => $comprobantes
-            ]);
+            $this->addFlash("danger", $e->getMessage());
+        }
+        
+        return $this->redirectToRoute("app_comprobantes_impagos_external");
     }
     #[Route('/enviarMail', name: 'app_notificar_pago_external')]
     public function enviarNotificacion(Request $request): Response
