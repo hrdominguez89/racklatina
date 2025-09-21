@@ -128,7 +128,9 @@ final class SeccionCuentaController extends AbstractController{
         $factura = $request->query->get("factura");
         $fileName = str_replace(" ","",$factura).".pdf";
         // Ruta portable que funciona en Windows y Linux
-        $rutaArchivo = dirname($this->getParameter('kernel.project_dir')) . DIRECTORY_SEPARATOR . 'Facturas' . DIRECTORY_SEPARATOR . $fileName;
+        // En desarrollo: kernel.project_dir = C:\xampp\htdocs\racklatina → dirname = C:\xampp\htdocs
+        // En producción: kernel.project_dir = /var/www/html → usamos directamente kernel.project_dir
+        $rutaArchivo = $this->getParameter('kernel.project_dir') . DIRECTORY_SEPARATOR . 'Facturas' . DIRECTORY_SEPARATOR . $fileName;
         
         // Si es POST, eliminar el archivo
         if($request->getMethod() === 'POST')
@@ -238,7 +240,7 @@ final class SeccionCuentaController extends AbstractController{
         }
         
         // Determinar la ruta según el tipo de comprobante - portable para Windows y Linux
-        $baseDir = dirname($this->getParameter('kernel.project_dir'));
+        $baseDir = $this->getParameter('kernel.project_dir');
         if($fileName[0]=="F")
         {
             $rutaArchivo = $baseDir . DIRECTORY_SEPARATOR . 'Facturas' . DIRECTORY_SEPARATOR . $fileName . '.pdf';
