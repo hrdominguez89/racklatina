@@ -269,15 +269,20 @@
             responseType: 'blob'
         },
         success: function(data, status, xhr) {
-            // Ocultar spinner
-            spinnerModal.hide();
-            
             // Descarga exitosa
             const blob = new Blob([data]);
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
             link.download = numeroComprobante + '.pdf';
-            link.click();
+            
+            // Ocultar spinner antes de iniciar la descarga
+            spinnerModal.hide();
+            
+            // Pequeño delay para asegurar que el modal se cierre antes del diálogo de descarga
+            setTimeout(() => {
+                link.click();
+            }, 100);
+            
             setTimeout(() => {
                 eleminiarDocumento(numeroComprobante,url)
             },3000);
