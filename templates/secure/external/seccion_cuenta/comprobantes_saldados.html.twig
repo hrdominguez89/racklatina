@@ -213,23 +213,28 @@
     });
 }
     function abrirModalContactoErrorRemito(numeroComprobante) {
-        // Marcar que no se debe limpiar automáticamente
-        window.noLimpiarModal = true;
-        
-        // Limpiar manualmente
+        // Limpiar manualmente primero
         if (typeof window.limpiarModalContactoGlobal === 'function') {
             window.limpiarModalContactoGlobal();
         }
         
-        // Seleccionar la opción de error en descarga de remito
-        $('#contactoModal #asunto').val('errorEnDescargaRemito');
-        
-        // Llenar el mensaje con la información
-        const mensaje = `Error al intentar descargar el remito ${numeroComprobante}.`;
-        $('#contactoModal #mensaje').val(mensaje);
+        // Marcar que no se debe limpiar automáticamente DESPUÉS de limpiar
+        window.noLimpiarModal = true;
         
         // Abrir el modal
         $('#contactoModal').modal('show');
+        
+        // Usar un pequeño delay para asegurar que el modal esté completamente abierto
+        setTimeout(function() {
+            // Seleccionar la opción de error en descarga de remito
+            $('#contactoModal #asunto').val('errorEnDescargaRemito');
+            
+            // Llenar el mensaje con la información
+            const mensaje = `Error al intentar descargar el remito ${numeroComprobante}.`;
+            $('#contactoModal #mensaje').val(mensaje);
+            
+            console.log('Modal filled with:', $('#contactoModal #asunto').val(), $('#contactoModal #mensaje').val());
+        }, 100);
     }
     
     function eleminiarDocumento(numeroComprobante,url)
