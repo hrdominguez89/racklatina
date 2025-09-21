@@ -64,37 +64,4 @@
     </div>
 </div>
 
-<script>
-// Script global para limpiar modal de contacto
-$(document).ready(function() {
-    // Función global para limpiar modal
-    window.limpiarModalContactoGlobal = function() {
-        // Limpiar select de asunto (primera opción - placeholder)
-        $('#contactoModal #asunto').prop('selectedIndex', 0);
-        // Limpiar textarea completamente
-        $('#contactoModal #mensaje').val('');
-        // Limpiar archivos adjuntos si existen
-        if ($('#contactoModal input[type="file"]').length) {
-            $('#contactoModal input[type="file"]').val('');
-        }
-        // Remover clases de validación de formularios
-        $('#contactoModal .is-invalid').removeClass('is-invalid');
-        $('#contactoModal .is-valid').removeClass('is-valid');
-    };
-
-    // Event listener global - siempre limpiar cuando se abre el modal
-    $('#contactoModal').on('show.bs.modal', function(e) {
-        // Solo no limpiar si viene de error y está marcado específicamente
-        if (!window.noLimpiarModal) {
-            window.limpiarModalContactoGlobal();
-        }
-        // Reset flag
-        window.noLimpiarModal = false;
-    });
-    
-    // Limpiar cuando se cierra
-    $('#contactoModal').on('hidden.bs.modal', function(e) {
-        window.limpiarModalContactoGlobal();
-    });
-});
-</script>               
+               

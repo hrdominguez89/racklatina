@@ -301,12 +301,6 @@
         }
             
             function abrirModalContactoErrorFactura(numeroComprobante) {
-                // Marcar que no se debe limpiar automáticamente
-                window.noLimpiarModal = true;
-                
-                // Limpiar manualmente
-                window.limpiarModalContactoGlobal();
-                
                 // Buscar la fila del comprobante para obtener la orden de compra
                 let ordenCompra = 'No disponible';
                 
