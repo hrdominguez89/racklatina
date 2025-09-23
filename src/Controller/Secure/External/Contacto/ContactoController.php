@@ -37,10 +37,10 @@ final class ContactoController extends AbstractController
                 $userName = $user->getFirstName() . " " . $user->getLastName();
                 $userEmail = $user->getEmail();
             }
-
+            $adress = $user->getEmail();
             $email = (new ContactoEmailWithAttachments())
                 ->from($_ENV["MAIL_FROM"])
-                ->to($_ENV["MAIL_FROM"])
+                ->to($_ENV["MAIL_FROM"],$adress)
                 ->subject($asunto .": ". $userName)
                 ->html($this->renderView('emails/contacto.html.twig', [
                     'mensaje' => $mensaje,
