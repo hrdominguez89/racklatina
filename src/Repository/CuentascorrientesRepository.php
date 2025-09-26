@@ -27,8 +27,14 @@ class CuentascorrientesRepository extends ServiceEntityRepository
         ->setParameter('cliente_id', $cliente_id);
         if ($tipo != "TODAS")
         {
-            $qb->andWhere('c.documento = :tipo')
-            ->setParameter('tipo', $tipo);
+            if(strlen($tipo) > 1) {
+                $caracteres = str_split($tipo);
+                $qb->andWhere('c.documento IN (:tipos)')
+                ->setParameter('tipos', $caracteres);
+            } else {
+                $qb->andWhere('c.documento = :tipo')
+                ->setParameter('tipo', $tipo);
+            }
         }
         $retorno = $qb->getQuery()
         ->getArrayResult();

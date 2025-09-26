@@ -6,6 +6,7 @@ use App\Repository\ClientesRepository;
 use App\Repository\ComprobantesimpagosRepository;
 use App\Repository\CuentascorrientesRepository;
 use App\Repository\UserCustomerRepository;
+use App\Services\EstadoCuentaService;
 use Exception;
 use Symfony\Component\Mime\Email;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,14 +21,24 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 #[Route('secure/seccion-cuenta/clientes')]
 final class CuentasController extends AbstractController
 {
-    public function __construct(private MailerInterface $mailer) 
+    public function __construct(private MailerInterface $mailer,private EstadoCuentaService $estadoCuentaService) 
     {
         $this->mailer = $mailer;
     }
     
     #[Route('/', name: 'app_seccion_cuenta_external')]
-    public function index(): Response
+    public function index(UserCustomerRepository $userCustomerRepository): Response
     {
+        $user = $this->getUser();
+        $user_customer = $userCustomerRepository->findOneBy(["user"=>$user->getId()]);
+        $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
+        if(!$user_customer)
+        {
+            $this->addFlash('warning','No tienes asignado un cliente todavia');
+            return $this->render('secure/external/seccion_cuenta/index.html.twig', [
+            'controller_name' => 'CuentasController',
+        ]);
+        }
         return $this->render('secure/external/seccion_cuenta/index.html.twig', [
             'controller_name' => 'CuentasController',
         ]);
@@ -41,6 +52,14 @@ final class CuentasController extends AbstractController
     ): Response {
         $user = $this->getUser();
         $user_customer = $userCustomerRepository->findOneBy(["user"=>$user->getId()]);
+        $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
+        if(!$user_customer)
+        {
+            $this->addFlash('warning','No tienes asignado un cliente todavia');
+            return $this->render('secure/external/seccion_cuenta/index.html.twig', [
+            'controller_name' => 'CuentasController',
+        ]);
+        }
         $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso(); // Adjust according to your User entity
         $tipo = $request->get('tipo') ?? 'TODAS';
         $comprobantes = $cuentascorrientesRepository->findComprobantesSaldados($codigoCalipso,$tipo);
@@ -57,12 +76,45 @@ final class CuentasController extends AbstractController
         ClientesRepository $clientesRepository
         ): Response {
         $user = $this->getUser();
-        $user_customer = $userCustomerRepository->findOneBy(["user"=>$user->getId()]);
-        $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso();
-        $comprobantes = $comprobantesimpagosRepository->findComprobantesImpagosByCliente($codigoCalipso);
+        $users_customers = $userCustomerRepository->findBy(["user"=>$user->getId()]);
+        // $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());//aca lo tengo que modificar 
+        
+        if(!$users_customers)
+        {
+            $this->addFlash('warning','No tienes asignado un cliente todavia');
+            return $this->render('secure/external/seccion_cuenta/index.html.twig', [
+                'controller_name' => 'CuentasController',
+            ]);
+        }
+
+        $cliente_get = $request->query->get("Cliente") ?? null;
+        $clientes=[];
+        $cliente=[];
+        $comprobantes=[];
+
+        foreach($users_customers as $user_customer)
+        {
+            $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso();
+            $clientes[] = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
+            if($cliente_get == $codigoCalipso)
+            {
+                $cliente = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
+                $comprobantes = $comprobantesimpagosRepository->findComprobantesImpagosByCliente($cliente_get);
+            }
+        }
+        
+        if (empty($comprobantes) && !empty($cliente_get)) {
+            $this->addFlash('info', 'No hay comprobantes impagos para el cliente seleccionado');
+        }
+
         return $this->render('secure/external/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig', [
             'controller_name' => 'CuentasController',
-            'comprobantes' => $comprobantes
+            'comprobantes' => $comprobantes,
+            'cliente' => $cliente,
+            'clientes' => $clientes,
+            'cliente_seleccionado' => $cliente_get,
+            'mostrar_cliente' => !empty($cliente),
+            'mostrar_tabla' => !empty($comprobantes)
         ]);
     }
     #[Route('/obtenerFacturas', name: 'descarga_facturas_external')]

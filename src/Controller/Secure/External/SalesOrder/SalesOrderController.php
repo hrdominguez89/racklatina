@@ -10,6 +10,7 @@ use App\Repository\FacturasRepository;
 use App\Repository\PedidosrelacionadosRepository;
 use App\Repository\RemitosRepository;
 use App\Repository\UserCustomerRepository;
+use App\Services\EstadoCuentaService;
 use Doctrine\ORM\EntityManagerInterface;
 use Dom\Entity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,7 +21,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('secure/clientes/sales-order')]
 final class SalesOrderController extends AbstractController
 {
-    public function __construct(private EntityManagerInterface $em)
+    public function __construct(private EntityManagerInterface $em,private EstadoCuentaService $estadoCuentaService)
     {
         $this->em = $em;
     }
@@ -33,7 +34,7 @@ final class SalesOrderController extends AbstractController
         CustomerRequestRepository $repository
     ): Response {
         $user = $this->getUser();
-
+        $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
         $criteria = ['userRequest' => $user];
         $criteria['status'] = CustomerRequestStatus::PENDIENTE;
         $solicitudes = $repository->findBy($criteria, ['createdAt' => 'DESC']);
@@ -130,7 +131,8 @@ final class SalesOrderController extends AbstractController
 
     public function detalle(Request $request, PedidosrelacionadosRepository $pedidosrelacionadosRepository, EntityManagerInterface $em): Response
     {
-
+        $user = $this->getUser();
+        $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
         $cliente_id = $request->query->get('cliente_id') ?? null;
         $numero_pedido = $request->query->get('numero_pedido') ?? null;
         $orden_compra_cliente_id = $request->query->get('orden_compra_cliente_id') ?? null;

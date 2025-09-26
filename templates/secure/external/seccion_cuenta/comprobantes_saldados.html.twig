@@ -44,14 +44,13 @@
         <div class="row">
             <div class="col-12 d-flex justify-content-center mb-3">
                 {% set tipo = app.request.get('tipo') ? app.request.get('tipo') : 'TODAS' %}
-                <div> 
-                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'TODAS'}) }}" class="btn {{ tipo=='TODAS'? 'active':'' }} btn-outline-primary btn-sm">Todas</a>
-                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'F'}) }}" class="btn {{ tipo=='F'? 'active':'' }} btn-outline-primary btn-sm">Factura de venta</a>
-                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'H'}) }}" class="btn {{ tipo=='H'? 'active':'' }} btn-outline-primary btn-sm">Factura de exportacion</a>
-                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'R'}) }}" class="btn {{ tipo=='R'? 'active':'' }} btn-outline-primary btn-sm">Recibos</a>
-                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'D'}) }}" class="btn {{ tipo=='D'? 'active':'' }} btn-outline-primary btn-sm">Notas de debito</a>
-                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'C'}) }}" class="btn {{ tipo=='C'? 'active':'' }} btn-outline-primary btn-sm">Notas de credito de ventas</a>
-                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'I'}) }}" class="btn {{ tipo=='I'? 'active':'' }} btn-outline-primary btn-sm">Notas de credito de exportacion</a>
+                <div > 
+                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'TODAS'}) }}" class="btn {{ tipo=='TODAS'? 'active':'' }} btn-outline-primary btn">Todas</a>
+                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'FH'}) }}" class="btn {{ tipo=='FH'? 'active':'' }} btn-outline-primary btn">Factura</a>
+                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'R'}) }}" class="btn {{ tipo=='R'? 'active':'' }} btn-outline-primary btn">Recibos</a>
+                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'D'}) }}" class="btn {{ tipo=='D'? 'active':'' }} btn-outline-primary btn">Notas de debito</a>
+                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'CI'}) }}" class="btn {{ tipo=='CI'? 'active':'' }} btn-outline-primary btn">Notas de credito</a>
+                    
                 </div>
             </div>
         </div>
@@ -78,13 +77,13 @@
                             <table id="tabla-comprobantes-saldados" class="table table-sm table-striped table-bordered text-center">
                                 <thead>
                                     <tr class="align-middle">
-                                        <th>Fecha</th>
-                                        <th>Tipo</th>
-                                        <th>Clase</th>
-                                        <th>Num.Comprobante</th>
-                                        <th>Orden de compra</th>
-                                        <th>Estado</th>
-                                        <th>Acciones</th>
+                                        <th class="text-center">Fecha</th>
+                                        <th class="text-center">Tipo</th>
+                                        <th class="text-center">Clase</th>
+                                        <th class="text-center">Num.Comprobante</th>
+                                        <th class="text-center">Orden de compra</th>
+                                        <th class="text-center">Estado</th>
+                                        <th class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -94,17 +93,24 @@
                                             {% if fecha_visible %}
                                                 {% set fecha = fecha_visible|split('/') %}
                                                 {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
-                                                <td data-order="{{ fecha_ordenada }}">{{ fecha_visible }}</td>
+                                                <td class="text-center" data-order="{{ fecha_ordenada }}">{{ fecha_visible }}</td>
                                             {% else %}
-                                                <td data-order="9999-12-31"></td>
+                                                <td class="text-center" data-order="9999-12-31"></td>
                                             {% endif %}
-                                            
-                                            <td>{{ comprobante.nombreComprobante }}</td>
-                                            <td>{{ comprobante.claseComprobante }}</td>
-                                            <td>{{ comprobante.numeroComprobante }}</td>
-                                            <td>{{ comprobante.ordencompra }}</td>
-                                            <td>{{ comprobante.estado }}</td>
-                                            <td>
+                                            <td class="text-center">
+                                                {% if comprobante.documento == "F" or comprobante.documento == "H" %}
+                                                    Factura
+                                                {% elseif comprobante.documento == "C" or comprobante.documento == "I" %}
+                                                    Nota de credito
+                                                {% else %}
+                                                    {{ comprobante.nombreComprobante }}
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center">{{ comprobante.claseComprobante }}</td>
+                                            <td class="text-center">{{ comprobante.numeroComprobante }}</td>
+                                            <td class="text-center">{{ comprobante.ordencompra }}</td>
+                                            <td class="text-center">{{ comprobante.estado }}</td>
+                                            <td class="text-center">
                                                 <div class="btn-group" role="group">
                                                     {% if comprobante.nombreComprobante == 'Factura de Venta'
                                                         or comprobante.nombreComprobante == 'Recibo'
