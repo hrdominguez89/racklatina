@@ -343,9 +343,15 @@
                         return false; // Salir del each
                     }
                 });
-                $('.error-option').show();
-                // Seleccionar la opción de error en descarga de factura
-                $('#contactoModal #asunto').val('errorEnDescargaFactura');
+                 $('#contactoModal #div-asunto').empty();
+                const selectHTML = `
+                <label>Asunto:</label>
+                            <select name="asunto" id="asunto" class="form-select" disabled>
+                            <option value="error_descarga_factura" 
+                            selected>Error al descargar factura</option>
+                            </select>`;
+
+                $('#contactoModal #div-asunto').html(selectHTML);
                 
                 // Llenar el mensaje con la información
                 const mensaje = `Error al descargar la Factura: ${numeroComprobante}, Orden de compra: ${ordenCompra}`;
