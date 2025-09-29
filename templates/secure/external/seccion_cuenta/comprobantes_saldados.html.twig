@@ -77,10 +77,10 @@
                             <table id="tabla-comprobantes-saldados" class="table table-sm table-striped table-bordered text-center">
                                 <thead>
                                     <tr class="align-middle">
-                                        <th class="text-center">Fecha</th>
-                                        <th class="text-center">Tipo</th>
-                                        <th class="text-center">Clase</th>
-                                        <th class="text-center">Num.Comprobante</th>
+                                        <th class="text-center">Fecha de emision</th>
+                                        <th class="text-center">Tipo de comprobante</th>
+                                        <th class="text-center">Clase de comprobante</th>
+                                        <th class="text-center">Numero de Comprobante</th>
                                         <th class="text-center">Orden de compra</th>
                                         <th class="text-center">Estado</th>
                                         <th class="text-center">Acciones</th>
@@ -119,7 +119,7 @@
                                                         <button type="button" 
                                                         class="btn btn-sm btn-outline-primary" 
                                                         onclick="descargarRemito('{{ comprobante.documento ~ comprobante.claseComprobante ~ comprobante.numeroComprobante }}')">
-                                                        <i class="mdi mdi-file-download mdi-24px"></i>Factura
+                                                        <i class="mdi mdi-file-download mdi-24px"></i>Descarga
                                                         </button>
                                                     {% endif %}
                                                 </div>
