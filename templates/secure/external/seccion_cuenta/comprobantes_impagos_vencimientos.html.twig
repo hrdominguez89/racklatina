@@ -408,6 +408,22 @@
             
             $('#contactoModal #div-agente-cobrador').html(selectHTML);
 
+            $('#contactoModal').on('show.bs.modal', function() {
+                const alertHTML = `
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <strong>Info:</strong>SE NECESITA ADJUNTO DE COMPROBANTE DE PAGO Y COMPROBANTE DE RETENCIONES.
+                        <button type="button" class="close" data-dismiss="alert">
+                            <span>&times;</span>
+                        </button>
+                    </div>`;
+                
+                $('#contactoModal #modal-body').prepend(alertHTML);
+            });
+
+
+
+
+
             let mensaje = `Se notifica del pago de la factura: ${numeroComprobante}`;
 
             if (facturas.length > 1) {
