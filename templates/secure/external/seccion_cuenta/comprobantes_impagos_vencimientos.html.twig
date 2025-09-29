@@ -138,7 +138,7 @@
                 btnsNotificar = document.querySelectorAll('button[name="btn_notificar"]');
                 btnsNotificar.forEach(btnNotificar => {
                     btnNotificar.addEventListener("click", function() {
-                        abrirModalNotificarPago(btnNotificar.id);
+                        abrirModalNotificarPago(btnNotificar.id,cliente.emailcobrador);
                     });
                 });
             });
@@ -361,7 +361,7 @@
                 $('#contactoModal').modal('show');
             }
 
-            function abrirModalNotificarPago(numeroComprobante) {
+            function abrirModalNotificarPago(numeroComprobante,emailcobrador) {
             // Marcar que no se debe limpiar automáticamente
             window.noLimpiarModal = true;
             
@@ -399,6 +399,14 @@
             const totalGeneral = totalPrincipal + totalAdicional;
             
             $('#contactoModal #asunto').val('notificacionDePago');
+            
+            $('#contactoModal #div-agente-cobrador').empty();
+            const selectHTML = `
+                <label>Email del agente cobrador:</label>
+                <p name="agentecobrador">${emailcobrador}</p>
+                <input type="hidden" name="agentecobrador" value="${emailcobrador}">`;
+            
+            $('#contactoModal #div-agente-cobrador').html(selectHTML);
 
             let mensaje = `Se notifica del pago de la factura: ${numeroComprobante}`;
 

@@ -22,6 +22,7 @@ final class ContactoController extends AbstractController
         try {
             $mensaje = $request->request->get('mensaje');
             $asunto = $request->request->get('asunto');
+            $agenteCobrador = $request->request->get('agentecobrador') ?? null;
             if (empty(trim($mensaje))) {
                 return new JsonResponse([
                     'success' => false,
@@ -49,7 +50,10 @@ final class ContactoController extends AbstractController
                     'email_usuario' => $userEmail,
                     'fecha' => new \DateTime(),
                 ]));
-
+            if($agenteCobrador)
+            {
+                $email->to($agenteCobrador);
+            }
             // Agregar replyTo si el usuario tiene email
             if ($userEmail) {
                 $email->replyTo($userEmail);
