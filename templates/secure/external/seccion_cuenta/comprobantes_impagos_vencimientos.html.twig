@@ -85,6 +85,15 @@
             </p>
         </div>
     </div>
+     <div class="col-12 text-end mt-2 mb-4">
+                    <button type="button" 
+    class="btn btn-primary" 
+    name="btn_notificar" 
+    id="notificador"
+    data-email-cobrador="{{ cliente.emailcobrador }}">
+    Notificar pago
+</button>
+        </div>
     {% endif %}
 
             <!-- ACA TERMINA LA CARD DE PRESENTACION-->
@@ -102,47 +111,41 @@
         <div class="col-12 my-4 text-center">
             <h4>Comprobantes Impagos y Vencimientos</h4>
         </div>
-        <div class="col-12 text-end mt-2 mb-4">
-            <button type="button" 
-                    class="btn btn-primary" 
-                    name="btn_notificar" 
-                    id="notificador"
-                    onclick="notificarPagosSeleccionados()">
-                Notificar pago
-            </button>
-        </div>
+        
         <div class="col-12">
             <div class="table-responsive">
                 {% if mostrar_tabla %}
-                <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                $('#tabla-comprobantes').DataTable({
-                    language: {
-                        url: esDatatable,
-                        emptyTable:"No hay comprobantes disponibles para mostrar"
-                    },
-                    order: [[0, 'desc']], // Ordenar por fecha descendente
-                    buttons: [
-                        'colvis',
-                        {
-                            extend: 'excelHtml5',
-                            title: 'Mis_Comprobantes_Impagos',
-                            filename: 'Mis_Comprobantes_Impagos'
-                        }
-                    ],
-                    dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
-                        "<'row'<'col-sm-12'tr>>" +
-                        "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                    colReorder: true
-                });
-                btnsNotificar = document.querySelectorAll('button[name="btn_notificar"]');
-                btnsNotificar.forEach(btnNotificar => {
-                    btnNotificar.addEventListener("click", function() {
-                        abrirModalNotificarPago(btnNotificar.id,cliente.emailcobrador);
-                    });
-                });
+                
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            $('#tabla-comprobantes').DataTable({
+                language: {
+                    url: esDatatable,
+                    emptyTable:"No hay comprobantes disponibles para mostrar"
+                },
+                order: [[0, 'desc']], // Ordenar por fecha descendente
+                buttons: [
+                    'colvis',
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Mis_Comprobantes_Impagos',
+                        filename: 'Mis_Comprobantes_Impagos'
+                    }
+                ],
+                dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                colReorder: true
             });
-        </script>
+        btnsNotificar = document.querySelectorAll('button[name="btn_notificar"]');
+        btnsNotificar.forEach(btnNotificar => {
+            btnNotificar.addEventListener("click", function() {
+                const emailcobrador = btnNotificar.getAttribute('data-email-cobrador');
+                abrirModalNotificarPago(btnNotificar.id,emailcobrador);
+            });
+        });
+        });
+    </script>
                 <table id="tabla-comprobantes" class="table table-sm table-striped table-bordered text-center">
                     <thead>
                         <tr class="align-middle">
@@ -249,7 +252,6 @@
         </div>
     </div>
 </div>
-
 <!-- Spinner Modal -->
 <div class="modal fade" id="spinnerModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered">
@@ -269,9 +271,7 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-        
         <script>
-           
             function descargarFactura(numeroComprobante) {
                 // Mostrar spinner
                 const spinnerModal = new bootstrap.Modal(document.getElementById('spinnerModal'));
@@ -327,7 +327,6 @@
                 }
                 });
             }
-
             function abrirModalContactoErrorFactura(numeroComprobante) {
                 // Marcar que no se debe limpiar automáticamente
                 window.noLimpiarModal = true;
@@ -360,7 +359,6 @@
                 // Abrir el modal
                 $('#contactoModal').modal('show');
             }
-
             function abrirModalNotificarPago(numeroComprobante,emailcobrador) {
             // Marcar que no se debe limpiar automáticamente
             window.noLimpiarModal = true;
