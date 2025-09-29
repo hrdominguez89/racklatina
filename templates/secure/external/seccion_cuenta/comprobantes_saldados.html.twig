@@ -255,7 +255,15 @@
         window.noLimpiarModal = true;
         
         // Seleccionar la opción de error en descarga de remito
-        $('#contactoModal #asunto').val('errorEnDescargaRemito');
+        $('#contactoModal #div-asunto').empty();
+                const selectHTML = `
+                <label>Asunto:</label>
+                            <select name="asunto" id="asunto" class="form-select" disabled>
+                            <option value="error_descarga_factura" 
+                            selected>Error al descargar factura</option>
+                            </select>`;
+
+                $('#contactoModal #div-asunto').html(selectHTML);
         
         // Llenar el mensaje con la información
         const mensaje = `Error al intentar descargar el remito ${numeroComprobante}.`;
