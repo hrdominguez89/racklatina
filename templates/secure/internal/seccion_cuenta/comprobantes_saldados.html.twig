@@ -181,13 +181,13 @@
                                                 <td class="text-center">{{ comprobante.estado }}</td>
                                                 <td class="text-center">
                                                     <div class="btn-group" role="group">
-                                                         {% if comprobante.nombreComprobante == 'Factura de Venta'
+                                                        {% if comprobante.nombreComprobante == 'Factura de Venta'
                                                         or comprobante.nombreComprobante == 'Recibo'
                                                         or comprobante.nombreComprobante == 'Factura de Venta Exportación'%}
                                                         <button type="button" 
                                                         class="btn btn-sm btn-outline-primary" 
                                                         onclick="descargarRemito('{{ comprobante.documento ~ comprobante.claseComprobante ~ comprobante.numeroComprobante }}')">
-                                                        <i class="mdi mdi-file-download mdi-24px"></i>Desscarga
+                                                        <i class="mdi mdi-file-download mdi-24px"></i>Descarga
                                                         </button>
                                                         {% endif %}
                                                     </div>

@@ -59,31 +59,35 @@ final class SeccionCuentaController extends AbstractController{
         $tipoComprobante = $request->get('tipo') ?? 'TODAS';
         $comprobantes = [];
         $clientes=[];
-        if ($tipoBusqueda =='cliente') {
-            $clientes = $clientesRepository->findClientesPorRazonSocial($search);
-        }
-        if($clientes)
+        if($tipoBusqueda)
         {
+
+            if ($tipoBusqueda =='cliente') {
+                $clientes = $clientesRepository->findClientesPorRazonSocial($search);
+            }
+            else
+                {
+                    $comprobantes = $cuentascorrientesRepository->findComprobantesSaldadosPorOrdenDeCompra($search,$tipoComprobante);
+                }
+                if($clientes)
+                    {
             foreach($clientes as $cliente)
             {
                 $comprobantesCliente = $cuentascorrientesRepository->findComprobantesSaldados(
                 $cliente["codigoCalipso"],
                 $tipoComprobante
             );
-            // Acumular resultados en lugar de sobrescribir
             $comprobantes = array_merge($comprobantes, $comprobantesCliente);
             }
+            }
         }
-        else
-        {
-            $comprobantes = $cuentascorrientesRepository->findComprobantesSaldadosPorOrdenDeCompra($search,$tipoComprobante);
-        }
+        $C = $clientes[0] ?? NULL;
         return $this->render(
             'secure/internal/seccion_cuenta/comprobantes_saldados.html.twig',
             [
                 'controller_name' => 'SeccionCuentaController',
                 'comprobantes' => $comprobantes,
-                'cliente' => $clientes[0],
+                'cliente' => $C,
                 'cliente_seleccionado' => $search,
                 'mostrar_cliente' => !empty($clientes),
                 'mostrar_tabla' => !empty($comprobantes)
@@ -122,7 +126,7 @@ final class SeccionCuentaController extends AbstractController{
             [
                 'controller_name' => 'SeccionCuentaController',
                 'comprobantes' => $comprobantes,
-                'cliente' => $clientes[0],
+                'cliente' => $clientes[0] ?? null,
                 'cliente_seleccionado' => $search,
                 'mostrar_cliente' => !empty($clientes),
                 'mostrar_tabla' => !empty($comprobantes)
