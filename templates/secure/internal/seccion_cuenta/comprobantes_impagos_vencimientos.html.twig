@@ -92,6 +92,32 @@
                 </div>
             </div>
         {% endif %}
+            {% if mostrar_cliente %}
+                <div class="row mt-4">
+                <div class="col-12">
+                    <h4>
+                        CLIENTE 
+                        {{ cliente.razonSocial }}
+                    </h4>
+                    <p>
+                        <strong>Informacion:</strong>
+                        <table class="table table-striped table-sm">
+                            <tbody>
+                                <tr>
+                                    <td>Cobrador</td>
+                                    <td>{{ cliente.nombrecobrador }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Estado de cuenta</td>
+                                    <td>{{ cliente.estadoCliente }}</td>
+                                </tr>
+                            </tbody>
+                        </table>    
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
 
         <div class="row">
             <div class="col-12">
@@ -104,19 +130,17 @@
                             <table id="tabla-comprobantes" class="table table-sm table-striped table-bordered text-center">
                                 <thead>
                                      <tr class="align-middle">
-                                        <th>Fecha</th>
-                                        <th>Fecha vto</th>
-                                        <th>Días de emisión</th>
-                                        <th>Días vencidos</th>
-                                        <th>Comprobante</th>
-                                        <th>Ord. compra</th>
-                                        <th>Total al Vto</th>
-                                        <th>Imp a cobrar</th>
-                                        <th>Acciones</th>
+                                        <th class="text-center">Fecha de emision</th>
+                                        <th class="text-center">Fecha vencimiento</th>
+                                        <th class="text-center">Días vencidos</th>
+                                        <th class="text-center">Comprobante</th>
+                                        <th class="text-center">Orden de compra</th>
+                                        <th class="text-center">Total al vencimiento</th>
+                                        <th class="text-center">Importe a cobrar</th>
+                                        <th class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                   
                                         {% set totalTotalPesos = 0 %}
                                         {% set totalPendientePesos = 0 %}
                                         {% set totalSaldoCobrar = 0 %}
@@ -128,27 +152,40 @@
                                                 {% if fecha_visible %}
                                                     {% set fecha = fecha_visible|split('/') %}
                                                     {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
-                                                    <td data-order="{{ fecha_ordenada }}">{{ fecha_visible }}</td>
+                                                    <td class="text-center" data-order="{{ fecha_ordenada }}">{{ fecha_visible }}</td>
                                                 {% else %}
-                                                    <td data-order="9999-12-31"></td>
+                                                    <td class="text-center" data-order="9999-12-31"></td>
                                                 {% endif %}
                                                 
                                                 {% set fecha_visible = comprobante.fechavencimiento ? comprobante.fechavencimiento|date('d/m/Y') : '' %}
                                                 {% if fecha_visible %}
                                                     {% set fecha = fecha_visible|split('/') %}
                                                     {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
-                                                    <td data-order="{{ fecha_ordenada }}">{{ fecha_visible }}</td>
+                                                    <td  class="text-center" data-order="{{ fecha_ordenada }}">{{ fecha_visible }}</td>
                                                 {% else %}
-                                                    <td data-order="9999-12-31"></td>
+                                                    <td  class="text-center" data-order="9999-12-31"></td>
                                                 {% endif %}
-                                                
-                                                <td>{{ comprobante.d_imp }}</td>
-                                                <td>{{ comprobante.d_vto }}</td>
-                                                <td>{{ comprobante.comprobante }}</td>
-                                                <td>{{ comprobante.oc }}</td>
-                                                <td>{{ comprobante.totalpesos|number_format(2, ',', '.') }}</td>
-                                                <td>{{ comprobante.pendientepesos|number_format(2, ',', '.') }}</td>
-                                                <td>
+                                                {% if comprobante.fechavencimiento %}
+                                                {% set hoy = "now"|date('U') %}
+                                                {% set vencimiento = comprobante.fechavencimiento|date('U') %}
+                                                {% set dias_diferencia = ((hoy - vencimiento) / 86400)|round %}
+                                                <td class="text-center">
+                                                    {% if dias_diferencia > 0 %}
+                                                        {{ dias_diferencia }} días
+                                                    {% elseif dias_diferencia == 0 %}
+                                                        Vence hoy
+                                                    {% else %}
+                                                        Por vencer
+                                                    {% endif %}
+                                                </td>
+                                                {% else %}
+                                                    <td class="text-center">-</td>
+                                                {% endif %}
+                                                <td class="text-center">{{ comprobante.comprobante }}</td>
+                                                <td class="text-center">{{ comprobante.oc }}</td>
+                                                <td class="text-center">{{ comprobante.totalpesos|number_format(2, ',', '.') }}</td>
+                                                <td class="text-center">{{ comprobante.pendientepesos|number_format(2, ',', '.') }}</td>
+                                                <td class="text-center">
                                                     <div class="btn-group" role="group">
                                                          <button type="button" 
                                                         class="btn btn-sm btn-outline-primary" 

@@ -81,15 +81,39 @@
         </div>
     </div>
 
-  
+  {% if mostrar_cliente %}
+                <div class="row mt-4">
+                <div class="col-12">
+                    <h4>
+                        CLIENTE 
+                        {{ cliente.razonSocial }}
+                    </h4>
+                    <p>
+                        <strong>Informacion:</strong>
+                        <table class="table table-striped table-sm">
+                            <tbody>
+                                <tr>
+                                    <td>Cobrador</td>
+                                    <td>{{ cliente.nombrecobrador }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Estado de cuenta</td>
+                                    <td>{{ cliente.estadoCliente }}</td>
+                                </tr>
+                            </tbody>
+                        </table>    
+                    </p>
+                </div>
+            </div>
+            {% endif %}
     {% if app.request.get('search') %}
      <!--Row de busqueda-->
     <div class="row">
-  <div class="col-12 d-flex justify-content-end align-items-end mb-3">
+  <div class="col-12 d-flex justify-content-center align-items-center mb-3">
       {% set tipo = app.request.get('tipo') ? app.request.get('tipo') : 'TODAS'  %}
       {% set tipo_b =  app.request.get('tipo_busqueda') %}
       {% set busqueda =   app.request.get('search') %}
-      <div> 
+      <div > 
           <a href="{{ path('app_c_saldados',{tipo:'TODAS',search: busqueda,tipo_busqueda: tipo_b}) }}" class="btn {{ tipo=='TODAS'? 'active':'' }} btn-outline-primary">Todas</a>
           <a href="{{ path('app_c_saldados',{tipo:'FH',search: busqueda,tipo_busqueda: tipo_b}) }}" class="btn {{ tipo=='FH'? 'active':'' }} btn-outline-primary">Factura</a>
           <a href="{{ path('app_c_saldados',{tipo:'R',search: busqueda,tipo_busqueda: tipo_b}) }}" class="btn {{ tipo=='R'? 'active':'' }} btn-outline-primary">Recibos</a>
@@ -121,7 +145,7 @@
                                 <table id="tabla-comprobantes-saldados" class="table table-sm table-striped table-bordered text-center">
                                     <thead>
                                         <tr class="align-middle">
-                                            <th class="text-center">Fecha de mision</th>
+                                            <th class="text-center">Fecha de emision</th>
                                             <th class="text-center">Tipo</th>
                                             <th class="text-center">Clase</th>
                                             <th class="text-center">Numero de comprobante</th>

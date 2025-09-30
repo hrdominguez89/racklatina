@@ -41,20 +41,38 @@
             </div>
         {% endfor %}
     {% endfor %}
+    <form method="GET">
+            <div class="row">
+                <div class="col-12 col-md-5">
+                    <label class="form-class">Seleccione un cliente:</label>
+                    <select class="form-select" name="Cliente" id ="Cliente">
+                        {% for cliente in clientes %}
+                        <option value={{cliente.codigoCalipso}}>{{cliente.razonsocial}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 text-start mt-3">
+                    <button class="btn btn-primary" >Carga</button>
+                </div>
+            </div>
+        </form>
+    {% if comprobantes is not empty %}
         <div class="row">
             <div class="col-12 d-flex justify-content-center mb-3">
                 {% set tipo = app.request.get('tipo') ? app.request.get('tipo') : 'TODAS' %}
                 <div > 
-                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'TODAS'}) }}" class="btn {{ tipo=='TODAS'? 'active':'' }} btn-outline-primary btn">Todas</a>
-                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'FH'}) }}" class="btn {{ tipo=='FH'? 'active':'' }} btn-outline-primary btn">Factura</a>
-                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'R'}) }}" class="btn {{ tipo=='R'? 'active':'' }} btn-outline-primary btn">Recibos</a>
-                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'D'}) }}" class="btn {{ tipo=='D'? 'active':'' }} btn-outline-primary btn">Notas de debito</a>
-                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'CI'}) }}" class="btn {{ tipo=='CI'? 'active':'' }} btn-outline-primary btn">Notas de credito</a>
+                    <a href="{{ path('app_comprobantes_saldados_external', {'tipo': 'TODAS', 'Cliente': cliente.codigoCalipso}) }}" 
+                    class="btn {{ tipo=='TODAS' ? 'active' : '' }} btn-outline-primary">
+                        Todas
+                    </a>
+                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'FH', 'Cliente':cliente.codigoCalipso}) }}" class="btn {{ tipo=='FH'? 'active':'' }} btn-outline-primary btn">Factura</a>
+                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'R', 'Cliente':cliente.codigoCalipso}) }}" class="btn {{ tipo=='R'? 'active':'' }} btn-outline-primary btn">Recibos</a>
+                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'D', 'Cliente':cliente.codigoCalipso}) }}" class="btn {{ tipo=='D'? 'active':'' }} btn-outline-primary btn">Notas de debito</a>
+                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'CI', 'Cliente':cliente.codigoCalipso}) }}" class="btn {{ tipo=='CI'? 'active':'' }} btn-outline-primary btn">Notas de credito</a>
                     
                 </div>
             </div>
         </div>
-    {% if comprobantes is not empty %}
         <div class="row mt-3 mb-3">
             <div class="col-12">
                 <h2 class="text-center">

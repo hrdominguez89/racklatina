@@ -196,7 +196,22 @@
                                     {% else %}
                                         <td  class="text-center" data-order="9999-12-31"></td>
                                     {% endif %}
-                                    <td  class="text-center">Lo tengo que calcular yo</td>
+                                    {% if comprobante.fechavencimiento %}
+                                    {% set hoy = "now"|date('U') %}
+                                    {% set vencimiento = comprobante.fechavencimiento|date('U') %}
+                                    {% set dias_diferencia = ((hoy - vencimiento) / 86400)|round %}
+                                    <td class="text-center">
+                                        {% if dias_diferencia > 0 %}
+                                            {{ dias_diferencia }} días
+                                        {% elseif dias_diferencia == 0 %}
+                                            Vence hoy
+                                        {% else %}
+                                            Por vencer
+                                        {% endif %}
+                                    </td>
+                                {% else %}
+                                    <td class="text-center">-</td>
+                                {% endif %}
                                     <td  class="text-center">{{ comprobante.comprobante }}</td>
                                     <td  class="text-center">{{ comprobante.oc }}</td>
                                     <td  class="text-center">{{ comprobante.totalpesos|number_format(2, ',', '.') }}</td>

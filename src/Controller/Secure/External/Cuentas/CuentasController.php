@@ -51,21 +51,44 @@ final class CuentasController extends AbstractController
         UserCustomerRepository $userCustomerRepository, ClientesRepository $clientesRepository
     ): Response {
         $user = $this->getUser();
-        $user_customer = $userCustomerRepository->findOneBy(["user"=>$user->getId()]);
+        $users_customers = $userCustomerRepository->findBy(["user"=>$user->getId()]);
         $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
-        if(!$user_customer)
+        if(!$users_customers)
         {
             $this->addFlash('warning','No tienes asignado un cliente todavia');
             return $this->render('secure/external/seccion_cuenta/index.html.twig', [
             'controller_name' => 'CuentasController',
         ]);
         }
-        $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso(); // Adjust according to your User entity
+        $cliente_get = $request->query->get("Cliente") ?? null;
+        $clientes=[];
+        $cliente=[];
+        $comprobantes=[];
         $tipo = $request->get('tipo') ?? 'TODAS';
-        $comprobantes = $cuentascorrientesRepository->findComprobantesSaldados($codigoCalipso,$tipo);
+
+         foreach($users_customers as $user_customer)
+        {
+            $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso();
+            $clientes[] = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
+            if($cliente_get == $codigoCalipso)
+            {
+                $cliente = $clientesRepository->findOneBy(["codigoCalipso" => $cliente_get]);
+                // $comprobantes = $comprobantesimpagosRepository->findComprobantesImpagosByCliente($cliente_get);
+                $comprobantes = $cuentascorrientesRepository->findComprobantesSaldados($cliente_get,$tipo);
+            }
+        }
+        // $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso();
+        
+        // dd($comprobantes);
+        
         return $this->render('secure/external/seccion_cuenta/comprobantes_saldados.html.twig', [
             'controller_name' => 'CuentasController',
-            'comprobantes' => $comprobantes
+            'comprobantes' => $comprobantes,
+            'cliente' => $cliente,
+            'clientes' => $clientes,
+            'cliente_seleccionado' => $cliente_get,
+            'mostrar_cliente' => !empty($cliente),
+            'mostrar_tabla' => !empty($comprobantes)
         ]);
     }
     #[Route('/comprobantesImpagos', name: 'app_comprobantes_impagos_external')]

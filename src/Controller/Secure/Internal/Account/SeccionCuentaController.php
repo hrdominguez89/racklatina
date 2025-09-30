@@ -82,7 +82,11 @@ final class SeccionCuentaController extends AbstractController{
             'secure/internal/seccion_cuenta/comprobantes_saldados.html.twig',
             [
                 'controller_name' => 'SeccionCuentaController',
-                'comprobantes' => $comprobantes
+                'comprobantes' => $comprobantes,
+                'cliente' => $clientes[0],
+                'cliente_seleccionado' => $search,
+                'mostrar_cliente' => !empty($clientes),
+                'mostrar_tabla' => !empty($comprobantes)
             ]
         );
     }
@@ -117,7 +121,11 @@ final class SeccionCuentaController extends AbstractController{
             'secure/internal/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig',
             [
                 'controller_name' => 'SeccionCuentaController',
-                'comprobantes' => $comprobantes
+                'comprobantes' => $comprobantes,
+                'cliente' => $clientes[0],
+                'cliente_seleccionado' => $search,
+                'mostrar_cliente' => !empty($clientes),
+                'mostrar_tabla' => !empty($comprobantes)
             ]
         );
     }
