@@ -137,13 +137,38 @@
                     "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                 colReorder: true
             });
-        btnsNotificar = document.querySelectorAll('button[name="btn_notificar"]');
-        btnsNotificar.forEach(btnNotificar => {
+            btnsNotificar = document.querySelectorAll('button[name="btn_notificar"]');
+            btnsNotificar.forEach(btnNotificar => {
             btnNotificar.addEventListener("click", function() {
+
+                const checkboxes = document.querySelectorAll('.checkbox-comprobante:checked');
+               if(checkboxes.length === 0) {
+                    mostrarAlerta('warning', 'Debe seleccionar al menos un comprobante para notificar');
+                    return;
+                }
                 const emailcobrador = btnNotificar.getAttribute('data-email-cobrador');
                 abrirModalNotificarPago(btnNotificar.id,emailcobrador);
             });
         });
+        function mostrarAlerta(tipo, mensaje) {
+            const alertHTML = `
+                <div class="alert alert-${tipo} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" 
+                    style="z-index: 9999; min-width: 300px;" role="alert">
+                    ${mensaje}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>`;
+            
+            document.body.insertAdjacentHTML('beforeend', alertHTML);
+            
+            // Auto-cerrar después de 3 segundos
+            setTimeout(() => {
+                const alert = document.querySelector('.alert');
+                if(alert) {
+                    alert.classList.remove('show');
+                    setTimeout(() => alert.remove(), 150);
+                }
+            }, 3000);
+        }
         });
     </script>
                 <table id="tabla-comprobantes" class="table table-sm table-striped table-bordered text-center">
@@ -420,17 +445,18 @@
                 <input type="hidden" name="agentecobrador" value="${emailcobrador}">`;
             
             $('#contactoModal #div-agente-cobrador').html(selectHTML);
-
-            $('#contactoModal').on('show.bs.modal', function() {
+            
+            $('#contactoModal').off('show.bs.modal').on('show.bs.modal', function() {
+                $('#contactoModal #modal-body .alert').remove(); // Elimina alerts anteriores
                 const alertHTML = `
                     <div class="alert alert-info alert-dismissible fade show" role="alert">
                         <strong>Info:</strong>SE NECESITA ADJUNTO DE COMPROBANTE DE PAGO Y COMPROBANTE DE RETENCIONES.
-                        <button type="button" class="close" data-dismiss="alert">
-                            <span>&times;</span>
+                        <button type="button" class="btn-close" data-dismiss="alert">
                         </button>
                     </div>`;
                 $('#contactoModal #modal-body').prepend(alertHTML);
-            });
+            });////
+           
 
             let mensaje = `Se notifica del pago de la factura: ${numeroComprobante}`;
 
