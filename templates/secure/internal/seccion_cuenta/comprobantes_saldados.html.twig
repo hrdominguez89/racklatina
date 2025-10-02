@@ -96,6 +96,10 @@
                                     <td>Cobrador</td>
                                     <td>{{ cliente.nombrecobrador }}</td>
                                 </tr>
+                                 <tr>
+                                    <td>Correo del cobrador</td>
+                                    <td>{{ cliente.emailcobrador }}</td>
+                                </tr>
                                 <tr>
                                     <td>Estado de cuenta</td>
                                     <td>{{ cliente.estadoCliente }}</td>
@@ -146,8 +150,8 @@
                                     <thead>
                                         <tr class="align-middle">
                                             <th class="text-center">Fecha de emision</th>
-                                            <th class="text-center">Tipo</th>
-                                            <th class="text-center">Clase</th>
+                                            <th class="text-center">Tipo de comprobante</th>
+                                            <th class="text-center" title="Clase del comprobante">Clase</th>
                                             <th class="text-center">Numero de comprobante</th>
                                             <th class="text-center">Orden de compra</th>
                                             <th class="text-center">Estado</th>
