@@ -364,4 +364,38 @@ final class SeccionCuentaController extends AbstractController{
         $this->mailer->send($email);
         return $this->redirectToRoute('app_comprobantes_saldados_internal');
     }
+    #[Route('/obtenerRs',name:'app_busqueda_razon_social')]
+    public function buscarRazonSocial(Request $request, ClientesRepository $clienteRepository)
+    {
+         // Capturar el parámetro 'q' del query string
+        $query = $request->query->get('q', '');
+        
+        // Validar longitud mínima
+        if (strlen($query) < 3) {
+            return $this->json([
+                'resultados' => [],
+                'mensaje' => 'Mínimo 3 caracteres'
+            ]);
+        }
+        
+        // Buscar en la base de datos
+        $resultados = $clienteRepository->createQueryBuilder('c')
+            ->where('c.razonSocial LIKE :query')
+            ->setParameter('query', '%' . $query . '%')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult();
+        
+        // Serializar datos
+        $data = array_map(function($cliente) {
+            return [
+                // 'id' => $cliente->getId(),
+                'nombre' => $cliente->getRazonsocial(),
+                'codigo' => $cliente->getCodigoCalipso()
+            ];
+        }, $resultados);
+        
+        return $this->json($data);
+    }
+
 }

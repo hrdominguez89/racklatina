@@ -52,9 +52,6 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-12 text-start mt-3">
-                    <button class="btn btn-primary" >Carga</button>
-                </div>
             </div>
         </form>
     {% if comprobantes is not empty %}
@@ -79,7 +76,11 @@
                         </tr>
                         <tr>
                             <td>Estado de cuenta</td>
-                            <td>{{ cliente.estadoCliente }}</td>
+                            <td>{{ estado_cuenta }}</td>
+                        </tr>
+                        <tr>
+                            <td>Metodo de pago</td>
+                            <td>{{ cliente.condiciondepago}}</td>
                         </tr>
                     </tbody>
                 </table>    
@@ -233,6 +234,14 @@
     <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
+        const selectCliente = document.getElementById('Cliente');
+                if(selectCliente) {
+                    selectCliente.addEventListener('change', function() {
+                        if(this.value != 0) {
+                            this.form.submit();
+                        }
+                    });
+                }
         // Solo inicializar DataTable si hay comprobantes
             $('#tabla-comprobantes-saldados').DataTable({
                 language: {
@@ -307,7 +316,7 @@
         $('#contactoModal #div-asunto').empty();
                 const selectHTML = `
                 <label>Asunto:</label>
-                            <select name="asunto" id="asunto" class="form-select" disabled>
+                            <select name="asunto" id="asunto" class="form-select">
                             <option value="error_descarga_factura" 
                             selected>Error al descargar factura</option>
                             </select>`;
