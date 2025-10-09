@@ -20,6 +20,14 @@ class ComprobantesimpagosRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Comprobantesimpagos::class);
     }
+    public function findComprobantesImpagosByCliente(string $cliente_id): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.cliente = :cliente_id')
+            ->setParameter('cliente_id', $cliente_id)
+            ->getQuery()
+            ->getArrayResult();
+    }
 
 //    /**
 //     * @return Comprobantesimpagos[] Returns an array of Comprobantesimpagos objects

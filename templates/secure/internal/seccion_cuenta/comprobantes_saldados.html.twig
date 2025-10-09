@@ -1,0 +1,480 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Comprobantes{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item">
+                            <a href="{{ path('app_home') }}">
+                                Mi portal
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{{ path('app_seccion_cuenta_internal') }}">
+                                Cuentas
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active">
+                            Comprobantes 
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show mt-2" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="row mt-4">
+        <div class="col-12 mb-4">
+            <form method="get" action="{{ path('app_c_saldados',{tipo:"TODAS"}) }}">
+                <div class="row">
+                    <div class="col-4">
+                        <div class="mb-3">
+                            <div class="row">
+                                <div class="col-12">
+                                    <select name="tipo_busqueda" id="tipo_busqueda" class="form-select">
+                                        <option value="cliente" {{ app.request.get('tipo_busqueda') == 'cliente' ? 'selected' : '' }}>
+                                            Cliente
+                                        </option>
+                                        <option value="OC" {{ app.request.get('tipo_busqueda') == 'OC' ? 'selected' : '' }}>
+                                            Orden de compra
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                                <div class="row mt-3">
+                                    <div class="col-12">
+                                    <input type="search" 
+                                    id="search" 
+                                    name="search" 
+                                    list="resultados" 
+                                    value="{{ app.request.get('search') }}" 
+                                    class="form-control" 
+                                    placeholder="{{ app.request.get('tipo_busqueda') == 'OC' ? 'Buscar por orden de compra...' : 'Buscar por cliente...' }}"/>
+                                    <datalist id="resultados">
+                                    </datalist>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3 text-start align-self-end">
+                        <button type="submit" class="btn btn-secondary mb-3">
+                            <i class="ri-search-line align-middle me-1"></i>
+                            Buscar comprobantes
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+  {% if mostrar_cliente %}
+                <div class="row mt-4">
+                <div class="col-12">
+                    <h4>
+                        CLIENTE 
+                        {{ cliente.razonSocial }}
+                    </h4>
+                    <p>
+                        <strong>Informacion:</strong>
+                        <table class="table table-striped table-sm">
+                            <tbody>
+                                <tr>
+                                    <td>Cobrador</td>
+                                    <td>{{ cliente.nombrecobrador }}</td>
+                                </tr>
+                                 <tr>
+                                    <td>Correo del cobrador</td>
+                                    <td>{{ cliente.emailcobrador }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Estado de cuenta</td>
+                                    <td>{{ cliente.estadoCliente }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Metodo de pago</td>
+                                    <td>{{ cliente.condicionpago }}</td>
+                                </tr>
+                            </tbody> 
+                        </table>    
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+    {% if app.request.get('search') %}
+     <!--Row de busqueda-->
+    <div class="row">
+  <div class="col-12 d-flex justify-content-center align-items-center mb-3">
+      {% set tipo = app.request.get('tipo') ? app.request.get('tipo') : 'TODAS'  %}
+      {% set tipo_b =  app.request.get('tipo_busqueda') %}
+      {% set busqueda =   app.request.get('search') %}
+      <div > 
+          <a href="{{ path('app_c_saldados',{tipo:'TODAS',search: busqueda,tipo_busqueda: tipo_b}) }}" class="btn {{ tipo=='TODAS'? 'active':'' }} btn-outline-primary">Todas</a>
+          <a href="{{ path('app_c_saldados',{tipo:'FH',search: busqueda,tipo_busqueda: tipo_b}) }}" class="btn {{ tipo=='FH'? 'active':'' }} btn-outline-primary">Factura</a>
+          <a href="{{ path('app_c_saldados',{tipo:'R',search: busqueda,tipo_busqueda: tipo_b}) }}" class="btn {{ tipo=='R'? 'active':'' }} btn-outline-primary">Recibos</a>
+          <a href="{{ path('app_c_saldados',{tipo:'D',search: busqueda,tipo_busqueda: tipo_b}) }}" class="btn {{ tipo=='D'? 'active':'' }} btn-outline-primary">Notas de debito</a>
+          <a href="{{ path('app_c_saldados',{tipo:'C',search: busqueda,tipo_busqueda: tipo_b}) }}" class="btn {{ tipo=='CI'? 'active':'' }} btn-outline-primary">Notas de credito</a>
+      </div>
+  </div>
+    </div>
+     <!--Row de busqueda-->
+        {% if comprobantes is not empty %}
+            <div class="row mt-3 mb-3">
+                <div class="col-12">
+                    <h2 class="text-center">
+                        Comprobantes  encontrados para el cliente: 
+                        <strong>{{ app.request.get('search') }}</strong>
+                    </h2>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Comprobantes </h4>
+                        </div>
+                        <div class="card-body">
+                                   
+                            <div class="table-responsive">
+                                <table id="tabla-comprobantes-saldados" class="table table-sm table-striped table-bordered text-center">
+                                    <thead>
+                                        <tr class="align-middle">
+                                            <th class="text-center">Fecha de emision</th>
+                                            <th class="text-center">Tipo de comprobante</th>
+                                            <th class="text-center" title="Clase del comprobante">Clase</th>
+                                            <th class="text-center">Numero de comprobante</th>
+                                            <th class="text-center">Orden de compra</th>
+                                            <th class="text-center">Estado</th>
+                                            <th class="text-center">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for comprobante in comprobantes %}
+                                            <tr class="align-middle">
+                                                {% set fecha_visible = comprobante.fecha ? comprobante.fecha|date('d/m/Y') : '' %}
+                                                {% if fecha_visible %}
+                                                    {% set fecha = fecha_visible|split('/') %}
+                                                    {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
+                                                    <td class="text-center" data-order="{{ fecha_ordenada }}">{{ fecha_visible }}</td>
+                                                {% else %}
+                                                    <td class="text-center" data-order="9999-12-31"></td>
+                                                {% endif %}
+                                                
+                                                <td class="text-center">
+                                                {% if comprobante.documento == "F" or comprobante.documento == "H" %}
+                                                    Factura
+                                                {% elseif comprobante.documento == "C" or comprobante.documento == "I" %}
+                                                    Nota de credito
+                                                {% else %}
+                                                    {{ comprobante.nombreComprobante }}
+                                                {% endif %}
+                                                </td>
+                                                <td class="text-center">{{ comprobante.claseComprobante }}</td>
+                                                <td class="text-center">{{ comprobante.numeroComprobante }}</td>
+                                                <td class="text-center">{{ comprobante.ordencompra }}</td>
+                                                <td class="text-center">{{ comprobante.estado }}</td>
+                                                <td class="text-center">
+                                                    <div class="btn-group" role="group">
+                                                        {% if comprobante.nombreComprobante == 'Factura de Venta'
+                                                        or comprobante.nombreComprobante == 'Recibo'
+                                                        or comprobante.nombreComprobante == 'Factura de Venta Exportación'%}
+                                                        <button type="button" 
+                                                        class="btn btn-sm btn-outline-primary" 
+                                                        onclick="descargarRemito('{{ comprobante.documento ~ comprobante.claseComprobante ~ comprobante.numeroComprobante }}')">
+                                                        <i class="mdi mdi-file-download mdi-24px"></i>Descarga
+                                                        </button>
+                                                        {% endif %}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+                
+            </div>
+        {% else %}
+            <div class="alert alert-warning text-center" role="alert">
+                <h4 class="alert-heading">
+                    <i class="ri-search-line me-2"></i>
+                    No se encontraron resultados
+                </h4>
+                <p class="mb-0">
+                    No se encontraron comprobantes  para el cliente: 
+                    <strong>{{ app.request.get('search') }}</strong>
+                </p>
+                <hr>
+                <p class="mb-0">
+                    <small>Verifique que el nombre del cliente sea correcto o intente con otro criterio de búsqueda.</small>
+                </p>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <div class="row mt-4">
+        <div class="col-12 text-end">
+            <a class="btn btn-secondary" href="{{ path('app_seccion_cuenta_internal') }}">
+                Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Spinner Modal -->
+<div class="modal fade" id="spinnerModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Descargando...</span>
+                </div>
+                <div class="mt-3">
+                    <h5>Descargando...</h5>
+                    <p class="text-muted mb-0">Por favor espere</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Incluir modal de contacto -->
+{% include 'contacto.html.twig' %}
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
+    {% if app.request.get('search') and comprobantes is not empty %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Solo inicializar DataTable si hay resultados de búsqueda con datos
+            $('#tabla-comprobantes-saldados').DataTable({
+                language: {
+                    url: esDatatable
+                },
+                order: [[0, 'desc']], // Ordenar por fecha descendente
+                buttons: [
+                    'colvis',
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Comprobantes',
+                        filename: 'Comprobantes'
+                    }
+                ],
+                dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
+                     "<'row'<'col-sm-12'tr>>" +
+                     "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                colReorder: true
+            });
+        });
+        </script>
+        {% endif %}
+         <script>
+    function descargarRemito(numeroComprobante) {
+    // Mostrar spinner
+    const spinnerModal = new bootstrap.Modal(document.getElementById('spinnerModal'));
+    spinnerModal.show();
+    
+    const url = "{{ path('descarga_remito_internal', {'remito': '__TEMP__'}) }}".replace('__TEMP__', numeroComprobante);
+    
+    $.ajax({
+        url: url,
+        type: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest' // Marca como AJAX
+        },
+        xhrFields: {
+            responseType: 'blob'
+        },
+        success: function(data, status, xhr) {
+            // Descarga exitosa
+            const blob = new Blob([data]);
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = numeroComprobante + '.pdf';
+            
+            // Ocultar spinner antes de iniciar la descarga
+            spinnerModal.hide();
+            
+            // Pequeño delay para asegurar que el modal se cierre antes del diálogo de descarga
+            setTimeout(() => {
+                link.click();
+            }, 100);
+            
+            setTimeout(() => {
+                eleminiarDocumento(numeroComprobante,url)
+            },3000);
+        },
+        error: function(xhr, status, error) {
+            // Ocultar spinner
+            spinnerModal.hide();
+            
+            // Error en la descarga - abrir modal de contacto
+            abrirModalContactoErrorFactura(numeroComprobante);
+        }
+    });
+    }
+    
+    function limpiarModalContacto() {
+        // Función local obsoleta - usar la global
+        window.limpiarModalContactoGlobal();
+    }
+    
+    function abrirModalContactoErrorFactura(numeroComprobante) {
+        // Marcar que no se debe limpiar automáticamente
+        window.noLimpiarModal = true;
+        
+        // Limpiar manualmente
+        window.limpiarModalContactoGlobal();
+        
+        // Buscar la fila del comprobante para obtener la orden de compra
+        let ordenCompra = 'No disponible';
+        
+        // Buscar en la tabla el comprobante correspondiente
+        $('#tabla-comprobantes-saldados tbody tr').each(function() {
+            const comprobanteCelda = $(this).find('td:eq(4)').text().trim(); // Columna 5 (Comprobante)
+            if (comprobanteCelda === numeroComprobante) {
+                ordenCompra = $(this).find('td:eq(5)').text().trim(); // Columna 6 (Ord. compra)
+                return false; // Salir del each
+            }
+        });
+        
+        // Seleccionar la opción de error en descarga de factura
+        $('#contactoModal #asunto').val('errorEnDescargaFactura');
+        
+        // Llenar el mensaje con la información
+        const mensaje = `Error al intentar descargar la factura ${numeroComprobante}. Orden de compra: ${ordenCompra}`;
+        $('#contactoModal #mensaje').val(mensaje);
+        
+        // Abrir el modal
+        $('#contactoModal').modal('show');
+    }
+    
+    function eleminiarDocumento(numeroComprobante,url)
+    {
+        $.ajax({
+        url: url,
+        body:{"numeroComprobante":numeroComprobante},
+        type: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest' // Marca como AJAX
+        }
+        });
+    }
+
+    // Event listener para limpiar modal cuando se abre manualmente
+    $(document).ready(function() {
+        // Código de limpieza removido - el modal ya no se limpia automáticamente
+    });
+
+    // Cambiar placeholder del input según el tipo de búsqueda seleccionado
+    document.addEventListener('DOMContentLoaded', function () {
+        const search = document.getElementById('search');
+            const datalist = document.getElementById('resultados');
+            let debounceTimer;
+            
+            search.addEventListener('input', function() {
+                const query = this.value.trim();
+                
+                // Limpiar timer anterior
+                clearTimeout(debounceTimer);
+                
+                // Si tiene menos de 3 caracteres, limpiar resultados
+                if (query.length < 3) {
+                    datalist.innerHTML = '';
+                    return;
+                }
+                
+                // Esperar 300ms después de que el usuario deje de escribir
+                debounceTimer = setTimeout(() => {
+                    buscarResultados(query);
+                }, 300);
+            });
+            
+            function buscarResultados(query) {
+                
+                const url = "{{ path('app_busqueda_razon_social') }}" + '?q=' + encodeURIComponent(query);
+    
+                fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la búsqueda');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    actualizarResultados(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    datalist.innerHTML = '<option value="">Error al buscar</option>';
+                });
+            }
+            
+            function actualizarResultados(resultados) {
+                datalist.innerHTML = '';
+                
+                if (resultados.length === 0) {
+                    datalist.innerHTML = '<option value="">Sin resultados</option>';
+                    return;
+                }
+                
+                resultados.forEach(item => {
+                    const option = document.createElement('option');
+                    // Ajusta según tu estructura de datos
+                    option.value = item.nombre; // o item.razonsocial, item.codigo, etc.
+                    option.dataset.id = item.id; // Guardar el ID para uso posterior
+                    datalist.appendChild(option);
+                });
+            }
+
+        const tipoBusquedaSelect = document.getElementById('tipo_busqueda');
+        const searchInput = document.getElementById('search');
+
+        function updatePlaceholder() {
+            const tipoSelected = tipoBusquedaSelect.value;
+            if (tipoSelected === 'OC') {
+                searchInput.placeholder = 'Buscar por orden de compra...';
+            } else {
+                searchInput.placeholder = 'Buscar por cliente...';
+            }
+        }
+
+        // Actualizar placeholder al cambiar el select
+        tipoBusquedaSelect.addEventListener('change', updatePlaceholder);
+        
+        // Inicializar el placeholder correcto al cargar la página
+        updatePlaceholder();
+    });
+    </script>
+{% endblock %}

@@ -70,11 +70,32 @@
 							<p	class="card-text">
 								Visualizá y gestioná las órdenes de compra de los clientes a los que representás.
 							</p>
-							<div	class="text-end"></div>
+							<div class="text-end"></div>
 						</div>
 					</div>
 				</a>
+			</div>
+			{% if is_granted('ROLE_ADMISTRACION') %}
 			<!-- end card -->
+				<div	class="col-12 col-sm-6 col-lg-4">
+					<!-- Simple card -->
+					<a	href="{{ path('app_seccion_cuenta_external') }}">
+						<div class="card">
+							<img	class="card-img-top img-fluid"	src="{{ asset('images/cuentas.png') }}"	alt="Card image cap" />
+							<div	class="card-body"	style="min-height: 190px;">
+								<h4	class="card-title mb-2">
+									Gestioná tus cuentas
+								</h4>
+								<p	class="card-text">
+									Desde aquí podés ver el estado de tus cuentas.
+								</p>
+								<div class="text-end"></div>
+							</div>
+						</div>
+					</a>
+				<!-- end card -->
+				</div>
+			{% endif %}
 			</div>
 		<!-- end col -->
 		</div>

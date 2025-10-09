@@ -8,6 +8,7 @@ use App\Enum\CustomerRequestStatus;
 use App\Enum\CustomerRequestType;
 use App\Repository\ClientesRepository;
 use App\Repository\CustomerRequestRepository;
+use App\Services\EstadoCuentaService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,7 +21,7 @@ use Symfony\Component\Mailer\MailerInterface;
 #[Route('secure/clientes/mis-solicitudes')]
 final class CustomerRequestController extends AbstractController
 {
-    public function __construct(private MailerInterface $mailer)
+    public function __construct(private MailerInterface $mailer,private EstadoCuentaService $estadoCuentaService)
     {
         $this->mailer = $mailer;
     }
@@ -30,7 +31,8 @@ final class CustomerRequestController extends AbstractController
     {
         $statusParam = $request->query->get('status');
         $user = $this->getUser();
-
+        $user = $this->getUser();
+        $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
         $criteria = ['userRequest' => $user];
 
         if ($statusParam !== null) {
@@ -95,7 +97,7 @@ final class CustomerRequestController extends AbstractController
             $this->addFlash('success', 'Solicitud enviada correctamente.');
             return $this->redirectToRoute('app_secure_external_customer_request');
         }
-        $this->addFlash('warning', "Para representar una empresa debe agregar al menos un cliente y enviar la solicitud.\n1)Ingrese un cuit.\n2)Haga click en 'Buscar clientes'.\n3)Puede buscar y seleccionar más de uno.\n4)Al finalizar la selección hacer click en 'Enviar solicitud'.\nSu solicitud será aprobada por un empleado de RackLatina a la brevedad.");
+        $this->addFlash('warning', "Para representar una empresa debe agregar al menos un cliente y enviar la solicitud.\n1)Ingrese un cuit.\n2)Haga click en 'Buscar clientes'.\n3)Puede buscar y seleccionar más de uno.\n4)Al finalizar la selección hacer click en 'Enviar solicitud'.\nSu solicitud será aprobada por un empleado de Racklatina a la brevedad.");
 
 
 

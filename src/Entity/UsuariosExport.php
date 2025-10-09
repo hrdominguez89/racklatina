@@ -6,7 +6,7 @@ use App\Repository\UsuariosExportRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Table(name: 'usuarios_export')]
+#[ORM\Table(name: 'Usuarios_export')]
 #[ORM\Entity(repositoryClass: UsuariosExportRepository::class,readOnly: true)]
 class UsuariosExport
 {

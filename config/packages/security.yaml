@@ -38,8 +38,9 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+        - { path: ^/secure/seccion-cuenta/clientes/*, roles: [ROLE_ADMISTRACION] }
         - { path: ^/secure/clientes/*, roles: [ROLE_COMPRADOR] }
-        - { path: ^/secure/mi-perfil/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN,ROLE_COMPRADOR] }
+        - { path: ^/secure/mi-perfil/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN,ROLE_COMPRADOR,ROLE_ADMISTRACION] }
         - { path: ^/secure/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN] }
         # - { path: ^/profile, roles: ROLE_USER }
 

@@ -92,13 +92,15 @@ class RegistrationFormType extends AbstractType
             ])
             ->add('role', ChoiceType::class, [
                 'mapped' => false,
-                'label' => 'Perfil <span style="color:red">*</span>',
+                'label' => 'Perfiles <span style="color:red">*</span>',
                 'label_html' => true,
                 'choices' => array_combine(
                     array_map(fn($r) => ucfirst(strtolower(substr($r->getName(), 5))), $roles),
                     array_map(fn($r) => $r->getId(), $roles)
                 ),
-                'placeholder' => 'Seleccione un perfil',
+                'multiple' => true,
+                'expanded' => true,
+                'required' => true,
             ]);
     }
     public function configureOptions(OptionsResolver $resolver): void
