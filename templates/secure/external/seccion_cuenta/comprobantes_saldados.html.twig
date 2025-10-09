@@ -323,11 +323,9 @@
 
                 $('#contactoModal #div-asunto').html(selectHTML);
         
-        // Llenar el mensaje con la información
-        const mensaje = `Error al intentar descargar el remito ${numeroComprobante}.`;
+        const mensaje = `Error al intentar descargar el archivo ${numeroComprobante}.`;
         $('#contactoModal #mensaje').val(mensaje);
         
-        // Abrir el modal
         $('#contactoModal').modal('show');
     }
     
