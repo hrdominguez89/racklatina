@@ -41,9 +41,9 @@ class MicrosoftGraphMailerService
             // Crear el cliente de Graph
             $this->graphClient = new GraphServiceClient($tokenRequestContext);
             
-            $this->logger->info('Microsoft Graph client initialized successfully');
+            $this->logger->info('Cliente de Microsoft Graph inicializado correctamente');
         } catch (\Throwable $e) {
-            $this->logger->error('Error initializing Microsoft Graph client', [
+            $this->logger->error('Error al inicializar el cliente de Microsoft Graph', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -57,7 +57,7 @@ class MicrosoftGraphMailerService
     public function send(Email $email): void
     {
         try {
-            $this->logger->info('Preparing to send email via Microsoft Graph', [
+            $this->logger->info('Preparando envío de email vía Microsoft Graph', [
                 'subject' => $email->getSubject(),
                 'to' => $email->getTo() ? implode(', ', array_map(fn($addr) => $addr->getAddress(), $email->getTo())) : 'N/A',
             ]);
@@ -78,12 +78,12 @@ class MicrosoftGraphMailerService
                 ->post($requestBody)
                 ->wait();
 
-            $this->logger->info('Email sent successfully via Microsoft Graph', [
+            $this->logger->info('Email enviado exitosamente vía Microsoft Graph', [
                 'subject' => $email->getSubject()
             ]);
 
         } catch (\Throwable $e) {
-            $this->logger->error('Error sending email via Microsoft Graph', [
+            $this->logger->error('Error al enviar email vía Microsoft Graph', [
                 'error' => $e->getMessage(),
                 'subject' => $email->getSubject(),
                 'trace' => $e->getTraceAsString()
@@ -200,8 +200,8 @@ class MicrosoftGraphMailerService
             
             $message->setAttachments($graphAttachments);
             
-            $this->logger->info('Added attachments to message', [
-                'count' => count($graphAttachments)
+            $this->logger->info('Adjuntos agregados al mensaje', [
+                'cantidad' => count($graphAttachments)
             ]);
         }
         

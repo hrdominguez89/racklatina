@@ -28,25 +28,26 @@ class EmailMessageHandler
             
             // Verificar que sea un objeto Email (no RawMessage)
             if (!$email instanceof Email) {
-                $this->logger->warning('Received non-Email message, skipping', [
-                    'class' => get_class($email)
+                $this->logger->warning('Mensaje recibido no es Email, omitiendo', [
+                    'clase' => get_class($email)
                 ]);
                 return;
             }
             
-            $this->logger->info('Processing email from queue', [
-                'subject' => $email->getSubject(),
-                'class' => get_class($email)
+            $this->logger->info('Procesando email desde la cola', [
+                'asunto' => $email->getSubject(),
+                'clase' => get_class($email),
+                'adjuntos' => count($email->getAttachments())
             ]);
 
-            // Si es un email con adjuntos, procesarlos primero
+            // Si es un email con adjuntos especiales (ContactoEmailWithAttachments), procesarlos primero
             if ($email instanceof ContactoEmailWithAttachments) {
                 $attachmentsData = $email->getAttachmentsData();
                 
                 if (!empty($attachmentsData)) {
-                    $this->logger->info('Processing email with attachments from queue', [
-                        'count' => count($attachmentsData),
-                        'files' => array_map(fn($att) => $att['filename'], $attachmentsData)
+                    $this->logger->info('Procesando email con adjuntos especiales desde la cola', [
+                        'cantidad' => count($attachmentsData),
+                        'archivos' => array_map(fn($att) => $att['filename'], $attachmentsData)
                     ]);
                     
                     // Procesar los adjuntos que vienen serializados desde la cola
@@ -57,12 +58,12 @@ class EmailMessageHandler
             // Enviar usando Microsoft Graph API
             $this->graphMailer->send($email);
 
-            $this->logger->info('Email processed successfully from queue', [
-                'subject' => $email->getSubject()
+            $this->logger->info('Email procesado exitosamente desde la cola', [
+                'asunto' => $email->getSubject()
             ]);
 
         } catch (\Throwable $e) {
-            $this->logger->error('Error processing email from queue', [
+            $this->logger->error('Error al procesar email desde la cola', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
