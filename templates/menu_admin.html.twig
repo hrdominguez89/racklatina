@@ -1,34 +1,57 @@
-<li	class="nav-item">
-	<a	class="nav-link menu-link"	href="#sidebarDashboards"	data-bs-toggle="collapse"	role="button"	aria-expanded="false"	aria-controls="sidebarDashboards">
-		<i	class="ri-dashboard-2-line"></i>
-		<span	data-key="t-dashboards">
-			Mi portal
-		</span>
-	</a>
-	<div	class="collapse menu-dropdown"	id="sidebarDashboards">
-		<ul	class="nav nav-sm flex-column">
-			{% if is_granted('ROLE_SUPER_ADMIN') %}
-				<li	class="nav-item">
-					<a	href="{{ path('app_secure_internal_user_user_racklatina') }}"	class="nav-link"	data-key="t-analytics">
-						Usuarios Racklatina
-					</a>
-				</li>
-			{% endif %}
-			<li	class="nav-item">
-				<a	href="{{ path('app_secure_internal_user_user_cliente') }}"	class="nav-link"	data-key="t-analytics">
-					Usuarios clientes
-				</a>
-			</li>
-			<li	class="nav-item">
-				<a	href="{{ path('app_secure_internal_customer_request') }}"	class="nav-link"	data-key="t-crm">
-					Solicitudes
-				</a>
-			</li>
-			<li	class="nav-item">
-				<a	href="{{ path('app_gestor_ordenes_de_compra') }}"	class="nav-link"	data-key="t-crm">
-					Informes de órdenes de compra
-				</a>
-			</li>
-		</ul>
-	</div>
+<li class="nav-item">
+    <a class="nav-link menu-link" 
+       href="#sidebarDashboards" 
+       data-bs-toggle="collapse" 
+       role="button" 
+       aria-expanded="true" 
+       aria-controls="sidebarDashboards">
+        <i class="ri-dashboard-2-line"></i>
+        <span data-key="t-dashboards">Mi portal</span>
+    </a>
+    
+    <div class="collapse menu-dropdown show" id="sidebarDashboards">
+        <ul class="nav nav-sm flex-column">
+            {% if is_granted('ROLE_SUPER_ADMIN') %}
+                <li class="nav-item">
+                    <a href="{{ path('app_secure_internal_user_user_racklatina') }}" 
+                       class="nav-link" 
+                       data-key="t-analytics">
+                        Usuarios Racklatina
+                    </a>
+                </li>
+            {% endif %}
+            
+            <li class="nav-item">
+                <a href="{{ path('app_secure_internal_user_user_cliente') }}" 
+                   class="nav-link" 
+                   data-key="t-analytics">
+                    Usuarios clientes
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="{{ path('app_secure_internal_customer_request') }}" 
+                   class="nav-link" 
+                   data-key="t-crm">
+                    Solicitudes
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="{{ path('app_gestor_ordenes_de_compra') }}" 
+                   class="nav-link" 
+                   data-key="t-crm">
+                    Informes de órdenes de compra
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="{{ path('app_seccion_cuenta_internal') }}" 
+                   class="nav-link" 
+                   data-key="t-crm">
+                    Cuentas
+                </a>
+            </li>
+        </ul>
+    </div>
 </li>

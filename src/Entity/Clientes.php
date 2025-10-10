@@ -54,7 +54,18 @@ class Clientes
 
     #[ORM\Column(name: "Email_Vendedor", length: 50, nullable: true)]
     private ?string $emailVendedor = null;
+    
+    #[ORM\Column(name: "Codigo_Cobrador", length: 20, nullable: true)]
+    private ?string $codigocobrador = null;
+    
+    #[ORM\Column(name: "Nombre_Cobrador", length: 100, nullable: true)]
+    private ?string $nombrecobrador = null;
+    
+    #[ORM\Column(name: "Email_Cobrador", length: 255, nullable: true)]
+    private ?string $emailcobrador = null;
 
+    #[ORM\Column(name: "CondicionPago",length: 255, nullable: true)]
+    private ?string $condicionpago = null;
     public function getDbschemaid(): ?string
     {
         return $this->dbschemaid;
@@ -231,6 +242,45 @@ class Clientes
     public function setEmailVendedor(?string $emailVendedor): static
     {
         $this->emailVendedor = $emailVendedor;
+
+        return $this;
+    }
+    public function getCodigoCobrador()
+    {
+        return $this->codigocobrador;
+    }
+    public function getNombreCobrador()
+    {
+        return $this->nombrecobrador;
+    }
+    public function getEmailCobrador()
+    {
+        return $this->emailcobrador;
+    }
+    public function setCodigoCobrador(string $codigoCobrador)
+    {
+        $this->codigocobrador = $codigoCobrador;
+        return $this;
+    }
+    public function setNombreCobrador(string $nombrecobrador)
+    {
+        $this->nombrecobrador = $nombrecobrador;
+        return $this;
+    }
+    public function setEmailCobrador(string $emailcobrador)
+    {
+        $this->emailcobrador = $emailcobrador;
+        return $this;
+    }
+
+    public function getCondicionpago(): ?string
+    {
+        return $this->condicionpago;
+    }
+
+    public function setCondicionpago(?string $condicionpago): static
+    {
+        $this->condicionpago = $condicionpago;
 
         return $this;
     }

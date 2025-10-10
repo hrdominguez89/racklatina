@@ -1,0 +1,483 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Comprobantes impagos y vencimientos{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+{% endblock %}
+
+{% block body %}    
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item">
+                            <a href="{{ path('app_home') }}">
+                                Mi portal
+                            </a>
+                        </li>
+                         <li class="breadcrumb-item">
+                            <a href="{{ path('app_seccion_cuenta_external') }}">
+                                Cuentas
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active">
+                            Comprobantes impagos y vencimientos
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show mt-2" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+        <form method="GET">
+            <div class="row">
+                <div class="col-12 col-md-5">
+                    <label class="form-class">Seleccione un cliente:</label>
+                    <select class="form-select" name="Cliente" id ="Cliente">
+                        <option value=0>Seleccione un cliente</option>
+                        {% for cliente in clientes %}
+                        <option value={{cliente.codigoCalipso}}>{{cliente.razonsocial}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 text-start mt-3">
+                </div>
+            </div>
+        </form>
+
+   <!-- ACA EMPIEZA LA CARD DE PRESENTACION-->
+   {% if mostrar_cliente%}
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4>
+                CLIENTE 
+                {{ cliente.razonsocial }}
+            </h4>
+            <p>
+                <strong>Informacion:</strong>
+                <table class="table table-striped table-sm">
+                    <tbody>
+                        <tr>
+                            <td>Cobrador</td>
+                            <td>{{ cliente.nombrecobrador }}</td>
+                        </tr>
+                         <tr>
+                            <td>Correo del cobrador</td>
+                            <td>{{ cliente.emailcobrador }}</td>
+                        </tr>
+                        <tr>
+                            <td>Estado de cuenta</td>
+                            <td>{{ estado_cuenta }}</td>
+                        </tr>
+                        <tr>
+                            <td>Metodod de pago</td>
+                            <td>{{ cliente.condicionpago }}</td>
+                        </tr>
+                    </tbody>
+                </table>    
+            </p>
+        </div>
+    </div>
+     <div class="col-12 text-end mt-2 mb-4">
+        <button type="button" 
+        class="btn btn-primary" 
+        name="btn_notificar" 
+        id="notificador"
+        data-email-cobrador="{{ cliente.emailcobrador }}">
+        Notificar pago
+    </button>
+        </div>
+    {% endif %}
+
+            <!-- ACA TERMINA LA CARD DE PRESENTACION-->
+    {% if comprobantes is not empty %}
+        <div class="row mt-3 mb-3">
+            <div class="col-12">
+                <h2 class="text-center">
+                    Mis comprobantes impagos y vencimientos
+                </h2>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-12">
+            <div class="table-responsive">
+                {% if mostrar_tabla %}
+                <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            $('#tabla-comprobantes').DataTable({
+                language: {
+                    url: esDatatable,
+                    emptyTable:"No hay comprobantes disponibles para mostrar"
+                },
+                order: [[0, 'desc']], // Ordenar por fecha descendente
+                buttons: [
+                    'colvis',
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Mis_Comprobantes_Impagos',
+                        filename: 'Mis_Comprobantes_Impagos'
+                    }
+                ],
+                dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                colReorder: true
+            });
+            btnsNotificar = document.querySelectorAll('button[name="btn_notificar"]');
+            btnsNotificar.forEach(btnNotificar => {
+            btnNotificar.addEventListener("click", function() {
+
+                const checkboxes = document.querySelectorAll('.checkbox-comprobante:checked');
+               if(checkboxes.length === 0) {
+                    mostrarAlerta('warning', 'Debe seleccionar al menos un comprobante para notificar');
+                    return;
+                }
+                const emailcobrador = btnNotificar.getAttribute('data-email-cobrador');
+                abrirModalNotificarPago(btnNotificar.id,emailcobrador);
+            });
+        });
+            function mostrarAlerta(tipo, mensaje) {
+                const alertHTML = `
+                    <div class="alert alert-${tipo} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" 
+                        style="z-index: 9999; min-width: 300px;" role="alert">
+                        ${mensaje}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>`;
+                
+                document.body.insertAdjacentHTML('beforeend', alertHTML);
+                
+                // Auto-cerrar después de 3 segundos
+                setTimeout(() => {
+                    const alert = document.querySelector('.alert');
+                    if(alert) {
+                        alert.classList.remove('show');
+                        setTimeout(() => alert.remove(), 150);
+                    }
+                }, 3000);
+            }
+            
+        });
+    </script>
+                <table id="tabla-comprobantes" class="table table-sm table-striped table-bordered text-center">
+                    <thead>
+                        <tr class="align-middle">
+                            <th class="text-center">Fecha de emision</th>
+                            <th class="text-center">Fecha de vencimiento</th>
+                            <th  class="text-center">Días vencidos</th>
+                            <th  class="text-center">Comprobante</th>
+                            <th  class="text-center">Orden de compra</th>
+                            <th  class="text-center">Total al vencimiento</th>
+                            <th  class="text-center">Importe a cobrar</th>
+                            <th  class="text-center">Descarga de factura</th>
+                            <th  class="text-center">Notificacion de pago</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% if comprobantes is empty %}
+                            <tr class="align-middle">
+                                <td colspan="12" class="text-center">
+                                    <div class="alert alert-info" role="alert">
+                                        <i class="ri-information-line me-2"></i>
+                                        <strong>Sin comprobantes impagos</strong><br>
+                                        No tienes comprobantes impagos o vencimientos pendientes.
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            {% set totalTotalPesos = 0 %}
+                            {% set totalPendientePesos = 0 %}
+                            {% set totalSaldoCobrar = 0 %}
+                            {% for comprobante in comprobantes %}
+                                {% set totalTotalPesos = totalTotalPesos + comprobante.totalpesos %}
+                                {% set totalPendientePesos = totalPendientePesos + comprobante.pendientepesos %}
+                                <tr class="align-middle">
+                                    {% set fecha_visible = comprobante.fecha ? comprobante.fecha|date('d/m/Y') : '' %}
+                                    {% if fecha_visible %}
+                                        {% set fecha = fecha_visible|split('/') %}
+                                        {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
+                                        <td  class="text-center" data-order="{{ fecha_ordenada }}">{{ fecha_visible }}</td>
+                                    {% else %}
+                                        <td  class="text-center" data-order="9999-12-31"></td>
+                                    {% endif %}
+                                    
+                                    {% set fecha_visible = comprobante.fechavencimiento ? comprobante.fechavencimiento|date('d/m/Y') : '' %}
+                                    {% if fecha_visible %}
+                                        {% set fecha = fecha_visible|split('/') %}
+                                        {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
+                                        <td  class="text-center" data-order="{{ fecha_ordenada }}">{{ fecha_visible }}</td>
+                                    {% else %}
+                                        <td  class="text-center" data-order="9999-12-31"></td>
+                                    {% endif %}
+                                    {% if comprobante.fechavencimiento %}
+                                    {% set hoy = "now"|date('U') %}
+                                    {% set vencimiento = comprobante.fechavencimiento|date('U') %}
+                                    {% set dias_diferencia = ((hoy - vencimiento) / 86400)|round %}
+                                    <td class="text-center">
+                                        {% if dias_diferencia > 0 %}
+                                            {{ dias_diferencia }} días
+                                        {% elseif dias_diferencia == 0 %}
+                                            Vence hoy
+                                        {% else %}
+                                            Por vencer
+                                        {% endif %}
+                                    </td>
+                                {% else %}
+                                    <td class="text-center">-</td>
+                                {% endif %}
+                                    <td  class="text-center">{{ comprobante.comprobante }}</td>
+                                    <td  class="text-center">{{ comprobante.oc }}</td>
+                                    <td  class="text-center">{{ comprobante.totalpesos|number_format(2, ',', '.') }}</td>
+                                    <td  class="text-center">{{ comprobante.pendientepesos|number_format(2, ',', '.') }}</td>
+                                    <td class="align-middle text-center">
+                                        <div class="btn-group" role="group" >
+                                            <button type="button" 
+                                                class="btn btn-sm btn-outline-primary" 
+                                                onclick="descargarFactura('{{ comprobante.comprobante }}')">
+                                                <i class="mdi mdi-file-download mdi-24px"></i>Factura
+                                            </button>
+                                            
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" 
+                                            id='{{ comprobante.comprobante }}' 
+                                            class="checkbox checkbox-primary checkbox-comprobante"
+                                            value="{{ comprobante.comprobante }} / {{comprobante.totalpesos}}"
+                                            style="width: 25px; height: 25px; accent-color: #ffc107; cursor: pointer;">
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            <tfoot class="table-secondary">
+                                <tr>
+                                    <td colspan="5" class="text-center fw-bold">Total:</td>
+                                    <td class="text-center">{{ totalTotalPesos|number_format(2, ',', '.') }}</td>
+                                    <td class="text-center">{{ totalPendientePesos|number_format(2, ',', '.') }}</td>
+                                </tr>
+                            </tfoot>
+                                {% endif %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="alert alert-info text-center">
+                        <i class="ri-information-line me-2"></i>
+                        {% if cliente_seleccionado %}
+                            No hay comprobantes impagos para el cliente seleccionado.
+                        {% else %}
+                            Seleccione un cliente para ver sus comprobantes.
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12 text-end">
+            <a class="btn btn-secondary" href="{{ path('app_seccion_cuenta_external') }}">
+                Volver
+            </a>
+        </div>
+    </div>
+</div>
+<!-- Spinner Modal -->
+<div class="modal fade" id="spinnerModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Descargando...</span>
+                </div>
+                <div class="mt-3">
+                    <h5>Descargando...</h5>
+                    <p class="text-muted mb-0">Por favor espere</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const selectCliente = document.getElementById('Cliente');
+                if(selectCliente) {
+                    selectCliente.addEventListener('change', function() {
+                        if(this.value != 0) {
+                            this.form.submit();
+                        }
+                    });
+                }
+            });
+            function descargarFactura(numeroComprobante) {
+                // Mostrar spinner
+                const spinnerModal = new bootstrap.Modal(document.getElementById('spinnerModal'));
+                spinnerModal.show();
+                
+            const url = "{{ path('descarga_facturas_external', {'factura': '__TEMP__'}) }}".replace('__TEMP__', numeroComprobante);
+            
+            $.ajax({
+                url: url,
+                type: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' // Marca como AJAX
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(data, status, xhr) {
+                    // Descarga exitosa
+                    const blob = new Blob([data]);
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download =  numeroComprobante + '.pdf';
+                    
+                    // Ocultar spinner antes de iniciar la descarga
+                    spinnerModal.hide();
+                    
+                    // Pequeño delay para asegurar que el modal se cierre antes del diálogo de descarga
+                    setTimeout(() => {
+                        link.click();
+                    }, 100);
+                    
+                    setTimeout(() => {
+                        eleminiarDocumento(numeroComprobante,url)
+                    },3000);
+                },
+                error: function(xhr, status, error) {
+                    // Ocultar spinner
+                    spinnerModal.hide();
+                    
+                    // Error en la descarga - abrir modal de contacto
+                    abrirModalContactoErrorFactura(numeroComprobante);
+                }
+            });
+        }
+            function eleminiarDocumento(numeroComprobante,url)
+            {
+                $.ajax({
+                url: url,
+                body:{"numeroComprobante":numeroComprobante},
+                type: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' // Marca como AJAX
+                }
+                });
+            }
+            function abrirModalContactoErrorFactura(numeroComprobante) {
+                // Marcar que no se debe limpiar automáticamente
+                window.noLimpiarModal = true;
+                
+                // Buscar la fila del comprobante para obtener la orden de compra
+                let ordenCompra = 'No disponible';
+                
+                // Buscar en la tabla el comprobante correspondiente
+                $('#tabla-comprobantes tbody tr').each(function() {
+                    const comprobanteCelda = $(this).find('td:eq(4)').text().trim(); // Columna 5 (Comprobante)
+                    if (comprobanteCelda === numeroComprobante) {
+                        ordenCompra = $(this).find('td:eq(5)').text().trim(); // Columna 6 (Ord. compra)
+                        return false; // Salir del each
+                    }
+                });
+                $('#contactoModal #div-asunto').empty();
+                const selectHTML = `
+                <label>Asunto:</label>
+                            <select name="asunto" id="asunto" class="form-select" >
+                            <option value="error_descarga_factura" 
+                            selected>Error al descargar factura</option>
+                            </select>`;
+
+                $('#contactoModal #div-asunto').html(selectHTML);
+                
+                // Llenar el mensaje con la información
+                const mensaje = `Error al descargar la Factura: ${numeroComprobante}, Orden de compra: ${ordenCompra}`;
+                $('#contactoModal #mensaje').val(mensaje);
+                
+                // Abrir el modal
+                $('#contactoModal').modal('show');
+            }
+            function abrirModalNotificarPago(numeroComprobante,emailcobrador) {
+            // Marcar que no se debe limpiar automáticamente
+            window.noLimpiarModal = true;
+            
+            let impACobrar = 'No disponible';
+            let totalPrincipal = 0;
+            
+            // Buscar la información de la factura principal
+            $('#tabla-comprobantes tbody tr').each(function() {
+                const comprobanteCelda = $(this).find('td:eq(4)').text().trim(); // Columna 5 (Comprobante)
+                if (comprobanteCelda === numeroComprobante) {
+                    impACobrar = $(this).find('td:eq(7)').text().trim(); // Columna 8 (Imp a cobrar)
+                    // Extraer el valor numérico para sumar
+                    totalPrincipal = parseFloat(impACobrar.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+                    return false; 
+                }
+            });
+            
+            let facturas = [numeroComprobante];
+            let totalAdicional = 0;
+            let facturasAdicionales = [];
+            
+            const checkboxes = document.querySelectorAll('.checkbox-comprobante:checked');
+            checkboxes.forEach(ch => {
+                if (ch.id !== numeroComprobante) {
+                    // Extraer número de comprobante y total del value
+                    const [comprobante, total] = ch.value.split(' / ');
+                    facturas.push(comprobante);
+                    facturasAdicionales.push(`${comprobante} ($${total})`);
+                    
+                    // Sumar el valor de cada factura
+                    totalAdicional += parseFloat(total) || 0;
+                }
+            });
+            
+            const totalGeneral = totalPrincipal + totalAdicional;
+            
+            $('#contactoModal #asunto').val('notificacionDePago');
+            
+            $('#contactoModal #div-agente-cobrador').empty();
+            const selectHTML = `
+                <label>Email del agente cobrador:</label>
+                <p name="agentecobrador">${emailcobrador}</p>
+                <input type="hidden" name="agentecobrador" value="${emailcobrador}">`;
+            
+            $('#contactoModal #div-agente-cobrador').html(selectHTML);
+            
+            $('#contactoModal').off('show.bs.modal').on('show.bs.modal', function() {
+                $('#contactoModal #modal-body .alert').remove(); // Elimina alerts anteriores
+                const alertHTML = `
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <strong>Info:</strong>SE NECESITA ADJUNTO DE COMPROBANTE DE PAGO Y COMPROBANTE DE RETENCIONES.
+                        <button type="button" class="btn-close" data-dismiss="alert">
+                        </button>
+                    </div>`;
+                $('#contactoModal #modal-body').prepend(alertHTML);
+            });////
+           
+
+            let mensaje = `Se notifica del pago de la factura: ${numeroComprobante}`;
+
+            if (facturas.length > 1) {
+                mensaje += `\n\nFacturas: ${facturasAdicionales.join(', ')}`;
+                mensaje += `\n\nTOTAL GENERAL: $${totalGeneral.toFixed(2)}`;
+            }
+
+            $('#contactoModal #mensaje').val(mensaje);
+            $('#contactoModal').modal('show');
+        }
+        </script>
+{% endblock %}

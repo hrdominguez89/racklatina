@@ -32,7 +32,13 @@
 		<!-- Icons Css -->
 		<link
 		href="{{ asset('css/icons.min.css') }}" rel="stylesheet" type="text/css"/>
+		<!-- Uppy -->
+		<link
+		href="{{ asset('uppy/uppy.min.css') }}" rel="stylesheet" type="text/css"/>
+		<link	rel="stylesheet"	href="{{ asset('Datatables/datatables.min.css') }}">
 		<!-- App Css-->
+		<link
+		href="{{ asset('libs/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet" type="text/css"/>
 		<link
 		href="{{ asset('css/app.min.css') }}" rel="stylesheet" type="text/css"/>
 		<!-- custom Css-->
@@ -40,7 +46,7 @@
 
 		<link href="{{ asset('styles/app.css') }}" rel="stylesheet" type="text/css"/> {% block stylesheets %}{% endblock %}
 
-
+			
 		{% block javascripts %}
 			{% block importmap %}
 				{{ importmap('app') }}
@@ -60,7 +66,6 @@
 			<!-- Start right Content here -->
 			<!-- ============================================================== -->
 
-
 				<div class="main-content"> <div class="page-content"> {% block body %}{% endblock %}
 					<footer class="footer p-0" style="margin-top: -124px;">
 						<div class="container-fluid">
@@ -76,6 +81,9 @@
 					</footer>
 				</div>
 			</div>
+			
+			<!-- Modal de Contacto -->
+			{{ include('contacto.html.twig') }}
 			<!-- JAVASCRIPT -->
 			 <script>
 				var esDatatable =  "{{ asset('lang/es-ES.json') }}";
@@ -107,9 +115,458 @@ ae:"{{ asset('images/flags/ae.svg') }}"
 			<script src="{{ asset('libs/feather-icons/feather.min.js') }}"></script>
 			<script src="{{ asset('js/pages/plugins/lord-icon-2.1.0.js') }}"></script>
 			<script src="{{ asset('js/plugins.js') }}"></script>
+			<script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
+			<script src="{{ asset('Datatables/datatables.min.js') }}"></script>
+			<script src="{{ asset('libs/sweetalert2/sweetalert2.min.js') }}"></script>
+			<script src="{{ asset('uppy/uppy.min.js') }}"></script>
+			<script>
+			$(document).ready(function() {
+				let uppyInstance = null;
+				
+				// Verificar que las librerías estén disponibles
+
+				// Función para inicializar Uppy de forma segura
+				function initUppy() {
+					try {
+						// Verificar si Uppy está disponible y tiene el constructor correcto
+						if (typeof Uppy === 'undefined') {
+							throw new Error('Uppy no está cargado');
+						}
+
+						// Configuración de textos en español
+						const spanishLocale = {
+							strings: {
+								// Textos generales
+								addMore: 'Agregar más',
+								addMoreFiles: 'Agregar más archivos',
+								browseFiles: 'seleccionar archivos',
+								cancel: 'Cancelar',
+								close: 'Cerrar',
+								complete: 'Completado',
+								done: 'Listo',
+								dropHint: 'Arrastra tus archivos aquí',
+								dropPaste: 'Arrastra archivos aquí, pégalos o %{browse}',
+								dropPasteFiles: 'Arrastra archivos aquí, pégalos o %{browseFiles}',
+								dropPasteFolders: 'Arrastra archivos aquí, pégalos o %{browseFolders}',
+								dropPasteBoth: 'Arrastra archivos aquí, pégalos o %{browseFiles}',
+								edit: 'Editar',
+								editFile: 'Editar archivo',
+								editing: 'Editando %{file}',
+								error: 'Error',
+								exceedsSize: 'Este archivo excede el tamaño máximo permitido de %{size}',
+								failedToUpload: 'Error al subir %{file}',
+								fileSource: 'Origen del archivo: %{name}',
+								filesUploadedOfTotal: {
+									0: '%{complete} de %{smart_count} archivo subido',
+									1: '%{complete} de %{smart_count} archivos subidos'
+								},
+								filter: 'Filtrar',
+								finishEditingFile: 'Terminar edición del archivo',
+								folderAdded: {
+									0: 'Se agregó %{smart_count} archivo de %{folder}',
+									1: 'Se agregaron %{smart_count} archivos de %{folder}'
+								},
+								generatingThumbnails: 'Generando miniaturas...',
+								import: 'Importar',
+								importFrom: 'Importar desde %{name}',
+								loading: 'Cargando...',
+								logOut: 'Cerrar sesión',
+								myDevice: 'Mi dispositivo',
+								noFilesFound: 'No tienes archivos o carpetas aquí',
+								noInternetConnection: 'Sin conexión a Internet',
+								openFolderNamed: 'Abrir carpeta %{name}',
+								pause: 'Pausar',
+								pauseUpload: 'Pausar subida',
+								paused: 'Pausado',
+								poweredBy: 'Desarrollado por %{uppy}',
+								processingXFiles: {
+									0: 'Procesando %{smart_count} archivo',
+									1: 'Procesando %{smart_count} archivos'
+								},
+								removeFile: 'Eliminar archivo',
+								resetFilter: 'Reiniciar filtro',
+								resume: 'Continuar',
+								resumeUpload: 'Continuar subida',
+								retry: 'Reintentar',
+								retryUpload: 'Reintentar subida',
+								save: 'Guardar',
+								selectX: {
+									0: 'Seleccionar %{smart_count}',
+									1: 'Seleccionar %{smart_count}'
+								},
+								timedOut: 'Subida detenida por %{seconds} segundos, abortando.',
+								upload: 'Subir',
+								uploadComplete: 'Subida completada',
+								uploadFailed: 'Subida falló',
+								uploadPaused: 'Subida pausada',
+								uploadXFiles: {
+									0: 'Subir %{smart_count} archivo',
+									1: 'Subir %{smart_count} archivos'
+								},
+								uploadXNewFiles: {
+									0: 'Subir +%{smart_count} archivo',
+									1: 'Subir +%{smart_count} archivos'
+								},
+								uploading: 'Subiendo',
+								uploadingXFiles: {
+									0: 'Subiendo %{smart_count} archivo',
+									1: 'Subiendo %{smart_count} archivos'
+								},
+								xFilesSelected: {
+									0: '%{smart_count} archivo seleccionado',
+									1: '%{smart_count} archivos seleccionados'
+								},
+								xMoreFilesAdded: {
+									0: '%{smart_count} archivo más agregado',
+									1: '%{smart_count} archivos más agregados'
+								},
+								xTimeLeft: '%{time} restante',
+								youCanOnlyUploadFileTypes: 'Solo puedes subir: %{types}',
+								youCanOnlyUploadX: {
+									0: 'Solo puedes subir %{smart_count} archivo',
+									1: 'Solo puedes subir %{smart_count} archivos'
+								},
+								youHaveToAtLeastSelectX: {
+									0: 'Debes seleccionar al menos %{smart_count} archivo',
+									1: 'Debes seleccionar al menos %{smart_count} archivos'
+								}
+							}
+						};
+
+						// Intentar diferentes formas de inicializar Uppy según la versión
+						let uppy;
+						if (typeof Uppy === 'function') {
+							// Versión más nueva
+							uppy = Uppy({
+								debug: false,
+								locale: spanishLocale,
+								restrictions: {
+									maxFileSize: 4 * 1024 * 1024, // 4MB por archivo
+									maxNumberOfFiles: 5,
+									allowedFileTypes: ['.png', '.jpg', '.jpeg', '.pdf', '.doc', '.docx']
+								}
+							});
+						} else if (Uppy.Core) {
+							// Versión anterior con Core
+							uppy = new Uppy.Uppy({
+								debug: false,
+								locale: spanishLocale,
+								restrictions: {
+									maxFileSize: 4 * 1024 * 1024, // 4MB por archivo
+									maxNumberOfFiles: 5,
+									allowedFileTypes: ['.png', '.jpg', '.jpeg', '.pdf', '.doc', '.docx']
+								}
+							});
+						} else {
+							throw new Error('Constructor de Uppy no encontrado');
+						}
+
+						// Agregar Dashboard
+						if (Uppy.Dashboard) {
+							uppy.use(Uppy.Dashboard, {
+								target: '#drag-drop-area',
+								inline: true,
+								height: 200,
+								showProgressDetails: true,
+								hideUploadButton: true,
+								note: 'Archivos hasta 10MB, máximo 5 archivos. Tipos permitidos: imágenes, PDF, Word, ZIP.',
+								proudlyDisplayPoweredByUppy: false,
+								locale: {
+									strings: {
+										dropPasteFiles: 'Arrastra archivos aquí o %{browseFiles}',
+										browseFiles: 'selecciona archivos',
+										poweredBy: ''
+									}
+								}
+							});
+						} else {
+							throw new Error('Dashboard plugin no disponible');
+						}
+
+						// Eventos
+						uppy.on('file-added', function(file) {
+							updateFileCounter();
+						});
+
+						uppy.on('file-removed', function(file) {
+							updateFileCounter();
+						});
+
+						// Función para actualizar contador de archivos
+						function updateFileCounter() {
+							const files = uppy.getFiles();
+							const count = files.length;
+							const maxFiles = 5;
+							
+							// Buscar el elemento de información
+							const infoElement = document.querySelector('.form-text.text-muted');
+							if (infoElement && count > 0) {
+								infoElement.innerHTML = `
+									<i class="ri-information-line"></i> 
+									${count}/${maxFiles} archivos seleccionados. Máximo 4MB cada uno.
+								`;
+							} else if (infoElement) {
+								infoElement.innerHTML = `
+									<i class="ri-information-line"></i> 
+									Máximo 5 archivos, 4MB cada uno. Tipos: PNG, JPEG, JPG, PDF, DOC, DOCX
+								`;
+							}
+						}
+
+						uppy.on('restriction-failed', function(file, error) {
+							console.error('Restricción fallida:', error);
+							
+							// Mensajes de error personalizados en español con SweetAlert2
+							let titulo = 'Archivo no válido';
+							let mensaje = 'Error al procesar el archivo.';
+							
+							if (error.message.includes('size') || error.message.includes('exceed')) {
+								titulo = 'Archivo muy grande';
+								mensaje = `El archivo "${file.name}" es muy grande. Tamaño máximo permitido: 4MB.`;
+							} else if (error.message.includes('type') || error.message.includes('not allowed')) {
+								titulo = 'Tipo de archivo no permitido';
+								mensaje = `El archivo "${file.name}" no está permitido. Solo se aceptan: PNG, JPEG, JPG, PDF, DOC y DOCX.`;
+							} else if (error.message.includes('number') || error.message.includes('limit')) {
+								titulo = 'Límite de archivos alcanzado';
+								mensaje = 'Has alcanzado el límite máximo de 5 archivos.';
+							} else {
+								mensaje = error.message;
+							}
+							
+							// Verificar si SweetAlert2 está disponible
+							if (typeof Swal !== 'undefined') {
+								Swal.fire({
+									icon: 'error',
+									title: titulo,
+									text: mensaje,
+									confirmButtonText: 'Entendido',
+									confirmButtonColor: '#d33'
+								});
+							} else {
+								// Fallback si SweetAlert2 no está disponible
+								alert(titulo + ': ' + mensaje);
+							}
+						});
+
+						uppy.on('error', function(error) {
+							console.error('Error en Uppy:', error);
+							
+							// Verificar si SweetAlert2 está disponible
+							if (typeof Swal !== 'undefined') {
+								Swal.fire({
+									icon: 'error',
+									title: 'Error en el sistema de archivos',
+									text: 'Ha ocurrido un error: ' + error.message,
+									confirmButtonText: 'Entendido',
+									confirmButtonColor: '#d33'
+								});
+							} else {
+								// Fallback si SweetAlert2 no está disponible
+								alert('Error en el sistema de archivos: ' + error.message);
+							}
+						});
+
+						// Usar un timeout pequeño para asegurar que el DOM se actualice
+						setTimeout(function() {
+							uppyInstance = uppy;
+						}, 300);
+						
+						return true;
+
+					} catch (error) {
+						console.error('Error inicializando Uppy:', error);
+						showFallback();
+						return false;
+					}
+				}
+
+				// Función fallback
+				function showFallback() {
+					const fallbackHTML = `
+						<div class="fallback-upload p-3 border-2 border-dashed text-center" style="height: 200px; display: flex; flex-direction: column; justify-content: center;">
+							<div>
+								<p class="mb-3"><i class="ri-upload-2-line fs-3 text-muted"></i></p>
+								<p class="mb-3">Selecciona archivos para subir</p>
+								<input type="file" multiple class="form-control mb-2" name="archivos[]" 
+									accept="image/*,.pdf,.doc,.docx,.txt,.zip,.rar" max="5">
+								<small class="form-text text-muted">
+									<i class="ri-information-line"></i> 
+									Máximo 5 archivos, 10MB cada uno<br>
+									Tipos: imágenes, PDF, Word, TXT, ZIP
+								</small>
+							</div>
+						</div>
+					`;
+					document.getElementById('drag-drop-area').innerHTML = fallbackHTML;
+				}
+
+				// Función global para limpiar el modal (para uso de funciones de error)
+				window.limpiarModalContactoGlobal = function() {
+					$('#contactoForm')[0].reset();
+					$('#asunto').val('');
+					$('#mensaje').val('');
+					if (uppyInstance) {
+						uppyInstance.getFiles().forEach(file => {
+							uppyInstance.removeFile(file.id);
+						});
+					}
+				};
+
+				// Inicializar cuando se abra el modal
+				$('#contactoModal').on('shown.bs.modal', function() {
+					// Limpiar formulario si no está siendo usado por funciones de error específicas
+					if (!window.noLimpiarModal) {
+						// Resetear el formulario
+						$('#contactoForm')[0].reset();
+						// Asegurar que el select del asunto esté vacío
+						$('#asunto').val('');
+						// Limpiar el textarea
+						$('#mensaje').val('');
+					}
+					// Resetear la bandera
+					window.noLimpiarModal = false;
+					
+					if (!uppyInstance) {
+						setTimeout(function() {
+							initUppy();
+						}, 100);
+					}
+				});
+
+				// Limpiar cuando se cierre el modal
+				$('#contactoModal').on('hidden.bs.modal', function() {
+					if (uppyInstance) {
+						try {
+							uppyInstance.close();
+						} catch (e) {
+							// Error silencioso al cerrar Uppy
+						}
+						uppyInstance = null;
+					}
+				});
+
+				// Manejar envío del formulario
+				$('#contactoForm').on('submit', function(e) {
+					e.preventDefault();
+					
+					const mensaje = $('#mensaje').val().trim();
+					const asunto = $('#asunto').val().trim();
+					if (!mensaje) {
+						Swal.fire({
+							icon: 'error',
+							title: 'Campo requerido',
+							text: 'Por favor ingrese un mensaje.',
+							confirmButtonText: 'Entendido',
+							confirmButtonColor: '#d33'
+						});
+						return;
+					}
+
+					// Validar archivos antes del envío
+					let totalFiles = 0;
+					let totalSize = 0;
+					const maxTotalSize = 20 * 1024 * 1024; // 20MB
+					
+					if (uppyInstance) {
+						const archivos = uppyInstance.getFiles();
+						totalFiles = archivos.length;
+						
+						// Calcular tamaño total
+						archivos.forEach(file => {
+							totalSize += file.size;
+						});
+						
+						// Validar tamaño total
+						if (totalSize > maxTotalSize) {
+							Swal.fire({
+								icon: 'error',
+								title: 'Archivos muy grandes',
+								text: 'El tamaño total de los archivos excede el límite de 20MB.',
+								confirmButtonText: 'Entendido',
+								confirmButtonColor: '#d33'
+							});
+							return;
+						}
+					}
+
+					// Mostrar loading
+					Swal.fire({
+						title: 'Enviando mensaje...',
+						text: 'Por favor espere mientras procesamos su solicitud.',
+						allowOutsideClick: false,
+						allowEscapeKey: false,
+						showConfirmButton: false,
+						didOpen: () => {
+							Swal.showLoading();
+						}
+					});
+
+					// Preparar datos
+					const formData = new FormData();
+					formData.append('mensaje', mensaje);
+					formData.append('asunto', asunto);
+					
+					// Agregar archivos
+					if (uppyInstance) {
+						const archivos = uppyInstance.getFiles();
+						archivos.forEach(function(file, index) {
+							formData.append('archivo_' + index, file.data, file.name);
+						});
+					}
+					
+					// Enviar al servidor
+					fetch('/secure/clientes/contacto/enviar', {
+						method: 'POST',
+						body: formData
+					})
+					.then(response => response.json())
+					.then(data => {
+						Swal.close();
+						
+						if (data.success) {
+							Swal.fire({
+								icon: 'success',
+								title: 'Mensaje enviado',
+								text: data.message,
+								confirmButtonText: 'Entendido',
+								confirmButtonColor: '#28a745'
+							}).then(() => {
+								// Limpiar formulario y cerrar modal
+								$('#contactoForm')[0].reset();
+								if (uppyInstance) {
+									uppyInstance.getFiles().forEach(file => {
+										uppyInstance.removeFile(file.id);
+									});
+								}
+								$('#contactoModal').modal('hide');
+							});
+						} else {
+							Swal.fire({
+								icon: 'error',
+								title: 'Error al enviar',
+								text: data.message,
+								confirmButtonText: 'Entendido',
+								confirmButtonColor: '#d33'
+							});
+						}
+					})
+					.catch(error => {
+						Swal.close();
+						Swal.fire({
+							icon: 'error',
+							title: 'Error de conexión',
+							text: 'Ha ocurrido un error al enviar su mensaje. Por favor, inténtelo nuevamente.',
+							confirmButtonText: 'Entendido',
+							confirmButtonColor: '#d33'
+						});
+					});
+				});
+
+				// Inicialización
+			});
+			</script>
 
 			<!-- App js -->
 			<script src="{{ asset('js/app.js') }}"></script>
-		</body>
 	</body>
 </html>

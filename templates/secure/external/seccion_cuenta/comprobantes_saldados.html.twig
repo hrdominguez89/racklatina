@@ -1,0 +1,344 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Comprobantes {% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item">
+                            <a href="{{ path('app_home') }}">
+                                Mi portal
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{{ path('app_seccion_cuenta_external') }}">
+                                Cuentas
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active">
+                            Comprobantes 
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show mt-2" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    <form method="GET">
+            <div class="row">
+                <div class="col-12 col-md-5">
+                    <label class="form-class">Seleccione un cliente:</label>
+                    <select class="form-select" name="Cliente" id ="Cliente">
+                        <option value=0>Seleccione un cliente</option>
+                        {% for cliente in clientes %}
+                        <option value={{cliente.codigoCalipso}}>{{cliente.razonsocial}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </form>
+    {% if comprobantes is not empty %}
+    {% if mostrar_cliente%}
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4>
+                CLIENTE 
+                {{ cliente.razonsocial }}
+            </h4>
+            <p>
+                <strong>Informacion:</strong>
+                <table class="table table-striped table-sm">
+                    <tbody>
+                        <tr>
+                            <td>Cobrador</td>
+                            <td>{{ cliente.nombrecobrador }}</td>
+                        </tr>
+                         <tr>
+                            <td>Correo del cobrador</td>
+                            <td>{{ cliente.emailcobrador }}</td>
+                        </tr>
+                        <tr>
+                            <td>Estado de cuenta</td>
+                            <td>{{ estado_cuenta }}</td>
+                        </tr>
+                        <tr>
+                            <td>Metodo de pago</td>
+                            <td>{{ cliente.condicionpago}}</td>
+                        </tr>
+                    </tbody>
+                </table>    
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+        <div class="row">
+            <div class="col-12 d-flex justify-content-center mb-3">
+                {% set tipo = app.request.get('tipo') ? app.request.get('tipo') : 'TODAS' %}
+                <div > 
+                    <a href="{{ path('app_comprobantes_saldados_external', {'tipo': 'TODAS', 'Cliente': cliente.codigoCalipso}) }}" 
+                    class="btn {{ tipo=='TODAS' ? 'active' : '' }} btn-outline-primary">
+                        Todas
+                    </a>
+                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'FH', 'Cliente':cliente.codigoCalipso}) }}" class="btn {{ tipo=='FH'? 'active':'' }} btn-outline-primary btn">Factura</a>
+                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'R', 'Cliente':cliente.codigoCalipso}) }}" class="btn {{ tipo=='R'? 'active':'' }} btn-outline-primary btn">Recibos</a>
+                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'D', 'Cliente':cliente.codigoCalipso}) }}" class="btn {{ tipo=='D'? 'active':'' }} btn-outline-primary btn">Notas de debito</a>
+                    <a href="{{ path('app_comprobantes_saldados_external',{tipo:'CI', 'Cliente':cliente.codigoCalipso}) }}" class="btn {{ tipo=='CI'? 'active':'' }} btn-outline-primary btn">Notas de credito</a>
+                    
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3 mb-3">
+            <div class="col-12">
+                <h2 class="text-center">
+                    Mis Comprobantes 
+                </h2>
+            </div>
+        </div>
+       
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Comprobantes</h4>
+                </div>
+                    
+                    <div class="card-body">
+                               
+                        <div class="table-responsive">
+                            <table id="tabla-comprobantes-saldados" class="table table-sm table-striped table-bordered text-center">
+                                <thead>
+                                    <tr class="align-middle">
+                                        <th class="text-center">Fecha de emision</th>
+                                        <th class="text-center">Tipo de comprobante</th>
+                                        <th class="text-center"  title="Clase del comprobante">Clase</th>
+                                        <th class="text-center">Numero de Comprobante</th>
+                                        <th class="text-center">Orden de compra</th>
+                                        <th class="text-center">Estado</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for comprobante in comprobantes %}
+                                        <tr class="align-middle">
+                                            {% set fecha_visible = comprobante.fecha ? comprobante.fecha|date('d/m/Y') : '' %}
+                                            {% if fecha_visible %}
+                                                {% set fecha = fecha_visible|split('/') %}
+                                                {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
+                                                <td class="text-center" data-order="{{ fecha_ordenada }}">{{ fecha_visible }}</td>
+                                            {% else %}
+                                                <td class="text-center" data-order="9999-12-31"></td>
+                                            {% endif %}
+                                            <td class="text-center">
+                                                {% if comprobante.documento == "F" or comprobante.documento == "H" %}
+                                                    Factura
+                                                {% elseif comprobante.documento == "C" or comprobante.documento == "I" %}
+                                                    Nota de credito
+                                                {% else %}
+                                                    {{ comprobante.nombreComprobante }}
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center">{{ comprobante.claseComprobante }}</td>
+                                            <td class="text-center">{{ comprobante.numeroComprobante }}</td>
+                                            <td class="text-center">{{ comprobante.ordencompra }}</td>
+                                            <td class="text-center">{{ comprobante.estado }}</td>
+                                            <td class="text-center">
+                                                <div class="btn-group" role="group">
+                                                    {% if comprobante.nombreComprobante == 'Factura de Venta'
+                                                        or comprobante.nombreComprobante == 'Recibo'
+                                                        or comprobante.nombreComprobante == 'Factura de Venta Exportación'%}
+
+                                                        <button type="button" 
+                                                        class="btn btn-sm btn-outline-primary" 
+                                                        onclick="descargarRemito('{{ comprobante.documento ~ comprobante.claseComprobante ~ comprobante.numeroComprobante }}')">
+                                                        <i class="mdi mdi-file-download mdi-24px"></i>Descarga
+                                                        </button>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center" role="alert">
+            <h4 class="alert-heading">
+                <i class="ri-information-line me-2"></i>
+                Sin comprobantes 
+            </h4>
+            <p class="mb-0">
+                No tienes comprobantes  registrados en este momento.
+            </p>
+        </div>
+    {% endif %}
+
+    <div class="row mt-4">
+        <div class="col-12 text-end">
+            <a class="btn btn-secondary" href="{{ path('app_seccion_cuenta_external') }}">
+                Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Spinner Modal -->
+<div class="modal fade" id="spinnerModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Descargando...</span>
+                </div>
+                <div class="mt-3">
+                    <h5>Descargando...</h5>
+                    <p class="text-muted mb-0">Por favor espere</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Incluir modal de contacto -->
+{% include 'contacto.html.twig' %}
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectCliente = document.getElementById('Cliente');
+                if(selectCliente) {
+                    selectCliente.addEventListener('change', function() {
+                        if(this.value != 0) {
+                            this.form.submit();
+                        }
+                    });
+                }
+        // Solo inicializar DataTable si hay comprobantes
+            $('#tabla-comprobantes-saldados').DataTable({
+                language: {
+                    url: esDatatable
+                },
+                order: [[0, 'desc']], // Ordenar por fecha descendente
+                buttons: [
+                    'colvis',
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Mis_Comprobantes_Saldados',
+                        filename: 'Mis_Comprobantes_Saldados'
+                    }
+                ],
+                dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
+                     "<'row'<'col-sm-12'tr>>" +
+                     "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                colReorder: true
+            });
+        });
+    </script>
+    <script>
+    function descargarRemito(numeroComprobante) {
+    // Mostrar spinner
+    const spinnerModal = new bootstrap.Modal(document.getElementById('spinnerModal'));
+    spinnerModal.show();
+    
+    const url = "{{ path('descarga_remito_external', {'remito': '__TEMP__'}) }}".replace('__TEMP__', numeroComprobante);
+    
+    $.ajax({
+        url: url,
+        type: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest' // Marca como AJAX
+        },
+        xhrFields: {
+            responseType: 'blob'
+        },
+        success: function(data, status, xhr) {
+            // Descarga exitosa
+            const blob = new Blob([data]);
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download =  numeroComprobante + '.pdf';
+            
+            // Ocultar spinner antes de iniciar la descarga
+            spinnerModal.hide();
+            
+            // Pequeño delay para asegurar que el modal se cierre antes del diálogo de descarga
+            setTimeout(() => {
+                link.click();
+            }, 100);
+            
+            setTimeout(() => {
+                eleminiarDocumento(numeroComprobante,url)
+            },3000);
+        },
+        error: function(xhr, status, error) {
+            // Ocultar spinner
+            spinnerModal.hide();
+            
+            // Error en la descarga - abrir modal de contacto
+            abrirModalContactoErrorRemito(numeroComprobante);
+        }
+    });
+}
+    function abrirModalContactoErrorRemito(numeroComprobante) {
+        // Marcar que no se debe limpiar automáticamente
+        window.noLimpiarModal = true;
+        
+        // Seleccionar la opción de error en descarga de remito
+        $('#contactoModal #div-asunto').empty();
+                const selectHTML = `
+                <label>Asunto:</label>
+                            <select name="asunto" id="asunto" class="form-select">
+                            <option value="error_descarga_factura" 
+                            selected>Error al descargar factura</option>
+                            </select>`;
+
+                $('#contactoModal #div-asunto').html(selectHTML);
+        
+        const mensaje = `Error al intentar descargar el archivo ${numeroComprobante}.`;
+        $('#contactoModal #mensaje').val(mensaje);
+        
+        $('#contactoModal').modal('show');
+    }
+    
+    function eleminiarDocumento(numeroComprobante,url)
+    {
+        $.ajax({
+        url: url,
+        body:{"numeroComprobante":numeroComprobante},
+        type: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest' // Marca como AJAX
+        }
+        });
+    }
+    </script>
+{% endblock %}

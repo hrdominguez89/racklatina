@@ -9,6 +9,7 @@
             <form id="formAltaUsuario" method="POST" action="{{ path('app_usuarios_editar_guardar') }}">
                 <div class="modal-body">
                     <input type="hidden" name="id" value="{{ user.id }}" readonly>
+                    <input type="hidden" name="tipo_usuario" value="cliente" readonly>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -46,7 +47,7 @@
                                     <option value="">Seleccione un País</option>
                                     {% if paises is not empty %}
                                         {% for pais in paises %}
-                                            
+                                            <option value="{{ pais }}" {{ externalUserData and externalUserData.pais == pais ? 'selected' : '' }}>{{ pais }}</option>
                                         {% endfor %}
                                     {% endif %}
                                 </select>
@@ -58,7 +59,7 @@
                                 <select name="provincia" class="form-select" id="provincia">
                                     <option value="">Seleccione una Provincia</option>
                                     {% for provincia in provincias %}
-                                        
+                                        <option value="{{ provincia }}" {{ externalUserData and externalUserData.provincia == provincia ? 'selected' : '' }}>{{ provincia }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -88,7 +89,11 @@
                                 <select name="sector" class="form-select" id="sector">
                                     <option value="">Seleccione un sector</option>
                                     {% for sector in sectores %}
-                                        
+                                        <option value="{{ sector.id }}" 
+                                                data-requires-data-extra="{{ sector.requiresData ? 'true' : 'false' }}"
+                                                {{ externalUserData and externalUserData.sector and externalUserData.sector.id == sector.id ? 'selected' : '' }}>
+                                            {{ sector.name }}
+                                        </option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -103,12 +108,12 @@
                     
                     <!-- Campo adicional para sector (inicialmente oculto) -->
                     <div class="row" id="divSectorExtraData" 
-                    style="display: {% if externalUserData.sector and sectores[(externalUserData.sector.id)-1].requiresData %}flex{% else %}none{% endif %};">
-                    <div class="row">
+                         style="display: {% if externalUserData.sector and externalUserData.sector.requiresData %}flex{% else %}none{% endif %};">
                         <div class="col-md-12">
                             <div class="mb-3">
                                 <label for="sectorExtraData" class="form-label">Describa sector</label>
-                                <input type="text" name="sectorExtraData" class="form-control" id="sectorExtraData" placeholder="Especifique el sector..." value="{{ externalUserData.sectorExtraData }}">
+                                <input type="text" name="sectorExtraData" class="form-control" id="sectorExtraData" 
+                                       placeholder="Especifique el sector..." value="{{ externalUserData.sectorExtraData ?? '' }}">
                             </div>
                         </div>
                     </div>
@@ -124,6 +129,25 @@
                                 <label for="telefono" class="form-label">Telefono (whatsapp)</label>
                                 <input type="text" class="form-control" id="telefono" name="telefono" 
        value="{{ externalUserData.phoneNumber|default('') }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label">Perfiles <span style="color:red">*</span></label>
+                                <div class="d-flex flex-column gap-2 mt-2">
+                                    {% for rol in roles %}
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="{{ rol.id }}" id="role_edit_{{ rol.id }}" name="roles[]"
+                                                   {% if rol.id in currentRoleIds %}checked{% endif %}>
+                                            <label class="form-check-label" for="role_edit_{{ rol.id }}">
+                                                {{ rol.nombre }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -188,8 +212,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form) {
         form.addEventListener('submit', function(e) {
             const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
             
+            // Validar que al menos un rol esté seleccionado
+            const rolesChecked = document.querySelectorAll('input[name="roles[]"]:checked');
+            
+            if (rolesChecked.length === 0) {
+                e.preventDefault();
+                alert('Debe seleccionar al menos un perfil');
+                return;
+            }
         });
     }
 });

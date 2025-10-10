@@ -55,12 +55,20 @@ final class RegisterController extends AbstractController
             $external->setUser($user);
             $user->setExternalUserData($external);
 
-            // Asignar rol
-            $role = $roleRepository->find($form->get('role')->getData());
-            $userRole = new UserRole();
-            $userRole->setRole($role);
-            $userRole->setUser($user);
-            $user->addUserRole($userRole);
+            // Asignar múltiples roles
+            $selectedRoles = $form->get('role')->getData();
+            if (is_array($selectedRoles)) {
+                foreach ($selectedRoles as $roleId) {
+                    $role = $roleRepository->find($roleId);
+                    if ($role) {
+                        $userRole = new UserRole();
+                        $userRole->setRole($role);
+                        $userRole->setUser($user);
+                        $user->addUserRole($userRole);
+                        $em->persist($userRole);
+                    }
+                }
+            }
 
             // ✅ Generar token UUID y vencimiento a 48 horas
             $user->setAccountToken(Uuid::v4()->toRfc4122());
@@ -68,7 +76,6 @@ final class RegisterController extends AbstractController
 
             $em->persist($user);
             $em->persist($external);
-            $em->persist($userRole);
             try
             {
                 $em->flush();

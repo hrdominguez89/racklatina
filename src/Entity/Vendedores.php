@@ -6,7 +6,7 @@ use App\Repository\VendedoresRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Table(name: 'vendedores')]
+#[ORM\Table(name: 'Vendedores')]
 #[ORM\Entity(repositoryClass: VendedoresRepository::class,readOnly: true)]
 class Vendedores
 {

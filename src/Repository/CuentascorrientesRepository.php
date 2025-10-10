@@ -20,7 +20,40 @@ class CuentascorrientesRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Cuentascorrientes::class);
     }
-
+      public function findComprobantesSaldados(string $cliente_id,string $tipo): array
+    {
+        $qb = $this->createQueryBuilder('c');
+        $qb->where('c.codigoCliente = :cliente_id')
+        ->setParameter('cliente_id', $cliente_id);
+        if ($tipo != "TODAS")
+        {
+            if(strlen($tipo) > 1) {
+                $caracteres = str_split($tipo);
+                $qb->andWhere('c.documento IN (:tipos)')
+                ->setParameter('tipos', $caracteres);
+            } else {
+                $qb->andWhere('c.documento = :tipo')
+                ->setParameter('tipo', $tipo);
+            }
+        }
+        $retorno = $qb->getQuery()
+        ->getArrayResult();
+        return $retorno;
+    }
+    public function findComprobantesSaldadosPorOrdenDeCompra(string $ordenDeCompra,string $tipo)
+    {
+        $qb = $this->createQueryBuilder('c');
+        $qb->where('c.ordencompra = :ordenDeCompra')
+        ->setParameter('ordenDeCompra', $ordenDeCompra);
+        if ($tipo != "TODAS")
+        {
+            $qb->andWhere('c.documento = :tipo')
+            ->setParameter('tipo', $tipo);
+        }
+        $retorno = $qb->getQuery()
+        ->getArrayResult();
+        return $retorno;
+    }
 //    /**
 //     * @return Cuentascorrientes[] Returns an array of Cuentascorrientes objects
 //     */

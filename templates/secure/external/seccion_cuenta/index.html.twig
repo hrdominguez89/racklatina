@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Seccion cuentas{% endblock %}
+
+{% block body %}
+<style>
+    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
+    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+</style>
+
+	<div	class="container-fluid">
+    	<div class="row">
+			<div class="col-12">
+				<div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+					<div class="page-title-right">
+						<ol class="breadcrumb m-0">
+							<li class="breadcrumb-item">
+								<a href="{{ path('app_home') }}">
+									Mi portal
+								</a>
+							</li>
+							<li class="breadcrumb-item active">
+								Cuentas
+							</li>
+						</ol>
+					</div>
+				</div>
+			</div>
+		</div>
+		{% for label, messages in app.flashes %}
+			{% for message in messages %}
+				<div class="alert alert-{{ label }} alert-dismissible fade show mt-2" role="alert">
+					{{ message }}
+					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				</div>
+			{% endfor %}
+		{% endfor %}
+		<div class="row">
+			<div	class="col-12 col-sm-6 col-md-4 col-lg-3">
+				<!-- Simple card -->
+				<a	href="{{ path('app_comprobantes_impagos_external') }}">
+					<div	class="card">
+						<img	class="card-img-top img-fluid"	height="150"	src="{{ asset('images/comprobantesImpagos.png') }}"	alt="Card image cap" />
+						<div	class="card-body"	style="min-height: 190px;">
+							<h4	class="card-title mb-2">
+								Comprobantes Impagos y vencimientos
+							</h4>
+							<p	class="card-text">
+								Desde aquí podrás gestionar tus comprobantes impagos y controlar los vencimientos pendientes.
+							</p>
+							<div	class="text-end"></div>
+						</div>
+					</div>
+				</a>
+			</div>
+			<div	class="col-12 col-sm-6 col-md-4 col-lg-3">
+				<!-- Simple card -->
+				<a	href="{{ path('app_comprobantes_saldados_external',{tipo:"TODAS"}) }}">
+					<div	class="card">
+						<img class="card-img-top img-fluid"	height="150" src="{{ asset('images/comprobantessaldados.png') }}"	alt="Card image cap" />
+						<div	class="card-body"	style="min-height: 190px;">
+							<h4	class="card-title mb-2">
+								Mis comprobantes
+							</h4>
+							<p	class="card-text">
+								Desde aquí podrás consultar el historial de comprobantes que han sido saldados completamente.
+							</p>
+							<div	class="text-end"></div>
+						</div>
+					</div>
+				</a>
+			</div>
+			<div class="row mt-4">
+                <div class="col-12 text-end">
+                    <a class="btn btn-secondary" href="{{ path('app_home') }}">
+                        Volver
+                    </a>
+                </div>
+            </div>
+		</div>
+	</div>
+{% endblock %}
