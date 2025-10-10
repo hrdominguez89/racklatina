@@ -2,9 +2,11 @@
 
 namespace App\Controller\Secure\External\Cuentas;
 
+
 use App\Repository\ClientesRepository;
 use App\Repository\ComprobantesimpagosRepository;
 use App\Repository\CuentascorrientesRepository;
+use App\Repository\EstadoClientesRepository;
 use App\Repository\UserCustomerRepository;
 use App\Services\EstadoCuentaService;
 use Exception;
@@ -21,7 +23,9 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 #[Route('secure/seccion-cuenta/clientes')]
 final class CuentasController extends AbstractController
 {
-    public function __construct(private MailerInterface $mailer,private EstadoCuentaService $estadoCuentaService) 
+    public function __construct(private MailerInterface $mailer,
+    private EstadoCuentaService $estadoCuentaService,
+    private EstadoClientesRepository $estadoClientesRepository) 
     {
         $this->mailer = $mailer;
     }
@@ -31,7 +35,6 @@ final class CuentasController extends AbstractController
     {
         $user = $this->getUser();
         $user_customer = $userCustomerRepository->findOneBy(["user"=>$user->getId()]);
-        $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
         if(!$user_customer)
         {
             $this->addFlash('warning','No tienes asignado un cliente todavia');
@@ -48,7 +51,8 @@ final class CuentasController extends AbstractController
     public function comprobantesSaldados(
         Request $request,
         CuentascorrientesRepository $cuentascorrientesRepository,
-        UserCustomerRepository $userCustomerRepository, ClientesRepository $clientesRepository
+        UserCustomerRepository $userCustomerRepository, 
+        ClientesRepository $clientesRepository
     ): Response {
         $user = $this->getUser();
         $users_customers = $userCustomerRepository->findBy(["user"=>$user->getId()]);
@@ -64,6 +68,7 @@ final class CuentasController extends AbstractController
         $clientes=[];
         $cliente=[];
         $comprobantes=[];
+        $estadoMsj =null;
         $tipo = $request->get('tipo') ?? 'TODAS';
 
          foreach($users_customers as $user_customer)
@@ -73,19 +78,19 @@ final class CuentasController extends AbstractController
             if($cliente_get == $codigoCalipso)
             {
                 $cliente = $clientesRepository->findOneBy(["codigoCalipso" => $cliente_get]);
-                // $comprobantes = $comprobantesimpagosRepository->findComprobantesImpagosByCliente($cliente_get);
+                $estadoMsj = $this->estadoClientesRepository->findOneBy(["codigoEstado"=>$cliente->getCodigoEstado()]);
                 $comprobantes = $cuentascorrientesRepository->findComprobantesSaldados($cliente_get,$tipo);
             }
         }
         // $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso();
         
-        // dd($comprobantes);
         
         return $this->render('secure/external/seccion_cuenta/comprobantes_saldados.html.twig', [
             'controller_name' => 'CuentasController',
             'comprobantes' => $comprobantes,
             'cliente' => $cliente,
             'clientes' => $clientes,
+            'estado_cuenta' => $estadoMsj?->getDetalleEstado(),
             'cliente_seleccionado' => $cliente_get,
             'mostrar_cliente' => !empty($cliente),
             'mostrar_tabla' => !empty($comprobantes)
@@ -114,7 +119,7 @@ final class CuentasController extends AbstractController
         $clientes=[];
         $cliente=[];
         $comprobantes=[];
-
+        $estadoMsj =null;
         foreach($users_customers as $user_customer)
         {
             $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso();
@@ -123,6 +128,7 @@ final class CuentasController extends AbstractController
             {
                 $cliente = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
                 $comprobantes = $comprobantesimpagosRepository->findComprobantesImpagosByCliente($cliente_get);
+                $estadoMsj = $this->estadoClientesRepository->findOneBy(["codigoEstado"=>$cliente->getCodigoEstado()]);
             }
         }
         
@@ -135,6 +141,7 @@ final class CuentasController extends AbstractController
             'comprobantes' => $comprobantes,
             'cliente' => $cliente,
             'clientes' => $clientes,
+            'estado_cuenta' => $estadoMsj?->getDetalleEstado(),
             'cliente_seleccionado' => $cliente_get,
             'mostrar_cliente' => !empty($cliente),
             'mostrar_tabla' => !empty($comprobantes)

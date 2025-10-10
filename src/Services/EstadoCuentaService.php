@@ -22,13 +22,14 @@ class EstadoCuentaService
         if (!$usuarioCliente) {
             return null;
         }
-
         $cliente = $usuarioCliente->getCliente($this->clientesRepository);
         $codEst = $cliente->getCodigoEstado();
+        if($codEst=='N')
+        {
+            return null;
+        }
         $estadoCuenta = $this->estadoCuentaRepository->findOneBy(["codigoEstado" => $codEst]);
-        
         $detalleEstado = $estadoCuenta->getDetalleEstado();
-        
         // Agregar flash message
         $session = $this->requestStack->getSession();
         $session->getFlashBag()->add("info", $detalleEstado);

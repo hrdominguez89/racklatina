@@ -63,6 +63,9 @@ class Clientes
     
     #[ORM\Column(name: "Email_Cobrador", length: 255, nullable: true)]
     private ?string $emailcobrador = null;
+
+    #[ORM\Column(name: "CondicionPago",length: 255, nullable: true)]
+    private ?string $condicionpago = null;
     public function getDbschemaid(): ?string
     {
         return $this->dbschemaid;
@@ -267,6 +270,18 @@ class Clientes
     public function setEmailCobrador(string $emailcobrador)
     {
         $this->emailcobrador = $emailcobrador;
+        return $this;
+    }
+
+    public function getCondicionpago(): ?string
+    {
+        return $this->condicionpago;
+    }
+
+    public function setCondicionpago(?string $condicionpago): static
+    {
+        $this->condicionpago = $condicionpago;
+
         return $this;
     }
 }

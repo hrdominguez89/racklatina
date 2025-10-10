@@ -62,10 +62,15 @@
                             </div>
                             <div class="row mt-3">
                                 <div class="col-12">
-                                    <input type="search" id="search" name="search" 
+                                    <input type="search" 
+                                    id="search" 
+                                    name="search" 
+                                    list="resultados" 
                                     value="{{ app.request.get('search') }}" 
                                     class="form-control" 
-                                    placeholder="{{ app.request.get('tipo_busqueda') == 'OC' ? 'Buscar por orden de compra...' : 'Buscar por cliente...' }}" />
+                                    placeholder="{{ app.request.get('tipo_busqueda') == 'OC' ? 'Buscar por orden de compra...' : 'Buscar por cliente...' }}"/>
+                                <datalist id="resultados">
+                                </datalist>
                                 </div>
                             </div>
                         </div>
@@ -114,6 +119,10 @@
                                 <tr>
                                     <td>Estado de cuenta</td>
                                     <td>{{ cliente.estadoCliente }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Metodo de pago</td>
+                                    <td>{{ cliente.condicionpago }}</td>
                                 </tr>
                             </tbody>
                         </table>    
@@ -287,6 +296,70 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const search = document.getElementById('search');
+            const datalist = document.getElementById('resultados');
+            let debounceTimer;
+            
+            search.addEventListener('input', function() {
+                const query = this.value.trim();
+                
+                // Limpiar timer anterior
+                clearTimeout(debounceTimer);
+                
+                // Si tiene menos de 3 caracteres, limpiar resultados
+                if (query.length < 3) {
+                    datalist.innerHTML = '';
+                    return;
+                }
+                
+                // Esperar 300ms después de que el usuario deje de escribir
+                debounceTimer = setTimeout(() => {
+                    buscarResultados(query);
+                }, 300);
+            });
+            
+            function buscarResultados(query) {
+                
+                const url = "{{ path('app_busqueda_razon_social') }}" + '?q=' + encodeURIComponent(query);
+    
+                fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la búsqueda');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    actualizarResultados(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    datalist.innerHTML = '<option value="">Error al buscar</option>';
+                });
+            }
+            
+            function actualizarResultados(resultados) {
+                datalist.innerHTML = '';
+                
+                if (resultados.length === 0) {
+                    datalist.innerHTML = '<option value="">Sin resultados</option>';
+                    return;
+                }
+                
+                resultados.forEach(item => {
+                    const option = document.createElement('option');
+                    // Ajusta según tu estructura de datos
+                    option.value = item.nombre; // o item.razonsocial, item.codigo, etc.
+                    option.dataset.id = item.id; // Guardar el ID para uso posterior
+                    datalist.appendChild(option);
+                });
+            }
+
             $('#tabla-comprobantes').DataTable({
                 language: {
                     url: esDatatable,

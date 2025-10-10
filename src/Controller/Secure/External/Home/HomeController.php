@@ -47,15 +47,16 @@ final class HomeController extends AbstractController
         
         if($solicitudes != null)
         {
-            $mensaje = "Te enviaremos un email de confirmación una vez que sea aprobada.
-            Tu solicitud está siendo evaluada para representar a la empresa:";
+            $mensaje = "Tu solicitud está siendo evaluada para representar a la empresa:";
+            
             foreach($solicitudes as $solicitud)
             {
                 if($solicitud->getStatus() == CustomerRequestStatus::PENDIENTE)
                 {
-                    $mensaje = $mensaje . " " . $solicitud?->getData()[0]['razonSocial']  . "\n";
+                    $mensaje .=  $solicitud?->getData()[0]['razonSocial']  . "\n";
                 }
             }
+            $mensaje .= "te enviaremos un email de confirmación una vez que sea aprobada.";
             
             $this->addFlash('info', $mensaje);
         }
