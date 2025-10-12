@@ -23,6 +23,9 @@ class EstadoCuentaService
             return null;
         }
         $cliente = $usuarioCliente->getCliente($this->clientesRepository);
+        if (!$cliente) {
+            return null;
+        }
         $codEst = $cliente->getCodigoEstado();
         if($codEst=='N')
         {
