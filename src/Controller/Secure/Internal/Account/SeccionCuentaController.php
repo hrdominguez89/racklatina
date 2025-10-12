@@ -94,9 +94,6 @@ final class SeccionCuentaController extends AbstractController{
             ]
         );
     }
-
-
-
     #[Route('/comprobantesImpagos',"app_comprobantes_impagos_internal")]
     public function ComprobantesImpagos(Request $request,
     ComprobantesimpagosRepository $comprobantesimpagosRepository): Response
@@ -133,7 +130,6 @@ final class SeccionCuentaController extends AbstractController{
             ]
         );
     }
-
     #[Route('/obtenerFacturas', name: 'descarga_facturas_internal')]
     public function obtenerFactura(Request $request, HttpClientInterface $httpClient)
     {
@@ -163,13 +159,13 @@ final class SeccionCuentaController extends AbstractController{
         try {
             // Configuración SSL según entorno
             $sslOptions = [];
-            if ($_ENV['APP_ENV'] === 'dev' || $_ENV['APP_ENV'] === 'test') {
+            // if ($_ENV['APP_ENV'] === 'dev' || $_ENV['APP_ENV'] === 'test') {
                 // Solo en desarrollo/testing - desactivar verificación SSL
-                $sslOptions = [
-                    'verify_peer' => false,
-                    'verify_host' => false,
-                ];
-            }
+            $sslOptions = [
+                'verify_peer' => false,
+                'verify_host' => false,
+            ];
+            // }
             // En producción, mantener verificación SSL activa para seguridad
             
             $response = $httpClient->request('POST', $_ENV['CALIPSO_URL'].'/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
@@ -400,5 +396,4 @@ final class SeccionCuentaController extends AbstractController{
         
         return $this->json($data);
     }
-
 }

@@ -186,13 +186,13 @@ final class CuentasController extends AbstractController
         try {
             // Configuración SSL según entorno
             $sslOptions = [];
-            if ($_ENV['APP_ENV'] === 'dev' || $_ENV['APP_ENV'] === 'test') {
+            // if ($_ENV['APP_ENV'] === 'dev' || $_ENV['APP_ENV'] === 'test') {
                 // Solo en desarrollo/testing - desactivar verificación SSL
-                $sslOptions = [
-                    'verify_peer' => false,
-                    'verify_host' => false,
-                ];
-            }
+            $sslOptions = [
+                'verify_peer' => false,
+                'verify_host' => false,
+            ];
+            // }
             // En producción, mantener verificación SSL activa para seguridad
             
             $response = $httpClient->request('POST', $_ENV['CALIPSO_URL'].'/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
@@ -271,10 +271,12 @@ final class CuentasController extends AbstractController
         if($fileName[0]=="F")
         {
             $rutaArchivo = $baseDir . DIRECTORY_SEPARATOR . 'Facturas' . DIRECTORY_SEPARATOR . $fileName . '.pdf';
+            $modulo = 'VENTAS';
         }
         else
         {
             $rutaArchivo = $baseDir . DIRECTORY_SEPARATOR . 'Recibos' . DIRECTORY_SEPARATOR . $fileName . '.pdf';
+            $modulo = 'COBRANZAS';
         }
         
         // Si es POST, eliminar el archivo
@@ -296,19 +298,19 @@ final class CuentasController extends AbstractController
         try {
             // Configuración SSL según entorno
             $sslOptions = [];
-            if ($_ENV['APP_ENV'] === 'dev' || $_ENV['APP_ENV'] === 'test') {
+            // if ($_ENV['APP_ENV'] === 'dev' || $_ENV['APP_ENV'] === 'test') {
                 // Solo en desarrollo/testing - desactivar verificación SSL
-                $sslOptions = [
-                    'verify_peer' => false,
-                    'verify_host' => false,
-                ];
-            }
+            $sslOptions = [
+                'verify_peer' => false,
+                'verify_host' => false,
+            ];
+            // }
             // En producción, mantener verificación SSL activa para seguridad
             
             $response = $httpClient->request('POST', $_ENV['CALIPSO_URL'].'/appserver/api/?action=generapdf&token='.$_ENV["TOKEN"],
             array_merge([
                 'json' => [
-                    'modulo' => 'COBRANZAS',
+                    'modulo' => $modulo,
                     'comprobante' => $fileName
                 ]
             ], $sslOptions));
