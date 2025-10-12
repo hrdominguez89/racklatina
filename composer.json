@@ -13,6 +13,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.4",
         "doctrine/orm": "^3.3",
         "gedmo/doctrine-extensions": "^3.20",
+        "microsoft/microsoft-graph": "^2.49",
         "phpdocumentor/reflection-docblock": "^5.6",
         "phpstan/phpdoc-parser": "^2.1",
         "stof/doctrine-extensions-bundle": "^1.14",
@@ -53,7 +54,8 @@
         "allow-plugins": {
             "php-http/discovery": true,
             "symfony/flex": true,
-            "symfony/runtime": true
+            "symfony/runtime": true,
+            "tbachert/spi": true
         },
         "bump-after-update": true,
         "sort-packages": true

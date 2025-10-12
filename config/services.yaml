@@ -22,3 +22,11 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    
+    # Microsoft Graph Mailer Service
+    App\Services\MicrosoftGraphMailerService:
+        arguments:
+            $tenantId: '%env(MICROSOFT_GRAPH_TENANT_ID)%'
+            $clientId: '%env(MICROSOFT_GRAPH_CLIENT_ID)%'
+            $clientSecret: '%env(MICROSOFT_GRAPH_CLIENT_SECRET)%'
+            $fromEmail: '%env(MAIL_FROM)%'
