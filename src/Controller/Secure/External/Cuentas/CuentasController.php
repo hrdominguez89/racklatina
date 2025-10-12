@@ -56,24 +56,28 @@ final class CuentasController extends AbstractController
     ): Response {
         $user = $this->getUser();
         $users_customers = $userCustomerRepository->findBy(["user"=>$user->getId()]);
-        $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
+
         if(!$users_customers)
         {
             $this->addFlash('warning','No tienes asignado un cliente todavia');
             return $this->render('secure/external/seccion_cuenta/index.html.twig', [
             'controller_name' => 'CuentasController',
-        ]);
+            ]);
         }
+
         $cliente_get = $request->query->get("Cliente") ?? null;
-        $clientes=[];
-        $cliente=[];
-        $comprobantes=[];
-        $estadoMsj =null;
+        $clientes = [];
+        $cliente = [];
+        $comprobantes = [];
+        $estadoMsj = null;
         $tipo = $request->get('tipo') ?? 'TODAS';
 
-         foreach($users_customers as $user_customer)
+        foreach($users_customers as $user_customer)
         {
-            $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso();
+            $cliente = $user_customer->getCliente($clientesRepository);
+            if(!$cliente)
+            {continue;}
+            $codigoCalipso = $cliente->getCodigoCalipso();
             $clientes[] = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
             if($cliente_get == $codigoCalipso)
             {
@@ -82,8 +86,6 @@ final class CuentasController extends AbstractController
                 $comprobantes = $cuentascorrientesRepository->findComprobantesSaldados($cliente_get,$tipo);
             }
         }
-        // $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso();
-        
         
         return $this->render('secure/external/seccion_cuenta/comprobantes_saldados.html.twig', [
             'controller_name' => 'CuentasController',
@@ -105,7 +107,6 @@ final class CuentasController extends AbstractController
         ): Response {
         $user = $this->getUser();
         $users_customers = $userCustomerRepository->findBy(["user"=>$user->getId()]);
-        // $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());//aca lo tengo que modificar 
         
         if(!$users_customers)
         {
@@ -116,13 +117,19 @@ final class CuentasController extends AbstractController
         }
 
         $cliente_get = $request->query->get("Cliente") ?? null;
-        $clientes=[];
-        $cliente=[];
-        $comprobantes=[];
-        $estadoMsj =null;
+
+        $clientes = [];
+        $cliente = [];
+        $comprobantes = [];
+        $estadoMsj = null;
+
         foreach($users_customers as $user_customer)
         {
-            $codigoCalipso = $user_customer->getCliente($clientesRepository)->getCodigoCalipso();
+            
+            $cliente = $user_customer->getCliente($clientesRepository);
+            if(!$cliente)
+            {continue;}
+            $codigoCalipso = $cliente->getCodigoCalipso();
             $clientes[] = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
             if($cliente_get == $codigoCalipso)
             {
