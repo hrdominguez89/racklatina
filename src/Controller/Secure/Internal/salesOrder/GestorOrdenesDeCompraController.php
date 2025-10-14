@@ -23,7 +23,6 @@ final class GestorOrdenesDeCompraController extends AbstractController
     {
         $this->entityManager = $entityManager;
     }
-
     #[Route('/int-ord-compr', name: 'app_gestor_ordenes_de_compra', methods: ['GET'])]
     public function index(Request $request, PedidosrelacionadosRepository $pedidosrelacionadosRepository): Response
     {
@@ -104,7 +103,6 @@ final class GestorOrdenesDeCompraController extends AbstractController
         }
         return $this->render('gestor_ordenes_de_compra/index.html.twig', $data);
     }
-
     #[Route('/buscar-ordenes-por-cuit/{cuit}', name: 'app_gestor_buscar_ordenes_por_cuit', methods: ['GET'])]
     public function buscarOrdenesPorCuit(Request $request, PedidosrelacionadosRepository $pedidosrelacionadosRepository, string $cuit): Response
     {
@@ -134,7 +132,6 @@ final class GestorOrdenesDeCompraController extends AbstractController
             'cliente' => $cliente
         ]);
     }
-
     #[Route('/orden', name: 'app_secure_internal_sales_order_sales_order_ver_en_detalle', methods: ['GET'])]
     public function verOrden(Request $request, PedidosrelacionadosRepository $pedidosrelacionadosRepository, EntityManagerInterface $em): Response
     {
@@ -166,8 +163,6 @@ final class GestorOrdenesDeCompraController extends AbstractController
             "ordenes_de_compra" => $ordenesDeCompra,
         ]);
     }
-
-
     #[Route('/remito-int/{numero}', name: 'app_remito_show_int')]
     public function verRemito(string $numero, RemitosRepository $remitosRepository): Response
     {
@@ -185,7 +180,6 @@ final class GestorOrdenesDeCompraController extends AbstractController
             ["remitos" => $remitos]
         );
     }
-
     #[Route('/factura-int/{numero}', name: 'app_factura_show_int')]
     public function verFactura(string $numero, FacturasRepository $facturasRepository): Response
     {

@@ -34,7 +34,6 @@ final class SalesOrderController extends AbstractController
         CustomerRequestRepository $repository
     ): Response {
         $user = $this->getUser();
-        $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
         $criteria = ['userRequest' => $user];
         $criteria['status'] = CustomerRequestStatus::PENDIENTE;
         $solicitudes = $repository->findBy($criteria, ['createdAt' => 'DESC']);
@@ -44,15 +43,22 @@ final class SalesOrderController extends AbstractController
             $mensaje = "Te enviaremos un email de confirmación una vez que sea aprobada.
             Tu solicitud está siendo evaluada para representar a la empresa:";
             foreach($solicitudes as $solicitud)
-            {
-                if($solicitud->getStatus() == CustomerRequestStatus::PENDIENTE)
                 {
-                    $mensaje = $mensaje . " " . $solicitud?->getData()[0]['razonSocial']  . "\n";
+                    if($solicitud->getStatus() == CustomerRequestStatus::PENDIENTE)
+                        {
+                            $mensaje = $mensaje . " " . $solicitud?->getData()[0]['razonSocial']  . "\n";
+                        }
                 }
-            }
-            
             $this->addFlash('info', $mensaje);
         }
+        $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
+        // ARMAR UN ARRAY DE LOS CLIENTES
+        // FLAG PARA MOSTRAR LA TABLA SI HAY CLIENTE SELECCIONADO 
+        // $cliente_get = $request->query->get("Cliente") ?? null;
+        // $cliente=[];
+        // $data["mostrar_tabla"]=!empty($cliente);
+
+
         $data['status'] = $request->query->get('status') ?? 'Todas';
         if($data['status'] =="articulos_pendientes")
         {
@@ -125,10 +131,10 @@ final class SalesOrderController extends AbstractController
         }
 
         $data['pedidos'] = array_values($agrupados);
+        
         return $this->render('secure/external/sales_order/index.html.twig', $data);
     }
     #[Route('/detalle', name: 'app_secure_external_sales_order_sales_order_ver_en_detalle', methods: ['GET'])]
-
     public function detalle(Request $request, PedidosrelacionadosRepository $pedidosrelacionadosRepository, EntityManagerInterface $em): Response
     {
         $user = $this->getUser();

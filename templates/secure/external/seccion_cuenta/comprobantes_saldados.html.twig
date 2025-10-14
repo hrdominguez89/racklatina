@@ -52,6 +52,8 @@
                         {% endfor %}
                     </select>
                 </div>
+                <div class="col-12 text-start mt-3">
+                </div>
             </div>
         </form>
     {% if comprobantes is not empty %}
@@ -192,7 +194,7 @@
                 Sin comprobantes 
             </h4>
             <p class="mb-0">
-                No tienes comprobantes  registrados en este momento.
+                 Seleccione un cliente para ver sus comprobantes.
             </p>
         </div>
     {% endif %}
@@ -318,7 +320,7 @@
                 <label>Asunto:</label>
                             <select name="asunto" id="asunto" class="form-select">
                             <option value="error_descarga_factura" 
-                            selected>Error al descargar factura</option>
+                            selected>Error al descargar archivo</option>
                             </select>`;
 
                 $('#contactoModal #div-asunto').html(selectHTML);

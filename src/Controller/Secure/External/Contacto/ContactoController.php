@@ -23,6 +23,7 @@ final class ContactoController extends AbstractController
             $mensaje = $request->request->get('mensaje');
             $asunto = $request->request->get('asunto');
             $agenteCobrador = $request->request->get('agentecobrador') ?? null;
+            
             if (empty(trim($mensaje))) {
                 return new JsonResponse([
                     'success' => false,
