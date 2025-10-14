@@ -249,7 +249,8 @@ final class SeccionCuentaController extends AbstractController{
         }
         else
         {
-            $rutaArchivo = $baseDir . DIRECTORY_SEPARATOR . 'Recibos' . DIRECTORY_SEPARATOR . $fileName . '.pdf';
+            // $rutaArchivo = $baseDir . DIRECTORY_SEPARATOR . 'Recibos' . DIRECTORY_SEPARATOR . $fileName . '.pdf';
+            $rutaArchivo = $baseDir . DIRECTORY_SEPARATOR . 'Facturas' . DIRECTORY_SEPARATOR . $fileName . '.pdf';
             $modulo ="COBRANZAS";
 
         }
