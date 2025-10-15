@@ -16,6 +16,7 @@ use Dom\Entity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('secure/clientes/sales-order')]
@@ -183,7 +184,38 @@ final class SalesOrderController extends AbstractController
         );
     }
 
-
+    // Controller
+    #[Route('/descargaRemitos', name: 'app_remitos_descarga')]
+    public function descargaDeRemito(Request $request): Response
+    {
+        $remito = $request->query->get('remito');
+        
+        // Validación del parámetro
+        if (!$remito || trim($remito) === '') {
+            return $this->json([
+                'success' => false,
+                'message' => 'El número de remito es requerido'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        
+        $nombreArchivo = $remito . '.pdf';
+        $rutaArchivo = $this->getParameter('kernel.project_dir') 
+            . DIRECTORY_SEPARATOR . 'Remitos' 
+            . DIRECTORY_SEPARATOR . $nombreArchivo;
+        
+        if (!file_exists($rutaArchivo)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'El remito solicitado no se encontro comuniquese con soporte.'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        
+        return $this->file(
+            $rutaArchivo, 
+            $nombreArchivo, 
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT
+        );
+    }
     #[Route('/factura/{numero}', name: 'app_factura_show')]
     public function verFactura(string $numero, FacturasRepository $facturasRepository): Response
     {
