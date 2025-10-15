@@ -23,6 +23,7 @@ final class ContactoController extends AbstractController
             $mensaje = $request->request->get('mensaje');
             $asunto = $request->request->get('asunto');
             $agenteCobrador = $request->request->get('agentecobrador') ?? null;
+            
             if (empty(trim($mensaje))) {
                 return new JsonResponse([
                     'success' => false,
@@ -42,7 +43,7 @@ final class ContactoController extends AbstractController
             
             $email = (new ContactoEmailWithAttachments())
                 ->from($_ENV["MAIL_FROM"])
-                ->to($_ENV["MAIL_FROM"],$adress)
+                ->to($_ENV["MAIL_CENTRO_RAC"],$adress)
                 ->subject($asunto .": ". $userName)
                 ->html($this->renderView('emails/contacto.html.twig', [
                     'mensaje' => $mensaje,

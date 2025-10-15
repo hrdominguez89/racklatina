@@ -122,7 +122,6 @@ final class CuentasController extends AbstractController
         $cliente = [];
         $comprobantes = [];
         $estadoMsj = null;
-
         foreach($users_customers as $user_customer)
         {
             
@@ -131,18 +130,19 @@ final class CuentasController extends AbstractController
             {continue;}
             $codigoCalipso = $cliente->getCodigoCalipso();
             $clientes[] = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
-            if($cliente_get == $codigoCalipso)
-            {
+            if($cliente_get == $codigoCalipso )
+                {
                 $cliente = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
                 $comprobantes = $comprobantesimpagosRepository->findComprobantesImpagosByCliente($cliente_get);
                 $estadoMsj = $this->estadoClientesRepository->findOneBy(["codigoEstado"=>$cliente->getCodigoEstado()]);
             }
         }
         
-        if (empty($comprobantes) && !empty($cliente_get)) {
-            $this->addFlash('info', 'No hay comprobantes impagos para el cliente seleccionado');
+        
+        if($cliente_get==null)
+        {
+            $cliente=null;
         }
-
         return $this->render('secure/external/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig', [
             'controller_name' => 'CuentasController',
             'comprobantes' => $comprobantes,
