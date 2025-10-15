@@ -189,16 +189,14 @@ final class SalesOrderController extends AbstractController
     public function descargaDeRemito(Request $request): Response
     {
         $remito = $request->query->get('remito');
-        dd($remito);
-        // Validación del parámetro
+        
         if (!$remito || trim($remito) === '') {
             return $this->json([
                 'success' => false,
                 'message' => 'El número de remito es requerido'
             ], Response::HTTP_BAD_REQUEST);
         }
-        $aux = str_replace('O','R',$remito); 
-        $nombreArchivo = $aux . '.pdf';
+        $nombreArchivo = $remito . '.pdf';
         $rutaArchivo = $this->getParameter('kernel.project_dir') 
             . DIRECTORY_SEPARATOR . 'Remitos' 
             . DIRECTORY_SEPARATOR . $nombreArchivo;
