@@ -189,7 +189,7 @@ final class SalesOrderController extends AbstractController
     public function descargaDeRemito(Request $request): Response
     {
         $remito = $request->query->get('remito');
-        
+        dd($remito);
         // Validación del parámetro
         if (!$remito || trim($remito) === '') {
             return $this->json([
