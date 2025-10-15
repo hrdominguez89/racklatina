@@ -196,8 +196,7 @@ final class SalesOrderController extends AbstractController
                 'message' => 'El número de remito es requerido'
             ], Response::HTTP_BAD_REQUEST);
         }
-        // $nombreArchivo = $remito . '.pdf';//R010100003194
-        $nombreArchivo = 'R010100003194' . '.pdf';//
+        $nombreArchivo = $remito . '.pdf';
 
         $rutaArchivo = $this->getParameter('kernel.project_dir') 
             . DIRECTORY_SEPARATOR . 'Remitos' 
