@@ -57,7 +57,7 @@
             </div>
         </form>
     {% if comprobantes is not empty %}
-    {% if mostrar_cliente%}
+    {% if mostrar_cliente %}
     <div class="row mt-4">
         <div class="col-12">
             <h4>
@@ -282,15 +282,13 @@
         xhrFields: {
             responseType: 'blob'
         },
-        success: function(data, status, xhr) {
+        success:async function(data, status, xhr) {
+            await spinnerModal.hide();
             // Descarga exitosa
             const blob = new Blob([data]);
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
             link.download =  numeroComprobante + '.pdf';
-            
-            // Ocultar spinner antes de iniciar la descarga
-            spinnerModal.hide();
             
             // Pequeño delay para asegurar que el modal se cierre antes del diálogo de descarga
             setTimeout(() => {

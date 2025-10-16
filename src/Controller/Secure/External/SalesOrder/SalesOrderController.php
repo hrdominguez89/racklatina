@@ -190,15 +190,14 @@ final class SalesOrderController extends AbstractController
     {
         $remito = $request->query->get('remito');
         
-        // Validación del parámetro
         if (!$remito || trim($remito) === '') {
             return $this->json([
                 'success' => false,
                 'message' => 'El número de remito es requerido'
             ], Response::HTTP_BAD_REQUEST);
         }
-        $aux = str_replace('O','R',$remito);
-        $nombreArchivo = $aux . '.pdf';
+        $nombreArchivo = $remito . '.pdf';
+
         $rutaArchivo = $this->getParameter('kernel.project_dir') 
             . DIRECTORY_SEPARATOR . 'Remitos' 
             . DIRECTORY_SEPARATOR . $nombreArchivo;
@@ -259,22 +258,22 @@ final class SalesOrderController extends AbstractController
     }
     public function obtenerArticulosDeOrden($cliente_id,$orden_compra_cliente_id,$numero_pedido)
     {
-        $ordenesDeCompra = $this->em->createQueryBuilder()
-            ->select('p')
-            ->from(Pedidosrelacionados::class, 'p')
-            ->where('p.cliente = :cliente')
-            ->andWhere('p.ordencompracliente = :orden')
-            ->andWhere('p.numero = :numero_pedido')
-            ->setParameter('cliente', $cliente_id)
-            ->setParameter('orden', $orden_compra_cliente_id)
-            ->setParameter('numero_pedido', $numero_pedido)
-            ->getQuery()
-            ->getArrayResult();
+        // $ordenesDeCompra = $this->em->createQueryBuilder()
+        //     ->select('p')
+        //     ->from(Pedidosrelacionados::class, 'p')
+        //     ->where('p.cliente = :cliente')
+        //     ->andWhere('p.ordencompracliente = :orden')
+        //     ->andWhere('p.numero = :numero_pedido')
+        //     ->setParameter('cliente', $cliente_id)
+        //     ->setParameter('orden', $orden_compra_cliente_id)
+        //     ->setParameter('numero_pedido', $numero_pedido)
+        //     ->getQuery()
+        //     ->getArrayResult();
         $return=[];
-        foreach($ordenesDeCompra as $ordC)
-        {
-            $return[]=$ordC["articulo"];
-        }
+        // foreach($ordenesDeCompra as $ordC)
+        // {
+        //     $return[]=$ordC["articulo"];
+        // }
         return $return;
     }
 }
