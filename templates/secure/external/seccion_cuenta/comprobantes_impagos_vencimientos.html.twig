@@ -30,6 +30,13 @@
                 </div>
             </div>
         </div>
+        <div class="row mt-4">
+            <div class="col-12 text-start">
+                <a class="btn btn-secondary" href="{{ path('app_seccion_cuenta_external') }}">
+                    Volver
+                </a>
+            </div>
+        </div>
     </div>
 
     {% for label, messages in app.flashes %}
@@ -42,7 +49,7 @@
     {% endfor %}
         <form method="GET">
             <div class="row">
-                <div class="col-12 col-md-5">
+                <div class="col-12 col-md-5 mt-2" >
                     <label class="form-class">Seleccione un cliente:</label>
                     <select class="form-select" name="Cliente" id ="Cliente">
                         <option value=0>Seleccione un cliente</option>
@@ -89,19 +96,19 @@
             </p>
         </div>
     </div>
-     <div class="col-12 text-end mt-2 mb-4">
+    {% endif %}
+    
+    <!-- ACA TERMINA LA CARD DE PRESENTACION-->
+    {% if comprobantes is not empty %}
+    <div class="col-12 text-end mt-2 mb-4">
         <button type="button" 
-        class="btn btn-primary" 
+        class="btn btn-primary btn_notificar_pago" 
         name="btn_notificar" 
         id="notificador"
         data-email-cobrador="{{ cliente.emailcobrador }}">
         Notificar pago
     </button>
-        </div>
-    {% endif %}
-
-            <!-- ACA TERMINA LA CARD DE PRESENTACION-->
-    {% if comprobantes is not empty %}
+    </div>
         <div class="row mt-3 mb-3">
             <div class="col-12">
                 <h2 class="text-center">
@@ -137,7 +144,7 @@
                     "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                 colReorder: true
             });
-            btnsNotificar = document.querySelectorAll('button[name="btn_notificar"]');
+            btnsNotificar = document.querySelectorAll('.btn_notificar_pago');
             btnsNotificar.forEach(btnNotificar => {
             btnNotificar.addEventListener("click", function() {
 
@@ -271,6 +278,15 @@
                                 {% endif %}
                     </tbody>
                 </table>
+                <div class="col-12 text-end mt-2 mb-4">
+                    <button type="button" 
+                    class="btn btn-primary btn_notificar_pago" 
+                    name="btn_notificar" 
+                    id="notificador"
+                    data-email-cobrador="{{ cliente.emailcobrador }}">
+                    Notificar pago
+                </button>
+                </div>
                 {% else %}
                 <div class="alert alert-info text-center">
                         <i class="ri-information-line me-2"></i>
@@ -283,15 +299,16 @@
                 {% endif %}
             </div>
         </div>
-    </div>
-
-    <div class="row mt-4">
+         <div class="row mt-4">
         <div class="col-12 text-end">
             <a class="btn btn-secondary" href="{{ path('app_seccion_cuenta_external') }}">
                 Volver
             </a>
         </div>
     </div>
+    </div>
+
+   
 </div>
 <!-- Spinner Modal -->
 <div class="modal fade" id="spinnerModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
