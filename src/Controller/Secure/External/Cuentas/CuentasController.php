@@ -119,38 +119,37 @@ final class CuentasController extends AbstractController
         $cliente_get = $request->query->get("Cliente") ?? null;
 
         $clientes = [];
-        $cliente = [];
+        $clienteSeleccionado = [];
         $comprobantes = [];
         $estadoMsj = null;
+
         foreach($users_customers as $user_customer)
         {
-            
             $cliente = $user_customer->getCliente($clientesRepository);
             if(!$cliente)
             {continue;}
             $codigoCalipso = $cliente->getCodigoCalipso();
             $clientes[] = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
             if($cliente_get == $codigoCalipso )
-                {
-                $cliente = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
+            {
+                $clienteSeleccionado = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
                 $comprobantes = $comprobantesimpagosRepository->findComprobantesImpagosByCliente($cliente_get);
-                $estadoMsj = $this->estadoClientesRepository->findOneBy(["codigoEstado"=>$cliente->getCodigoEstado()]);
+                $estadoMsj = $this->estadoClientesRepository->findOneBy(["codigoEstado"=>$clienteSeleccionado->getCodigoEstado()]);
             }
         }
         
-        
-        if($cliente_get==null)
+        if($cliente_get == null)
         {
-            $cliente=null;
+            $cliente = null;
         }
         return $this->render('secure/external/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig', [
             'controller_name' => 'CuentasController',
             'comprobantes' => $comprobantes,
-            'cliente' => $cliente,
+            'cliente' => $clienteSeleccionado,
             'clientes' => $clientes,
             'estado_cuenta' => $estadoMsj?->getDetalleEstado(),
             'cliente_seleccionado' => $cliente_get,
-            'mostrar_cliente' => !empty($cliente),
+            'mostrar_cliente' => !empty($clienteSeleccionado),
             'mostrar_tabla' => !empty($comprobantes)
         ]);
     }
