@@ -5,6 +5,7 @@ namespace App\Controller\Secure\External\SalesOrder;
 use App\Entity\Pedidosrelacionados;
 use App\Entity\Remitos;
 use App\Enum\CustomerRequestStatus;
+use App\Repository\ClientesRepository;
 use App\Repository\CustomerRequestRepository;
 use App\Repository\FacturasRepository;
 use App\Repository\PedidosrelacionadosRepository;
@@ -32,7 +33,8 @@ final class SalesOrderController extends AbstractController
         PedidosrelacionadosRepository $pedidosrelacionadosRepository,
         UserCustomerRepository $userCustomerRepository,
         EntityManagerInterface $em,
-        CustomerRequestRepository $repository
+        CustomerRequestRepository $repository,
+        ClientesRepository $clientesRepository
     ): Response {
         $user = $this->getUser();
         $criteria = ['userRequest' => $user];
@@ -53,13 +55,7 @@ final class SalesOrderController extends AbstractController
             $this->addFlash('info', $mensaje);
         }
         $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
-        // ARMAR UN ARRAY DE LOS CLIENTES
-        // FLAG PARA MOSTRAR LA TABLA SI HAY CLIENTE SELECCIONADO 
-        // $cliente_get = $request->query->get("Cliente") ?? null;
-        // $cliente=[];
-        // $data["mostrar_tabla"]=!empty($cliente);
-
-
+        $cliente_get = $request->query->get("Cliente") ?? null;
         $data['status'] = $request->query->get('status') ?? 'Todas';
         if($data['status'] =="articulos_pendientes")
         {
@@ -70,20 +66,28 @@ final class SalesOrderController extends AbstractController
                 ->setParameter('usuario', $usuario)
                 ->getQuery()
                 ->getSingleColumnResult();
-            $data['pedidos']=[];
-            foreach($clientes as $cliente)
+                $data["clientes"] = array_map(function($c) use ($clientesRepository)
             {
+                $cliente = $clientesRepository->findOneBy(["codigoCalipso"=>$c]);
+                return $cliente;
+            },$clientes);
+            $data['pedidos']=[];
+            // foreach($clientes as $cliente)
+            // {
                 $aux = $em->createQueryBuilder()
                         ->select('p')
                         ->from(Pedidosrelacionados::class, 'p')
                         ->where('p.cliente = :cliente')
                         ->andWhere("p.estado = 'Pendiente'")
                         ->andWhere('p.cantidadoriginal != 0')
-                        ->setParameter('cliente', $cliente)
+                        ->setParameter('cliente', $cliente_get)
                         ->getQuery()
                         ->getArrayResult();
                 $data['pedidos']=$aux;
-            }
+            $data["mostrar_tablas"] = !empty($cliente_get);
+        $data["cliente"] =$cliente_get;
+
+            // }
             return $this->render('secure/external/sales_order/index.html.twig', $data);
         }
         $usuario = $this->getUser();
@@ -95,43 +99,53 @@ final class SalesOrderController extends AbstractController
             ->getQuery()
             ->getSingleColumnResult();
         // Buscar los pedidos relacionados de esos clientes
-        $query = $pedidosrelacionadosRepository->createQueryBuilder('p')
-            ->where('p.cliente IN (:clientes)')
-            ->setParameter('clientes', $clientes);
-        if ($data['status'] !== 'Todas') {
-            $query->andWhere('p.estado = :estado')
-                ->setParameter('estado', $data['status']);
-        }
-        $data['pedidos'] = $query->getQuery()
-            ->getArrayResult();
-
-        $agrupados = [];
-
-        foreach ($data['pedidos'] as $pedido) {
-            $key = $pedido['ordencompracliente'] . '|' . $pedido['numero'];
-
-            if (!isset($agrupados[$key])) {
-                $articulos = $this->obtenerArticulosDeOrden($pedido['cliente'],$pedido['ordencompracliente'], $pedido['numero']);
-                $agrupados[$key] = [
-                    'ordencompracliente' => $pedido['ordencompracliente'],
-                    'numero' => $pedido['numero'],
-                    'cliente' => $pedido['cliente'],
-                    'razonsocial' => $pedido['razonsocial'],
-                    'fechaoc' => $pedido['fechaoc'],
-                    'pendientes' => 0,
-                    'remitidos' => 0,
-                    'articulos' => $articulos
-                ];
+        
+        $data["cliente"] =$cliente_get;
+        if($cliente_get)
+        {
+            $query = $pedidosrelacionadosRepository->createQueryBuilder('p')
+                ->where('p.cliente = :cliente')
+                ->setParameter('cliente', $cliente_get);
+            if ($data['status'] !== 'Todas') {
+                $query->andWhere('p.estado = :estado')
+                    ->setParameter('estado', $data['status']);
             }
-            // Contar estados
-            if ($pedido['estado'] === 'Pendiente') {
-                $agrupados[$key]['pendientes']++;
-            } elseif ($pedido['estado'] === 'Remitido') {
-                $agrupados[$key]['remitidos']++;
+            $data['pedidos'] = $query->getQuery()
+                ->getArrayResult();
+            $agrupados = [];
+            
+            foreach ($data['pedidos'] as $pedido) {
+                $key = $pedido['ordencompracliente'] . '|' . $pedido['numero'];
+    
+                if (!isset($agrupados[$key])) {
+                    $articulos = $this->obtenerArticulosDeOrden($pedido['cliente'],$pedido['ordencompracliente'], $pedido['numero']);
+                    $agrupados[$key] = [
+                        'ordencompracliente' => $pedido['ordencompracliente'],
+                        'numero' => $pedido['numero'],
+                        'cliente' => $pedido['cliente'],
+                        'razonsocial' => $pedido['razonsocial'],
+                        'fechaoc' => $pedido['fechaoc'],
+                        'pendientes' => 0,
+                        'remitidos' => 0,
+                        'articulos' => $articulos
+                    ];
+                }
+                // Contar estados
+                if ($pedido['estado'] === 'Pendiente') {
+                    $agrupados[$key]['pendientes']++;
+                } elseif ($pedido['estado'] === 'Remitido') {
+                    $agrupados[$key]['remitidos']++;
+                }
             }
+            $data['pedidos'] = array_values($agrupados);
         }
-
-        $data['pedidos'] = array_values($agrupados);
+        $data["clientes"] = array_map(function($c) use ($clientesRepository)
+            {
+                $cliente = $clientesRepository->findOneBy(["codigoCalipso"=>$c]);
+                return $cliente;
+            },$clientes);
+    
+            $data["mostrar_tablas"] = !empty($cliente_get);
         
         return $this->render('secure/external/sales_order/index.html.twig', $data);
     }

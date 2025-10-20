@@ -463,10 +463,18 @@
             });
             
             const totalGeneral = totalPrincipal + totalAdicional;
-            
-            $('#contactoModal #asunto').val('notificacionDePago');
+             $('#contactoModal #div-asunto').empty();
+             const selectHTML1 = `
+                <label>Asunto:</label>
+                            <select name="asunto" id="asunto" class="form-select">
+                            <option value="notificar_pago" 
+                            selected>Notificacion de pago</option>
+                            </select>`;
+
+        $('#contactoModal #div-asunto').html(selectHTML1);
             
             $('#contactoModal #div-agente-cobrador').empty();
+
             const selectHTML = `
                 <label>Email del agente cobrador:</label>
                 <p name="agentecobrador">${emailcobrador}</p>

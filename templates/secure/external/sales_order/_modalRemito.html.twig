@@ -84,13 +84,36 @@ $(document).ready(function() {
                 window.URL.revokeObjectURL(urlBlob);
             })
             .catch(error => {
-                Swal.fire('Error', error.message, 'error');
+                // Swal.fire('Error', error.message, 'error');
+                abrirModalContactoErrorRemito(remito);
+                
             })
             .finally(() => {
                 $btn.prop('disabled', false);
             });
     });
+    function abrirModalContactoErrorRemito(remito) {
+        // Marcar que no se debe limpiar automáticamente
+        window.noLimpiarModal = true;
+        
+        // Seleccionar la opción de error en descarga de remito
+        $('#contactoModal #div-asunto').empty();
+                const selectHTML = `
+                <label>Asunto:</label>
+                            <select name="asunto" id="asunto" class="form-select">
+                            <option value="error_descarga_factura" 
+                            selected>Error al descargar remito</option>
+                            </select>`;
+
+                $('#contactoModal #div-asunto').html(selectHTML);
+        
+        const mensaje = `Error al intentar descargar el remito ${remito}.`;
+        $('#contactoModal #mensaje').val(mensaje);
+        
+        $('#contactoModal').modal('show');
+    }
 });
+
         </script>
 {% else %}
     <div class="alert alert-info">

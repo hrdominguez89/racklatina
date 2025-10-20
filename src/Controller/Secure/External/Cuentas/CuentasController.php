@@ -71,7 +71,7 @@ final class CuentasController extends AbstractController
         $comprobantes = [];
         $estadoMsj = null;
         $tipo = $request->get('tipo') ?? 'TODAS';
-
+        $clienteSeleccionado = null;
         foreach($users_customers as $user_customer)
         {
             $cliente = $user_customer->getCliente($clientesRepository);
@@ -81,7 +81,7 @@ final class CuentasController extends AbstractController
             $clientes[] = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
             if($cliente_get == $codigoCalipso)
             {
-                $cliente = $clientesRepository->findOneBy(["codigoCalipso" => $cliente_get]);
+                $clienteSeleccionado = $clientesRepository->findOneBy(["codigoCalipso" => $cliente_get]);
                 $estadoMsj = $this->estadoClientesRepository->findOneBy(["codigoEstado"=>$cliente->getCodigoEstado()]);
                 $comprobantes = $cuentascorrientesRepository->findComprobantesSaldados($cliente_get,$tipo);
             }
@@ -90,11 +90,11 @@ final class CuentasController extends AbstractController
         return $this->render('secure/external/seccion_cuenta/comprobantes_saldados.html.twig', [
             'controller_name' => 'CuentasController',
             'comprobantes' => $comprobantes,
-            'cliente' => $cliente,
+            'cliente' => $clienteSeleccionado,
             'clientes' => $clientes,
             'estado_cuenta' => $estadoMsj?->getDetalleEstado(),
             'cliente_seleccionado' => $cliente_get,
-            'mostrar_cliente' => !empty($cliente),
+            'mostrar_cliente' => !empty($clienteSeleccionado),
             'mostrar_tabla' => !empty($comprobantes)
         ]);
     }
