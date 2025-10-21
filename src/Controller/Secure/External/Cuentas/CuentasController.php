@@ -160,12 +160,11 @@ final class CuentasController extends AbstractController
     ClientesRepository $clientesRepository): Response
     {
         $factura = $request->query->get("factura");
-        $fileName = str_replace(" ","",$factura).".pdf";
-        
+        $fileName = str_replace(" ","",$factura);
         // Ruta portable que funciona en Windows y Linux
         // En desarrollo: kernel.project_dir = C:\xampp\htdocs\racklatina → dirname = C:\xampp\htdocs
         // En producción: kernel.project_dir = /var/www/html → usamos directamente kernel.project_dir
-        $rutaArchivo = $this->getParameter('kernel.project_dir') . DIRECTORY_SEPARATOR . 'Facturas' . DIRECTORY_SEPARATOR . $fileName;
+        $rutaArchivo = $this->getParameter('kernel.project_dir') . DIRECTORY_SEPARATOR . 'Facturas' . DIRECTORY_SEPARATOR . $fileName . '.pdf';
         
         // Si es POST, eliminar el archivo
         if($request->getMethod() === 'POST')
@@ -179,7 +178,7 @@ final class CuentasController extends AbstractController
         // 1. Verificar si el archivo ya existe
         if (file_exists($rutaArchivo))
         {
-            return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+            return $this->file($rutaArchivo, $fileName.'.pdf', ResponseHeaderBag::DISPOSITION_ATTACHMENT);
         }
         
         // 2. Si no existe, generar a través de la API
@@ -265,7 +264,6 @@ final class CuentasController extends AbstractController
                 'message' => 'Nombre de archivo no proporcionado'
             ], 400);
         }
-        
         // Determinar la ruta según el tipo de comprobante - portable para Windows y Linux
         $baseDir = $this->getParameter('kernel.project_dir');
         if($fileName[0]=="F")
