@@ -161,6 +161,7 @@ final class CuentasController extends AbstractController
     {
         $factura = $request->query->get("factura");
         $fileName = str_replace(" ","",$factura).".pdf";
+        
         // Ruta portable que funciona en Windows y Linux
         // En desarrollo: kernel.project_dir = C:\xampp\htdocs\racklatina → dirname = C:\xampp\htdocs
         // En producción: kernel.project_dir = /var/www/html → usamos directamente kernel.project_dir

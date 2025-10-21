@@ -344,9 +344,8 @@
                 // Mostrar spinner
                 const spinnerModal = new bootstrap.Modal(document.getElementById('spinnerModal'));
                 spinnerModal.show();
-                
-            const url = "{{ path('descarga_facturas_external', {'factura': '__TEMP__'}) }}".replace('__TEMP__', numeroComprobante);
-            
+            const url = "{{ path('descarga_facturas_external') }}" + "?factura=" + encodeURIComponent(numeroComprobante);
+            console.log(numeroComprobante);
             $.ajax({
                 url: url,
                 type: 'GET',
