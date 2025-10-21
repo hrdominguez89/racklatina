@@ -215,4 +215,34 @@ final class GestorOrdenesDeCompraController extends AbstractController
         }
         return $return;
     }
+    #[Route('/descargaRemitos', name: 'app_remitos_descarga_interno')]
+    public function descargaDeRemito(Request $request): Response
+    {
+        $remito = $request->query->get('remito');
+        
+        if (!$remito || trim($remito) === '') {
+            return $this->json([
+                'success' => false,
+                'message' => 'El número de remito es requerido'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        $nombreArchivo = $remito . '.pdf';
+
+        $rutaArchivo = $this->getParameter('kernel.project_dir') 
+            . DIRECTORY_SEPARATOR . 'Remitos' 
+            . DIRECTORY_SEPARATOR . $nombreArchivo;
+        
+        if (!file_exists($rutaArchivo)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'El remito solicitado no se encontro comuniquese con soporte.'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        
+        return $this->file(
+            $rutaArchivo, 
+            $nombreArchivo, 
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT
+        );
+    }
 }
