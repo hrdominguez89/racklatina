@@ -181,13 +181,13 @@ final class SalesOrderController extends AbstractController
     #[Route('/remito/{numero}', name: 'app_remito_show')]
     public function verRemito(string $numero, RemitosRepository $remitosRepository): Response
     {
-        // dd("estoy aca motherfucker");
+        
         $remitos = $remitosRepository->createQueryBuilder('r')
             ->where('r.remito = :numero')
             ->setParameter('numero:', $numero)
             ->getQuery()
             ->getArrayResult();
-        // dd($remitos);
+        
         if (!$remitos) {
             $remitos = [];
         }

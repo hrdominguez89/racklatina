@@ -227,7 +227,6 @@ final class GestorOrdenesDeCompraController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
         $nombreArchivo = $remito . '.pdf';
-
         $rutaArchivo = $this->getParameter('kernel.project_dir') 
             . DIRECTORY_SEPARATOR . 'Remitos' 
             . DIRECTORY_SEPARATOR . $nombreArchivo;
