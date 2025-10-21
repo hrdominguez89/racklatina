@@ -222,7 +222,7 @@ final class CuentasController extends AbstractController
                         
                         if (file_exists($rutaArchivo)) {
                             // 3. Descargar y programar eliminación
-                            $response = $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+                            $response = $this->file($rutaArchivo, $fileName.'.pdf', ResponseHeaderBag::DISPOSITION_ATTACHMENT);
                             
                             // Eliminar archivo después de la descarga
                             register_shutdown_function(function() use ($rutaArchivo) {
