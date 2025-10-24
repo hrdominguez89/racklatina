@@ -46,7 +46,7 @@
 							<label	for="cuit"	class="form-label">
 								CUIT
 							</label>
-							<input	type="text"	id="cuit"	name="cuit"	class="form-control"	pattern="\d{2}-\d{8}-\d"	placeholder="Ej: 20-12345678-3"></div>
+							<input	type="text"	id="cuit"	name="cuit"	class="form-control"></div>
 						</div>
 						<div	class="col-3 text-start align-self-end">
 							<button	type="button"	id="buscar-clientes"	class="btn btn-secondary mb-3">
@@ -147,16 +147,18 @@
 
 			buscarBtn.addEventListener('click', () => {
 				const cuit = cuitInput.value.trim();
-				if (!cuit.match(/^\d{2}-\d{8}-\d$/)) {
-					alert('CUIT inválido. Usá el formato XX-XXXXXXXX-X.');
-					return;
-				}
+				
 				buscarBtn.disabled = true;
 				fetch(`/secure/clientes/mis-solicitudes/buscar-clientes-por-cuit?cuit=${encodeURIComponent(cuit)}`)
 					.then(response => response.json())
 					.then(clientes => {
 						if (!Array.isArray(clientes) || clientes.length === 0) {
-							alert('No se encontraron clientes con ese CUIT.');
+							Swal.fire({
+							icon: 'error',
+							title: 'No se encontro el cliente.',
+							width: '250px',      
+							confirmButtonText: 'Aceptar'
+							});
 							return;
 						}
 						clientes.forEach(cliente => {

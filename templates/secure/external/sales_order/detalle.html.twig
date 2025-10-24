@@ -78,9 +78,13 @@
                             </li>
                         </ol>
                     </div>
+                    
                 </div>
             </div>
         </div>
+        {% for message in app.flashes('info') %}
+                        <div class="alert alert-info">{{ message }}</div>
+                    {% endfor %}
         <div class="row d-print-none">
     <div class="col-12 text-end">
         <button onclick="window.print()" class="btn btn-outline-primary">Imprimir</button>

@@ -33,7 +33,24 @@ class EstadoCuentaService
         }
         $estadoCuenta = $this->estadoCuentaRepository->findOneBy(["codigoEstado" => $codEst]);
         $detalleEstado = $estadoCuenta->getDetalleEstado();
-        // Agregar flash message
+        $session = $this->requestStack->getSession();
+        $session->getFlashBag()->add("info", $detalleEstado);
+        
+        return $detalleEstado;
+    }
+    public function verificarYNotificarEstadoCuentaPorCliente($cliente_calipso)
+    {
+        $cliente = $this->clientesRepository->findOneBy(["codigoCalipso" => $cliente_calipso]);
+        if (!$cliente) {
+            return null;
+        }
+        $codEst = $cliente->getCodigoEstado();
+        if($codEst=='N')
+        {
+            return null;
+        }
+        $estadoCuenta = $this->estadoCuentaRepository->findOneBy(["codigoEstado" => $codEst]);
+        $detalleEstado = $estadoCuenta->getDetalleEstado();
         $session = $this->requestStack->getSession();
         $session->getFlashBag()->add("info", $detalleEstado);
         

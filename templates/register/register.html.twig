@@ -178,20 +178,8 @@
 				companyNameInput.value = name;
 			}
 			
-			// Función para validar CUIT (básica)
-			function isValidCuitLength(cuit) {
-				const cleaned = cuit.replace(/\D/g, '');
-				return cleaned.length >= 8; // Mínimo para hacer búsqueda
-			}
-			
 			// Función principal de búsqueda
 			async function searchCompanyByCuit(cuit) {
-				if (!isValidCuitLength(cuit)) {
-					clearStates();
-					clearCompanyName();
-					return;
-				}
-				
 				try {
 					showLoading();
 					hideError();
@@ -246,7 +234,7 @@
 			// Event listener para cuando el usuario sale del campo (backup)
 			cuitInput.addEventListener('blur', function(e) {
 				const cuit = e.target.value.trim();
-				if (cuit && isValidCuitLength(cuit)) {
+				if (cuit ) {
 					// Cancelar cualquier búsqueda pendiente y ejecutar inmediatamente
 					clearTimeout(searchTimeout);
 					searchCompanyByCuit(cuit);

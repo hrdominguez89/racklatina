@@ -197,22 +197,22 @@ final class GestorOrdenesDeCompraController extends AbstractController
     }
      public function obtenerArticulosDeOrden($cliente_id,$orden_compra_cliente_id,$numero_pedido)
     {
-        $ordenesDeCompra = $this->entityManager->createQueryBuilder()
-            ->select('p')
-            ->from(Pedidosrelacionados::class, 'p')
-            ->where('p.cliente = :cliente')
-            ->andWhere('p.ordencompracliente = :orden')
-            ->andWhere('p.numero = :numero_pedido')
-            ->setParameter('cliente', $cliente_id)
-            ->setParameter('orden', $orden_compra_cliente_id)
-            ->setParameter('numero_pedido', $numero_pedido)
-            ->getQuery()
-            ->getArrayResult();
+        // $ordenesDeCompra = $this->entityManager->createQueryBuilder()
+        //     ->select('p')
+        //     ->from(Pedidosrelacionados::class, 'p')
+        //     ->where('p.cliente = :cliente')
+        //     ->andWhere('p.ordencompracliente = :orden')
+        //     ->andWhere('p.numero = :numero_pedido')
+        //     ->setParameter('cliente', $cliente_id)
+        //     ->setParameter('orden', $orden_compra_cliente_id)
+        //     ->setParameter('numero_pedido', $numero_pedido)
+        //     ->getQuery()
+        //     ->getArrayResult();
         $return=[];
-        foreach($ordenesDeCompra as $ordC)
-        {
-            $return[]=$ordC["articulo"];
-        }
+        // foreach($ordenesDeCompra as $ordC)
+        // {
+        //     $return[]=$ordC["articulo"];
+        // }
         return $return;
     }
     #[Route('/descargaRemitos', name: 'app_remitos_descarga_interno')]

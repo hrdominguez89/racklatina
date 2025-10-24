@@ -8,7 +8,6 @@ use App\Enum\CustomerRequestStatus;
 use App\Enum\CustomerRequestType;
 use App\Repository\ClientesRepository;
 use App\Repository\CustomerRequestRepository;
-use App\Services\EstadoCuentaService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,7 +20,7 @@ use Symfony\Component\Mailer\MailerInterface;
 #[Route('secure/clientes/mis-solicitudes')]
 final class CustomerRequestController extends AbstractController
 {
-    public function __construct(private MailerInterface $mailer,private EstadoCuentaService $estadoCuentaService)
+    public function __construct(private MailerInterface $mailer)
     {
         $this->mailer = $mailer;
     }
@@ -32,7 +31,6 @@ final class CustomerRequestController extends AbstractController
         $statusParam = $request->query->get('status');
         $user = $this->getUser();
         $user = $this->getUser();
-        $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
         $criteria = ['userRequest' => $user];
 
         if ($statusParam !== null) {
@@ -180,9 +178,9 @@ final class CustomerRequestController extends AbstractController
     {
         $cuit = $request->query->get('cuit');
 
-        if (!preg_match('/^\d{2}-\d{8}-\d$/', $cuit)) {
-            return new JsonResponse(['error' => 'CUIT inválido.'], Response::HTTP_BAD_REQUEST);
-        }
+        // if (!preg_match('/^\d{2}-\d{8}-\d$/', $cuit)) {
+        //     return new JsonResponse(['error' => 'CUIT inválido.'], Response::HTTP_BAD_REQUEST);
+        // }
 
         // Buscar todos los clientes con ese CUIT, sin importar estado
         $clientes = $clientesRepository->findBy(['cuit' => $cuit]);

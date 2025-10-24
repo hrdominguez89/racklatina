@@ -46,18 +46,21 @@ final class SalesOrderController extends AbstractController
             $mensaje = "Te enviaremos un email de confirmación una vez que sea aprobada.
             Tu solicitud está siendo evaluada para representar a la empresa:";
             foreach($solicitudes as $solicitud)
-                {
-                    if($solicitud->getStatus() == CustomerRequestStatus::PENDIENTE)
-                        {
-                            $mensaje = $mensaje . " " . $solicitud?->getData()[0]['razonSocial']  . "\n";
-                        }
-                }
+            {
+                if($solicitud->getStatus() == CustomerRequestStatus::PENDIENTE)
+                    {
+                        $mensaje = $mensaje . " " . $solicitud?->getData()[0]['razonSocial']  . "\n";
+                    }
+            }
             $this->addFlash('info', $mensaje);
         }
-        $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
+        
         $cliente_get = $request->query->get("Cliente") ?? null;
+        $this->estadoCuentaService->verificarYNotificarEstadoCuentaPorCliente($cliente_get);
         $data['status'] = $request->query->get('status') ?? 'Todas';
-        if($data['status'] =="articulos_pendientes")
+        $articulo = $request->query->get('search') ?? null;
+        
+        if( $data['status'] == "articulos_pendientes" || $articulo )
         {
             $usuario = $this->getUser();
             $clientes = $userCustomerRepository->createQueryBuilder('uc')
@@ -66,28 +69,27 @@ final class SalesOrderController extends AbstractController
                 ->setParameter('usuario', $usuario)
                 ->getQuery()
                 ->getSingleColumnResult();
-                $data["clientes"] = array_map(function($c) use ($clientesRepository)
+            $data["clientes"] = array_map(function($c) use ($clientesRepository)
             {
                 $cliente = $clientesRepository->findOneBy(["codigoCalipso"=>$c]);
                 return $cliente;
             },$clientes);
-            $data['pedidos']=[];
-            // foreach($clientes as $cliente)
-            // {
-                $aux = $em->createQueryBuilder()
-                        ->select('p')
-                        ->from(Pedidosrelacionados::class, 'p')
-                        ->where('p.cliente = :cliente')
-                        ->andWhere("p.estado = 'Pendiente'")
-                        ->andWhere('p.cantidadoriginal != 0')
-                        ->setParameter('cliente', $cliente_get)
-                        ->getQuery()
-                        ->getArrayResult();
-                $data['pedidos']=$aux;
+            $data['pedidos'] = [];
+            $em->createQueryBuilder()
+                ->select('p')
+                ->from(Pedidosrelacionados::class, 'p');
+            if(!$articulo)
+            {
+                $em->where('p.cliente = :cliente')
+                ->andWhere("p.estado = 'Pendiente'");
+            }
+            $aux = $em->andWhere('p.cantidadoriginal != 0')
+                ->setParameter('cliente', $cliente_get)
+                ->getQuery()
+                ->getArrayResult();
+            $data['pedidos'] = $aux;
             $data["mostrar_tablas"] = !empty($cliente_get);
-        $data["cliente"] =$cliente_get;
-
-            // }
+            $data["cliente"] = $cliente_get;
             return $this->render('secure/external/sales_order/index.html.twig', $data);
         }
         $usuario = $this->getUser();
@@ -99,8 +101,8 @@ final class SalesOrderController extends AbstractController
             ->getQuery()
             ->getSingleColumnResult();
         // Buscar los pedidos relacionados de esos clientes
+        $data["cliente"] = $cliente_get;
         
-        $data["cliente"] =$cliente_get;
         if($cliente_get)
         {
             $query = $pedidosrelacionadosRepository->createQueryBuilder('p')
@@ -153,11 +155,10 @@ final class SalesOrderController extends AbstractController
     public function detalle(Request $request, PedidosrelacionadosRepository $pedidosrelacionadosRepository, EntityManagerInterface $em): Response
     {
         $user = $this->getUser();
-        $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
         $cliente_id = $request->query->get('cliente_id') ?? null;
         $numero_pedido = $request->query->get('numero_pedido') ?? null;
         $orden_compra_cliente_id = $request->query->get('orden_compra_cliente_id') ?? null;
-
+        $this->estadoCuentaService->verificarYNotificarEstadoCuentaPorCliente($cliente_id);
         $ordenDeCompra =  $pedidosrelacionadosRepository->findOneBy(['cliente' => $cliente_id, 'ordencompracliente' => $orden_compra_cliente_id,'numero' => $numero_pedido]);
 
         $ordenesDeCompra = $em->createQueryBuilder()
