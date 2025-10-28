@@ -40,12 +40,12 @@ class RegistrationFormType extends AbstractType
             ])
             ->add('cuit', TextType::class, [
                 'mapped' => false,
-                'label' => 'CUIT <span style="color:red">*</span>',
+                'label' => 'CUIT/RUT <span style="color:red">*</span>',
                 'attr' => ['placeholder' => 'Ejemplo: 30-67969632-3'],
                 'label_html' => true,
                 'required' => true,
                 'constraints' => [
-                    new NotBlank(['message' => 'El CUIT es obligatorio.']),
+                    new NotBlank(['message' => 'El CUIT/RUT es obligatorio.']),
                     new Callback(function ($cuit, ExecutionContextInterface $context) {
                         $cliente = $this->clienteRepository->findOneBy(['cuit' => $cuit]);
                         if (!$cliente) {

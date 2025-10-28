@@ -40,7 +40,7 @@ final class SalesOrderController extends AbstractController
         $criteria = ['userRequest' => $user];
         $criteria['status'] = CustomerRequestStatus::PENDIENTE;
         $solicitudes = $repository->findBy($criteria, ['createdAt' => 'DESC']);
-        
+        $data["mostrar_opciones_articulos"] = false;
         if($solicitudes != null)
         {
             $mensaje = "Te enviaremos un email de confirmación una vez que sea aprobada.
@@ -56,6 +56,8 @@ final class SalesOrderController extends AbstractController
         }
         
         $cliente_get = $request->query->get("Cliente") ?? null;
+        $articulo_seleccionado = $request->query->get("Articulo_seleccionado") ?? null;
+        // dd($Articulo_seleccionado);
         $this->estadoCuentaService->verificarYNotificarEstadoCuentaPorCliente($cliente_get);
         $data['status'] = $request->query->get('status') ?? 'Todas';
         $articulo = $request->query->get('search') ?? null;
@@ -75,15 +77,15 @@ final class SalesOrderController extends AbstractController
                 return $cliente;
             },$clientes);
             $data['pedidos'] = [];
-            $em->createQueryBuilder()
+            $qb = $em->createQueryBuilder()
                 ->select('p')
                 ->from(Pedidosrelacionados::class, 'p');
             if(!$articulo)
             {
-                $em->where('p.cliente = :cliente')
+                $qb->where('p.cliente = :cliente')
                 ->andWhere("p.estado = 'Pendiente'");
             }
-            $aux = $em->andWhere('p.cantidadoriginal != 0')
+            $aux = $qb->andWhere('p.cantidadoriginal != 0')
                 ->setParameter('cliente', $cliente_get)
                 ->getQuery()
                 ->getArrayResult();
@@ -92,6 +94,8 @@ final class SalesOrderController extends AbstractController
             $data["cliente"] = $cliente_get;
             return $this->render('secure/external/sales_order/index.html.twig', $data);
         }
+
+        $data["articulo_seleccionado"] = $articulo_seleccionado;
         $usuario = $this->getUser();
         // Obtener los códigos de cliente que el usuario tiene autorizados
         $clientes = $userCustomerRepository->createQueryBuilder('uc')
@@ -112,15 +116,20 @@ final class SalesOrderController extends AbstractController
                 $query->andWhere('p.estado = :estado')
                     ->setParameter('estado', $data['status']);
             }
+            if($articulo_seleccionado)
+            {
+                $query->andWhere('p.articulo = :articulo')
+                ->setParameter('articulo', $articulo_seleccionado);
+            }
             $data['pedidos'] = $query->getQuery()
                 ->getArrayResult();
             $agrupados = [];
+            $data["articulos"] = [];
             
             foreach ($data['pedidos'] as $pedido) {
                 $key = $pedido['ordencompracliente'] . '|' . $pedido['numero'];
     
                 if (!isset($agrupados[$key])) {
-                    $articulos = $this->obtenerArticulosDeOrden($pedido['cliente'],$pedido['ordencompracliente'], $pedido['numero']);
                     $agrupados[$key] = [
                         'ordencompracliente' => $pedido['ordencompracliente'],
                         'numero' => $pedido['numero'],
@@ -129,7 +138,6 @@ final class SalesOrderController extends AbstractController
                         'fechaoc' => $pedido['fechaoc'],
                         'pendientes' => 0,
                         'remitidos' => 0,
-                        'articulos' => $articulos
                     ];
                 }
                 // Contar estados
@@ -139,15 +147,26 @@ final class SalesOrderController extends AbstractController
                     $agrupados[$key]['remitidos']++;
                 }
             }
+            
             $data['pedidos'] = array_values($agrupados);
+            $data["articulos"] = $this->obtenerArticulosPorCliente($cliente_get);
+
+            if($data["articulos"])
+            {
+                $data["mostrar_opciones_articulos"] = true;
+            }
+            else
+            {
+                $data["mostrar_opciones_articulos"] = false;
+            }
         }
         $data["clientes"] = array_map(function($c) use ($clientesRepository)
             {
-                $cliente = $clientesRepository->findOneBy(["codigoCalipso"=>$c]);
-                return $cliente;
-            },$clientes);
+            $cliente = $clientesRepository->findOneBy(["codigoCalipso"=>$c]);
+            return $cliente;
+        },$clientes);
     
-            $data["mostrar_tablas"] = !empty($cliente_get);
+        $data["mostrar_tablas"] = !empty($cliente_get);
         
         return $this->render('secure/external/sales_order/index.html.twig', $data);
     }
@@ -178,7 +197,6 @@ final class SalesOrderController extends AbstractController
             "ordenes_de_compra" => $ordenesDeCompra,
         ]);
     }
-
     #[Route('/remito/{numero}', name: 'app_remito_show')]
     public function verRemito(string $numero, RemitosRepository $remitosRepository): Response
     {
@@ -198,8 +216,6 @@ final class SalesOrderController extends AbstractController
             ["remitos" => $remitos]
         );
     }
-
-    // Controller
     #[Route('/descargaRemitos', name: 'app_remitos_descarga')]
     public function descargaDeRemito(Request $request): Response
     {
@@ -273,22 +289,35 @@ final class SalesOrderController extends AbstractController
     }
     public function obtenerArticulosDeOrden($cliente_id,$orden_compra_cliente_id,$numero_pedido)
     {
-        // $ordenesDeCompra = $this->em->createQueryBuilder()
-        //     ->select('p')
-        //     ->from(Pedidosrelacionados::class, 'p')
-        //     ->where('p.cliente = :cliente')
-        //     ->andWhere('p.ordencompracliente = :orden')
-        //     ->andWhere('p.numero = :numero_pedido')
-        //     ->setParameter('cliente', $cliente_id)
-        //     ->setParameter('orden', $orden_compra_cliente_id)
-        //     ->setParameter('numero_pedido', $numero_pedido)
-        //     ->getQuery()
-        //     ->getArrayResult();
+        $ordenesDeCompra = $this->em->createQueryBuilder()
+            ->select('p')
+            ->from(Pedidosrelacionados::class, 'p')
+            ->where('p.cliente = :cliente')
+            ->andWhere('p.ordencompracliente = :orden')
+            ->andWhere('p.numero = :numero_pedido')
+            ->setParameter('cliente', $cliente_id)
+            ->setParameter('orden', $orden_compra_cliente_id)
+            ->setParameter('numero_pedido', $numero_pedido)
+            ->getQuery()
+            ->getArrayResult();
         $return=[];
-        // foreach($ordenesDeCompra as $ordC)
-        // {
-        //     $return[]=$ordC["articulo"];
-        // }
+        foreach($ordenesDeCompra as $ordC)
+        {
+            $return[] = $ordC["articulo"];
+        }
         return $return;
+    }
+    public function obtenerArticulosPorCliente($cliente_id)
+    {
+        $articulos = $this->em->createQueryBuilder()
+            ->select('p.articulo')
+            ->distinct(true)
+            ->from(Pedidosrelacionados::class, 'p')
+            ->where('p.cliente = :cliente')
+            ->setParameter('cliente', $cliente_id)
+            ->getQuery()
+            ->getArrayResult();
+
+        return $articulos;
     }
 }

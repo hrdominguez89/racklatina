@@ -5,7 +5,6 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
-
     {% endblock %}
     {% block body %}
         <div class="container-fluid">
@@ -45,6 +44,23 @@
                     <div class="col-12 text-start mt-3">
                     </div>
                 </div>
+                
+                
+        {% if mostrar_opciones_articulos %}
+         <div class="row">
+                    <div class="col-12 col-md-5">
+            <label class="form-class" title="Estos son los articulos que se encuentran dentro de las ordenes de compras. Seleccione uno para ver las ordenes de compra que contengan el articulo.">Articulos </label>
+            <select id="articulo" class="form-select" name="Articulo_seleccionado" title="Estos son los articulos que se encuentran dentro de las ordenes de compras. Seleccione uno para ver las ordenes de compra que contengan el articulo.">
+                <option value=0>Seleccione un articulo</option>
+                    {% for articulo in articulos %}
+                    <option value="{{articulo["articulo"]}}"  {{ app.request.get('Articulo_seleccionado') ==  articulo["articulo"] ? 'selected' : ''}}> {{articulo["articulo"]}}</option>
+                {% endfor %}
+            </select>
+            
+                    <div class="col-12 text-start mt-3">
+                    </div>
+                </div>
+        {% endif %}
             </form>
         {% if mostrar_tablas %}
             <div class="row">
@@ -209,6 +225,16 @@
                 if(this.value != 0) {
                     this.form.submit();
                 }
+            });
+        }
+        const selectArticle = document.getElementById('articulo');
+        if (selectArticle)
+        {
+            selectArticle.addEventListener('change',function(){
+            if(this.value!=0)
+            {
+                this.form.submit();
+            }
             });
         }
             $('#tabla-pedidos').DataTable({

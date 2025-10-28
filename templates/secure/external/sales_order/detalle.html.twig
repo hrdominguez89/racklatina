@@ -158,7 +158,13 @@
                                 <tr class="align-middle">
                                     <td class="text-center">{{ item.articulo }}</td>
                                     <td>{{ item.detalle }}</td>
-                                    <td class="text-center">{{ item.estado }}</td>
+                                    <td class="text-center">
+                                    {% if item.preparado > 0 %}
+                                    {{ item.preparado }}
+                                    {% else %}
+                                    {{ item.estado }}
+                                    {% endif %}
+                                    </td>
                                     <td class="text-center">{{ item.cantidadoriginal }}</td>
                                     <td class="text-center">{{ item.cantidadPendiente }}</td>
                                     <td class="text-center bg-primary">{{ item.cantEnt }}</td>
