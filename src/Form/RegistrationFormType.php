@@ -40,12 +40,12 @@ class RegistrationFormType extends AbstractType
             ])
             ->add('cuit', TextType::class, [
                 'mapped' => false,
-                'label' => 'CUIT <span style="color:red">*</span>',
+                'label' => 'CUIT/RUT <span style="color:red">*</span>',
                 'attr' => ['placeholder' => 'Ejemplo: 30-67969632-3'],
                 'label_html' => true,
                 'required' => true,
                 'constraints' => [
-                    new NotBlank(['message' => 'El CUIT es obligatorio.']),
+                    new NotBlank(['message' => 'El CUIT/RUT es obligatorio.']),
                     new Callback(function ($cuit, ExecutionContextInterface $context) {
                         $cliente = $this->clienteRepository->findOneBy(['cuit' => $cuit]);
                         if (!$cliente) {
@@ -91,17 +91,21 @@ class RegistrationFormType extends AbstractType
                 'label_html' => true
             ])
             ->add('role', ChoiceType::class, [
-                'mapped' => false,
-                'label' => 'Perfiles <span style="color:red">*</span>',
-                'label_html' => true,
-                'choices' => array_combine(
-                    array_map(fn($r) => ucfirst(strtolower(substr($r->getName(), 5))), $roles),
-                    array_map(fn($r) => $r->getId(), $roles)
-                ),
-                'multiple' => true,
-                'expanded' => true,
-                'required' => true,
-            ]);
+    'mapped' => false,
+    'label' => 'Perfiles <span style="color:red">*</span>',
+    'label_html' => true,
+    'choices' => array_combine(
+        array_map(function($r) {
+            $name = ucfirst(strtolower(substr($r->getName(), 5)));
+            // ✅ Corrección de "Administracion" → "Administración"
+            return $name === 'Administracion' ? 'Administración' : $name;
+        }, $roles),
+        array_map(fn($r) => $r->getId(), $roles)
+    ),
+    'multiple' => true,
+    'expanded' => true,
+    'required' => true,
+]);
     }
     public function configureOptions(OptionsResolver $resolver): void
     {
