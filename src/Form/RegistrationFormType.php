@@ -91,21 +91,21 @@ class RegistrationFormType extends AbstractType
                 'label_html' => true
             ])
             ->add('role', ChoiceType::class, [
-    'mapped' => false,
-    'label' => 'Perfiles <span style="color:red">*</span>',
-    'label_html' => true,
-    'choices' => array_combine(
-        array_map(function($r) {
-            $name = ucfirst(strtolower(substr($r->getName(), 5)));
-            // ✅ Corrección de "Administracion" → "Administración"
-            return $name === 'Administracion' ? 'Administración' : $name;
-        }, $roles),
+            'mapped' => false,
+            'label' => 'Perfiles <span style="color:red">*</span>',
+            'label_html' => true,
+            'choices' => array_combine(
+                array_map(function($r) {
+                    $name = ucfirst(strtolower(substr($r->getName(), 5)));
+                    // ✅ Corrección de "Administracion" → "Administración"
+                    return $name === 'Administracion' ? 'Administración' : $name;
+                }, $roles),
         array_map(fn($r) => $r->getId(), $roles)
-    ),
-    'multiple' => true,
-    'expanded' => true,
-    'required' => true,
-]);
+                ),
+                'multiple' => true,
+                'expanded' => true,
+                'required' => true,
+            ]);
     }
     public function configureOptions(OptionsResolver $resolver): void
     {

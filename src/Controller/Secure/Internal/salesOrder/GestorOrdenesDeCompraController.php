@@ -30,7 +30,6 @@ final class GestorOrdenesDeCompraController extends AbstractController
         $data['pedidos'] = [];
         $searchType = $request->query->get('searchType') ?? null;
         $search = $request->query->get('search') ?? null;
-        $searchArticulo = $request->query->get('searchArticulo') ?? null;
         
         if ($searchType && (($searchType === 'cliente_y_articulo' && $searchArticulo) || ($searchType !== 'cliente_y_articulo' && $search))) {
             $query = $pedidosrelacionadosRepository->createQueryBuilder('p');
@@ -243,5 +242,21 @@ final class GestorOrdenesDeCompraController extends AbstractController
             $nombreArchivo, 
             ResponseHeaderBag::DISPOSITION_ATTACHMENT
         );
+    }
+
+
+    
+    public function obtenerArticulosPorCliente($cliente_id)
+    {
+        $articulos = $this->em->createQueryBuilder()
+            ->select('p.articulo')
+            ->distinct(true)
+            ->from(Pedidosrelacionados::class, 'p')
+            ->where('p.cliente = :cliente')
+            ->setParameter('cliente', $cliente_id)
+            ->getQuery()
+            ->getArrayResult();
+
+        return $articulos;
     }
 }
