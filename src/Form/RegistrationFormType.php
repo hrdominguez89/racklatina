@@ -98,7 +98,7 @@ class RegistrationFormType extends AbstractType
         array_map(function($r) {
             $name = ucfirst(strtolower(substr($r->getName(), 5)));
             // ✅ Corrección de "Administracion" → "Administración"
-            return $name === 'Administracion' ? 'Administración' : $name;
+            return $name = 'Administracion' ? 'Administración' : $name;
         }, $roles),
         array_map(fn($r) => $r->getId(), $roles)
     ),
