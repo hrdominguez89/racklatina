@@ -461,7 +461,7 @@
             });
             
             const totalGeneral = totalPrincipal + totalAdicional;
-             $('#contactoModal #div-asunto').empty();
+            $('#contactoModal #div-asunto').empty();
              const selectHTML1 = `
                 <label>Asunto:</label>
                             <select name="asunto" id="asunto" class="form-select">
@@ -469,7 +469,7 @@
                             selected>Notificacion de pago</option>
                             </select>`;
 
-        $('#contactoModal #div-asunto').html(selectHTML1);
+            $('#contactoModal #div-asunto').html(selectHTML1);
             
             $('#contactoModal #div-agente-cobrador').empty();
 
@@ -489,8 +489,7 @@
                         </button>
                     </div>`;
                 $('#contactoModal #modal-body').prepend(alertHTML);
-            });////
-           
+            });
 
             let mensaje = `Se notifica del pago de la factura: ${numeroComprobante}`;
 

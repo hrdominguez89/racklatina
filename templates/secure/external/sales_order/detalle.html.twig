@@ -52,7 +52,6 @@
     }
 </style>
 
-
 {% endblock %}
 
 {% block body %}
@@ -83,13 +82,13 @@
             </div>
         </div>
         {% for message in app.flashes('info') %}
-                        <div class="alert alert-info">{{ message }}</div>
-                    {% endfor %}
+            <div class="alert alert-info">{{ message }}</div>
+        {% endfor %}
         <div class="row d-print-none">
-    <div class="col-12 text-end">
-        <button onclick="window.print()" class="btn btn-outline-primary">Imprimir</button>
-    </div>
-</div>
+            <div class="col-12 text-end">
+                <button onclick="window.print()" class="btn btn-outline-primary">Imprimir</button>
+            </div>
+        </div>
         <div class="row mt-4">
             <div class="col-12">
                 <h4>
@@ -159,8 +158,8 @@
                                     <td class="text-center">{{ item.articulo }}</td>
                                     <td>{{ item.detalle }}</td>
                                     <td class="text-center">
-                                    {% if item.preparado > 0 %}
-                                    {{ item.preparado }}
+                                    {% if item.preparado > 0 and item.estado == "Pendiente" %}
+                                    Nro. {{ item.preparado }} preparado
                                     {% else %}
                                     {{ item.estado }}
                                     {% endif %}
@@ -168,15 +167,29 @@
                                     <td class="text-center">{{ item.cantidadoriginal }}</td>
                                     <td class="text-center">{{ item.cantidadPendiente }}</td>
                                     <td class="text-center bg-primary">{{ item.cantEnt }}</td>
-                                    {% set fecha_visible = item.fechaentrega? item.fechaentrega : (item.fechaEstimada??'') %}
+                                    {% set fecha_visible = item.fechaentrega ? item.fechaentrega : (item.fechaEstimada ?? '') %}
+                                    {% set hoy = 'now'|date('Y-m-d') %}
                                     {% if fecha_visible %}
                                         {% set fecha = fecha_visible|split('/') %}
                                         {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
-                                        <td data-order="{{ fecha_ordenada }}"> {{fecha_visible}}</td>
+                                        {% set fecha_iso = fecha[2] ~ '-' ~ fecha[1] ~ '-' ~ fecha[0] %}
+                                        {% if fecha_iso < hoy and item.estado != "Remitido" %}
+                                            <td class="bg-danger text-white" data-order="{{ fecha_ordenada }}">
+                                                {{ fecha_visible }}
+                                                <i class="ri-alert-line"></i> Vencida
+                                                  <button type="button" class="btn btn-sm btn-primary" name="Contactar-por-vencimiento">
+                                                    <i class="ri-mail-line"></i> Contactar
+                                                </button>
+                                            </td>
+                                        {% else %}
+                                            <td data-order="{{ fecha_ordenada }}">
+                                                {{ fecha_visible }}
+                                              
+                                            </td>
+                                        {% endif %}
                                     {% else %}
-                                        <td data-order="9999-12-31"></td>
+                                        <td data-order="9999-12-31">Sin fecha</td>
                                     {% endif %}
-                                    
                                     <td class="text-center">$&nbsp;{{ item.precioDolar|number_format(2, ',', '.') }}</td>
                                     <td class="text-center">$&nbsp;{{ item.importeDolar|number_format(2, ',', '.') }}</td>
                                     <td>
@@ -361,8 +374,42 @@
             });
         });
 
-        
+        document.addEventListener('DOMContentLoaded', function () {
+            const arrayDeContactos = document.querySelectorAll('[name="Contactar-por-vencimiento"]');
+            arrayDeContactos.forEach(contacto => {
+                contacto.addEventListener('click',function() 
+                {
+                    
+                    pedido = "{{ orden_de_compra.OrdenCompraCliente }}";
+                    abrirModalContacto(pedido);
+                });
+            }
+            );
+        });
+        function abrirModalContacto(pedido)
+        {
+            // Marcar que no se debe limpiar automáticamente
+            window.noLimpiarModal = true;
 
+            let mensaje = "Quiero saber el estado de mi pedido " + pedido;
+            // Limpiar el div de asunto
+            //$('#contactoModal #div-asunto').empty();
+
+            // Configurar el select de asunto
+            const selectHTML = `
+                <label>Asunto:</label>
+                <select name="asunto" id="asunto" class="form-select">
+                    <option value="pedido_atrasado" selected>Pedido atrasado</option>
+                </select>`;
+
+            $('#contactoModal #div-asunto').html(selectHTML);
+
+            // Configurar el mensaje
+            $('#contactoModal #mensaje').val(mensaje);
+
+            // Mostrar el modal
+            $('#contactoModal').modal('show');
+        }
 
     </script>
 {% endblock %}

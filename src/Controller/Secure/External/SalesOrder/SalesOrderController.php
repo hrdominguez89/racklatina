@@ -151,14 +151,7 @@ final class SalesOrderController extends AbstractController
             $data['pedidos'] = array_values($agrupados);
             $data["articulos"] = $this->obtenerArticulosPorCliente($cliente_get);
 
-            if($data["articulos"])
-            {
-                $data["mostrar_opciones_articulos"] = true;
-            }
-            else
-            {
-                $data["mostrar_opciones_articulos"] = false;
-            }
+            $data["mostrar_opciones_articulos"] = $data["articulos"] ? true : false;
         }
         $data["clientes"] = array_map(function($c) use ($clientesRepository)
             {
