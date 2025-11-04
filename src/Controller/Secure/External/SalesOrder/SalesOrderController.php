@@ -52,14 +52,10 @@ final class SalesOrderController extends AbstractController
                 }
             $this->addFlash('info', $mensaje);
         }
-        $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
-        // ARMAR UN ARRAY DE LOS CLIENTES
-        // FLAG PARA MOSTRAR LA TABLA SI HAY CLIENTE SELECCIONADO 
-        // $cliente_get = $request->query->get("Cliente") ?? null;
-        // $cliente=[];
-        // $data["mostrar_tabla"]=!empty($cliente);
-
-
+        
+        $cliente_get = $request->query->get("Cliente") ?? null;
+        $articulo_seleccionado = $request->query->get("Articulo_seleccionado") ?? null;
+        $this->estadoCuentaService->verificarYNotificarEstadoCuentaPorCliente($cliente_get);
         $data['status'] = $request->query->get('status') ?? 'Todas';
         if($data['status'] =="articulos_pendientes")
         {

@@ -31,9 +31,24 @@
                     <div class="alert alert-info">{{ message }}</div>
                 {% endfor %}
             </div>
+            <form method="GET">
+                <div class="row">
+                    <div class="col-12 col-md-5">
+                        <label class="form-class">Seleccione un cliente:</label>
+                        <select class="form-select" name="Cliente" id ="Cliente">
+                            <option value=0>Seleccione un cliente</option>
+                            {% for cliente in clientes %}
+                            <option value="{{cliente.codigoCalipso}}" {{ app.request.get('Cliente') ==  cliente.codigoCalipso ? 'selected' : ''}}>{{cliente.razonsocial}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 text-start mt-3">
+                    </div>
+                </div>
+            </form>
+        {% if mostrar_tablas %}
             <div class="row">
-                
-                <div class="col-12 d-flex justify-content-end align-items-end mb-3"  >
+                <div class="col-12 d-flex justify-content-start align-items-start mb-3"  >
                     <div>
                         <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Todas'}) }}" class="btn {{ status=='Todas'? 'active':'' }} btn-outline-primary">
                             Todas
@@ -51,7 +66,22 @@
                         </a>
                     </div>
                 </div>
+            </div><!--ROW DE FILTROS-->
+            {% if mostrar_opciones_articulos %} <!-- ARTICULOS-->
+            <div class="row justify-content-end">
+                <div class="col-12 col-md-5 d-flex justify-content-end align-items-end" title="Aqui se encuentran los articulos que estan dentro de la orden de compra. Seleccione uno para ver las ordenes de compra que contengan el articulo.">
+                    <div>
+                        <label class="form-class">Buscar por articulos </label>
+                        <input type="text" name="Articulo_seleccionado" list="listado-de-articulos">
+                        <datalist id="listado-de-articulos">
+                            {% for articulo in articulos %}
+                                <option value="{{articulo["articulo"]}}"  {{ app.request.get('Articulo_seleccionado') ==  articulo["articulo"] ? 'selected' : ''}}> {{articulo["articulo"]}}</option>
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                </div>
             </div>
+            {% endif %}<!-- ARTICULOS-->
             <div class="row mt-4">
                 <div class="col-12">
                     {% if app.request.get('status') != 'articulos_pendientes' %}
@@ -175,8 +205,7 @@
                     </a>
                 </div>
             </div>
-        </div>
-        
+            </div>
     {% endblock %}
     {% block javascripts %}
         {{ parent() }}

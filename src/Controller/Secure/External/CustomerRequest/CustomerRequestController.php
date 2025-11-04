@@ -9,6 +9,7 @@ use App\Enum\CustomerRequestType;
 use App\Repository\ClientesRepository;
 use App\Repository\CustomerRequestRepository;
 use App\Services\EstadoCuentaService;
+use App\Repository\UserCustomerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,12 +22,12 @@ use Symfony\Component\Mailer\MailerInterface;
 #[Route('secure/clientes/mis-solicitudes')]
 final class CustomerRequestController extends AbstractController
 {
-    public function __construct(private MailerInterface $mailer,private EstadoCuentaService $estadoCuentaService)
+    public function __construct(private MailerInterface $mailer,
+    private UserCustomerRepository $UserCustomerRepository ,private EstadoCuentaService $estadoCuentaService)
     {
         $this->mailer = $mailer;
     }
     #[Route('/', name: 'app_secure_external_customer_request')]
-        
     public function index(Request $request, CustomerRequestRepository $repository): Response
     {
         $statusParam = $request->query->get('status');
@@ -66,7 +67,6 @@ final class CustomerRequestController extends AbstractController
             'estadosDisponibles' => CustomerRequestStatus::cases(),
         ]);
     }
-
     #[Route('/nueva', name: 'app_secure_external_customer_request_new')]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
@@ -80,6 +80,14 @@ final class CustomerRequestController extends AbstractController
             if (!is_array($clientes) || empty($clientes)) {
                 $this->addFlash('danger', 'Debés agregar al menos un cliente.');
                 return $this->redirectToRoute('app_secure_external_customer_request_new');
+            }
+            foreach($clientes as $cliente)
+            {
+                if($this->validarClienteRepresentado($cliente["id"]))
+                {
+                    $this->addFlash('danger', 'Ya tienes cargado '.$cliente["razonSocial"]);
+                    return $this->redirectToRoute('app_secure_external_customer_request_new');
+                }
             }
 
             $solicitud = new CustomerRequest();
@@ -99,8 +107,6 @@ final class CustomerRequestController extends AbstractController
         }
         $this->addFlash('warning', "Para representar una empresa debe agregar al menos un cliente y enviar la solicitud.\n1)Ingrese un cuit.\n2)Haga click en 'Buscar clientes'.\n3)Puede buscar y seleccionar más de uno.\n4)Al finalizar la selección hacer click en 'Enviar solicitud'.\nSu solicitud será aprobada por un empleado de Racklatina a la brevedad.");
 
-
-
         return $this->render('secure/external/customer_request/form.html.twig', [
             'form' => $form->createView(),
             'clientesJson' => '[]',
@@ -108,8 +114,6 @@ final class CustomerRequestController extends AbstractController
             'cuitInicial' => '',
         ]);
     }
-
-
     #[Route('/{id}/editar', name: 'customer_request_edit')]
     public function edit(CustomerRequest $solicitud, Request $request, EntityManagerInterface $em): Response
     {
@@ -146,7 +150,6 @@ final class CustomerRequestController extends AbstractController
             'cuitInicial' => $primerCuit,
         ]);
     }
-
     #[Route('/{id}/ver', name: 'customer_request_show')]
     public function show(CustomerRequest $solicitud, EntityManagerInterface $em): Response
     {
@@ -174,7 +177,6 @@ final class CustomerRequestController extends AbstractController
             'aprobados' => $clienteIdsAprobados,
         ]);
     }
-
     #[Route('/buscar-clientes-por-cuit', name: 'app_secure_external_customer_request_buscar_clientes', methods: ['GET'])]
     public function buscarClientesPorCuit(Request $request, ClientesRepository $clientesRepository): JsonResponse
     {
@@ -209,4 +211,10 @@ final class CustomerRequestController extends AbstractController
             ]));
         $this->mailer->send($email);
     }
+    public function validarClienteRepresentado($cliente_id)
+    {
+        $userCustomer = $this->UserCustomerRepository->findBy(["cliente" => $cliente_id]);
+        return $userCustomer ? true : false;
+    }
+
 }

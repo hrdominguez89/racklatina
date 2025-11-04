@@ -190,17 +190,36 @@
                                         {{ item.detalle }}
                                     </td>
                                     <td>
+                                        {% if item.preparado > 0 and item.estado == "Pendiente" %}
+                                        {{ item.preparado }} preparado
+                                        {% else %}
                                         {{item.fechaentregarem ? 'Entregado' : item.estado }}
+                                        {% endif %}
+                                        
                                     </td>
                                     <td class="text-center">{{ item.cantidadasignada }}</td>
                                     <td class="text-center">{{ item.cantidadoriginal }}</td>
                                     <td class="text-center">{{ item.cantidadPendiente }}</td>
                                     <td class="text-center">{{ item.cantEnt }}</td>
                                     {% set fecha_visible = item.fechaentrega ? item.fechaentrega : item.fechaEstimada ?? null %}
+                                    {% set hoy = 'now'|date('Y-m-d') %}
                                     {% if fecha_visible %}
                                         {% set fecha = fecha_visible|split('/') %}
                                         {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
-                                        <td data-order="{{ fecha_ordenada }}" class="bg-primary text-center"> {{fecha_visible}}</td>
+                                        {% set fecha_iso = fecha[2] ~ '-' ~ fecha[1] ~ '-' ~ fecha[0] %}
+                                        {% if fecha_iso < hoy and item.estado != "Remitido" %}
+                                            <td class="bg-danger text-white" data-order="{{ fecha_ordenada }}">
+                                                <i class="ri-alert-line"></i> 
+                                                {{ fecha_visible }}
+                                                  <button type="button" class="btn btn-sm btn-primary" name="Contactar-por-vencimiento">
+                                                    <i class="ri-mail-line"></i> Contactar
+                                                </button>
+                                            </td>
+                                        {% else %}
+                                            <td data-order="{{ fecha_ordenada }}">
+                                                {{ fecha_visible }}
+                                            </td>
+                                        {% endif %}
                                     {% else %}
                                         <td data-order="9999-12-31" class="bg-primary text-center"></td>
                                     {% endif %}
@@ -260,7 +279,9 @@
                     </div>
                     <div class="row mt-4">
                         <div class="col-12 text-end">
-                            <a class="btn btn-secondary" href="{{ path('app_gestor_ordenes_de_compra', {status:app.request.get('status') ? app.request.get('status'):'Todas',search: app.request.get('search'),searchType: app.request.get('searchType'),'searchArticulo':app.request.get('searchArticulo')??''}) }}">
+                            <a class="btn btn-secondary"
+                            href="{{ path('app_gestor_ordenes_de_compra',
+                            {status:app.request.get('status') ? app.request.get('status'):'Todas',search: app.request.get('search'),searchType: app.request.get('searchType'),'searchArticulo':app.request.get('searchArticulo')??''}) }}">
                                 Volver
                             </a>
                         </div>
@@ -415,10 +436,5 @@
                 colReorder: true
             });
         });
-
-        
-
-
     </script>
-            {% endblock %}
-            
+    {% endblock %}

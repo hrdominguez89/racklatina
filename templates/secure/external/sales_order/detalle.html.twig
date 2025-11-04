@@ -154,7 +154,13 @@
                                 <tr class="align-middle">
                                     <td class="text-center">{{ item.articulo }}</td>
                                     <td>{{ item.detalle }}</td>
-                                    <td class="text-center">{{ item.estado }}</td>
+                                    <td class="text-center">
+                                    {% if item.preparado > 0 and item.estado == "Pendiente" %}
+                                    {{ item.preparado }} preparado
+                                    {% else %}
+                                    {{ item.estado }}
+                                    {% endif %}
+                                    </td>
                                     <td class="text-center">{{ item.cantidadoriginal }}</td>
                                     <td class="text-center">{{ item.cantidadPendiente }}</td>
                                     <td class="text-center bg-primary">{{ item.cantEnt }}</td>
@@ -162,7 +168,20 @@
                                     {% if fecha_visible %}
                                         {% set fecha = fecha_visible|split('/') %}
                                         {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
-                                        <td data-order="{{ fecha_ordenada }}"> {{fecha_visible}}</td>
+                                        {% set fecha_iso = fecha[2] ~ '-' ~ fecha[1] ~ '-' ~ fecha[0] %}
+                                        {% if fecha_iso < hoy and item.estado != "Remitido" %}
+                                            <td  data-order="{{ fecha_ordenada }}">
+                                                {# {{ fecha_visible }}
+                                                <i class="ri-alert-line"></i> Vencida #}
+                                                  <button type="button" class="btn btn-sm btn-primary" id="{{ item.articulo }}}" name="Contactar-por-vencimiento" >
+                                                    <i class="ri-mail-line"></i> Contactar
+                                                </button>
+                                            </td>
+                                        {% else %}
+                                            <td data-order="{{ fecha_ordenada }}">
+                                                {{ fecha_visible }}
+                                            </td>
+                                        {% endif %}
                                     {% else %}
                                         <td data-order="9999-12-31"></td>
                                     {% endif %}
@@ -203,7 +222,10 @@
         
         <div class="row mt-4">
             <div class="col-12 text-end">
-                <a class="btn btn-secondary" href="{{ path('app_secure_external_sales_order_sales_order',{status:app.request.get('status') ? app.request.get('status'):'Todas'}) }}">
+                <a class="btn btn-secondary" href="{{ path('app_secure_external_sales_order_sales_order', {
+                    'status': app.request.get('status') ? app.request.get('status') : 'Todas',
+                    'Cliente': orden_de_compra.cliente
+                }) }}">
                     Volver
                 </a>
             </div>
@@ -351,8 +373,40 @@
             });
         });
 
-        
+        document.addEventListener('DOMContentLoaded', function () {
+            const arrayDeContactos = document.querySelectorAll('[name="Contactar-por-vencimiento"]');
+            arrayDeContactos.forEach(contacto => {
+                contacto.addEventListener('click',function() 
+                {
+                    data = "{{ orden_de_compra.OrdenCompraCliente }}"+ " articulo " + contacto.id;
+                    abrirModalContacto(data);
+                });
+            }
+            );
+        });
+        function abrirModalContacto(data)
+        {
+            // Marcar que no se debe limpiar automáticamente
+            window.noLimpiarModal = true;
 
+            let mensaje = "Quiero saber el estado de mi pedido " + data;
+            // Limpiar el div de asunto
+            //$('#contactoModal #div-asunto').empty();
 
+            // Configurar el select de asunto
+            const selectHTML = `
+                <label>Asunto:</label>
+                <select name="asunto" id="asunto" class="form-select">
+                    <option value="pedido_atrasado" selected>Pedido atrasado</option>
+                </select>`;
+
+            $('#contactoModal #div-asunto').html(selectHTML);
+
+            // Configurar el mensaje
+            $('#contactoModal #mensaje').val(mensaje);
+
+            // Mostrar el modal
+            $('#contactoModal').modal('show');
+        }
     </script>
 {% endblock %}
