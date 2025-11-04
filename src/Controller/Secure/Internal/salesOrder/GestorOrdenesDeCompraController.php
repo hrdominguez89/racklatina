@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
-
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 #[Route('secure/sales-order')]
 final class GestorOrdenesDeCompraController extends AbstractController
 {
@@ -31,7 +31,8 @@ final class GestorOrdenesDeCompraController extends AbstractController
         $searchType = $request->query->get('searchType') ?? null;
         $search = $request->query->get('search') ?? null;
         $searchArticulo = $request->query->get('searchArticulo') ?? null;
-        
+        $articuloSeleccionado = $request->query->get('articuloSeleccionado') ?? null;
+        $data["articulos_de_cliente"] = false;
         if ($searchType && (($searchType === 'cliente_y_articulo' && $searchArticulo) || ($searchType !== 'cliente_y_articulo' && $search))) {
             $query = $pedidosrelacionadosRepository->createQueryBuilder('p');
             switch ($searchType) {
@@ -51,9 +52,17 @@ final class GestorOrdenesDeCompraController extends AbstractController
                     break;
                 case 'cliente':
                 default:
-                    
                     $query->where('p.razonsocial like :razonsocial')
                         ->setParameter('razonsocial', '%' . $search . '%');
+
+                    $articulosDelCliente = $this->obtenerArticulosPorCliente($search);    //cargo los articulos del cliente
+                    $data["articulos_de_cliente"] = $articulosDelCliente;  //cargo los articulos del cliente
+                    
+                    if($articuloSeleccionado)
+                    {
+                        $query->andWhere('p.articulo = :articulo')
+                            ->setParameter('articulo', $articuloSeleccionado);
+                    }
                     break;
             }
             if ($data['status'] !== 'Todas') {
@@ -69,6 +78,7 @@ final class GestorOrdenesDeCompraController extends AbstractController
                         ->setParameter('estado', $data['status']);
                 }
             }
+            
             $data['pedidos'] = $query->getQuery()
                 ->getArrayResult();
             $agrupados = [];
@@ -76,8 +86,6 @@ final class GestorOrdenesDeCompraController extends AbstractController
             {
                 foreach ($data['pedidos'] as $pedido) {
                     $key = $pedido['ordencompracliente'] . '|' . $pedido['numero'];
-                    $articulos = $searchType != 'cliente' ? $this->obtenerArticulosDeOrden($pedido['cliente'],$pedido['ordencompracliente'], $pedido['numero']) : "";
-                    
                     if (!isset($agrupados[$key])) {
                         $agrupados[$key] = [
                             'ordencompracliente' => $pedido['ordencompracliente'],
@@ -88,7 +96,7 @@ final class GestorOrdenesDeCompraController extends AbstractController
                         'fechaoc' => $pedido['fechaoc'],
                         'pendientes' => 0,
                         'remitidos' => 0,
-                        'articulos' =>$articulos
+                        
                     ];
                 }
                 // Contar estados
@@ -109,7 +117,6 @@ final class GestorOrdenesDeCompraController extends AbstractController
         if (!$cuit) {
             return $this->json(['error' => 'Debe enviar el CUIT del cliente'], 400);
         }
-
         // Buscar cliente por CUIT
         $cliente = $this->entityManager->getRepository(Clientes::class)
             ->findOneBy(['cuit' => $cuit]);
@@ -189,30 +196,51 @@ final class GestorOrdenesDeCompraController extends AbstractController
         $factura = $facturasRepository->findBy([
             'numero' => $numeroLimpio
         ]);
-        // dd($facturas);
         return $this->render(
             'gestor_ordenes_de_compra/_modalFactura.html.twig',
             ['facturas' => $factura]
         );
     }
-     public function obtenerArticulosDeOrden($cliente_id,$orden_compra_cliente_id,$numero_pedido)
+    #[Route('/descargaRemitos', name: 'app_remitos_descarga_interno')]
+    public function descargaDeRemito(Request $request): Response
     {
-        $ordenesDeCompra = $this->entityManager->createQueryBuilder()
-            ->select('p')
+        $remito = $request->query->get('remito');
+        
+        if (!$remito || trim($remito) === '') {
+            return $this->json([
+                'success' => false,
+                'message' => 'El número de remito es requerido'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        $nombreArchivo = $remito . '.pdf';
+        $rutaArchivo = $this->getParameter('kernel.project_dir') 
+            . DIRECTORY_SEPARATOR . 'Remitos' 
+            . DIRECTORY_SEPARATOR . $nombreArchivo;
+        
+        if (!file_exists($rutaArchivo)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'El remito solicitado no se encontro comuniquese con soporte.'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        
+        return $this->file(
+            $rutaArchivo, 
+            $nombreArchivo, 
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT
+        );
+    }
+    public function obtenerArticulosPorCliente($razon_social)
+    {
+        $articulos = $this->entityManager->createQueryBuilder()
+            ->select('p.articulo')
+            ->distinct(true)
             ->from(Pedidosrelacionados::class, 'p')
-            ->where('p.cliente = :cliente')
-            ->andWhere('p.ordencompracliente = :orden')
-            ->andWhere('p.numero = :numero_pedido')
-            ->setParameter('cliente', $cliente_id)
-            ->setParameter('orden', $orden_compra_cliente_id)
-            ->setParameter('numero_pedido', $numero_pedido)
+            ->where('p.razonsocial like :razonsocial')
+            ->setParameter('razonsocial', '%' . $razon_social . '%')
             ->getQuery()
             ->getArrayResult();
-        $return=[];
-        foreach($ordenesDeCompra as $ordC)
-        {
-            $return[]=$ordC["articulo"];
-        }
-        return $return;
+
+        return $articulos;
     }
 }

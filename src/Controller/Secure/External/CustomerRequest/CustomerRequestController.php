@@ -33,7 +33,6 @@ final class CustomerRequestController extends AbstractController
         $statusParam = $request->query->get('status');
         $user = $this->getUser();
         $user = $this->getUser();
-        $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user->getId());
         $criteria = ['userRequest' => $user];
 
         if ($statusParam !== null) {
@@ -182,9 +181,9 @@ final class CustomerRequestController extends AbstractController
     {
         $cuit = $request->query->get('cuit');
 
-        if (!preg_match('/^\d{2}-\d{8}-\d$/', $cuit)) {
-            return new JsonResponse(['error' => 'CUIT inválido.'], Response::HTTP_BAD_REQUEST);
-        }
+        // if (!preg_match('/^\d{2}-\d{8}-\d$/', $cuit)) {
+        //     return new JsonResponse(['error' => 'CUIT inválido.'], Response::HTTP_BAD_REQUEST);
+        // }
 
         // Buscar todos los clientes con ese CUIT, sin importar estado
         $clientes = $clientesRepository->findBy(['cuit' => $cuit]);

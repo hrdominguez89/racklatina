@@ -5,7 +5,6 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
-
     {% endblock %}
     {% block body %}
         <div class="container-fluid">
@@ -50,17 +49,20 @@
             <div class="row">
                 <div class="col-12 d-flex justify-content-start align-items-start mb-3"  >
                     <div>
-                        <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Todas'}) }}" class="btn {{ status=='Todas'? 'active':'' }} btn-outline-primary">
+                        <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Todas',Cliente: cliente  }) }}"
+                        class="btn {{ status=='Todas'? 'active':'' }} btn-outline-primary">
                             Todas
                         </a>
-                        <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Pendiente'}) }}" class="btn {{ status=='Pendiente'? 'active':'' }} btn-outline-primary">
+                        <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Pendiente',Cliente: cliente }) }}" 
+                        class="btn {{ status=='Pendiente'? 'active':'' }} btn-outline-primary">
                             Pendiente
                         </a>
-                        <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Remitido'}) }}" class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">
+                        <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Remitido',Cliente: cliente  }) }}"
+                        class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">
                             Remitido
                         </a>
                         <a href="{{ path('app_secure_external_sales_order_sales_order', {
-                                'status': 'articulos_pendientes'
+                                'status': 'articulos_pendientes',Cliente: cliente 
                             }) }}" class="btn {{ status=='articulos_pendientes'? 'active':'' }} btn-outline-primary">
                             Articulos pendientes.
                         </a>
@@ -111,7 +113,7 @@
                         <tbody>
                             {% for pedido in pedidos %}
                                 <tr>
-                                    <td data-search="{{ pedido.articulos|join(', ') }}">
+                                    <td>
                                         {{ pedido.ordencompracliente }}
                                     </td>
                                     <td>
@@ -194,11 +196,12 @@
                                     </tr>
                                 {% endfor %}
                             </tbody>
-                        </table>
-                            {% endif %}
+                    </table>
+                    {% endif %}
                 </div>
-            </div>
-            <div class="row mt-4">
+            </div> <!--ROW DE TABLAS-->
+        {% endif %}
+            <div class="row mt-4"> <!-- VOLER-->
                 <div class="col-12 text-end">
                     <a class="btn btn-secondary" href="{{ path('app_home') }}">
                         Volver
@@ -213,6 +216,24 @@
         <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
         <script>
         document.addEventListener('DOMContentLoaded', function () {
+        const selectCliente = document.getElementById('Cliente');
+        if(selectCliente) {
+            selectCliente.addEventListener('change', function() {
+                if(this.value != 0) {
+                    this.form.submit();
+                }
+            });
+        }
+        const selectArticle = document.getElementById('articulo');
+        if (selectArticle)
+        {
+            selectArticle.addEventListener('change',function(){
+            if(this.value!=0)
+            {
+                this.form.submit();
+            }
+            });
+        }
             $('#tabla-pedidos').DataTable({
                 language: {
                     url: esDatatable
@@ -233,6 +254,9 @@
                 "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
             });
         });
-    </script>
+        </script>
+        <scrip>
+
+        </scrip>
     {% endblock %}
     

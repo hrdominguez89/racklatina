@@ -71,7 +71,7 @@ final class CuentasController extends AbstractController
         $comprobantes = [];
         $estadoMsj = null;
         $tipo = $request->get('tipo') ?? 'TODAS';
-
+        $clienteSeleccionado = null;
         foreach($users_customers as $user_customer)
         {
             $cliente = $user_customer->getCliente($clientesRepository);
@@ -81,7 +81,7 @@ final class CuentasController extends AbstractController
             $clientes[] = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
             if($cliente_get == $codigoCalipso)
             {
-                $cliente = $clientesRepository->findOneBy(["codigoCalipso" => $cliente_get]);
+                $clienteSeleccionado = $clientesRepository->findOneBy(["codigoCalipso" => $cliente_get]);
                 $estadoMsj = $this->estadoClientesRepository->findOneBy(["codigoEstado"=>$cliente->getCodigoEstado()]);
                 $comprobantes = $cuentascorrientesRepository->findComprobantesSaldados($cliente_get,$tipo);
             }
@@ -90,11 +90,11 @@ final class CuentasController extends AbstractController
         return $this->render('secure/external/seccion_cuenta/comprobantes_saldados.html.twig', [
             'controller_name' => 'CuentasController',
             'comprobantes' => $comprobantes,
-            'cliente' => $cliente,
+            'cliente' => $clienteSeleccionado,
             'clientes' => $clientes,
             'estado_cuenta' => $estadoMsj?->getDetalleEstado(),
             'cliente_seleccionado' => $cliente_get,
-            'mostrar_cliente' => !empty($cliente),
+            'mostrar_cliente' => !empty($clienteSeleccionado),
             'mostrar_tabla' => !empty($comprobantes)
         ]);
     }
@@ -119,38 +119,37 @@ final class CuentasController extends AbstractController
         $cliente_get = $request->query->get("Cliente") ?? null;
 
         $clientes = [];
-        $cliente = [];
+        $clienteSeleccionado = [];
         $comprobantes = [];
         $estadoMsj = null;
+
         foreach($users_customers as $user_customer)
         {
-            
             $cliente = $user_customer->getCliente($clientesRepository);
             if(!$cliente)
             {continue;}
             $codigoCalipso = $cliente->getCodigoCalipso();
             $clientes[] = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
             if($cliente_get == $codigoCalipso )
-                {
-                $cliente = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
+            {
+                $clienteSeleccionado = $clientesRepository->findOneBy(["codigoCalipso" => $codigoCalipso]);
                 $comprobantes = $comprobantesimpagosRepository->findComprobantesImpagosByCliente($cliente_get);
-                $estadoMsj = $this->estadoClientesRepository->findOneBy(["codigoEstado"=>$cliente->getCodigoEstado()]);
+                $estadoMsj = $this->estadoClientesRepository->findOneBy(["codigoEstado"=>$clienteSeleccionado->getCodigoEstado()]);
             }
         }
         
-        
-        if($cliente_get==null)
+        if($cliente_get == null)
         {
-            $cliente=null;
+            $cliente = null;
         }
         return $this->render('secure/external/seccion_cuenta/comprobantes_impagos_vencimientos.html.twig', [
             'controller_name' => 'CuentasController',
             'comprobantes' => $comprobantes,
-            'cliente' => $cliente,
+            'cliente' => $clienteSeleccionado,
             'clientes' => $clientes,
             'estado_cuenta' => $estadoMsj?->getDetalleEstado(),
             'cliente_seleccionado' => $cliente_get,
-            'mostrar_cliente' => !empty($cliente),
+            'mostrar_cliente' => !empty($clienteSeleccionado),
             'mostrar_tabla' => !empty($comprobantes)
         ]);
     }
@@ -161,11 +160,11 @@ final class CuentasController extends AbstractController
     ClientesRepository $clientesRepository): Response
     {
         $factura = $request->query->get("factura");
-        $fileName = str_replace(" ","",$factura).".pdf";
+        $fileName = str_replace(" ","",$factura);
         // Ruta portable que funciona en Windows y Linux
         // En desarrollo: kernel.project_dir = C:\xampp\htdocs\racklatina → dirname = C:\xampp\htdocs
         // En producción: kernel.project_dir = /var/www/html → usamos directamente kernel.project_dir
-        $rutaArchivo = $this->getParameter('kernel.project_dir') . DIRECTORY_SEPARATOR . 'Facturas' . DIRECTORY_SEPARATOR . $fileName;
+        $rutaArchivo = $this->getParameter('kernel.project_dir') . DIRECTORY_SEPARATOR . 'Facturas' . DIRECTORY_SEPARATOR . $fileName . '.pdf';
         
         // Si es POST, eliminar el archivo
         if($request->getMethod() === 'POST')
@@ -179,7 +178,7 @@ final class CuentasController extends AbstractController
         // 1. Verificar si el archivo ya existe
         if (file_exists($rutaArchivo))
         {
-            return $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+            return $this->file($rutaArchivo, $fileName.'.pdf', ResponseHeaderBag::DISPOSITION_ATTACHMENT);
         }
         
         // 2. Si no existe, generar a través de la API
@@ -223,7 +222,7 @@ final class CuentasController extends AbstractController
                         
                         if (file_exists($rutaArchivo)) {
                             // 3. Descargar y programar eliminación
-                            $response = $this->file($rutaArchivo, $fileName, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+                            $response = $this->file($rutaArchivo, $fileName.'.pdf', ResponseHeaderBag::DISPOSITION_ATTACHMENT);
                             
                             // Eliminar archivo después de la descarga
                             register_shutdown_function(function() use ($rutaArchivo) {
@@ -265,7 +264,6 @@ final class CuentasController extends AbstractController
                 'message' => 'Nombre de archivo no proporcionado'
             ], 400);
         }
-        
         // Determinar la ruta según el tipo de comprobante - portable para Windows y Linux
         $baseDir = $this->getParameter('kernel.project_dir');
         if($fileName[0]=="F")

@@ -93,8 +93,8 @@ final class CustomerRequestController extends AbstractController
                 $solicitud->setStatus(CustomerRequestStatus::PARCIALMENTE_APROBADO);
             }
             if ($cantidadAprobada !== 0) {
-            $data["nombre"] = $solicitud->getUserRequest()->getFirstName() . " " .$solicitud->getUserRequest()->getLastName() ;
-            $this->notificarCliente($solicitud->getUserRequest()->getEmail(),$data);
+                $data["nombre"] = $solicitud->getUserRequest()->getFirstName() ." ". $solicitud->getUserRequest()->getLastName();
+                $this->notificarCliente($solicitud->getUserRequest()->getEmail(),$data);
             }
             $solicitud->setUserUpdate($this->getUser());
             $em->flush();

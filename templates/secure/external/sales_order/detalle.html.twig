@@ -52,7 +52,6 @@
     }
 </style>
 
-
 {% endblock %}
 
 {% block body %}
@@ -78,14 +77,18 @@
                             </li>
                         </ol>
                     </div>
+                    
                 </div>
             </div>
         </div>
+        {% for message in app.flashes('info') %}
+            <div class="alert alert-info">{{ message }}</div>
+        {% endfor %}
         <div class="row d-print-none">
-    <div class="col-12 text-end">
-        <button onclick="window.print()" class="btn btn-outline-primary">Imprimir</button>
-    </div>
-</div>
+            <div class="col-12 text-end">
+                <button onclick="window.print()" class="btn btn-outline-primary">Imprimir</button>
+            </div>
+        </div>
         <div class="row mt-4">
             <div class="col-12">
                 <h4>
@@ -164,7 +167,8 @@
                                     <td class="text-center">{{ item.cantidadoriginal }}</td>
                                     <td class="text-center">{{ item.cantidadPendiente }}</td>
                                     <td class="text-center bg-primary">{{ item.cantEnt }}</td>
-                                    {% set fecha_visible = item.fechaentrega? item.fechaentrega : (item.fechaEstimada??'') %}
+                                    {% set fecha_visible = item.fechaentrega ? item.fechaentrega : (item.fechaEstimada ?? '') %}
+                                    {% set hoy = 'now'|date('Y-m-d') %}
                                     {% if fecha_visible %}
                                         {% set fecha = fecha_visible|split('/') %}
                                         {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
@@ -183,9 +187,8 @@
                                             </td>
                                         {% endif %}
                                     {% else %}
-                                        <td data-order="9999-12-31"></td>
+                                        <td data-order="9999-12-31">Sin fecha</td>
                                     {% endif %}
-                                    
                                     <td class="text-center">$&nbsp;{{ item.precioDolar|number_format(2, ',', '.') }}</td>
                                     <td class="text-center">$&nbsp;{{ item.importeDolar|number_format(2, ',', '.') }}</td>
                                     <td>

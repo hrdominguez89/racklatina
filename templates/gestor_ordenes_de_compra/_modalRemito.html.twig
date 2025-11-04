@@ -9,6 +9,13 @@
             <div class="col-md-6">
             </div>
         </div>
+        <div class="row">
+            <div class="d-flex justify-content-end mb-3">
+                <button class="btn btn-primary" id="btnDescargarRemito" data-remito="{{ remitos[0].remito }}">
+                    Descargar PDF
+                </button>
+            </div>
+        </div>
         <div class="table-responsive">
             <table class="table table-bordered table-sm small">
 
@@ -45,8 +52,72 @@
                 </tbody>
             </table>
         </div>
+         <script>
+       // JavaScript/jQuery
+$(document).ready(function() {
+    $('#btnDescargarRemito').on('click', function() {
+        const remito = $(this).data('remito');
+        const url = "{{ path('app_remitos_descarga_interno') }}?remito=" + remito;
+
+        // Deshabilitar botón durante la descarga
+        const $btn = $(this);
+        $btn.prop('disabled', true);
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    // Si hay error, parsear el JSON con el mensaje
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Error al descargar el remito');
+                    });
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Crear descarga con blob
+                const urlBlob = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = urlBlob;
+                link.download = remito + '.pdf';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(urlBlob);
+            })
+            .catch(error => {
+                // Swal.fire('Error', error.message, 'error');
+                abrirModalContactoErrorRemito(remito);
+                
+            })
+            .finally(() => {
+                $btn.prop('disabled', false);
+            });
+    });
+    function abrirModalContactoErrorRemito(remito) {
+        // Marcar que no se debe limpiar automáticamente
+        window.noLimpiarModal = true;
+        
+        // Seleccionar la opción de error en descarga de remito
+        $('#contactoModal #div-asunto').empty();
+                const selectHTML = `
+                <label>Asunto:</label>
+                            <select name="asunto" id="asunto" class="form-select">
+                            <option value="error_descarga_factura" 
+                            selected>Error al descargar remito</option>
+                            </select>`;
+
+                $('#contactoModal #div-asunto').html(selectHTML);
+        
+        const mensaje = `Error al intentar descargar el remito ${remito}.`;
+        $('#contactoModal #mensaje').val(mensaje);
+        
+        $('#contactoModal').modal('show');
+    }
+});
+
+        </script>
 {% else %}
     <div class="alert alert-info">
-        No se encontraron datos para el remito #{{ numero }}
+        No se encontraron datos para el remito 
     </div>
 {% endif %}

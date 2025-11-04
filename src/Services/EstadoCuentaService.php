@@ -32,11 +32,52 @@ class EstadoCuentaService
             return null;
         }
         $estadoCuenta = $this->estadoCuentaRepository->findOneBy(["codigoEstado" => $codEst]);
+        if (!$estadoCuenta)
+        {
+            return null;
+        }
         $detalleEstado = $estadoCuenta->getDetalleEstado();
-        // Agregar flash message
+        if(!$detalleEstado)
+        {
+            return null;
+        }
         $session = $this->requestStack->getSession();
         $session->getFlashBag()->add("info", $detalleEstado);
         
+        return $detalleEstado;
+    }
+    public function verificarYNotificarEstadoCuentaPorCliente($cliente_calipso)
+    {
+        $cliente = $this->clientesRepository->findOneBy(["codigoCalipso" => $cliente_calipso]);
+        
+        if (!$cliente) {
+            return null;
+        }
+        
+        $codEst = $cliente->getCodigoEstado();
+        
+        if($codEst=='N')
+        {
+            return null;
+        }
+        
+        $estadoCuenta = $this->estadoCuentaRepository->findOneBy(["codigoEstado" => $codEst]);
+        
+        if (!$estadoCuenta)
+        {
+            return null;
+        }
+        
+        $detalleEstado = $estadoCuenta?->getDetalleEstado() ?? null;
+        
+        if(!$detalleEstado)
+        {
+            return null;
+        }
+
+        $session = $this->requestStack->getSession();
+        $session->getFlashBag()->add("info", $detalleEstado);
+
         return $detalleEstado;
     }
 }

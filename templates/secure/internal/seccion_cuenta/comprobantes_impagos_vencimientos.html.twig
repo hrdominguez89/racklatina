@@ -439,20 +439,20 @@
                 },
                 error: function(xhr, status, error) {
                     // Ocultar spinner
-                    spinnerModalElement.addEventListener('hidden.bs.modal', function onModalHidden() {
-                        // Este evento se dispara cuando el modal terminó de cerrarse
-                        // y el backdrop fue removido
+                    // spinnerModalElement.addEventListener('hidden.bs.modal', function onModalHidden() {
+                    //     // Este evento se dispara cuando el modal terminó de cerrarse
+                    //     // y el backdrop fue removido
                         
-                        // Abrir modal de contacto
-                        abrirModalContactoErrorFactura(numeroComprobante);
+                    //     // Abrir modal de contacto
+                    //     abrirModalContactoErrorFactura(numeroComprobante);
                         
-                        // Remover el listener para evitar múltiples ejecuciones
-                        spinnerModalElement.removeEventListener('hidden.bs.modal', onModalHidden);
-                    }, { once: true }); 
+                    //     // Remover el listener para evitar múltiples ejecuciones
+                    //     spinnerModalElement.removeEventListener('hidden.bs.modal', onModalHidden);
+                    // }, { once: true }); 
                     spinnerModal.hide();
                     
                     // Error en la descarga - abrir modal de contacto
-                    // abrirModalContactoErrorFactura(numeroComprobante);
+                    abrirModalContactoErrorFactura(numeroComprobante);
                 }
             });
         }
