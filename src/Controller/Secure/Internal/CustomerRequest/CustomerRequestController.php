@@ -48,8 +48,6 @@ final class CustomerRequestController extends AbstractController
             'estadosDisponibles' => CustomerRequestStatus::cases(),
         ]);
     }
-
-
     #[Route('/{id}/revisar', name: 'app_secure_internal_customer_request_review')]
     public function review(
         int $id,
@@ -108,8 +106,6 @@ final class CustomerRequestController extends AbstractController
             'clientes' => $clientes,
         ]);
     }
-
-    
     #[Route('/{id}/ver', name: 'customer_secure_internal_request_show')]
     public function show(CustomerRequest $solicitud, EntityManagerInterface $em): Response
     {
@@ -140,5 +136,11 @@ final class CustomerRequestController extends AbstractController
             ->html($this->renderView('emails/solicitud_aprobada.html.twig',$data));
 
         $this->mailer->send($email);
+    }
+    
+    #[Route('/asignar', name:'app_asignar')]
+    public function asignarCliente(Request $request)
+    {
+        return $this->render('secure/internal/customer_request/assigns.html.twig', []);
     }
 }

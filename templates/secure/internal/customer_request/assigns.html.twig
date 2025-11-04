@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+{% block title %}
+    Asignar 
+{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
+{% endblock %}
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item">
+                            <a href="{{ path('app_home') }}">
+                                Mi portal
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item ">
+                            <a href="{{ path('app_secure_internal_customer_request') }}">Solicitudes</a>
+                        </li>
+                        <li class="breadcrumb-item active">
+                            Asignaciones
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show mt-2" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    <div>
+        <div>{#ACA ESTAN LOS DATOS DEL USUARIO#}
+            <div class="row">
+                <label  for= "usuarioBuscado">Usuario</label>
+                <input  id = "usuario-buscado" name = "usuarioBuscado">
+                <button id = "buscar-usuario">Buscar</button>
+            </div>
+            <div>
+                info del usuario
+                <table>
+                </table>
+            </div>
+            <div>
+            <table>
+                <thead>
+                
+                </thead>
+                <tbody>
+                    {% %}
+                    {% %}                
+                </tbody>
+            </table>
+                lista de representados por el usuario
+            </div>
+        </div>
+        <div> {#ACA LOSS DATOSS DEL CLIENTE#}
+            <div>
+                <label  for  = "clienteBuscado">Busque un cliente</label>
+                <input  name = "clienteBuscado" id="cliente-buscado">
+                <button id   = "buscar-cliente"> Buscar</button>
+            </div>
+            <div>
+                info del cliente
+                <table>
+                      <tbody>
+                            <tr>
+                                <td>Razon social</td>
+                                <td>{{ }}</td>
+                            </tr>
+                            <tr>
+                                <td>Correo del cobrador</td>
+                                <td>{{ }}</td>
+                            </tr>
+                            <tr>
+                                <td>Estado de cuenta</td>
+                                <td>{{ }}</td>
+                            </tr>
+                    </tbody> 
+                </table>
+                <button id="asignar-cliente">Asignar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block javascripts %}
+{{ parent() }}
+<script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
+<script src="{{ asset('Datatables/datatables.min.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const buscar_usuario = ;
+        const buscar_cliente = ;
+        const asignar_cliente = ;
+    });
+</script>
+{% endblock %}
