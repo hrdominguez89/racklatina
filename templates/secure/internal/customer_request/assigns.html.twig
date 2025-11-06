@@ -1,0 +1,197 @@
+{% extends 'base.html.twig' %}
+{% block title %}
+    Asignacion de empresa 
+{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
+{% endblock %}
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item">
+                            <a href="{{ path('app_home') }}">
+                                Mi portal
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item ">
+                            <a href="{{ path('app_secure_internal_customer_request') }}">Solicitudes</a>
+                        </li>
+                        <li class="breadcrumb-item active">
+                            Asignaciones
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show mt-2" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+            <form method="GET" action="{{ path('app_asignar') }}">
+    <div class="col-12">
+        
+        <div class ="row">
+                <div class="col-md-6">{#ACA ESTAN LOS DATOS DEL USUARIO#}
+                    <div class="row">
+                        <div class="col-12 col-md-5 mb-3">
+                            <label class="class-form" for="usuarioBuscado" title="Ingrese un mail" >Buscar un usuario</label>
+                            <div class="d-flex gap-2">
+                                <input class="class-form"  id="usuario-buscado" name="usuarioBuscado" value="{{ app.request.get('usuarioBuscado') }}">
+                                <button type="submit" class="bg-primary" id="buscar-usuario">Buscar</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% if usuario %}
+                    <div>{#DATA DEL USUARIO#}
+                        <label class="class-form mb-3" >Informacion del usuario</label>
+                        <table class="table table-sm table-striped table-bordered text-center">
+                            <tbody>
+                                <tr>
+                                    <td>Email:</td>
+                                    <td>{{ usuario.email }}</td>
+                                </tr>
+                                 <tr>
+                                    <td>Nombre</td>
+                                    <td>{{ usuario.firstName }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Apellido:</td>
+                                    <td>{{ usuario.lastName }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Numero de id nacional:</td>
+                                    <td>{{ usuario.nationalIdNumber }}</td>
+                                </tr>
+                            </tbody> 
+                        </table>
+                    </div>
+                    <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-12 col-md-8">
+                        <div class="col-12 text-center">
+                            <label class="class-form">Lista de representados por el usuario</label>
+                        </div>
+                        <table class="table table-sm table-striped table-bordered text-center" id="tabla-clientes">
+                            <thead>
+                                <tr>
+                                    <th>Razon social</th>
+                                    <th>Cobrador</th>
+                                    <th>Correo del cobrador</th>
+                                    <th>Estado de cuenta</th>
+                                    <th>Metodo de pago</th>
+                                    <th>cuit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for clienteRep in clientesRepresentados %}
+                                    <tr>
+                                        <td>{{clienteRep.razonSocial}}</td>
+                                        <td>{{clienteRep.nombrecobrador}}</td>
+                                        <td>{{clienteRep.emailcobrador}}</td>
+                                        <td>{{clienteRep.estadoCliente}}</td>
+                                        <td>{{clienteRep.condicionpago}}</td>
+                                        <td>{{clienteRep.cuit}}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div  class="col-md-6"> {#ACA LOSS DATOSS DEL CLIENTE#}
+                    <div class="col-12 col-md-5">
+                        <label  for="clienteBuscado" title="Ingrese una razon social" >Buscar un cliente :</label>
+                        <div class="d-flex gap-2 mb-3">
+                            <input name="clienteBuscado" id="cliente-buscado" value="{{ app.request.get('clienteBuscado') }}">
+                            <button type="submit"  class="bg-primary" id="buscar-cliente">Buscar</button>
+                            <button type="button" class="bg-primary" id="asignar-cliente">Asignar</button>
+                        </div>
+                    </div>
+                    {% if cliente %}
+                    <div >
+                        <label class="class-form mb-3">Informacion del cliente</label>
+                        <table class="table table-sm table-striped table-bordered text-center">
+                            <tbody>
+                                    <tr>
+                                        <td>Razon social</td>
+                                        <td>{{ cliente.razonSocial }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Correo del cobrador</td>
+                                        <td>{{ cliente.emailcobrador }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Estado de cuenta</td>
+                                        <td>{{cliente.estadoCliente }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Cuit</td>
+                                        <td>{{cliente.cuit }}</td>
+                                    </tr>
+                            </tbody> 
+                        </table>
+                    </div>
+                    {% endif %}
+                </div>
+        </div>
+    </div>
+            </form>
+</div>
+{% endblock %}
+{% block javascripts %}
+{{ parent() }}
+<script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
+<script src="{{ asset('Datatables/datatables.min.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        $('#tabla-clientes').DataTable({
+                language: {
+                    url: esDatatable,
+                    emptyTable: "Aqui vera los clientes del usuario"
+                },
+                order: [[0, 'desc']], 
+                buttons: [
+                    'colvis',
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Clientes',
+                        filename: 'Clientes'
+                    }
+                ],
+                colReorder: true
+            });
+        const btn_asignar = document.getElementById("asignar-cliente");
+        btn_asignar.addEventListener('click', function() {
+        const usuarioBuscado = document.getElementById('usuario-buscado').value;
+        const clienteBuscado = document.getElementById('cliente-buscado').value;
+    
+        fetch('{{ path("app_asignar") }}?asignar=true&usuarioBuscado=' + encodeURIComponent(usuarioBuscado) + '&clienteBuscado=' + encodeURIComponent(clienteBuscado))
+        .then(response => response.json())  // ✅ Primero parseá el JSON
+        .then(data => {                      // ✅ Ahora sí tenés los datos
+            if(data.success) {
+                //alert(data.message);
+                //console.log('Usuario asignado:', data.usuario.email);
+                //console.log('Cliente asignado:', data.cliente.razonSocial);
+                location.reload(); // Recargar para ver los cambios
+            }
+             location.reload();
+        })
+        .catch(error => {
+            location.reload();
+        });
+        });
+    });
+</script>
+{% endblock %}

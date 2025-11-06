@@ -30,6 +30,9 @@
                 </div>
             </div>
             <div class="row">
+                <div class="col-12 d-flex justify-content-start align-items-start mb-3">
+                    <button class="btn bg-primary" onclick="window.location.href='{{ path('app_asignar') }}'">Cargar clientes</button>
+                </div>
                 <div class="col-12 d-flex justify-content-end align-items-end mb-3">
                     <div>
                         {% for estado in estadosDisponibles %}

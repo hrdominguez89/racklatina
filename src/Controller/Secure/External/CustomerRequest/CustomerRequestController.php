@@ -80,9 +80,10 @@ final class CustomerRequestController extends AbstractController
                 $this->addFlash('danger', 'Debés agregar al menos un cliente.');
                 return $this->redirectToRoute('app_secure_external_customer_request_new');
             }
+            $user_id = $this->getUser()->getId();
             foreach($clientes as $cliente)
             {
-                if($this->validarClienteRepresentado($cliente["id"]))
+                if($this->validarClienteRepresentado($cliente["id"],$user_id))
                 {
                     $this->addFlash('danger', 'Ya tienes cargado '.$cliente["razonSocial"]);
                     return $this->redirectToRoute('app_secure_external_customer_request_new');
@@ -210,9 +211,9 @@ final class CustomerRequestController extends AbstractController
             ]));
         $this->mailer->send($email);
     }
-    public function validarClienteRepresentado($cliente_id)
+    public function validarClienteRepresentado($cliente_id,$user_id)
     {
-        $userCustomer = $this->UserCustomerRepository->findBy(["cliente" => $cliente_id]);
+        $userCustomer = $this->UserCustomerRepository->findBy(["cliente" => $cliente_id,'user'=>$user_id]);
         return $userCustomer ? true : false;
     }
 
