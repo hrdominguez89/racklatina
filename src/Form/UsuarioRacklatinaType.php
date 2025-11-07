@@ -41,15 +41,6 @@ class UsuarioRacklatinaType extends AbstractType
                     new NotBlank(),
                 ],
             ])
-            ->add('nationalIdNumber', TextType::class, [
-                'constraints' => [
-                    new NotBlank(),
-                    new Length([
-                        'min' => 8,
-                        'minMessage' => 'El DNI debe tener al menos 8 caracteres',
-                    ]),
-                ],
-            ])
         ;
     }
 
