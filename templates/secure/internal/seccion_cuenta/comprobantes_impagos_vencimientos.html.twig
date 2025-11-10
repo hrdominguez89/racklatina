@@ -407,8 +407,8 @@
             const spinnerModal = new bootstrap.Modal(document.getElementById('spinnerModal'));
            
             spinnerModal.show();
-            
-            const url = "{{ path('descarga_facturas_internal', {'factura': '__TEMP__'}) }}".replace('__TEMP__', numeroComprobante);
+            fileName = numeroComprobante.replace(/\s/g, "") + ".pdf";
+            const url = "{{ path('descarga_remito_internal', {'remito': '__TEMP__'}) }}".replace('__TEMP__', fileName);
             
             $.ajax({
                 url: url,
@@ -434,7 +434,7 @@
                     }, 100);
                     
                     setTimeout(() => {
-                        eleminiarDocumento(numeroComprobante,url)
+                        eleminiarDocumento(fileName,url)
                     },3000);
                 },
                 error: function(xhr, status, error) {
