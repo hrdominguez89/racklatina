@@ -228,7 +228,7 @@ final class CustomerRequestController extends AbstractController
         }
         return $this->render('secure/internal/customer_request/assigns.html.twig', $data);
     }
-public function crearSolicitud($cliente,$usuario)
+    public function crearSolicitud($cliente,$usuario)
     {
         $clienteArray[] = [
             'id' => $cliente->getCodigoCalipso(),
