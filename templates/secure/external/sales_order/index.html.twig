@@ -197,7 +197,7 @@
                                         {% endif %}
                                         <td>{{ articulo.fechapedido|date('d/m/Y') }}</td>
                                         <td>
-                                            <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle',
+                                            <a href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle',
                                              {'numero_pedido':articulo.numero,
                                              'cliente_id': articulo.cliente, 
                                              'orden_compra_cliente_id': articulo.ordencompracliente,
