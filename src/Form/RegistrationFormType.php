@@ -18,7 +18,7 @@ class RegistrationFormType extends AbstractType
 {
     private RoleRepository $roleRepository;
 
-    public function __construct(RoleRepository $roleRepository,private ClientesRepository $clienteRepository)
+    public function __construct(RoleRepository $roleRepository, private ClientesRepository $clienteRepository)
     {
         $this->clienteRepository = $clienteRepository;
         $this->roleRepository = $roleRepository;
