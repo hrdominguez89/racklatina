@@ -70,7 +70,15 @@
                 document.getElementById('tabla-container').innerHTML = html;
                 // Reinicializar DataTable
                 $('#tabla-usuarios').DataTable({
-                    language: { url: esDatatable }
+                    language: { url: esDatatable },
+                    buttons: [
+                    'colvis',
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Comprobantes',
+                        filename: 'Comprobantes'
+                    }
+                    ],
                 });
             });
     }

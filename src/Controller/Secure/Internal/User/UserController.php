@@ -389,7 +389,11 @@ final class UserController extends AbstractController
             }
             $user->setFirstName($request->request->get('firstName'));
             $user->setLastName($request->request->get('lastName'));
-            $user->setNationalIdNumber($request->request->get('dni'));
+            $dni = $request->request->get('dni') ?? null;
+            if($dni)
+            {
+                $user->setNationalIdNumber($dni);
+            }
             $this->entityManager->persist($user);
             $this->entityManager->flush();
 
@@ -401,7 +405,11 @@ final class UserController extends AbstractController
             }
             $user->setFirstName($request->request->get('firstName'));
             $user->setLastName($request->request->get('lastName'));
-            $user->setNationalIdNumber($request->request->get('dni'));
+            $dni = $request->request->get('dni') ?? null;
+            if($dni)
+            {
+                $user->setNationalIdNumber($dni);
+            }
             $externalUserData = $this->externalUserDataRepository->findOneBy(['user' => $user->getId()]);
             $externalUserData->setCompanyName($request->request->get('empresa'));
             $externalUserData->setPhoneNumber($request->request->get('telefono'));
