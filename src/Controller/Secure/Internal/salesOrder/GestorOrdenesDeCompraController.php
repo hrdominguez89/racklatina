@@ -30,7 +30,9 @@ final class GestorOrdenesDeCompraController extends AbstractController
         $data['pedidos'] = [];
         $searchType = $request->query->get('searchType') ?? null;
         $search = $request->query->get('search') ?? null;
-        
+        $searchArticulo = $request->query->get('searchArticulo') ?? null;
+        $articuloSeleccionado = $request->query->get('articuloSeleccionado') ?? null;
+        $data["articulos_de_cliente"] = false;
         if ($searchType && (($searchType === 'cliente_y_articulo' && $searchArticulo) || ($searchType !== 'cliente_y_articulo' && $search))) {
             $query = $pedidosrelacionadosRepository->createQueryBuilder('p');
             switch ($searchType) {
@@ -50,9 +52,17 @@ final class GestorOrdenesDeCompraController extends AbstractController
                     break;
                 case 'cliente':
                 default:
-                    
                     $query->where('p.razonsocial like :razonsocial')
                         ->setParameter('razonsocial', '%' . $search . '%');
+
+                    $articulosDelCliente = $this->obtenerArticulosPorCliente($search);    //cargo los articulos del cliente
+                    $data["articulos_de_cliente"] = $articulosDelCliente;  //cargo los articulos del cliente
+                    
+                    if($articuloSeleccionado)
+                    {
+                        $query->andWhere('p.articulo = :articulo')
+                            ->setParameter('articulo', $articuloSeleccionado);
+                    }
                     break;
             }
             if ($data['status'] !== 'Todas') {
@@ -68,6 +78,7 @@ final class GestorOrdenesDeCompraController extends AbstractController
                         ->setParameter('estado', $data['status']);
                 }
             }
+            
             $data['pedidos'] = $query->getQuery()
                 ->getArrayResult();
             $agrupados = [];
@@ -75,8 +86,6 @@ final class GestorOrdenesDeCompraController extends AbstractController
             {
                 foreach ($data['pedidos'] as $pedido) {
                     $key = $pedido['ordencompracliente'] . '|' . $pedido['numero'];
-                    $articulos = $searchType != 'cliente' ? $this->obtenerArticulosDeOrden($pedido['cliente'],$pedido['ordencompracliente'], $pedido['numero']) : "";
-                    
                     if (!isset($agrupados[$key])) {
                         $agrupados[$key] = [
                             'ordencompracliente' => $pedido['ordencompracliente'],
@@ -87,7 +96,7 @@ final class GestorOrdenesDeCompraController extends AbstractController
                         'fechaoc' => $pedido['fechaoc'],
                         'pendientes' => 0,
                         'remitidos' => 0,
-                        'articulos' =>$articulos
+                        
                     ];
                 }
                 // Contar estados
@@ -108,7 +117,6 @@ final class GestorOrdenesDeCompraController extends AbstractController
         if (!$cuit) {
             return $this->json(['error' => 'Debe enviar el CUIT del cliente'], 400);
         }
-
         // Buscar cliente por CUIT
         $cliente = $this->entityManager->getRepository(Clientes::class)
             ->findOneBy(['cuit' => $cuit]);
@@ -188,31 +196,10 @@ final class GestorOrdenesDeCompraController extends AbstractController
         $factura = $facturasRepository->findBy([
             'numero' => $numeroLimpio
         ]);
-        // dd($facturas);
         return $this->render(
             'gestor_ordenes_de_compra/_modalFactura.html.twig',
             ['facturas' => $factura]
         );
-    }
-     public function obtenerArticulosDeOrden($cliente_id,$orden_compra_cliente_id,$numero_pedido)
-    {
-        // $ordenesDeCompra = $this->entityManager->createQueryBuilder()
-        //     ->select('p')
-        //     ->from(Pedidosrelacionados::class, 'p')
-        //     ->where('p.cliente = :cliente')
-        //     ->andWhere('p.ordencompracliente = :orden')
-        //     ->andWhere('p.numero = :numero_pedido')
-        //     ->setParameter('cliente', $cliente_id)
-        //     ->setParameter('orden', $orden_compra_cliente_id)
-        //     ->setParameter('numero_pedido', $numero_pedido)
-        //     ->getQuery()
-        //     ->getArrayResult();
-        $return=[];
-        // foreach($ordenesDeCompra as $ordC)
-        // {
-        //     $return[]=$ordC["articulo"];
-        // }
-        return $return;
     }
     #[Route('/descargaRemitos', name: 'app_remitos_descarga_interno')]
     public function descargaDeRemito(Request $request): Response
@@ -243,17 +230,14 @@ final class GestorOrdenesDeCompraController extends AbstractController
             ResponseHeaderBag::DISPOSITION_ATTACHMENT
         );
     }
-
-
-    
-    public function obtenerArticulosPorCliente($cliente_id)
+    public function obtenerArticulosPorCliente($razon_social)
     {
-        $articulos = $this->em->createQueryBuilder()
+        $articulos = $this->entityManager->createQueryBuilder()
             ->select('p.articulo')
             ->distinct(true)
             ->from(Pedidosrelacionados::class, 'p')
-            ->where('p.cliente = :cliente')
-            ->setParameter('cliente', $cliente_id)
+            ->where('p.razonsocial like :razonsocial')
+            ->setParameter('razonsocial', '%' . $razon_social . '%')
             ->getQuery()
             ->getArrayResult();
 

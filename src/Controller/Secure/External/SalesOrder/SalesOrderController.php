@@ -57,7 +57,6 @@ final class SalesOrderController extends AbstractController
         
         $cliente_get = $request->query->get("Cliente") ?? null;
         $articulo_seleccionado = $request->query->get("Articulo_seleccionado") ?? null;
-        // dd($Articulo_seleccionado);
         $this->estadoCuentaService->verificarYNotificarEstadoCuentaPorCliente($cliente_get);
         $data['status'] = $request->query->get('status') ?? 'Todas';
         $articulo = $request->query->get('search') ?? null;
@@ -151,14 +150,7 @@ final class SalesOrderController extends AbstractController
             $data['pedidos'] = array_values($agrupados);
             $data["articulos"] = $this->obtenerArticulosPorCliente($cliente_get);
 
-            if($data["articulos"])
-            {
-                $data["mostrar_opciones_articulos"] = true;
-            }
-            else
-            {
-                $data["mostrar_opciones_articulos"] = false;
-            }
+            $data["mostrar_opciones_articulos"] = $data["articulos"] ? true : false;
         }
         $data["clientes"] = array_map(function($c) use ($clientesRepository)
             {
