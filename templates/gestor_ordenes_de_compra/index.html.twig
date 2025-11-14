@@ -75,7 +75,6 @@
                                             value="{{ app.request.get('articuloSeleccionado') }}"
                                         >
                                         <datalist id="opciones-articulos">
-                                            {% dump articulos_de_cliente %}
                                         {% for articulo in articulos_de_cliente %}
                                             <option value="{{articulo["articulo"]}}" >
                                         {% endfor %}
