@@ -5,6 +5,7 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
     {% endblock %}
     {% block body %}
         <div class="container-fluid">
@@ -75,10 +76,13 @@
                     'colvis',
                     {
                         extend: 'excelHtml5',
-                        title: 'Comprobantes',
-                        filename: 'Comprobantes'
+                        title: 'Usuarios',
+                        filename: 'Usuarios'
                     }
                     ],
+                     dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                 });
             });
     }
