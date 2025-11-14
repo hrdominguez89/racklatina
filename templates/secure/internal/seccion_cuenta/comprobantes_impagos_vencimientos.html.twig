@@ -407,7 +407,7 @@
             const spinnerModal = new bootstrap.Modal(document.getElementById('spinnerModal'));
            
             spinnerModal.show();
-            fileName = numeroComprobante.replace(/\s/g, "") + ".pdf";
+            fileName = numeroComprobante.replace(/\s/g, "");
             const url = "{{ path('descarga_remito_internal', {'remito': '__TEMP__'}) }}".replace('__TEMP__', fileName);
             
             $.ajax({
