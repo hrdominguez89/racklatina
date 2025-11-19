@@ -275,12 +275,12 @@
                                                         {% set fecha_orden = partes[2] ~ '/' ~ partes[1] ~ '/' ~ partes[0] %}
                                                         {% set fecha_iso = partes[2] ~ '-' ~ partes[1] ~ '-' ~ partes[0] %}
                                                         {% if fecha_iso < hoy and articulo.estado != "Remitido" %}
-                                                                <td  data-order="{{ fecha_orden }}">
+                                                                <td  class="bg-primary" data-order="{{ fecha_orden }}">
                                                                     {{ fecha_visible }}
                                                                     <i class="ri-alert-line"></i> Vencida
                                                                 </td>
                                                             {% else %}
-                                                                <td data-order="{{ fecha_orden }}">
+                                                                <td class="bg-primary" data-order="{{ fecha_orden }}">
                                                                     {{ fecha_visible }}
                                                                 </td>
                                                             {% endif %}
