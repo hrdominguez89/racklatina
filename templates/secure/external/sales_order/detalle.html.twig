@@ -155,7 +155,7 @@
                         {% for item in ordenes_de_compra %}
                             {% if item.cantidadoriginal != 0 %}
                                 <tr class="align-middle">
-                                    <td class="text-center">{{ item.articulo }}</td>
+                                    <td class="text-center">{{ item.articulo|slice(2) }}</td>
                                     <td>{{ item.detalle }}</td>
                                     <td class="text-center">
                                     {% if item.preparado > 0 and item.estado == "Pendiente" %}
@@ -377,15 +377,15 @@
         });
 
         document.addEventListener('DOMContentLoaded', function () {
-            const arrayDeContactos = document.querySelectorAll('[name="Contactar-por-vencimiento"]');
-            arrayDeContactos.forEach(contacto => {
-                contacto.addEventListener('click',function() 
-                {
-                    data = "{{ orden_de_compra.OrdenCompraCliente }}"+ " articulo " + contacto.id;
-                    abrirModalContacto(data);
-                });
-            }
-            );
+                const arrayDeContactos = document.querySelectorAll('[name="Contactar-por-vencimiento"]');
+                arrayDeContactos.forEach(contacto => {
+                    contacto.addEventListener('click',function() 
+                    {
+                        data = "{{ orden_de_compra.OrdenCompraCliente }}"+ " articulo " + contacto.id;
+                        abrirModalContacto(data);
+                    });
+                }
+                );
         });
         function abrirModalContacto(data)
         {
