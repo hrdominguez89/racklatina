@@ -273,19 +273,8 @@
                                                     {% if fecha_visible %}
                                                         {% set partes = fecha_visible|split('/') %}
                                                         {% set fecha_orden = partes[2] ~ '/' ~ partes[1] ~ '/' ~ partes[0] %}
-                                                        <td class="bg-primary" data-order="{{ fecha_orden }}">
-                                                            {{ fecha_visible }}
-                                                        </td>
-                                                    {% else %}
-                                                        <td class="bg-primary" data-order="9999-12-31"></td>
-                                                    {# Si no hay fecha, se ordena último #}
-                                                    {% endif %}
-                                                    {% set fecha_visible = articulo.fechapedido ? articulo.fechapedido|date('d/m/Y') : (articulo.fechaEstimada ?? '') %}
-                                                    {% if fecha_visible %}
-                                                        {% set partes = fecha_visible|split('/') %}
-                                                        {% set fecha_orden = partes[2] ~ '/' ~ partes[1] ~ '/' ~ partes[0] %}
-                                                         {% set fecha_iso = partes[2] ~ '-' ~ partes[1] ~ '-' ~ partes[0] %}
-                                                            {% if fecha_iso < hoy and articulo.estado != "Remitido" %}
+                                                        {% set fecha_iso = partes[2] ~ '-' ~ partes[1] ~ '-' ~ partes[0] %}
+                                                        {% if fecha_iso < hoy and articulo.estado != "Remitido" %}
                                                                 <td  data-order="{{ fecha_orden }}">
                                                                     {{ fecha_visible }}
                                                                     <i class="ri-alert-line"></i> Vencida
@@ -295,6 +284,18 @@
                                                                     {{ fecha_visible }}
                                                                 </td>
                                                             {% endif %}
+                                                    {% else %}
+                                                        <td class="bg-primary" data-order="9999-12-31"></td>
+                                                    {# Si no hay fecha, se ordena último #}
+                                                    {% endif %}
+                                                    {% set fecha_visible = articulo.fechapedido ? articulo.fechapedido|date('d/m/Y') : (articulo.fechaEstimada ?? '') %}
+                                                    {% if fecha_visible %}
+                                                        {% set partes = fecha_visible|split('/') %}
+                                                        {% set fecha_orden = partes[2] ~ '/' ~ partes[1] ~ '/' ~ partes[0] %}
+                                                         
+                                                            <td data-order="{{ fecha_orden }}">
+                                                                    {{ fecha_visible }}
+                                                                </td>
                                                     {% else %}
                                                         <td data-order="9999-12-31"></td>
                                                     {% endif %}
