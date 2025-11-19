@@ -257,7 +257,7 @@
                 contacto.addEventListener('click',function()
                 {
                     const index = parseInt(contacto.id, 10);
-                    const orden_de_compra = {{ pedidos|json_encode|raw }};
+                    const orden_de_compra = {{ pedidos|default([])|json_encode|raw }};
                     const data = orden_de_compra[index].ordencompracliente + " articulo " + orden_de_compra[index].articulo;
                     abrirModalContacto(data);
                 });
