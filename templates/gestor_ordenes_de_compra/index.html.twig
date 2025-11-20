@@ -75,6 +75,7 @@
                                             value="{{ app.request.get('articuloSeleccionado') }}"
                                         >
                                         <datalist id="opciones-articulos">
+                                            
                                         {% for articulo in articulos_de_cliente %}
                                             <option value="{{articulo["articulo"]}}" >
                                         {% endfor %}
@@ -268,12 +269,21 @@
                                                         {{ articulo.detalle }}
                                                     </td>
                                                     {% set fecha_visible = articulo.fechaentrega ? articulo.fechaentrega : (articulo.fechaEstimada ?? '') %}
+                                                    {% set hoy = 'now'|date('Y-m-d') %}
                                                     {% if fecha_visible %}
                                                         {% set partes = fecha_visible|split('/') %}
                                                         {% set fecha_orden = partes[2] ~ '/' ~ partes[1] ~ '/' ~ partes[0] %}
-                                                        <td class="bg-primary" data-order="{{ fecha_orden }}">
-                                                            {{ fecha_visible }}
-                                                        </td>
+                                                        {% set fecha_iso = partes[2] ~ '-' ~ partes[1] ~ '-' ~ partes[0] %}
+                                                        {% if fecha_iso < hoy and articulo.estado != "Remitido" %}
+                                                                <td  class="bg-primary" data-order="{{ fecha_orden }}">
+                                                                    {{ fecha_visible }}
+                                                                    <i class="ri-alert-line"></i> Vencida
+                                                                </td>
+                                                            {% else %}
+                                                                <td class="bg-primary" data-order="{{ fecha_orden }}">
+                                                                    {{ fecha_visible }}
+                                                                </td>
+                                                            {% endif %}
                                                     {% else %}
                                                         <td class="bg-primary" data-order="9999-12-31"></td>
                                                     {# Si no hay fecha, se ordena último #}
@@ -282,19 +292,20 @@
                                                     {% if fecha_visible %}
                                                         {% set partes = fecha_visible|split('/') %}
                                                         {% set fecha_orden = partes[2] ~ '/' ~ partes[1] ~ '/' ~ partes[0] %}
-                                                        <td data-order="{{ fecha_orden }}">
-                                                            {{ fecha_visible }}
-                                                        </td>
+                                                         
+                                                            <td data-order="{{ fecha_orden }}">
+                                                                    {{ fecha_visible }}
+                                                                </td>
                                                     {% else %}
                                                         <td data-order="9999-12-31"></td>
                                                     {% endif %}
                                                     <td>
                                                         <a href="{{ path('app_secure_internal_sales_order_sales_order_ver_en_detalle',
-                                             {'numero_pedido':articulo.numero,
-                                             'cliente_id': articulo.cliente,
-                                             'orden_compra_cliente_id': articulo.ordencompracliente,
-                                             status:app.request.get('status') ? app.request.get('status'):'Todas',
-                                             search: app.request.get('search'),searchType: app.request.get('searchType')}) }}" class="btn btn-outline-primary btn-sm">
+                                                    {'numero_pedido':articulo.numero,
+                                                    'cliente_id': articulo.cliente,
+                                                    'orden_compra_cliente_id': articulo.ordencompracliente,
+                                                    status:app.request.get('status') ? app.request.get('status'):'Todas',
+                                                    search: app.request.get('search'),searchType: app.request.get('searchType')}) }}" class="btn btn-outline-primary btn-sm">
                                                             Detalle
                                                         </a>
                                                     </td>

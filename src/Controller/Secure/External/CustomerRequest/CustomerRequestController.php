@@ -49,6 +49,7 @@ final class CustomerRequestController extends AbstractController
 
         if($solicitudes != null)
         {
+            $flag = false;
             $mensaje = "Te enviaremos un email de confirmación una vez que sea aprobada.
             Tu solicitud está siendo evaluada para representar a la empresa:";
             foreach($solicitudes as $solicitud)
@@ -56,9 +57,13 @@ final class CustomerRequestController extends AbstractController
                 if($solicitud->getStatus() == CustomerRequestStatus::PENDIENTE)
                 {
                     $mensaje = $mensaje . " " . $solicitud?->getData()[0]['razonSocial']  . "\n";
+                    $flag = true;
                 }
             }
-            $this->addFlash('info', $mensaje);
+            if($flag)
+            {
+                $this->addFlash('info', $mensaje);
+            }
         }
         return $this->render('secure/external/customer_request/index.html.twig', [
             'solicitudes' => $solicitudes,

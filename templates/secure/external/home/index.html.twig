@@ -58,7 +58,7 @@
 				</a>
 			<!-- end card -->
 			</div>
-			<div	class="col-12 col-sm-6 col-lg-4">
+			<div class="col-12 col-sm-6 col-lg-4">
 				<!-- Simple card -->
 				<a	href="{{ path('app_secure_external_sales_order_sales_order',{status:'Todas'}) }}">
 					<div	class="card">
@@ -77,7 +77,7 @@
 			</div>
 			{% if is_granted('ROLE_ADMINISTRACION') %}
 			<!-- end card -->
-				<div	class="col-12 col-sm-6 col-lg-4">
+				<div class="col-12 col-sm-6 col-lg-4">
 					<!-- Simple card -->
 					<a	href="{{ path('app_seccion_cuenta_external') }}">
 						<div class="card">
@@ -96,6 +96,23 @@
 				<!-- end card -->
 				</div>
 			{% endif %}
+				{# <div class="col-12 col-sm-6 col-lg-4">
+					<!-- Simple card -->
+					<a	href="{{ path('app_secure_external_formularios_servicios') }}">
+						<div class="card">
+							<img class="card-img-top img-fluid"	height="150"	src="{{ asset('images/ordenes_de_compra.png') }}"	alt="Card image cap" />
+							<div class="card-body"	style="min-height: 190px;">
+								<h4	class="card-title mb-2">
+									Formularios de servicios
+								</h4>
+								<p	class="card-text">
+									Aca podras completar tus formularios de servicios.
+								</p>
+								<div class="text-end"></div>
+							</div>
+						</div>
+					</a>
+				</div> #}
 			</div>
 		<!-- end col -->
 		</div>
