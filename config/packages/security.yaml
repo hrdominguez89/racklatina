@@ -41,6 +41,8 @@ security:
         - { path: ^/secure/seccion-cuenta/clientes/*, roles: [ROLE_ADMINISTRACION] }
         - { path: ^/secure/clientes/*, roles: [ROLE_COMPRADOR] }
         - { path: ^/secure/mi-perfil/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN,ROLE_COMPRADOR,ROLE_ADMINISTRACION] }
+        - { path: ^/secure/service-requests-externos/*, roles: [ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
+        - { path: ^/secure/service-requests-internos/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN] }
         - { path: ^/secure/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN] }
         # - { path: ^/profile, roles: ROLE_USER }
 
