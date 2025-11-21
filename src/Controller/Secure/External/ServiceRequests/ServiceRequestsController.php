@@ -1,0 +1,139 @@
+<?php
+
+namespace App\Controller\Secure\External\ServiceRequests;
+
+use App\Entity\ServiceRequests;
+use App\Form\ServiceRequestsFormType;
+use App\Repository\ServiceRequestsRepository;
+use App\Repository\ProvinciasRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
+
+#[Route('/secure/service-requests-externos')]
+class ServiceRequestsController extends AbstractController
+{
+    #[Route('/', name: 'app_secure_external_service_requests')]
+    public function index(ServiceRequestsRepository $serviceRequestsRepository): Response
+    {
+        $user = $this->getUser();
+
+        // Get all service requests for this user
+        $serviceRequests = $serviceRequestsRepository->createQueryBuilder('s')
+            ->where('s.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('s.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        return $this->render('secure/external/service_requests/index.html.twig', [
+            'serviceRequests' => $serviceRequests,
+            'title' => 'Mis Solicitudes de Servicio'
+        ]);
+    }
+
+    #[Route('/nuevo', name: 'app_secure_external_service_requests_new')]
+    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ProvinciasRepository $provinciasRepository): Response
+    {
+        $user = $this->getUser();
+
+        $serviceRequest = new ServiceRequests();
+        $serviceRequest->setCreatedAt(new \DateTime());
+        $serviceRequest->setEstado('pendiente');
+        $serviceRequest->setUser($user);
+
+        // Pre-llenar con datos del usuario autenticado
+        $serviceRequest->setContacto($user->getFirstName() . ' ' . $user->getLastName());
+        $serviceRequest->setEmail($user->getEmail());
+
+        // Obtener todas las provincias agrupadas por país
+        $allProvincias = $provinciasRepository->findAll();
+        $provinciasByPais = [];
+        foreach ($allProvincias as $provincia) {
+            $paisId = $provincia->getPaisId();
+            if (!isset($provinciasByPais[$paisId])) {
+                $provinciasByPais[$paisId] = [];
+            }
+            $provinciasByPais[$paisId][] = [
+                'id' => $provincia->getProvinciaId(),
+                'nombre' => $provincia->getProvinciaNombre()
+            ];
+        }
+
+        $form = $this->createForm(ServiceRequestsFormType::class, $serviceRequest);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Manejar el archivo de factura (SIEMPRE REQUERIDO en External)
+            $facturaFile = $form->get('facturaCompra')->getData();
+
+            if (!$facturaFile) {
+                $this->addFlash('error', 'El archivo de factura es obligatorio.');
+
+                return $this->render('secure/external/service_requests/form.html.twig', [
+                    'form' => $form->createView(),
+                    'serviceRequest' => $serviceRequest,
+                    'title' => 'Nueva Solicitud de Servicio'
+                ]);
+            }
+
+            $originalFilename = pathinfo($facturaFile->getClientOriginalName(), PATHINFO_FILENAME);
+            $safeFilename = $slugger->slug($originalFilename);
+            $newFilename = $safeFilename.'-'.uniqid().'.'.$facturaFile->guessExtension();
+
+            try {
+                // Guardar temporalmente en /tmp
+                $facturaFile->move('/tmp', $newFilename);
+                $serviceRequest->setFacturaCompraFilename($newFilename);
+            } catch (FileException $e) {
+                $this->addFlash('error', 'Hubo un problema al subir el archivo de factura.');
+
+                return $this->render('secure/external/service_requests/form.html.twig', [
+                    'form' => $form->createView(),
+                    'serviceRequest' => $serviceRequest,
+                    'title' => 'Nueva Solicitud de Servicio'
+                ]);
+            }
+
+            $entityManager->persist($serviceRequest);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Solicitud de servicio creada exitosamente.');
+
+            return $this->redirectToRoute('app_secure_external_service_requests');
+        }
+
+        return $this->render('secure/external/service_requests/form.html.twig', [
+            'form' => $form->createView(),
+            'serviceRequest' => $serviceRequest,
+            'title' => 'Nueva Solicitud de Servicio',
+            'provinciasByPais' => json_encode($provinciasByPais)
+        ]);
+    }
+
+    #[Route('/{id}', name: 'app_secure_external_service_requests_show', requirements: ['id' => '\d+'])]
+    public function show(int $id, ServiceRequestsRepository $serviceRequestsRepository): Response
+    {
+        $serviceRequest = $serviceRequestsRepository->find($id);
+
+        if (!$serviceRequest) {
+            throw $this->createNotFoundException('Solicitud no encontrada');
+        }
+
+        $user = $this->getUser();
+
+        // Verify that this service request belongs to the user
+        if ($serviceRequest->getUser() !== $user) {
+            throw $this->createAccessDeniedException('No tiene permiso para ver esta solicitud');
+        }
+
+        return $this->render('secure/external/service_requests/show.html.twig', [
+            'serviceRequest' => $serviceRequest,
+            'title' => 'Detalle de la Solicitud'
+        ]);
+    }
+}
