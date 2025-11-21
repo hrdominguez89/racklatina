@@ -1,0 +1,181 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    Gestión de Solicitudes de Servicio
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                    <div class="page-title-right">
+                        <ol class="breadcrumb m-0">
+                            <li class="breadcrumb-item">
+                                <a href="{{ path('app_home') }}">
+                                    Mi portal
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active">
+                                Solicitudes de Servicio
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show mt-2" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="row">
+            <div class="col-12 d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <a href="{{ path('app_secure_internal_service_requests_new') }}" class="btn btn-primary">
+                        <i class="ri-add-line align-middle me-1"></i>
+                        Nueva Solicitud de Servicio
+                    </a>
+                </div>
+                <div>
+                    <a href="{{ path('app_secure_internal_service_requests') }}" class="btn btn-outline-primary {% if statusFilter == '' %}active{% endif %}">
+                        Todos
+                    </a>
+                    <a href="{{ path('app_secure_internal_service_requests', { status: 'pendiente' }) }}" class="btn btn-outline-primary {% if statusFilter == 'pendiente' %}active{% endif %}">
+                        Pendientes
+                    </a>
+                    <a href="{{ path('app_secure_internal_service_requests', { status: 'en_revision' }) }}" class="btn btn-outline-primary {% if statusFilter == 'en_revision' %}active{% endif %}">
+                        En Revisión
+                    </a>
+                    <a href="{{ path('app_secure_internal_service_requests', { status: 'aprobado' }) }}" class="btn btn-outline-primary {% if statusFilter == 'aprobado' %}active{% endif %}">
+                        Aprobados
+                    </a>
+                    <a href="{{ path('app_secure_internal_service_requests', { status: 'completado' }) }}" class="btn btn-outline-primary {% if statusFilter == 'completado' %}active{% endif %}">
+                        Completados
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <form method="get" class="row g-3">
+                                <div class="col-md-10">
+                                    <input type="text" name="search" class="form-control" placeholder="Buscar por empresa, email, nro. serie, contacto..." value="{{ searchTerm }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="ri-search-line me-1"></i> Buscar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table id="tabla-service-requests" class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Fecha</th>
+                                        <th>Empresa</th>
+                                        <th>Contacto</th>
+                                        <th>Email</th>
+                                        <th>Marca</th>
+                                        <th>Nro. Serie</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for serviceRequest in serviceRequests %}
+                                        <tr>
+                                            <td>{{ serviceRequest.id }}</td>
+                                            <td>{{ serviceRequest.createdAt ? serviceRequest.createdAt|date('d/m/Y') : '-' }}</td>
+                                            <td>{{ serviceRequest.empresa ?? '-' }}</td>
+                                            <td>{{ serviceRequest.contacto ?? '-' }}</td>
+                                            <td>{{ serviceRequest.email ?? '-' }}</td>
+                                            <td>{{ serviceRequest.marca ? serviceRequest.marca.serviceproddescrip : '-' }}</td>
+                                            <td>{{ serviceRequest.nroSerie ?? '-' }}</td>
+                                            <td>
+                                                {% if serviceRequest.estado == 'pendiente' %}
+                                                    <span class="badge bg-warning">Pendiente</span>
+                                                {% elseif serviceRequest.estado == 'en_revision' %}
+                                                    <span class="badge bg-info">En Revisión</span>
+                                                {% elseif serviceRequest.estado == 'aprobado' %}
+                                                    <span class="badge bg-primary">Aprobado</span>
+                                                {% elseif serviceRequest.estado == 'en_proceso' %}
+                                                    <span class="badge bg-info">En Proceso</span>
+                                                {% elseif serviceRequest.estado == 'completado' %}
+                                                    <span class="badge bg-success">Completado</span>
+                                                {% elseif serviceRequest.estado == 'rechazado' %}
+                                                    <span class="badge bg-danger">Rechazado</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ serviceRequest.estado }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{{ path('app_secure_internal_service_requests_show', {id: serviceRequest.id}) }}"
+                                                       class="btn btn-sm btn-info"
+                                                       title="Ver detalle">
+                                                        <i class="ri-eye-line"></i>
+                                                    </a>
+                                                    <a href="{{ path('app_secure_internal_service_requests_edit', {id: serviceRequest.id}) }}"
+                                                       class="btn btn-sm btn-primary"
+                                                       title="Editar">
+                                                        <i class="ri-edit-line"></i>
+                                                    </a>
+                                                    <form method="post"
+                                                          action="{{ path('app_secure_internal_service_requests_delete', {id: serviceRequest.id}) }}"
+                                                          onsubmit="return confirm('¿Está seguro de eliminar esta solicitud?')"
+                                                          style="display: inline;">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ serviceRequest.id) }}">
+                                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                                                            <i class="ri-delete-bin-line"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            $('#tabla-service-requests').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json"
+                },
+                "order": [[1, "desc"]],
+                "pageLength": 25,
+                "columnDefs": [
+                    { "orderable": false, "targets": 8 }
+                ]
+            });
+        });
+    </script>
+{% endblock %}
