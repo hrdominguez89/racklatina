@@ -7,16 +7,21 @@ use App\Form\ServiceRequestsFormType;
 use App\Repository\ServiceRequestsRepository;
 use App\Repository\ProvinciasRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Dompdf\Dompdf;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/secure/service-requests-externos')]
 class ServiceRequestsController extends AbstractController
 {
+    public function __construct(private MailerInterface $mailer)
+    {}
     #[Route('/', name: 'app_secure_external_service_requests')]
     public function index(ServiceRequestsRepository $serviceRequestsRepository): Response
     {
@@ -104,6 +109,8 @@ class ServiceRequestsController extends AbstractController
 
             $this->addFlash('success', 'Solicitud de servicio creada exitosamente.');
 
+            $this->enviarEmailAlCliente($serviceRequest->getId(),$user->getEmail(),$serviceRequest);
+
             return $this->redirectToRoute('app_secure_external_service_requests');
         }
 
@@ -135,5 +142,29 @@ class ServiceRequestsController extends AbstractController
             'serviceRequest' => $serviceRequest,
             'title' => 'Detalle de la Solicitud'
         ]);
+    }
+    public function enviarEmailAlCliente($numero_seguimiento,$mail_to,$solicitud_servicio)
+    {
+        $dompdf = new Dompdf();
+        $htmlPdf = $this->renderView('pdf/solicitud_servicio.html.twig', [
+            'solicitud' => $solicitud_servicio,
+            'numero_seguimiento' => $numero_seguimiento
+        ]);
+        $dompdf->loadHtml($htmlPdf);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $pdfContent = $dompdf->output();
+
+        $template = "emails/seguimiento_servicio_cliente.html.twig";
+        $email = (new Email())
+            ->from($_ENV['MAIL_FROM'])
+            ->to($mail_to)
+            ->subject('Solicitud de Representación')
+            ->html($this->renderView($template, [
+                'numero_seguimiento' => $numero_seguimiento,
+            ]))
+            ->attach($pdfContent, 'solicitud_servicio.pdf', 'application/pdf');
+
+        $this->mailer->send($email);
     }
 }
