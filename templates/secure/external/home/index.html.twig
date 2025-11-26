@@ -75,6 +75,23 @@
 					</div>
 				</a>
 			</div>
+			<div class="col-12 col-sm-6 col-lg-4">
+				<!-- Simple card -->
+				<a	href="{{ path('app_secure_external_service_requests') }}">
+					<div	class="card">
+						<img	class="card-img-top img-fluid"	height="150"	src="{{ asset('images/solicitud_servicios.png') }}"	alt="Card image cap" />
+						<div	class="card-body"	style="min-height: 190px;">
+							<h4	class="card-title mb-2">
+								Solicitudes de Servicio
+							</h4>
+							<p	class="card-text">
+								Gestioná tus solicitudes de servicio técnico y seguimiento de equipos.
+							</p>
+							<div class="text-end"></div>
+						</div>
+					</div>
+				</a>
+			</div>
 			{% if is_granted('ROLE_ADMINISTRACION') %}
 			<!-- end card -->
 				<div class="col-12 col-sm-6 col-lg-4">

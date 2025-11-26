@@ -115,6 +115,88 @@ class ServiceRequestsController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/editar', name: 'app_secure_external_service_requests_edit', requirements: ['id' => '\d+'])]
+    public function edit(Request $request, int $id, ServiceRequestsRepository $serviceRequestsRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger, ProvinciasRepository $provinciasRepository): Response
+    {
+        $serviceRequest = $serviceRequestsRepository->find($id);
+
+        if (!$serviceRequest) {
+            throw $this->createNotFoundException('Solicitud no encontrada');
+        }
+
+        $user = $this->getUser();
+
+        // Verify that this service request belongs to the user
+        if ($serviceRequest->getUser() !== $user) {
+            throw $this->createAccessDeniedException('No tiene permiso para editar esta solicitud');
+        }
+
+        // Obtener todas las provincias agrupadas por país
+        $allProvincias = $provinciasRepository->findAll();
+        $provinciasByPais = [];
+        foreach ($allProvincias as $provincia) {
+            $paisId = $provincia->getPaisId();
+            if (!isset($provinciasByPais[$paisId])) {
+                $provinciasByPais[$paisId] = [];
+            }
+            $provinciasByPais[$paisId][] = [
+                'id' => $provincia->getProvinciaId(),
+                'nombre' => $provincia->getProvinciaNombre()
+            ];
+        }
+
+        $form = $this->createForm(ServiceRequestsFormType::class, $serviceRequest);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Manejar el archivo de factura si fue subido
+            $facturaFile = $form->get('facturaCompra')->getData();
+
+            if ($facturaFile) {
+                // Eliminar archivo anterior si existe
+                if ($serviceRequest->getFacturaCompraFilename()) {
+                    $oldFile = '/tmp/' . $serviceRequest->getFacturaCompraFilename();
+                    if (file_exists($oldFile)) {
+                        unlink($oldFile);
+                    }
+                }
+
+                $originalFilename = pathinfo($facturaFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$facturaFile->guessExtension();
+
+                try {
+                    // Guardar temporalmente en /tmp
+                    $facturaFile->move('/tmp', $newFilename);
+                    $serviceRequest->setFacturaCompraFilename($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Hubo un problema al subir el archivo de factura.');
+
+                    return $this->render('secure/external/service_requests/form.html.twig', [
+                        'form' => $form->createView(),
+                        'serviceRequest' => $serviceRequest,
+                        'title' => 'Editar Solicitud de Servicio',
+                        'provinciasByPais' => json_encode($provinciasByPais)
+                    ]);
+                }
+            }
+
+            $serviceRequest->setUpdatedAt(new \DateTime());
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Solicitud de servicio actualizada exitosamente.');
+
+            return $this->redirectToRoute('app_secure_external_service_requests');
+        }
+
+        return $this->render('secure/external/service_requests/form.html.twig', [
+            'form' => $form->createView(),
+            'serviceRequest' => $serviceRequest,
+            'title' => 'Editar Solicitud de Servicio',
+            'provinciasByPais' => json_encode($provinciasByPais)
+        ]);
+    }
+
     #[Route('/{id}', name: 'app_secure_external_service_requests_show', requirements: ['id' => '\d+'])]
     public function show(int $id, ServiceRequestsRepository $serviceRequestsRepository): Response
     {
