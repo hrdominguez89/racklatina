@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+    
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <!-- Header con logos -->
+        <tr>
+            <td style="padding: 15px; text-align: center;">
+                <img src="https://racklatina.com/wp-content/uploads/2020/08/logo-racklatina-light.png" alt="marca">
+            </td>
+        </tr>
+        
+        <!-- Banner -->
+        <tr>
+            <td>
+                <h1 style="background-color: #9d9f26; color: #ffffff; margin: 0; padding: 10px 15px; font-size: 18px;">Nueva solicitud de servicio - Racklatina</h1>
+                <h1 style="background-color: #9d9f26; color: #ffffff; margin: 0; padding: 10px 15px; font-size: 18px;">Nro. {{ numero_seguimiento }} </h1>
+            </td>
+        </tr>
+        
+        <!-- Contenido -->
+        <tr>
+            <td style="padding: 20px;">
+                <p>Estimados,</p>
+                <p>Se ha registrado una nueva solicitud de servicio.</p>
+                
+                <table width="100%" cellpadding="5" cellspacing="0" style="margin-top: 15px;">
+                    <tr>
+                        <td style="font-weight: bold; width: 200px;">Fecha de Alta:</td>
+                        <td>{{ solicitud.createdAt|date('d/m/Y') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Empresa:</td>
+                        <td>{{ solicitud.empresa }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">CUIT:</td>
+                        {# <td>{{ solicitud.cuit }}</td> #}
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Nombre y Apellido de Contacto:</td>
+                        <td>{{ solicitud.contacto }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Dirección de correo electrónico:</td>
+                        <td>{{ solicitud.email }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Dirección de entrega:</td>
+                        <td>{{ solicitud.direccion }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Código postal:</td>
+                        {# <td>{{ solicitud.codigoPostal }}</td> #}
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Teléfono:</td>
+                        {# <td>{{ solicitud.telefono }}</td> #}
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">País:</td>
+                        <td>{{ solicitud.pais.paisNombre }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Provincia:</td>
+                        <td>{{ solicitud.provincia.provinciaNombre }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Localidad:</td>
+                        <td>{{ solicitud.localidad }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Nombre Transporte:</td>
+                        <td>{{ solicitud.transporteNombre }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Dirección de Transporte:</td>
+                        <td>{{ solicitud.transporteNombre }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Marca:</td>
+                        <td>{{ solicitud.marca.serviceproddescrip }}</td>
+                    </tr>
+                </table>
+                
+                <p style="margin-top: 20px;">Saludos.</p>
+            </td>
+        </tr>
+        
+        <!-- Footer -->
+        <tr>
+            <td style="padding: 15px; text-align: center; border-top: 1px solid #ddd;">
+                <p style="font-size: 10px; color: #777; margin-top: 10px;">Racklatina S.A. © {{ "now"|date("Y") }}. Todos los derechos reservados.</p>
+                <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram" width="24" height="24" style="margin: 0 5px;"></a>
+                <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/174/174848.png" alt="Facebook" width="24" height="24" style="margin: 0 5px;"></a>
+                <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/174/174883.png" alt="YouTube" width="24" height="24" style="margin: 0 5px;"></a>
+                <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/174/174851.png" alt="Google Plus" width="24" height="24" style="margin: 0 5px;"></a>
+            </td>
+        </tr>
+    </table>
+    
+</body>
+</html>

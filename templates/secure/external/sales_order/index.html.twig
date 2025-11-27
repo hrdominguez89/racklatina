@@ -91,7 +91,7 @@
                         <a href="{{ path('app_secure_external_sales_order_sales_order', {
                                 'status': 'articulos_pendientes',Cliente: cliente 
                             }) }}" class="btn {{ status=='articulos_pendientes'? 'active':'' }} btn-outline-primary">
-                            Articulos pendientes.
+                            Artículos pendientes
                         </a>
                     </div>
                 </div>
@@ -103,47 +103,29 @@
                     <table id="tabla-pedidos" class="table table-striped">
                         <thead>
                             <tr>
-                                <th>
-                                    Orden Compra Cliente
-                                </th>
-                                <th>
-                                    Nro pedido
-                                </th>
-                                <th>
-                                    Razón Social
-                                </th>
-                                <th>
-                                    Fecha Pedido
-                                </th>
-                                <th>
-                                    Estado
-                                </th>
-                                <th>
-                                    Acciones
-                                </th>
+                                <th style="text-align: center;">Orden Compra Cliente</th>
+                                <th style="text-align: center;">Nro pedido</th>
+                                <th style="text-align: center;">Razón Social</th>
+                                <th style="text-align: center;">Fecha Pedido</th>
+                                <th style="text-align: center;">Estado</th>
+                                <th style="text-align: center;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for pedido in pedidos %}
                                 <tr>
-                                    <td>
-                                        {{ pedido.ordencompracliente }}
-                                    </td>
-                                    <td>
-                                        {{ pedido.numero }}
-                                    </td>
-                                    <td>
-                                        {{ pedido.razonsocial }}
-                                    </td>
+                                    <td style="text-align: center;">{{ pedido.ordencompracliente }}</td>
+                                    <td style="text-align: center;">{{ pedido.numero }}</td>
+                                    <td style="text-align: center;">{{ pedido.razonsocial }}</td>
                                     {% set fecha_visible = pedido.fechaoc ? pedido.fechaoc : null  %}
                                     {% if fecha_visible %}
                                         {% set fecha = fecha_visible|split('/') %}
                                         {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
-                                        <td data-order="{{ fecha_ordenada }}"> {{fecha_visible}}</td>
+                                        <td style="text-align: center;" data-order="{{ fecha_ordenada }}"> {{fecha_visible}}</td>
                                     {% else %}
-                                        <td data-order="9999-12-31"></td>
+                                        <td style="text-align: center;" data-order="9999-12-31"></td>
                                     {% endif %}
-                                    <td>
+                                    <td style="text-align: center;">
                                         {% if status == 'Todas' %}
                                             Pendientes&nbsp;{{ pedido.pendientes }}&nbsp;/Remitidos&nbsp;{{ pedido.remitidos }}
                                         {% elseif status == 'Pendiente' %}
@@ -154,8 +136,8 @@
                                             {{ pedido.remitidos }}
                                         {% endif %}
                                     </td>
-                                    <td>
-                                        <a href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle', {'numero_pedido':pedido.numero,'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente,status:app.request.get('status') ? app.request.get('status'):'Todas'}) }}" class="btn btn-outline-primary btn-sm">
+                                    <td style="text-align: center;">
+                                        <a style="text-align: center;" href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle', {'numero_pedido':pedido.numero,'cliente_id': pedido.cliente, 'orden_compra_cliente_id': pedido.ordencompracliente,status:app.request.get('status') ? app.request.get('status'):'Todas'}) }}" class="btn btn-outline-primary btn-sm">
                                             Detalle
                                         </a>
                                     </td>
@@ -167,25 +149,25 @@
                     <table id="tabla-pedidos" class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Orden de compra</th>
-                                    <th>Código de articulo</th>
-                                    <th>Cantidad pendiente</th>
-                                    <th>Numero de pedido</th>
-                                    <th>Detalle</th>
-                                    <th >Fecha estimada</th>
-                                    <th>Fecha de pedido</th>
-                                    <th>Ver O.C. detalle</th>
+                                    <th style="text-align: center;">Orden de compra</th>
+                                    <th style="text-align: center;">Código de artículo</th>
+                                    <th style="text-align: center;">Cantidad pendiente</th>
+                                    <th style="text-align: center;">Número de pedido</th>
+                                    <th style="text-align: center;">Detalle</th>
+                                    <th style="text-align: center;">Fecha estimada</th>
+                                    <th style="text-align: center;">Fecha de pedido</th>
+                                    <th style="text-align: center;">Ver O.C. detalle</th>
                                 </tr>
                             </thead>
                             <tbody> 
                                 {% for articulo in pedidos %}
 
                                     <tr>
-                                        <td>{{ articulo.ordencompracliente}}</td>
-                                        <td>{{ articulo.articulo }}</td>
-                                        <td>{{ articulo.cantidadPendiente }}</td>
-                                        <td>{{ articulo.numero }}</td>
-                                        <td>{{ articulo.detalle }}</td>
+                                        <td style="text-align: center;">{{ articulo.ordencompracliente}}</td>
+                                        <td style="text-align: center;">{{ articulo.articulo |slice(2) }}</td>
+                                        <td style="text-align: center;">{{ articulo.cantidadPendiente }}</td>
+                                        <td style="text-align: center;">{{ articulo.numero }}</td>
+                                        <td style="text-align: center;">{{ articulo.detalle }}</td>
                                         {% set fecha_visible = articulo.fechaentrega ? articulo.fechaentrega : (articulo.fechaEstimada ?? '') %}
                                         {% set hoy = 'now'|date('Y-m-d') %}
                                         {% if fecha_visible %}
@@ -193,7 +175,7 @@
                                             {% set fecha_ordenada = fecha[2] ~ '/' ~ fecha[1] ~ '/' ~ fecha[0] %}
                                             {% set fecha_iso = fecha[2] ~ '-' ~ fecha[1] ~ '-' ~ fecha[0] %}
                                             {% if fecha_iso < hoy and articulo.estado != "Remitido" %}
-                                                <td  data-order="{{ fecha_ordenada }}">
+                                                <td  class="bg-primary" data-order="{{ fecha_ordenada }}" style="text-align: center;">
                                                     {# {{ fecha_visible }}
                                                     <i class="ri-alert-line"></i> Vencida #}
                                                     <button type="button" class="btn btn-sm btn-primary" id="{{ loop.index0 }}" name="Contactar-por-vencimiento" >
@@ -201,15 +183,15 @@
                                                     </button>
                                                 </td>
                                             {% else %}
-                                                <td class="bg-primary" data-order="{{ fecha_ordenada }}">
+                                                <td class="bg-primary" data-order="{{ fecha_ordenada }}" style="text-align: center;">
                                                     {{ fecha_visible }}
                                                 </td>
                                             {% endif %}
                                         {% else %}
-                                            <td data-order="9999-12-31">Sin fecha</td>
+                                            <td data-order="9999-12-31" style="text-align: center;">Sin fecha</td>
                                         {% endif %}
-                                        <td>{{ articulo.fechapedido|date('d/m/Y') }}</td>
-                                        <td>
+                                        <td style="text-align: center;">{{ articulo.fechapedido|date('d/m/Y') }}</td>
+                                        <td style="text-align: center;">
                                             <a href="{{ path('app_secure_external_sales_order_sales_order_ver_en_detalle',
                                              {'numero_pedido':articulo.numero,
                                              'cliente_id': articulo.cliente, 
