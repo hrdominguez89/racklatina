@@ -11,10 +11,21 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mime\Email;
+use Dompdf\Dompdf;
 
 #[Route('/secure/servicios-internos')]
 class ServicesController extends AbstractController
 {
+    private MailerInterface $mailer;
+
+    public function __construct(MailerInterface $mailer)
+    {
+        $this->mailer = $mailer;
+    }
+
     #[Route('/', name: 'app_secure_internal_services')]
     public function index(Request $request, ServiciosRepository $serviciosRepository): Response
     {
@@ -114,6 +125,9 @@ class ServicesController extends AbstractController
             $entityManager->persist($service);
             $entityManager->flush();
 
+            // Enviar email al operador
+            $this->enviarEmailAlOperador($nextId, $service);
+
             $this->addFlash('success', 'Servicio creado exitosamente.');
 
             return $this->redirectToRoute('app_secure_internal_services');
@@ -201,5 +215,30 @@ class ServicesController extends AbstractController
         }
 
         return $this->redirectToRoute('app_secure_internal_services');
+    }
+
+    private function enviarEmailAlOperador($numero_seguimiento, $servicio)
+    {
+        $dompdf = new Dompdf();
+        $htmlPdf = $this->renderView('pdf/adjunto_mail_solicitud.html.twig', [
+            'solicitud' => $servicio,
+            'numero_seguimiento' => $numero_seguimiento
+        ]);
+        $dompdf->loadHtml($htmlPdf);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $pdfContent = $dompdf->output();
+
+        $template = "emails/seguimiento_servicio_operador.html.twig";
+        $email = (new Email())
+            ->from($_ENV['MAIL_FROM'])
+            ->to($_ENV['MAIL_CENTRO_RAC'])
+            ->subject('Solicitud de servicio')
+            ->html($this->renderView($template, [
+                'numero_seguimiento' => $numero_seguimiento,
+                'solicitud' => $servicio
+            ]))
+            ->attach($pdfContent, 'solicitud_servicio.pdf', 'application/pdf');
+        $this->mailer->send($email);
     }
 }
