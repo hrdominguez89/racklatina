@@ -1,0 +1,132 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    Mis Servicios
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <!-- start page title -->
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                    <div class="page-title-right">
+                        <ol class="breadcrumb m-0">
+                            <li class="breadcrumb-item">
+                                <a href="{{ path('app_home') }}">
+                                    Mi portal
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active">
+                                Mis Servicios
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show mt-2" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="row">
+            <div class="col-12 d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Mis Servicios</h4>
+                <a href="{{ path('app_secure_external_services_new') }}" class="btn btn-primary">
+                    <i class="ri-add-line"></i> Nuevo Servicio
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                {% if services is empty %}
+                    <div class="alert alert-info">
+                        No tiene servicios registrados.
+                    </div>
+                {% else %}
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="tabla-services">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Fecha</th>
+                                            <th>Empresa</th>
+                                            <th>Nro. Serie</th>
+                                            <th>Nro. Seguimiento</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for service in services %}
+                                            <tr>
+                                                <td>{{ service.serviceid }}</td>
+                                                <td>{{ service.servicedate ? service.servicedate|date('d/m/Y') : '-' }}</td>
+                                                <td>{{ service.serviceempresa ?? '-' }}</td>
+                                                <td>{{ service.servicenroserie ?? '-' }}</td>
+                                                <td>{{ service.servicenroseguimiento ?? '-' }}</td>
+                                                <td>
+                                                    {% if service.servicestatus == 1 %}
+                                                        <span class="badge bg-warning">Pendiente</span>
+                                                    {% elseif service.servicestatus == 2 %}
+                                                        <span class="badge bg-info">En Proceso</span>
+                                                    {% elseif service.servicestatus == 3 %}
+                                                        <span class="badge bg-success">Completado</span>
+                                                    {% elseif service.servicestatus == 4 %}
+                                                        <span class="badge bg-danger">Rechazado</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">Sin estado</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <a href="{{ path('app_secure_external_services_show', {id: service.serviceid}) }}"
+                                                           class="btn btn-sm btn-info"
+                                                           title="Ver detalle">
+                                                            <i class="ri-eye-line"></i>
+                                                        </a>
+                                                        <a href="{{ path('app_secure_external_services_edit', {id: service.serviceid}) }}"
+                                                           class="btn btn-sm btn-warning"
+                                                           title="Editar">
+                                                            <i class="ri-edit-line"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $(document).ready(function() {
+            if ($('#tabla-services').length) {
+                $('#tabla-services').DataTable({
+                    "language": {
+                        "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json"
+                    },
+                    "order": [[1, "desc"]],
+                    "pageLength": 25
+                });
+            }
+        });
+    </script>
+{% endblock %}

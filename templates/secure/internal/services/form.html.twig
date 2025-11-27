@@ -1,0 +1,345 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                    <div class="page-title-right">
+                        <ol class="breadcrumb m-0">
+                            <li class="breadcrumb-item">
+                                <a href="{{ path('app_home') }}">
+                                    Mi portal
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <a href="{{ path('app_secure_internal_services') }}">
+                                    Servicios
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active">
+                                {{ title }}
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">{{ title }}</h4>
+                    </div>
+                    <div class="card-body">
+                        {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
+
+                        {# DATOS PRINCIPALES #}
+                        <div class="section-box mb-4">
+                            <div class="section-label">
+                                <span>Datos Principales</span>
+                            </div>
+
+                            <div class="row mt-3">
+                                {# Columna izquierda #}
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form_label(form.servicepaisid, 'País') }}
+                                        {{ form_widget(form.servicepaisid) }}
+                                        {{ form_errors(form.servicepaisid) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.serviceprovinciaid, 'Provincia') }}
+                                        {{ form_widget(form.serviceprovinciaid) }}
+                                        {{ form_errors(form.serviceprovinciaid) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.servicelocalidad, 'Localidad') }}
+                                        {{ form_widget(form.servicelocalidad) }}
+                                        {{ form_errors(form.servicelocalidad) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.serviceempresa, 'Empresa') }}
+                                        {{ form_widget(form.serviceempresa) }}
+                                        {{ form_errors(form.serviceempresa) }}
+                                    </div>
+                                </div>
+
+                                {# Columna derecha #}
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form_label(form.servicecontacto, 'Nombre y Apellido de Contacto') }}
+                                        {{ form_widget(form.servicecontacto) }}
+                                        {{ form_errors(form.servicecontacto) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.serviceemail, 'Dirección de correo electrónico') }}
+                                        {{ form_widget(form.serviceemail) }}
+                                        {{ form_errors(form.serviceemail) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.servicedireccion, 'Dirección de entrega') }}
+                                        {{ form_widget(form.servicedireccion) }}
+                                        {{ form_errors(form.servicedireccion) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.servicetransporte, 'Nombre Transporte') }}
+                                        {{ form_widget(form.servicetransporte) }}
+                                        {{ form_errors(form.servicetransporte) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# INFORMACIÓN DEL MATERIAL #}
+                        <div class="section-box mb-4">
+                            <div class="section-label">
+                                <span>Información del Material</span>
+                            </div>
+
+                            <div class="row mt-3">
+                                {# Columna izquierda #}
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form_label(form.servicemarcaid, 'Marca') }}
+                                        {{ form_widget(form.servicemarcaid) }}
+                                        {{ form_errors(form.servicemarcaid) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.servicecodcatalogo, 'Código Catálogo') }}
+                                        {{ form_widget(form.servicecodcatalogo) }}
+                                        {{ form_errors(form.servicecodcatalogo) }}
+                                    </div>
+
+                                    {# <div class="mb-3">
+                                        {{ form_label(form.serviceserie, 'Serie') }}
+                                        {{ form_widget(form.serviceserie) }}
+                                        {{ form_errors(form.serviceserie) }}
+                                    </div> #}
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.servicenroserie, 'Número de Serie') }}
+                                        {{ form_widget(form.servicenroserie) }}
+                                        {{ form_errors(form.servicenroserie) }}
+                                    </div>
+
+                                    {# <div class="mb-3">
+                                        {{ form_label(form.servicemeses, 'Meses') }}
+                                        {{ form_widget(form.servicemeses) }}
+                                        {{ form_errors(form.servicemeses) }}
+                                    </div> #}
+                                </div>
+
+                                {# Columna derecha #}
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form_label(form.servicefalla, 'Descripción de la Falla') }}
+                                        {{ form_widget(form.servicefalla, {'attr': {'rows': 5}}) }}
+                                        {{ form_errors(form.servicefalla) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">¿Ha adquirido este equipo en los últimos 12 (doce) meses? *</label>
+                                        <small class="d-block text-muted mb-1" style="font-style: italic;">Es necesario contar con la documentación de compra (Remito y/o Factura)</small>
+                                        <select class="form-select" id="adquirido-ultimos-12-meses" name="adquirido_ultimos_12_meses">
+                                            <option value="">Seleccione una opción</option>
+                                            <option value="si">Sí</option>
+                                            <option value="no">No</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3" id="factura-compra-container" style="display: none;">
+                                        <label class="form-label">Factura de compra (PDF) *</label>
+                                        <small class="d-block text-muted mb-1">Suba la factura de compra del equipo en formato PDF (máximo 5MB)</small>
+                                        <input type="file" class="form-control" id="factura-compra" name="factura_compra" accept=".pdf">
+                                    </div>
+
+                                    {# <div class="mb-3">
+                                        {{ form_label(form.serviceobservaciones, 'Observaciones') }}
+                                        {{ form_widget(form.serviceobservaciones, {'attr': {'rows': 5}}) }}
+                                        {{ form_errors(form.serviceobservaciones) }}
+                                    </div> #}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <a href="{{ path('app_secure_internal_services') }}" class="btn btn-secondary me-2">
+                                    Cancelar
+                                </a>
+                                <button type="button" class="btn btn-danger" id="btn-enviar">
+                                    Enviar
+                                </button>
+                            </div>
+                        </div>
+
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .section-box {
+            background-color: #fff;
+            border-radius: 4px;
+            padding: 20px;
+        }
+
+        .section-label {
+            display: inline-block;
+        }
+
+        .section-label span {
+            background-color: #e8e8e8;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 8px 12px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+
+        .btn-danger {
+            background-color: #f44336;
+            border-color: #f44336;
+            padding: 8px 30px;
+        }
+
+        .btn-danger:hover {
+            background-color: #d32f2f;
+            border-color: #d32f2f;
+        }
+
+        .btn-secondary {
+            padding: 8px 30px;
+        }
+
+        .text-muted {
+            font-size: 0.85rem;
+        }
+
+        .card-body {
+            background-color: #f5f5f5;
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnEnviar = document.getElementById('btn-enviar');
+            const form = document.querySelector('form');
+
+            // === FILTRADO DE PROVINCIAS POR PAÍS ===
+            const selectPais = document.getElementById('pais-select');
+            const selectProvincia = document.getElementById('provincia-select');
+            const provinciasByPais = {{ provinciasByPais|raw }};
+
+            if (!selectPais || !selectProvincia) {
+                console.error('Selects no encontrados');
+            } else {
+                const provinciaActual = selectProvincia.value; // Guardar valor actual si está editando
+
+                function updateProvincias() {
+                    const paisId = selectPais.value;
+
+                    // Limpiar opciones actuales (excepto placeholder)
+                    selectProvincia.innerHTML = '<option value="">Seleccione primero un país</option>';
+
+                    if (paisId && provinciasByPais[paisId]) {
+                        selectProvincia.innerHTML = '<option value="">Seleccione una provincia</option>';
+                        provinciasByPais[paisId].forEach(function(provincia) {
+                            const option = document.createElement('option');
+                            option.value = provincia.id;
+                            option.textContent = provincia.nombre;
+                            // Restaurar selección si está editando
+                            if (provincia.id == provinciaActual) {
+                                option.selected = true;
+                            }
+                            selectProvincia.appendChild(option);
+                        });
+                        selectProvincia.disabled = false;
+                    } else {
+                        selectProvincia.disabled = true;
+                    }
+                }
+
+                // Inicializar provincias al cargar la página
+                updateProvincias();
+
+                // Actualizar provincias cuando cambie el país
+                selectPais.addEventListener('change', function() {
+                    updateProvincias();
+                });
+            }
+
+            // === MOSTRAR/OCULTAR CAMPO DE FACTURA ===
+            const selectMeses = document.getElementById('adquirido-ultimos-12-meses');
+            const facturaContainer = document.getElementById('factura-compra-container');
+            const facturaInput = document.getElementById('factura-compra');
+
+            function toggleFacturaField() {
+                if (selectMeses.value === 'si') {
+                    facturaContainer.style.display = 'block';
+                    facturaInput.setAttribute('required', 'required');
+                } else {
+                    facturaContainer.style.display = 'none';
+                    facturaInput.removeAttribute('required');
+                }
+            }
+
+            // Inicializar el estado del campo al cargar
+            toggleFacturaField();
+
+            // Escuchar cambios en el select
+            selectMeses.addEventListener('change', toggleFacturaField);
+
+            btnEnviar.addEventListener('click', function(e) {
+                // Validar que el archivo esté presente si es requerido
+                if (selectMeses.value === 'si') {
+                    if (!facturaInput.files || facturaInput.files.length === 0) {
+                        e.preventDefault();
+                        alert('Por favor, suba la factura de compra en formato PDF.');
+                        return;
+                    }
+                }
+                form.submit();
+            });
+        });
+    </script>
+{% endblock %}

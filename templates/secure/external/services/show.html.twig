@@ -1,0 +1,302 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                    <div class="page-title-right">
+                        <ol class="breadcrumb m-0">
+                            <li class="breadcrumb-item">
+                                <a href="{{ path('app_home') }}">
+                                    Mi portal
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <a href="{{ path('app_secure_external_services') }}">
+                                    Mis Servicios
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active">
+                                Servicio #{{ service.serviceid }}
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Servicio #{{ service.serviceid }}</h4>
+                        <div>
+                            {% if service.servicestatus == 1 %}
+                                <span class="badge bg-warning fs-6">Pendiente</span>
+                            {% elseif service.servicestatus == 2 %}
+                                <span class="badge bg-info fs-6">En Proceso</span>
+                            {% elseif service.servicestatus == 3 %}
+                                <span class="badge bg-success fs-6">Completado</span>
+                            {% elseif service.servicestatus == 4 %}
+                                <span class="badge bg-danger fs-6">Rechazado</span>
+                            {% else %}
+                                <span class="badge bg-secondary fs-6">Sin estado</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {# INFORMACIÓN GENERAL #}
+                        <div class="section-box mb-4">
+                            <div class="section-label">
+                                <span>Información General</span>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>Fecha de Servicio:</label>
+                                        <p>{{ service.servicedate ? service.servicedate|date('d/m/Y H:i') : '-' }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>Nro. Seguimiento:</label>
+                                        <p>{{ service.servicenroseguimiento ?? '-' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>Nro. Ticket:</label>
+                                        <p>{{ service.servicenroticket ?? '-' }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>Nro. RMA:</label>
+                                        <p>{{ service.servicenrorma ?? '-' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# DATOS DEL CLIENTE #}
+                        <div class="section-box mb-4">
+                            <div class="section-label">
+                                <span>Datos del Cliente</span>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>Empresa:</label>
+                                        <p>{{ service.serviceempresa ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>CUIT:</label>
+                                        <p>{{ service.servicecuit ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Contacto:</label>
+                                        <p>{{ service.servicecontacto ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Email:</label>
+                                        <p>{{ service.serviceemail ?? '-' }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>Dirección:</label>
+                                        <p>{{ service.servicedireccion ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Código Postal:</label>
+                                        <p>{{ service.servicecodpostal ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Teléfono:</label>
+                                        <p>{{ service.servicetelefono ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Localidad:</label>
+                                        <p>{{ service.servicelocalidad ?? '-' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# INFORMACIÓN DEL EQUIPO #}
+                        <div class="section-box mb-4">
+                            <div class="section-label">
+                                <span>Información del Equipo</span>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>Código Catálogo:</label>
+                                        <p>{{ service.servicecodcatalogo ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Serie:</label>
+                                        <p>{{ service.serviceserie ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Número de Serie:</label>
+                                        <p>{{ service.servicenroserie ?? '-' }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>Descripción de la Falla:</label>
+                                        <p class="falla-text">{{ service.servicefalla ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Meses de antigüedad:</label>
+                                        <p>{{ service.servicemeses ?? '-' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# TRANSPORTE #}
+                        <div class="section-box mb-4">
+                            <div class="section-label">
+                                <span>Información de Transporte</span>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>Transporte:</label>
+                                        <p>{{ service.servicetransporte ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Nombre del Transporte:</label>
+                                        <p>{{ service.servicetransportenombre ?? '-' }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>Dirección del Transporte:</label>
+                                        <p>{{ service.servicetransportedireccion ?? '-' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# OBSERVACIONES #}
+                        {% if service.serviceobservaciones %}
+                        <div class="section-box mb-4">
+                            <div class="section-label">
+                                <span>Observaciones</span>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="info-field">
+                                        <p class="falla-text">{{ service.serviceobservaciones }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {# BOTONES DE ACCIÓN #}
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <a href="{{ path('app_secure_external_services') }}" class="btn btn-secondary">
+                                    <i class="ri-arrow-left-line me-1"></i> Volver a mis servicios
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .section-box {
+            background-color: #fff;
+            border-radius: 4px;
+            padding: 20px;
+            border: 1px solid #e8e8e8;
+        }
+
+        .section-label {
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .section-label span {
+            background-color: #e8e8e8;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .info-field {
+            margin-bottom: 20px;
+        }
+
+        .info-field label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+            display: block;
+            font-size: 0.9rem;
+        }
+
+        .info-field p {
+            margin: 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+
+        .falla-text {
+            white-space: pre-wrap;
+            min-height: 80px;
+        }
+
+        .card-body {
+            background-color: #f5f5f5;
+        }
+
+        .badge.fs-6 {
+            font-size: 1rem !important;
+            padding: 8px 16px;
+        }
+    </style>
+{% endblock %}
