@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ServiciosRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -101,8 +103,13 @@ class Servicios
     #[ORM\Column(name: "serviceStatus", nullable: true, options: ["default" => NULL])]
     private ?int $servicestatus = NULL;
 
-    #[ORM\Column(name: "factura_filepath", length: 255, nullable: true)]
-    private ?string $facturaFilepath = null;
+    #[ORM\OneToMany(targetEntity: ServiciosAdjuntos::class, mappedBy: "servicio", cascade: ["persist", "remove"], orphanRemoval: true)]
+    private Collection $adjuntos;
+
+    public function __construct()
+    {
+        $this->adjuntos = new ArrayCollection();
+    }
 
     public function getServiceid(): ?int
     {
@@ -464,14 +471,31 @@ class Servicios
         return $this;
     }
 
-    public function getFacturaFilepath(): ?string
+    /**
+     * @return Collection<int, ServiciosAdjuntos>
+     */
+    public function getAdjuntos(): Collection
     {
-        return $this->facturaFilepath;
+        return $this->adjuntos;
     }
 
-    public function setFacturaFilepath(?string $facturaFilepath): static
+    public function addAdjunto(ServiciosAdjuntos $adjunto): static
     {
-        $this->facturaFilepath = $facturaFilepath;
+        if (!$this->adjuntos->contains($adjunto)) {
+            $this->adjuntos->add($adjunto);
+            $adjunto->setServicio($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAdjunto(ServiciosAdjuntos $adjunto): static
+    {
+        if ($this->adjuntos->removeElement($adjunto)) {
+            if ($adjunto->getServicio() === $this) {
+                $adjunto->setServicio(null);
+            }
+        }
 
         return $this;
     }

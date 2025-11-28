@@ -3,9 +3,11 @@
 namespace App\Controller\Secure\Internal\Services;
 
 use App\Entity\Servicios;
+use App\Entity\ServiciosAdjuntos;
 use App\Form\ServicesFormType;
 use App\Repository\PaisRepository;
 use App\Repository\ServiciosRepository;
+use App\Repository\ServiciosAdjuntosRepository;
 use App\Repository\ProvinciasRepository;
 use App\Repository\ServiciosMarcasRepository;
 use App\Repository\ServiciosTipoRepository;
@@ -13,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
@@ -114,11 +117,15 @@ class ServicesController extends AbstractController
                     // Mover el archivo a /tmp
                     $facturaFile->move('/tmp', $filename);
 
-                    // Guardar la ruta completa en la entidad
-                    $filepath = '/tmp/' . $filename;
-                    $service->setFacturaFilepath($filepath);
+                    // Crear un registro en ServiciosAdjuntos
+                    $adjunto = new ServiciosAdjuntos();
+                    $adjunto->setFilename($filename);
+                    $adjunto->setFilepath('/tmp/' . $filename);
+                    $adjunto->setServicio($service);
 
-                    $this->addFlash('info', 'Factura guardada en: ' . $filepath);
+                    $entityManager->persist($adjunto);
+
+                    $this->addFlash('info', 'Factura guardada');
                 } catch (\Exception $e) {
                     $this->addFlash('error', 'Error al guardar la factura: ' . $e->getMessage());
                 }
@@ -177,6 +184,31 @@ class ServicesController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Manejar el archivo de factura PDF si existe
+            $facturaFile = $request->files->get('factura_compra');
+
+            if ($facturaFile && $facturaFile->isValid()) {
+                try {
+                    // Generar un nombre único para el archivo
+                    $filename = 'factura_' . $service->getServiceid() . '_' . uniqid() . '.pdf';
+
+                    // Mover el archivo a /tmp
+                    $facturaFile->move('/tmp', $filename);
+
+                    // Crear un registro en ServiciosAdjuntos
+                    $adjunto = new ServiciosAdjuntos();
+                    $adjunto->setFilename($filename);
+                    $adjunto->setFilepath('/tmp/' . $filename);
+                    $adjunto->setServicio($service);
+
+                    $entityManager->persist($adjunto);
+
+                    $this->addFlash('info', 'Factura agregada ');
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Error al guardar la factura: ' . $e->getMessage());
+                }
+            }
+
             $entityManager->flush();
 
             $this->addFlash('success', 'Servicio actualizado exitosamente.');
@@ -372,5 +404,59 @@ class ServicesController extends AbstractController
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="solicitud_servicio.pdf"'
         ]);
+    }
+
+    #[Route('/adjunto/{id}/descargar', name: 'app_secure_internal_services_adjunto_download', requirements: ['id' => '\d+'])]
+    public function downloadAdjunto(int $id, ServiciosAdjuntosRepository $adjuntosRepository): Response
+    {
+        $adjunto = $adjuntosRepository->find($id);
+
+        if (!$adjunto) {
+            throw $this->createNotFoundException('Adjunto no encontrado');
+        }
+
+        $filepath = $adjunto->getFilepath();
+
+        if (!file_exists($filepath)) {
+            $this->addFlash('error', 'El archivo no existe en el servidor');
+            return $this->redirectToRoute('app_secure_internal_services_show', ['id' => $adjunto->getServicio()->getServiceid()]);
+        }
+
+        return new BinaryFileResponse($filepath);
+    }
+
+    #[Route('/adjunto/{id}/eliminar', name: 'app_secure_internal_services_adjunto_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteAdjunto(Request $request, int $id, ServiciosAdjuntosRepository $adjuntosRepository, EntityManagerInterface $entityManager): Response
+    {
+        $adjunto = $adjuntosRepository->find($id);
+
+        if (!$adjunto) {
+            throw $this->createNotFoundException('Adjunto no encontrado');
+        }
+
+        $servicioId = $adjunto->getServicio()->getServiceid();
+
+        if ($this->isCsrfTokenValid('delete_adjunto' . $adjunto->getId(), $request->request->get('_token'))) {
+            // Intentar eliminar el archivo físico si existe
+            $filepath = $adjunto->getFilepath();
+            if (!empty($filepath) && file_exists($filepath)) {
+                try {
+                    unlink($filepath);
+                } catch (\Exception $e) {
+                    // Si falla la eliminación del archivo, solo logueamos pero continuamos
+                    error_log('Error al eliminar archivo físico: ' . $e->getMessage());
+                }
+            }
+
+            // Siempre eliminar el registro de la base de datos
+            $entityManager->remove($adjunto);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Adjunto eliminado exitosamente.');
+        } else {
+            $this->addFlash('error', 'Token CSRF inválido. Por favor, intente nuevamente.');
+        }
+
+        return $this->redirectToRoute('app_secure_internal_services_edit', ['id' => $servicioId]);
     }
 }

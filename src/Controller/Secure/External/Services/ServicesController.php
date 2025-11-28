@@ -3,9 +3,11 @@
 namespace App\Controller\Secure\External\Services;
 
 use App\Entity\Servicios;
+use App\Entity\ServiciosAdjuntos;
 use App\Form\ServicesFormType;
 use App\Repository\PaisRepository;
 use App\Repository\ServiciosRepository;
+use App\Repository\ServiciosAdjuntosRepository;
 use App\Repository\ProvinciasRepository;
 use App\Repository\ServiciosMarcasRepository;
 use App\Repository\ServiciosTipoRepository;
@@ -13,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
@@ -106,11 +109,15 @@ class ServicesController extends AbstractController
                     // Mover el archivo a /tmp
                     $facturaFile->move('/tmp', $filename);
 
-                    // Guardar la ruta completa en la entidad
-                    $filepath = '/tmp/' . $filename;
-                    $service->setFacturaFilepath($filepath);
+                    // Crear un registro en ServiciosAdjuntos
+                    $adjunto = new ServiciosAdjuntos();
+                    $adjunto->setFilename($filename);
+                    $adjunto->setFilepath('/tmp/' . $filename);
+                    $adjunto->setServicio($service);
 
-                    $this->addFlash('info', 'Factura guardada en: ' . $filepath);
+                    $entityManager->persist($adjunto);
+
+                    $this->addFlash('info', 'Factura guardada en: /tmp/' . $filename);
                 } catch (\Exception $e) {
                     $this->addFlash('error', 'Error al guardar la factura: ' . $e->getMessage());
                 }
@@ -183,11 +190,15 @@ class ServicesController extends AbstractController
                     // Mover el archivo a /tmp
                     $facturaFile->move('/tmp', $filename);
 
-                    // Guardar la ruta completa en la entidad
-                    $filepath = '/tmp/' . $filename;
-                    $service->setFacturaFilepath($filepath);
+                    // Crear un registro en ServiciosAdjuntos
+                    $adjunto = new ServiciosAdjuntos();
+                    $adjunto->setFilename($filename);
+                    $adjunto->setFilepath('/tmp/' . $filename);
+                    $adjunto->setServicio($service);
 
-                    $this->addFlash('info', 'Factura actualizada en: ' . $filepath);
+                    $entityManager->persist($adjunto);
+
+                    $this->addFlash('info', 'Factura actualizada');
                 } catch (\Exception $e) {
                     $this->addFlash('error', 'Error al actualizar la factura: ' . $e->getMessage());
                 }
@@ -313,7 +324,7 @@ class ServicesController extends AbstractController
         $template = "emails/seguimiento_servicio_cliente.html.twig";
         $email = (new Email())
             ->from($_ENV['MAIL_FROM'])
-            ->to($servicio->getEmail())
+            ->to($servicio->getServiceemail())
             ->subject('Solicitud de servicio')
             ->html($this->renderView($template, [
                 'numero_seguimiento' => $servicio->getServicenroseguimiento(),
@@ -376,5 +387,64 @@ class ServicesController extends AbstractController
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="solicitud_servicio.pdf"'
         ]);
+    }
+
+    #[Route('/adjunto/{id}/descargar', name: 'app_secure_external_services_adjunto_download', requirements: ['id' => '\d+'])]
+    public function downloadAdjunto(int $id, ServiciosAdjuntosRepository $adjuntosRepository): Response
+    {
+        $adjunto = $adjuntosRepository->find($id);
+
+        if (!$adjunto) {
+            throw $this->createNotFoundException('Adjunto no encontrado');
+        }
+
+        $user = $this->getUser();
+
+        // Verificar que el adjunto pertenezca a un servicio del usuario
+        if ($adjunto->getServicio()->getServiceemail() !== $user->getEmail()) {
+            throw $this->createAccessDeniedException('No tiene permiso para descargar este archivo');
+        }
+
+        $filepath = $adjunto->getFilepath();
+
+        if (!file_exists($filepath)) {
+            $this->addFlash('error', 'El archivo no existe en el servidor');
+            return $this->redirectToRoute('app_secure_external_services_show', ['id' => $adjunto->getServicio()->getServiceid()]);
+        }
+
+        return new BinaryFileResponse($filepath);
+    }
+
+    #[Route('/adjunto/{id}/eliminar', name: 'app_secure_external_services_adjunto_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteAdjunto(Request $request, int $id, ServiciosAdjuntosRepository $adjuntosRepository, EntityManagerInterface $entityManager): Response
+    {
+        $adjunto = $adjuntosRepository->find($id);
+
+        if (!$adjunto) {
+            throw $this->createNotFoundException('Adjunto no encontrado');
+        }
+
+        $user = $this->getUser();
+        $servicioId = $adjunto->getServicio()->getServiceid();
+
+        // Verificar que el adjunto pertenezca a un servicio del usuario
+        if ($adjunto->getServicio()->getServiceemail() !== $user->getEmail()) {
+            throw $this->createAccessDeniedException('No tiene permiso para eliminar este archivo');
+        }
+
+        if ($this->isCsrfTokenValid('delete_adjunto' . $adjunto->getId(), $request->request->get('_token'))) {
+            // Eliminar el archivo físico
+            $filepath = $adjunto->getFilepath();
+            if (file_exists($filepath)) {
+                unlink($filepath);
+            }
+
+            $entityManager->remove($adjunto);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Adjunto eliminado exitosamente.');
+        }
+
+        return $this->redirectToRoute('app_secure_external_services_edit', ['id' => $servicioId]);
     }
 }

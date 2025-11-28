@@ -169,6 +169,47 @@
                         </div>
 
                         {{ form_end(form) }}
+
+                        {# ARCHIVOS ADJUNTOS EXISTENTES (solo en edición) - FUERA DEL FORMULARIO PRINCIPAL #}
+                        {% if service.serviceid is not null and service.adjuntos|length > 0 %}
+                        <div class="section-box mb-4 mt-4">
+                            <div class="section-label">
+                                <span>Archivos Adjuntos</span>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="list-group">
+                                        {% for adjunto in service.adjuntos %}
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="ri-file-pdf-line text-danger me-2 fs-5"></i>
+                                                <span>{{ adjunto.filename }}</span>
+                                            </div>
+                                            <div>
+                                                <a href="{{ path('app_secure_external_services_adjunto_download', {'id': adjunto.id}) }}"
+                                                   class="btn btn-sm btn-primary">
+                                                    <i class="ri-download-2-line"></i> Descargar
+                                                </a>
+                                                {# Botón de eliminar oculto por ahora - La lógica está lista para uso futuro
+                                                <form method="post"
+                                                      action="{{ path('app_secure_external_services_adjunto_delete', {'id': adjunto.id}) }}"
+                                                      style="display: inline;"
+                                                      onsubmit="return confirm('¿Está seguro de eliminar este adjunto?');">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_adjunto' ~ adjunto.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-danger">
+                                                        <i class="ri-delete-bin-line"></i> Eliminar
+                                                    </button>
+                                                </form>
+                                                #}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

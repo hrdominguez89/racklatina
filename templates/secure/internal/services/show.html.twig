@@ -263,6 +263,36 @@
                         </div>
                         {% endif %}
 
+                        {# ARCHIVOS ADJUNTOS #}
+                        {% if service.adjuntos|length > 0 %}
+                        <div class="section-box mb-4">
+                            <div class="section-label">
+                                <span>Archivos Adjuntos</span>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="list-group">
+                                        {% for adjunto in service.adjuntos %}
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="ri-file-pdf-line text-danger me-2 fs-5"></i>
+                                                <span>{{ adjunto.filename }}</span>
+                                            </div>
+                                            <div>
+                                                <a href="{{ path('app_secure_internal_services_adjunto_download', {'id': adjunto.id}) }}"
+                                                   class="btn btn-sm btn-primary me-2">
+                                                    <i class="ri-download-2-line"></i> Descargar
+                                                </a>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
                         {# BOTONES DE ACCIÓN #}
                         <div class="row mt-4">
                             <div class="col-12 text-center">
