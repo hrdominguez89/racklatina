@@ -176,9 +176,7 @@
                                             {% set fecha_iso = fecha[2] ~ '-' ~ fecha[1] ~ '-' ~ fecha[0] %}
                                             {% if fecha_iso < hoy and articulo.estado != "Remitido" %}
                                                 <td  class="bg-primary" data-order="{{ fecha_ordenada }}" style="text-align: center;">
-                                                    {# {{ fecha_visible }}
-                                                    <i class="ri-alert-line"></i> Vencida #}
-                                                    <button type="button" class="btn btn-sm btn-primary" id="{{ loop.index0 }}" name="Contactar-por-vencimiento" >
+                                                    <button type="button"  class="btn btn-light btn-sm" id="{{ loop.index0 }}" name="Contactar-por-vencimiento" >
                                                         <i class="ri-mail-line"></i> Contactar
                                                     </button>
                                                 </td>
@@ -198,7 +196,7 @@
                                              'orden_compra_cliente_id': articulo.ordencompracliente,
                                              status:app.request.get('status') ? app.request.get('status'):'Todas',
                                              search: app.request.get('search'),searchType: app.request.get('searchType')}) }}"
-                                              class="btn btn-outline-primary btn-sm">
+                                            class="btn btn-outline-primary btn-sm">
                                                 Detalle
                                             </a>
                                         </td>
