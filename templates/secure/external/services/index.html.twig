@@ -87,17 +87,17 @@
                                                         <span class="badge bg-secondary">Sin estado</span>
                                                     {% endif %}
                                                 </td>
-                                                <td>
-                                                    <div class="btn-group" role="group">
+                                                <td class="text-center">
+                                                    <div class="btn-group">
                                                         <a href="{{ path('app_secure_external_services_show', {id: service.serviceid}) }}"
-                                                           class="btn btn-sm btn-info"
+                                                           class="btn btn-sm btn-secondary mx-1"
                                                            title="Ver detalle">
-                                                            <i class="ri-eye-line"></i>
+                                                            <i style="font-size:16px;" class="ri-eye-fill"></i>
                                                         </a>
                                                         <a href="{{ path('app_secure_external_services_edit', {id: service.serviceid}) }}"
-                                                           class="btn btn-sm btn-warning"
+                                                           class="btn btn-sm btn-warning mx-1"
                                                            title="Editar">
-                                                            <i class="ri-edit-line"></i>
+                                                            <i style="font-size:16px;" class="ri-edit-2-fill"></i>
                                                         </a>
                                                     </div>
                                                 </td>

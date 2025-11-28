@@ -139,7 +139,7 @@
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label">¿Ha adquirido este equipo en los últimos 12 (doce) meses? *</label>
+                                        <label class="form-label">¿Ha adquirido este equipo en los últimos 12 (doce) meses?</label>
                                         <small class="d-block text-muted mb-1" style="font-style: italic;">Es necesario contar con la documentación de compra (Remito y/o Factura)</small>
                                         <select class="form-select" id="adquirido-ultimos-12-meses" name="adquirido_ultimos_12_meses">
                                             <option value="">Seleccione una opción</option>
@@ -149,7 +149,7 @@
                                     </div>
 
                                     <div class="mb-3" id="factura-compra-container" style="display: none;">
-                                        <label class="form-label">Factura de compra (PDF) *</label>
+                                        <label class="form-label">Factura de compra (PDF)</label>
                                         <small class="d-block text-muted mb-1">Suba la factura de compra del equipo en formato PDF (máximo 5MB)</small>
                                         <input type="file" class="form-control" id="factura-compra" name="factura_compra" accept=".pdf">
                                     </div>
@@ -162,7 +162,7 @@
                                 <a href="{{ path('app_secure_external_services') }}" class="btn btn-secondary me-2">
                                     Cancelar
                                 </a>
-                                <button type="button" class="btn btn-danger" id="btn-enviar">
+                                <button type="submit" class="btn btn-success">
                                     Enviar
                                 </button>
                             </div>
@@ -292,7 +292,6 @@
     {{ parent() }}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const btnEnviar = document.getElementById('btn-enviar');
             const form = document.querySelector('form');
 
             // === FILTRADO DE PROVINCIAS POR PAÍS ===
@@ -346,10 +345,8 @@
             function toggleFacturaField() {
                 if (selectMeses.value === 'si') {
                     facturaContainer.style.display = 'block';
-                    facturaInput.setAttribute('required', 'required');
                 } else {
                     facturaContainer.style.display = 'none';
-                    facturaInput.removeAttribute('required');
                 }
             }
 
@@ -358,18 +355,6 @@
 
             // Escuchar cambios en el select
             selectMeses.addEventListener('change', toggleFacturaField);
-
-            btnEnviar.addEventListener('click', function(e) {
-                // Validar que el archivo esté presente si es requerido
-                if (selectMeses.value === 'si') {
-                    if (!facturaInput.files || facturaInput.files.length === 0) {
-                        e.preventDefault();
-                        alert('Por favor, suba la factura de compra en formato PDF.');
-                        return;
-                    }
-                }
-                form.submit();
-            });
         });
     </script>
 {% endblock %}

@@ -76,7 +76,7 @@ class ServicesFormType extends AbstractType
             // ])
             ->add('serviceempresa', TextType::class, [
                 'label' => 'Empresa',
-                'required' => false,
+                'required' => true,
                 'attr' => ['class' => 'form-control', 'placeholder' => 'Nombre de la empresa']
             ])
             // ->add('servicecuit', TextType::class, [
@@ -86,7 +86,7 @@ class ServicesFormType extends AbstractType
             // ])
             ->add('servicecontacto', TextType::class, [
                 'label' => 'Contacto',
-                'required' => false,
+                'required' => true,
                 'attr' => [
                     'class' => 'form-control',
                     'placeholder' => 'Nombre del contacto',
@@ -95,7 +95,7 @@ class ServicesFormType extends AbstractType
             ])
             ->add('serviceemail', EmailType::class, [
                 'label' => 'Email',
-                'required' => false,
+                'required' => true,
                 'attr' => [
                     'class' => 'form-control',
                     'placeholder' => 'correo@ejemplo.com',
@@ -120,20 +120,20 @@ class ServicesFormType extends AbstractType
             ->add('servicepaisid', ChoiceType::class, [
                 'label' => 'País',
                 'placeholder' => 'Seleccione un país',
-                'required' => false,
+                'required' => true,
                 'choices' => $paisesChoices,
                 'attr' => ['class' => 'form-select', 'id' => 'pais-select']
             ])
             ->add('serviceprovinciaid', ChoiceType::class, [
                 'label' => 'Provincia',
                 'placeholder' => 'Seleccione primero un país',
-                'required' => false,
+                'required' => true,
                 'choices' => $provinciasChoices,
                 'attr' => ['class' => 'form-select', 'id' => 'provincia-select']
             ])
             ->add('servicelocalidad', TextType::class, [
                 'label' => 'Localidad',
-                'required' => false,
+                'required' => true,
                 'attr' => ['class' => 'form-control', 'placeholder' => 'Ingrese la localidad']
             ])
             ->add('servicetransporte', ChoiceType::class, [
@@ -159,13 +159,13 @@ class ServicesFormType extends AbstractType
             ->add('servicemarcaid', ChoiceType::class, [
                 'label' => 'Marca',
                 'placeholder' => 'Seleccione una marca',
-                'required' => false,
+                'required' => true,
                 'choices' => $marcasChoices,
                 'attr' => ['class' => 'form-select']
             ])
             ->add('servicecodcatalogo', TextType::class, [
                 'label' => 'Código Catálogo',
-                'required' => false,
+                'required' => true,
                 'attr' => ['class' => 'form-control', 'placeholder' => 'Ingrese el código de catálogo']
             ])
             // ->add('serviceserie', TextType::class, [
@@ -180,7 +180,7 @@ class ServicesFormType extends AbstractType
             ])
             ->add('servicefalla', TextareaType::class, [
                 'label' => 'Descripción de la Falla',
-                'required' => false,
+                'required' => true,
                 'attr' => [
                     'class' => 'form-control',
                     'rows' => 4,
