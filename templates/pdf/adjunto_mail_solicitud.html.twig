@@ -69,7 +69,6 @@
     border: 1px solid #999;
     padding: 5px 10px;
 }
-
 .bordered-table .table-header td {
     background-color: #e8e8e8;
     font-weight: bold;
@@ -79,9 +78,9 @@
 <body>
     <img src="data:image/png;base64,{{ logo }}" alt="logo" style="max-width: 200px;">
     <h1>Solicitud de servicio - Centro de reparaciones</h1>
-    <p>Fecha de alta: {{ solicitud.createdAt|date('d/m/Y') }}</p>
-    <p>Número de seguimiento: {{ numero_seguimiento }}</p>
-    <p>Tipo de servicio:</p>
+    <p>Fecha de alta: {{ solicitud.servicedate|date('d/m/Y') }}</p>
+    <p>Número de seguimiento: {{ solicitud.servicenroseguimiento ?? '-'}}</p>
+    <p>Tipo de servicio: {{ tipo }}</p>
     <div class="section-box">
     <table class="bordered-table">
         <tr class="table-header">
@@ -89,19 +88,18 @@
         </tr>
         <tr>
             <td class="label">Marca</td>
-            <td class="value">{{ solicitud.marca.serviceproddescrip }}</td>
+            <td class="value">{{ marca }}</td>
             <td class="label">Código de Catálogo</td>
-            <td class="value">{{ solicitud.codCatalogo }}</td>
+            <td class="value">{{ solicitud.servicecodcatalogo }}</td>
         </tr>
         <tr>
             <td class="label">Serie</td>
-            <td class="value">{{ solicitud.nroSerie }}</td>
+            <td class="value">{{ solicitud.servicenroserie }}</td>
             <td class="label">Descripción Falla</td>
-            <td class="value">{{ solicitud.falla }}</td>
+            <td class="value">{{ solicitud.servicefalla }}</td>
         </tr>
     </table>
 </div>
-
 <div class="section-box">
     <table class="bordered-table">
         <tr class="table-header">
@@ -109,31 +107,30 @@
         </tr>
         <tr>
             <td class="label">Empresa</td>
-            <td class="value">{{ solicitud.empresa }}</td>
+            <td class="value">{{ solicitud.serviceempresa ?? '-' }}</td>
             <td class="label">C.U.I.T.</td>
-            <td class="value">{{ solicitud.cuit ?? '-' }}</td>
+            <td class="value">{{ solicitud.servicecuit ?? '-' }}</td>
         </tr>
         <tr>
             <td class="label">Nombre Contacto</td>
-            <td class="value">{{ solicitud.contacto }}</td>
+            <td class="value">{{ solicitud.servicecontacto ?? '-'}}</td>
             <td class="label">Email</td>
-            <td class="value">{{ solicitud.email }}</td>
+            <td class="value">{{ solicitud.serviceemail ?? '-'}}</td>
         </tr>
         <tr>
             <td class="label">Domicilio Entrega</td>
-            <td class="value">{{ solicitud.direccion }}</td>
+            <td class="value">{{ solicitud.servicedireccion ?? '-'}}</td>
             <td class="label">Cód. Postal</td>
-            <td class="value">{{ solicitud.codigoPostal ?? '-' }}</td>
+            <td class="value">{{ solicitud.servicecodpostal ?? '-' }}</td>
         </tr>
         <tr>
             <td class="label">Teléfono</td>
-            <td class="value">{{ solicitud.telefono ?? '-' }}</td>
+            <td class="value">{{ solicitud.servicetelefono ?? '-' }}</td>
             <td class="label">País</td>
-            <td class="value">{{ solicitud.pais.paisNombre }}</td>
+            <td class="value">{{ pais ?? '-'}}</td>
         </tr>
     </table>
 </div>
-
     <div class="footer">
         <p>Racklatina S.A. © {{ "now"|date("Y") }}. Todos los derechos reservados.</p>
     </div>

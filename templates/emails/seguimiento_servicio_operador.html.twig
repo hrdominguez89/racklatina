@@ -30,59 +30,59 @@
                 <table width="100%" cellpadding="5" cellspacing="0" style="margin-top: 15px;">
                     <tr>
                         <td style="font-weight: bold; width: 200px;">Fecha de Alta:</td>
-                        <td>{{ solicitud.createdAt|date('d/m/Y') }}</td>
+                        <td>{{ solicitud.servicedate|date('d/m/Y') }}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Empresa:</td>
-                        <td>{{ solicitud.empresa }}</td>
+                        <td>{{ solicitud.serviceempresa }}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">CUIT:</td>
-                        {# <td>{{ solicitud.cuit }}</td> #}
+                        <td>{{ solicitud.servicecuit }}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Nombre y Apellido de Contacto:</td>
-                        <td>{{ solicitud.contacto }}</td>
+                        <td>{{ solicitud.servicecontacto }}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Dirección de correo electrónico:</td>
-                        <td>{{ solicitud.email }}</td>
+                        <td>{{ solicitud.serviceemail }}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Dirección de entrega:</td>
-                        <td>{{ solicitud.direccion }}</td>
+                        <td>{{ solicitud.servicedireccion }}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Código postal:</td>
-                        {# <td>{{ solicitud.codigoPostal }}</td> #}
+                        <td>{{ solicitud.servicecodpostal }}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Teléfono:</td>
-                        {# <td>{{ solicitud.telefono }}</td> #}
+                        <td>{{ solicitud.servicetelefono }}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">País:</td>
-                        <td>{{ solicitud.pais.paisNombre }}</td>
+                        <td>{{ pais }}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Provincia:</td>
-                        <td>{{ solicitud.provincia.provinciaNombre }}</td>
+                        <td>{{ provincia }}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Localidad:</td>
-                        <td>{{ solicitud.localidad }}</td>
+                        <td>{{ solicitud.servicelocalidad }}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Nombre Transporte:</td>
-                        <td>{{ solicitud.transporteNombre }}</td>
+                        <td>{{ solicitud.servicetransportenombre }}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Dirección de Transporte:</td>
-                        <td>{{ solicitud.transporteNombre }}</td>
+                        <td>{{ solicitud.servicetransportedireccion }}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Marca:</td>
-                        <td>{{ solicitud.marca.serviceproddescrip }}</td>
+                        <td>{{ marca }}</td>
                     </tr>
                 </table>
                 

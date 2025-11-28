@@ -4,8 +4,11 @@ namespace App\Controller\Secure\Internal\Services;
 
 use App\Entity\Servicios;
 use App\Form\ServicesFormType;
+use App\Repository\PaisRepository;
 use App\Repository\ServiciosRepository;
 use App\Repository\ProvinciasRepository;
+use App\Repository\ServiciosMarcasRepository;
+use App\Repository\ServiciosTipoRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,7 +24,12 @@ class ServicesController extends AbstractController
 {
     private MailerInterface $mailer;
 
-    public function __construct(MailerInterface $mailer)
+    public function __construct(MailerInterface $mailer,
+    private PaisRepository $pais_repository,
+    private ServiciosMarcasRepository $marcas_repository,
+    private ServiciosRepository $servicios_repository,
+    private ServiciosTipoRepository $tipo_repository,
+    private ProvinciasRepository $provincia_repository)
     {
         $this->mailer = $mailer;
     }
@@ -126,7 +134,8 @@ class ServicesController extends AbstractController
             $entityManager->flush();
 
             // Enviar email al operador
-            $this->enviarEmailAlOperador($nextId, $service);
+            $this->enviarEmailAlOperador( $service);
+            $this->enviarEmailAlCliente($service);
 
             $this->addFlash('success', 'Servicio creado exitosamente.');
 
@@ -216,29 +225,152 @@ class ServicesController extends AbstractController
 
         return $this->redirectToRoute('app_secure_internal_services');
     }
-
-    private function enviarEmailAlOperador($numero_seguimiento, $servicio)
+    private function enviarEmailAlOperador($servicio)
     {
+        $marca_id = $servicio->getServicemarcaid();
+        $marca = $this->marcas_repository->findOneBy(['serviceprodid'=>$marca_id]);
+        $marca_nombre = $marca ? $marca->getServiceproddescrip() : null;
+        
+        $pais_id = $servicio->getServicepaisid();
+        $pais = $this->pais_repository->findOneBy(["paisId"=>$pais_id]);
+        $pais_nombre = $pais ? $pais->getPaisNombre() : null;
+        
+        $tipo_id = $servicio->getServicetypeid();
+        $tipo = $this->tipo_repository->findOneBy([ "servicetypeid" => $tipo_id ]);
+        $tipo_nombre = $tipo ? $tipo->getServicetypedescrip() : null;
+        
+        $provincia_id = $servicio->getServiceprovinciaid();
+        $provincia = $this->provincia_repository->findOneBy([ "provinciaId" => $provincia_id ]);
+        $provincia_nombre = $provincia ? $provincia->getProvinciaNombre() : null;
+        
+
+        $logoBase64 = base64_encode(file_get_contents($this->getParameter('kernel.project_dir') . '/assets/images/logo-racklatina-light.png'));
+
+        $htmlPdf = $this->renderView('pdf/adjunto_mail_solicitud.html.twig', [
+            'solicitud' => $servicio,
+            'marca' => $marca_nombre,
+            'pais' => $pais_nombre,
+            'logo' => $logoBase64,
+            'tipo' => $tipo_nombre
+        ]);
+
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml($htmlPdf);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $pdfContent = $dompdf->output();
+
+        $template = "emails/seguimiento_servicio_operador.html.twig";
+        $email = (new Email())
+            ->from($_ENV['MAIL_FROM'])
+            ->to('l.e.marguery@gmail.com')
+            // ->to($_ENV['MAIL_CENTRO_RAC'])
+            ->subject('Solicitud de servicio')
+            ->html($this->renderView($template, [
+                'numero_seguimiento' => $servicio->getServicenroseguimiento(),
+                'solicitud' => $servicio,
+                'pais' => $pais_nombre,
+                'marca' => $marca_nombre,
+                'provincia' => $provincia_nombre
+            ]))
+            ->attach($pdfContent, 'solicitud_servicio.pdf', 'application/pdf');
+        $this->mailer->send($email);
+    }
+    
+    public function enviarEmailAlCliente($servicio)
+    {
+        $marca_id = $servicio->getServicemarcaid();
+        $marca = $this->marcas_repository->findOneBy(['serviceprodid'=>$marca_id]);
+        $marca_nombre = $marca ? $marca->getServiceproddescrip() : null;
+        
+        $pais_id = $servicio->getServicepaisid();
+        $pais = $this->pais_repository->findOneBy(["paisId"=>$pais_id]);
+        $pais_nombre = $pais ? $pais->getPaisNombre() : null;
+
+        $tipo_id = $servicio->getServicetypeid();
+        $tipo = $this->tipo_repository->findOneBy([ "servicetypeid" => $tipo_id ]);
+        $tipo_nombre = $tipo ? $tipo->getServicetypedescrip() : null;
+        
+        $logoBase64 = base64_encode(file_get_contents($this->getParameter('kernel.project_dir') . '/assets/images/logo-racklatina-light.png'));
         $dompdf = new Dompdf();
         $htmlPdf = $this->renderView('pdf/adjunto_mail_solicitud.html.twig', [
             'solicitud' => $servicio,
-            'numero_seguimiento' => $numero_seguimiento
+            'marca' => $marca_nombre,
+            'pais' => $pais_nombre,
+            'logo' => $logoBase64,
+            'tipo' => $tipo_nombre
         ]);
         $dompdf->loadHtml($htmlPdf);
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
         $pdfContent = $dompdf->output();
 
-        $template = "emails/seguimiento_servicio_operador.html.twig";
+        $template = "emails/seguimiento_servicio_cliente.html.twig";
         $email = (new Email())
             ->from($_ENV['MAIL_FROM'])
-            ->to($_ENV['MAIL_CENTRO_RAC'])
+            // ->to($servicio->getEmail())
+            ->to("l.e.marguery@gmail.com")
             ->subject('Solicitud de servicio')
             ->html($this->renderView($template, [
-                'numero_seguimiento' => $numero_seguimiento,
-                'solicitud' => $servicio
+                'numero_seguimiento' => $servicio->getServicenroseguimiento(),
             ]))
             ->attach($pdfContent, 'solicitud_servicio.pdf', 'application/pdf');
+
         $this->mailer->send($email);
+    }
+    #[Route('/download-i' , name:'app_interno_formulario_descarga')]
+    public function descargaPdf(Request $request)
+    {
+        //reporsitory de servicio paso el id por aca 
+        // dd($request);
+        $servicio_id =  $request->query->get('id');
+        if(!$servicio_id)
+        {
+            return $this->json(
+                ['message' => "No se envio el id"]
+                ,403);
+        }
+        $servicio  = $this->servicios_repository->findOneBy(["serviceid" => $servicio_id]);
+        if(!$servicio)
+        {
+            return $this->json(
+                ['message' => "No se encontro el servicio"]
+                ,404);
+        }
+        $marca_id = $servicio->getServicemarcaid();
+        $marca = $this->marcas_repository->findOneBy(['serviceprodid'=>$marca_id]);
+        $marca_nombre = $marca ? $marca->getServiceproddescrip() : null;
+        
+        $pais_id = $servicio->getServicepaisid();
+        $pais = $this->pais_repository->findOneBy(["paisId"=>$pais_id]);
+        $pais_nombre = $pais ? $pais->getPaisNombre() : null;
+        
+        $tipo_id = $servicio->getServicetypeid();
+        $tipo = $this->tipo_repository->findOneBy([ "servicetypeid" => $tipo_id ]);
+        $tipo_nombre = $tipo ? $tipo->getServicetypedescrip() : null;
+        
+        $provincia_id = $servicio->getServiceprovinciaid();
+        $provincia = $this->provincia_repository->findOneBy([ "provinciaId" => $provincia_id ]);
+        $provincia_nombre = $provincia ? $provincia->getProvinciaNombre() : null;
+        
+        $logoBase64 = base64_encode(file_get_contents($this->getParameter('kernel.project_dir') . '/assets/images/logo-racklatina-light.png'));
+
+        $dompdf = new Dompdf();
+        $htmlPdf = $this->renderView('pdf/adjunto_mail_solicitud.html.twig', [
+             'solicitud' => $servicio,
+            'marca' => $marca_nombre,
+            'pais' => $pais_nombre,
+            'logo' => $logoBase64,
+            'tipo' => $tipo_nombre
+        ]);
+        $dompdf->loadHtml($htmlPdf);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $pdfContent = $dompdf->output();
+        return new Response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="solicitud_servicio.pdf"'
+        ]);
     }
 }

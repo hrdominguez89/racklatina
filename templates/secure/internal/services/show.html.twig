@@ -35,6 +35,11 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4 class="card-title mb-0">Servicio #{{ service.serviceid }}</h4>
+                        <button
+                        class="btn btn-primary"
+                        onClick="descargarPdf({{ service.serviceid }})">
+                        Descargar PDF
+                        </button>
                         <div>
                             {% if service.servicestatus == 1 %}
                                 <span class="badge bg-warning fs-6">Pendiente</span>
@@ -271,6 +276,16 @@
             </div>
         </div>
     </div>
+    <script>
+    function descargarPdf(id) {
+        fetch("{{ path('app_interno_formulario_descarga', {'id': '__ID__'}) }}".replace('__ID__', id))
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                window.open(url, '_blank');
+            });
+    }
+    </script>
 {% endblock %}
 
 {% block stylesheets %}
