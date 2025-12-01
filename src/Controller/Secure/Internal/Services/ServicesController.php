@@ -340,7 +340,7 @@ class ServicesController extends AbstractController
         $template = "emails/seguimiento_servicio_cliente.html.twig";
         $email = (new Email())
             ->from($_ENV['MAIL_FROM'])
-            ->to($servicio->getEmail())
+            ->to($servicio->getServiceemail())
             ->subject('Solicitud de servicio')
             ->html($this->renderView($template, [
                 'numero_seguimiento' => $servicio->getServicenroseguimiento(),
