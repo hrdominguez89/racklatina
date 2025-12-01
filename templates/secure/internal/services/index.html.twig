@@ -119,25 +119,25 @@
                                                     <span class="badge bg-secondary">Sin estado</span>
                                                 {% endif %}
                                             </td>
-                                            <td>
-                                                <div class="btn-group" role="group">
+                                            <td class="text-center">
+                                                <div class="btn-group">
                                                     <a href="{{ path('app_secure_internal_services_show', {id: service.serviceid}) }}"
-                                                       class="btn btn-sm btn-info"
-                                                       title="Ver detalle">
-                                                        <i class="ri-eye-line"></i>
+                                                    class="btn btn-sm btn-secondary mx-1"
+                                                    title="Ver detalle">
+                                                        <i style="font-size:16px;" class="ri-eye-fill"></i>
                                                     </a>
                                                     <a href="{{ path('app_secure_internal_services_edit', {id: service.serviceid}) }}"
-                                                       class="btn btn-sm btn-primary"
-                                                       title="Editar">
-                                                        <i class="ri-edit-line"></i>
+                                                    class="btn btn-sm btn-warning mx-1"
+                                                    title="Editar">
+                                                        <i style="font-size:16px;" class="ri-edit-2-fill"></i>
                                                     </a>
                                                     <form method="post"
-                                                          action="{{ path('app_secure_internal_services_delete', {id: service.serviceid}) }}"
-                                                          onsubmit="return confirm('¿Está seguro de eliminar este servicio?')"
-                                                          style="display: inline;">
+                                                        action="{{ path('app_secure_internal_services_delete', {id: service.serviceid}) }}"
+                                                        onsubmit="return confirm('¿Está seguro de eliminar este servicio?')"
+                                                        style="display: inline;">
                                                         <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ service.serviceid) }}">
-                                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
-                                                            <i class="ri-delete-bin-line"></i>
+                                                        <button type="submit" class="btn btn-sm btn-danger " title="Eliminar">
+                                                            <i style="font-size:16px;" class="ri-delete-bin-6-fill"></i>
                                                         </button>
                                                     </form>
                                                 </div>
