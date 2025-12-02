@@ -95,6 +95,10 @@ class ServicesController extends AbstractController
             $nextId = ($maxId !== null) ? $maxId + 1 : 1;
             $service->setServiceid($nextId);
 
+            // Generar el siguiente serviceNroSeguimiento (MAX + 1)
+            $nroSeguimiento = $this->generarNroSeguimiento($serviciosRepository);
+            $service->setServicenroseguimiento($nroSeguimiento);
+
             // Establecer el estado como "En proceso" (1)
             $service->setServicestatus(1);
 
@@ -239,6 +243,51 @@ class ServicesController extends AbstractController
             'service' => $service,
             'title' => 'Detalle del Servicio'
         ]);
+    }
+
+    private function generarNroSeguimiento(ServiciosRepository $serviciosRepository): string
+    {
+        $maxAttempts = 10;
+        $attempt = 0;
+
+        while ($attempt < $maxAttempts) {
+            // Obtener todos los números de seguimiento y encontrar el máximo manualmente
+            $nrosSeguimiento = $serviciosRepository->createQueryBuilder('s')
+                ->select('s.servicenroseguimiento')
+                ->where('s.servicenroseguimiento IS NOT NULL')
+                ->andWhere('s.servicenroseguimiento != :empty')
+                ->setParameter('empty', '')
+                ->getQuery()
+                ->getScalarResult();
+
+            $maxNroSeguimiento = 0;
+            foreach ($nrosSeguimiento as $nro) {
+                $valor = (int)$nro['servicenroseguimiento'];
+                if ($valor > $maxNroSeguimiento) {
+                    $maxNroSeguimiento = $valor;
+                }
+            }
+
+            $nextNroSeguimiento = $maxNroSeguimiento + 1;
+            $nextNroSeguimientoStr = (string)$nextNroSeguimiento;
+
+            // Verificar que no exista este número en la base de datos
+            $existe = $serviciosRepository->createQueryBuilder('s')
+                ->select('COUNT(s.serviceid)')
+                ->where('s.servicenroseguimiento = :nro')
+                ->setParameter('nro', $nextNroSeguimientoStr)
+                ->getQuery()
+                ->getSingleScalarResult();
+
+            if ($existe == 0) {
+                return $nextNroSeguimientoStr;
+            }
+
+            $attempt++;
+        }
+
+        // Si después de los intentos sigue habiendo colisión, usar timestamp
+        return (string)time();
     }
 
     private function enviarEmailAlOperador($servicio)

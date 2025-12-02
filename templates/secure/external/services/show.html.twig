@@ -40,19 +40,6 @@
                         onClick="descargarPdf({{ service.serviceid }})">
                         Descargar PDF
                         </button>
-                        <div>
-                            {% if service.servicestatus == 1 %}
-                                <span class="badge bg-warning fs-6">Pendiente</span>
-                            {% elseif service.servicestatus == 2 %}
-                                <span class="badge bg-info fs-6">En Proceso</span>
-                            {% elseif service.servicestatus == 3 %}
-                                <span class="badge bg-success fs-6">Completado</span>
-                            {% elseif service.servicestatus == 4 %}
-                                <span class="badge bg-danger fs-6">Rechazado</span>
-                            {% else %}
-                                <span class="badge bg-secondary fs-6">Sin estado</span>
-                            {% endif %}
-                        </div>
                     </div>
                     <div class="card-body">
                         {# INFORMACIÓN GENERAL #}
