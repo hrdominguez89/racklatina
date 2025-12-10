@@ -197,7 +197,10 @@ final class UserController extends AbstractController
             $usuario->setEmail($email);
             $usuario->setFirstName($firstName);
             $usuario->setLastName($lastName);
-            $usuario->setNationalIdNumber($dni);
+            if($dni)
+            {
+                $usuario->setNationalIdNumber($dni);
+            }
 
             $this->entityManager->persist($usuario);
 
