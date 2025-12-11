@@ -1,0 +1,362 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                    <div class="page-title-right">
+                        <ol class="breadcrumb m-0">
+                            <li class="breadcrumb-item">
+                                <a href="{{ path('app_home') }}">
+                                    Mi portal
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <a href="{{ path('app_secure_internal_service_requests') }}">
+                                    Solicitudes de Servicio
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active">
+                                {{ title }}
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">{{ title }}</h4>
+                    </div>
+                    <div class="card-body">
+                        {{ form_start(form) }}
+
+                        {# DATOS PRINCIPALES #}
+                        <div class="section-box mb-4">
+                            <div class="section-label">
+                                <span>Datos Principales</span>
+                            </div>
+
+                            <div class="row mt-3">
+                                {# Columna izquierda #}
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form_label(form.pais, 'País *') }}
+                                        {{ form_widget(form.pais) }}
+                                        {{ form_errors(form.pais) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.provincia, 'Provincia *') }}
+                                        {{ form_widget(form.provincia) }}
+                                        {{ form_errors(form.provincia) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.localidad, 'Localidad *') }}
+                                        {{ form_widget(form.localidad) }}
+                                        {{ form_errors(form.localidad) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.empresa, 'Empresa *') }}
+                                        {{ form_widget(form.empresa) }}
+                                        {{ form_errors(form.empresa) }}
+                                    </div>
+                                </div>
+
+                                {# Columna derecha #}
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form_label(form.contacto, 'Nombre y Apellido de Contacto *') }}
+                                        {{ form_widget(form.contacto) }}
+                                        {{ form_errors(form.contacto) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.email, 'Dirección de correo electrónico *') }}
+                                        {{ form_widget(form.email) }}
+                                        {{ form_errors(form.email) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.direccion, 'Dirección de entrega *') }}
+                                        {{ form_widget(form.direccion) }}
+                                        {{ form_errors(form.direccion) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Nombre Transporte *</label>
+                                        <small class="d-block text-muted mb-1">En caso de no utilizar Transporte, seleccionar la opción "No Aplica".</small>
+                                        {{ form_widget(form.transporteNombre) }}
+                                        {{ form_errors(form.transporteNombre) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# INFORMACIÓN DEL MATERIAL #}
+                        <div class="section-box mb-4">
+                            <div class="section-label">
+                                <span>Información del Material</span>
+                            </div>
+
+                            <div class="row mt-3">
+                                {# Columna izquierda #}
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form_label(form.marca, 'Marca *') }}
+                                        {{ form_widget(form.marca) }}
+                                        {{ form_errors(form.marca) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.codCatalogo, 'Código Catálogo *') }}
+                                        {{ form_widget(form.codCatalogo) }}
+                                        {{ form_errors(form.codCatalogo) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.nroSerie, 'Número de Serie *') }}
+                                        {{ form_widget(form.nroSerie) }}
+                                        {{ form_errors(form.nroSerie) }}
+                                    </div>
+                                </div>
+
+                                {# Columna derecha #}
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form_label(form.falla, 'Descripción de la Falla *') }}
+                                        {{ form_widget(form.falla, {'attr': {'rows': 5}}) }}
+                                        {{ form_errors(form.falla) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.adquiridoUltimos12Meses, '¿Ha adquirido este equipo en los últimos 12 (doce) meses? *') }}
+                                        <small class="d-block text-muted mb-1" style="font-style: italic;">Es necesario contar con la documentación de compra (Remito y/o Factura)</small>
+                                        {{ form_widget(form.adquiridoUltimos12Meses) }}
+                                        {{ form_errors(form.adquiridoUltimos12Meses) }}
+                                    </div>
+
+                                    <div class="mb-3" id="factura-compra-container" style="display: none;">
+                                        {{ form_label(form.facturaCompra, 'Factura de compra (PDF) *') }}
+                                        <small class="d-block text-muted mb-1">Suba la factura de compra del equipo en formato PDF (máximo 5MB)</small>
+                                        {{ form_widget(form.facturaCompra) }}
+                                        {{ form_errors(form.facturaCompra) }}
+                                        {% if serviceRequest.facturaCompraFilename %}
+                                            <small class="d-block text-success mt-1">
+                                                <i class="ri-file-pdf-line"></i> Archivo actual: {{ serviceRequest.facturaCompraFilename }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <a href="{{ path('app_secure_internal_service_requests') }}" class="btn btn-secondary me-2">
+                                    Cancelar
+                                </a>
+                                <button type="button" class="btn btn-danger" id="btn-enviar">
+                                    Enviar
+                                </button>
+                            </div>
+                        </div>
+
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación -->
+    <div class="modal fade" id="confirmacionModal" tabindex="-1" aria-labelledby="confirmacionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmacionModalLabel">Confirmación requerida</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>¿Está seguro de enviar esta solicitud?</strong></p>
+                    <p>Ha indicado que el equipo fue adquirido en los últimos 12 meses. Recuerde que es necesario contar con la documentación de compra (Remito y/o Factura) para procesar esta solicitud.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="btn-confirmar-envio">Confirmar y Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .section-box {
+            background-color: #fff;
+            border-radius: 4px;
+            padding: 20px;
+        }
+
+        .section-label {
+            display: inline-block;
+        }
+
+        .section-label span {
+            background-color: #e8e8e8;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 8px 12px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+
+        .btn-danger {
+            background-color: #f44336;
+            border-color: #f44336;
+            padding: 8px 30px;
+        }
+
+        .btn-danger:hover {
+            background-color: #d32f2f;
+            border-color: #d32f2f;
+        }
+
+        .btn-secondary {
+            padding: 8px 30px;
+        }
+
+        .text-muted {
+            font-size: 0.85rem;
+        }
+
+        .card-body {
+            background-color: #f5f5f5;
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnEnviar = document.getElementById('btn-enviar');
+            const btnConfirmar = document.getElementById('btn-confirmar-envio');
+            const form = document.querySelector('form');
+            const selectMeses = document.getElementById('{{ form.adquiridoUltimos12Meses.vars.id }}');
+            const facturaContainer = document.getElementById('factura-compra-container');
+            const facturaInput = document.getElementById('{{ form.facturaCompra.vars.id }}');
+            const modal = new bootstrap.Modal(document.getElementById('confirmacionModal'));
+
+            // === FILTRADO DE PROVINCIAS POR PAÍS ===
+            const selectPais = document.getElementById('{{ form.pais.vars.id }}');
+            const selectProvincia = document.getElementById('{{ form.provincia.vars.id }}');
+            const provinciasByPais = {{ provinciasByPais|raw }};
+
+            if (!selectPais || !selectProvincia) {
+                console.error('Selects no encontrados');
+                return;
+            }
+
+            const provinciaActual = selectProvincia.value; // Guardar valor actual si está editando
+
+            function updateProvincias() {
+                const paisId = selectPais.value;
+
+                // Limpiar opciones actuales (excepto placeholder)
+                selectProvincia.innerHTML = '<option value="">Seleccione primero un país</option>';
+
+                if (paisId && provinciasByPais[paisId]) {
+                    selectProvincia.innerHTML = '<option value="">Seleccione una provincia</option>';
+                    provinciasByPais[paisId].forEach(function(provincia) {
+                        const option = document.createElement('option');
+                        option.value = provincia.id;
+                        option.textContent = provincia.nombre;
+                        // Restaurar selección si está editando
+                        if (provincia.id == provinciaActual) {
+                            option.selected = true;
+                        }
+                        selectProvincia.appendChild(option);
+                    });
+                    selectProvincia.disabled = false;
+                } else {
+                    selectProvincia.disabled = true;
+                }
+            }
+
+            // Inicializar provincias al cargar la página
+            updateProvincias();
+
+            // Actualizar provincias cuando cambie el país
+            selectPais.addEventListener('change', function() {
+                updateProvincias();
+            });
+
+            // Mostrar/ocultar campo de factura según selección
+            function toggleFacturaField() {
+                if (selectMeses.value === '1') {
+                    facturaContainer.style.display = 'block';
+                    facturaInput.setAttribute('required', 'required');
+                } else {
+                    facturaContainer.style.display = 'none';
+                    facturaInput.removeAttribute('required');
+                }
+            }
+
+            // Inicializar el estado del campo al cargar
+            toggleFacturaField();
+
+            // Escuchar cambios en el select
+            selectMeses.addEventListener('change', toggleFacturaField);
+
+            btnEnviar.addEventListener('click', function(e) {
+                // Validar que el archivo esté presente si es requerido
+                if (selectMeses.value === '1') {
+                    if (!facturaInput.files || facturaInput.files.length === 0) {
+                        {% if not serviceRequest.facturaCompraFilename %}
+                        e.preventDefault();
+                        alert('Por favor, suba la factura de compra en formato PDF.');
+                        return;
+                        {% endif %}
+                    }
+                    modal.show();
+                } else {
+                    form.submit();
+                }
+            });
+
+            btnConfirmar.addEventListener('click', function() {
+                modal.hide();
+                form.submit();
+            });
+        });
+    </script>
+{% endblock %}

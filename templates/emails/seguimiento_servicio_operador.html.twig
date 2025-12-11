@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+    
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <!-- Header con logos -->
+        <tr>
+            <td style="padding: 15px; text-align: center;">
+                <img src="https://racklatina.com/wp-content/uploads/2020/08/logo-racklatina-light.png" alt="marca">
+            </td>
+        </tr>
+        
+        <!-- Banner -->
+        <tr>
+            <td>
+                <h1 style="background-color: #9d9f26; color: #ffffff; margin: 0; padding: 10px 15px; font-size: 18px;">Nueva solicitud de servicio - Racklatina</h1>
+                <h1 style="background-color: #9d9f26; color: #ffffff; margin: 0; padding: 10px 15px; font-size: 18px;">Nro. {{ numero_seguimiento }} </h1>
+            </td>
+        </tr>
+        
+        <!-- Contenido -->
+        <tr>
+            <td style="padding: 20px;">
+                <p>Estimados,</p>
+                <p>Se ha registrado una nueva solicitud de servicio.</p>
+                
+                <table width="100%" cellpadding="5" cellspacing="0" style="margin-top: 15px;">
+                    <tr>
+                        <td style="font-weight: bold; width: 200px;">Fecha de Alta:</td>
+                        <td>{{ solicitud.servicedate|date('d/m/Y') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Empresa:</td>
+                        <td>{{ solicitud.serviceempresa }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">CUIT:</td>
+                        <td>{{ solicitud.servicecuit }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Nombre y Apellido de Contacto:</td>
+                        <td>{{ solicitud.servicecontacto }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Dirección de correo electrónico:</td>
+                        <td>{{ solicitud.serviceemail }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Dirección de entrega:</td>
+                        <td>{{ solicitud.servicedireccion }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Código postal:</td>
+                        <td>{{ solicitud.servicecodpostal }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Teléfono:</td>
+                        <td>{{ solicitud.servicetelefono }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">País:</td>
+                        <td>{{ pais }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Provincia:</td>
+                        <td>{{ provincia }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Localidad:</td>
+                        <td>{{ solicitud.servicelocalidad }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Nombre Transporte:</td>
+                        <td>{{ solicitud.servicetransportenombre }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Dirección de Transporte:</td>
+                        <td>{{ solicitud.servicetransportedireccion }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Marca:</td>
+                        <td>{{ marca }}</td>
+                    </tr>
+                </table>
+                <p style="margin-top: 20px;">Saludos.</p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

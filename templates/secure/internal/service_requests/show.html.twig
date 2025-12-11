@@ -1,0 +1,277 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                    <div class="page-title-right">
+                        <ol class="breadcrumb m-0">
+                            <li class="breadcrumb-item">
+                                <a href="{{ path('app_home') }}">
+                                    Mi portal
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <a href="{{ path('app_secure_internal_service_requests') }}">
+                                    Solicitudes de Servicio
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active">
+                                Solicitud #{{ serviceRequest.id }}
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Solicitud de Servicio #{{ serviceRequest.id }}</h4>
+                        <div>
+                            {% if serviceRequest.estado == 'pendiente' %}
+                                <span class="badge bg-warning fs-6">Pendiente</span>
+                            {% elseif serviceRequest.estado == 'en_revision' %}
+                                <span class="badge bg-info fs-6">En Revisión</span>
+                            {% elseif serviceRequest.estado == 'aprobado' %}
+                                <span class="badge bg-primary fs-6">Aprobado</span>
+                            {% elseif serviceRequest.estado == 'en_proceso' %}
+                                <span class="badge bg-info fs-6">En Proceso</span>
+                            {% elseif serviceRequest.estado == 'completado' %}
+                                <span class="badge bg-success fs-6">Completado</span>
+                            {% elseif serviceRequest.estado == 'rechazado' %}
+                                <span class="badge bg-danger fs-6">Rechazado</span>
+                            {% else %}
+                                <span class="badge bg-secondary fs-6">{{ serviceRequest.estado }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {# INFORMACIÓN GENERAL #}
+                        <div class="section-box mb-4">
+                            <div class="section-label">
+                                <span>Información General</span>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>Fecha de Creación:</label>
+                                        <p>{{ serviceRequest.createdAt ? serviceRequest.createdAt|date('d/m/Y H:i') : '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Última Actualización:</label>
+                                        <p>{{ serviceRequest.updatedAt ? serviceRequest.updatedAt|date('d/m/Y H:i') : '-' }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>Usuario Solicitante:</label>
+                                        <p>{{ serviceRequest.user ? serviceRequest.user.firstName ~ ' ' ~ serviceRequest.user.lastName : '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Email Usuario:</label>
+                                        <p>{{ serviceRequest.user ? serviceRequest.user.email : '-' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# DATOS PRINCIPALES #}
+                        <div class="section-box mb-4">
+                            <div class="section-label">
+                                <span>Datos Principales</span>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>País:</label>
+                                        <p>{{ serviceRequest.pais ? serviceRequest.pais.paisNombre : '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Provincia:</label>
+                                        <p>{{ serviceRequest.provincia ? serviceRequest.provincia.provinciaNombre : '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Localidad:</label>
+                                        <p>{{ serviceRequest.localidad ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Empresa:</label>
+                                        <p>{{ serviceRequest.empresa ?? '-' }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>Nombre y Apellido de Contacto:</label>
+                                        <p>{{ serviceRequest.contacto ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Dirección de correo electrónico:</label>
+                                        <p>{{ serviceRequest.email ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Dirección de entrega:</label>
+                                        <p>{{ serviceRequest.direccion ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Nombre Transporte:</label>
+                                        <p>{{ serviceRequest.transporteNombre ?? '-' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# INFORMACIÓN DEL MATERIAL #}
+                        <div class="section-box mb-4">
+                            <div class="section-label">
+                                <span>Información del Material</span>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>Marca:</label>
+                                        <p>{{ serviceRequest.marca ? serviceRequest.marca.serviceproddescrip : '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Código Catálogo:</label>
+                                        <p>{{ serviceRequest.codCatalogo ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>Número de Serie:</label>
+                                        <p>{{ serviceRequest.nroSerie ?? '-' }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="info-field">
+                                        <label>Descripción de la Falla:</label>
+                                        <p class="falla-text">{{ serviceRequest.falla ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
+                                        <label>¿Adquirido en los últimos 12 meses?:</label>
+                                        <p>
+                                            {% if serviceRequest.adquiridoUltimos12Meses %}
+                                                <span class="badge bg-success">Sí</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">No</span>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+
+                                    {% if serviceRequest.facturaCompraFilename %}
+                                    <div class="info-field">
+                                        <label>Factura de compra:</label>
+                                        <p>
+                                            <a href="/tmp/{{ serviceRequest.facturaCompraFilename }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="ri-file-pdf-line me-1"></i> Descargar Factura
+                                            </a>
+                                            <br>
+                                            <small class="text-muted">{{ serviceRequest.facturaCompraFilename }}</small>
+                                        </p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        {# BOTONES DE ACCIÓN #}
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <a href="{{ path('app_secure_internal_service_requests') }}" class="btn btn-secondary me-2">
+                                    <i class="ri-arrow-left-line me-1"></i> Volver al listado
+                                </a>
+                                <a href="{{ path('app_secure_internal_service_requests_edit', {id: serviceRequest.id}) }}" class="btn btn-primary">
+                                    <i class="ri-edit-line me-1"></i> Editar Solicitud
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .section-box {
+            background-color: #fff;
+            border-radius: 4px;
+            padding: 20px;
+            border: 1px solid #e8e8e8;
+        }
+
+        .section-label {
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .section-label span {
+            background-color: #e8e8e8;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .info-field {
+            margin-bottom: 20px;
+        }
+
+        .info-field label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+            display: block;
+            font-size: 0.9rem;
+        }
+
+        .info-field p {
+            margin: 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+
+        .falla-text {
+            white-space: pre-wrap;
+            min-height: 80px;
+        }
+
+        .card-body {
+            background-color: #f5f5f5;
+        }
+
+        .badge.fs-6 {
+            font-size: 1rem !important;
+            padding: 8px 16px;
+        }
+    </style>
+{% endblock %}

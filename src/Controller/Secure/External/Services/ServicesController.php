@@ -1,0 +1,499 @@
+<?php
+
+namespace App\Controller\Secure\External\Services;
+
+use App\Entity\Servicios;
+use App\Entity\ServiciosAdjuntos;
+use App\Form\ServicesFormType;
+use App\Repository\PaisRepository;
+use App\Repository\ServiciosRepository;
+use App\Repository\ServiciosAdjuntosRepository;
+use App\Repository\ProvinciasRepository;
+use App\Repository\ServiciosMarcasRepository;
+use App\Repository\ServiciosTipoRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mime\Email;
+use Dompdf\Dompdf;
+
+#[Route('/secure/servicios-externos')]
+class ServicesController extends AbstractController
+{
+    private MailerInterface $mailer;
+
+    public function __construct(MailerInterface $mailer,
+    private PaisRepository $pais_repository,
+    private ServiciosMarcasRepository $marcas_repository,
+    private ServiciosRepository $servicios_repository,
+    private ServiciosTipoRepository $tipo_repository,
+    private ProvinciasRepository $provincia_repository)
+    {
+        $this->mailer = $mailer;
+    }
+
+    #[Route('/', name: 'app_secure_external_services')]
+    public function index(ServiciosRepository $serviciosRepository): Response
+    {
+        $user = $this->getUser();
+
+        // Get all services for this user based on their email
+        $services = $serviciosRepository->createQueryBuilder('s')
+            ->where('s.serviceemail = :email')
+            ->setParameter('email', $user->getEmail())
+            ->orderBy('s.servicedate', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        return $this->render('secure/external/services/index.html.twig', [
+            'services' => $services,
+            'title' => 'Mis Servicios'
+        ]);
+    }
+
+    #[Route('/nuevo', name: 'app_secure_external_services_new')]
+    public function new(Request $request, EntityManagerInterface $entityManager, ProvinciasRepository $provinciasRepository, ServiciosRepository $serviciosRepository): Response
+    {
+        $user = $this->getUser();
+
+        $service = new Servicios();
+        $service->setServicedate(new \DateTime());
+        $service->setServiceemail($user->getEmail());
+        $service->setServicecontacto($user->getFirstName() . ' ' . $user->getLastName());
+
+        // Obtener todas las provincias agrupadas por país
+        $allProvincias = $provinciasRepository->findAll();
+        $provinciasByPais = [];
+        foreach ($allProvincias as $provincia) {
+            $paisId = $provincia->getPaisId();
+            if (!isset($provinciasByPais[$paisId])) {
+                $provinciasByPais[$paisId] = [];
+            }
+            $provinciasByPais[$paisId][] = [
+                'id' => $provincia->getProvinciaId(),
+                'nombre' => $provincia->getProvinciaNombre()
+            ];
+        }
+
+        $form = $this->createForm(ServicesFormType::class, $service, [
+            'disable_contact_fields' => true
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Generar el siguiente serviceID (MAX + 1)
+            $maxId = $serviciosRepository->createQueryBuilder('s')
+                ->select('MAX(s.serviceid)')
+                ->getQuery()
+                ->getSingleScalarResult();
+
+            $nextId = ($maxId !== null) ? $maxId + 1 : 1;
+            $service->setServiceid($nextId);
+
+            // Generar el siguiente serviceNroSeguimiento (MAX + 1)
+            $nroSeguimiento = $this->generarNroSeguimiento($serviciosRepository);
+            $service->setServicenroseguimiento($nroSeguimiento);
+
+            // Establecer el estado como "En proceso" (1)
+            $service->setServicestatus(1);
+
+            // Manejar el archivo de factura PDF si existe
+            $facturaFile = $request->files->get('factura_compra');
+
+            if ($facturaFile && $facturaFile->isValid()) {
+                try {
+                    // Generar un nombre único para el archivo
+                    $filename = 'factura_' . $nextId . '_' . uniqid() . '.pdf';
+
+                    // Mover el archivo a /tmp
+                    $facturaFile->move('/tmp', $filename);
+
+                    // Crear un registro en ServiciosAdjuntos
+                    $adjunto = new ServiciosAdjuntos();
+                    $adjunto->setFilename($filename);
+                    $adjunto->setFilepath('/tmp/' . $filename);
+                    $adjunto->setServicio($service);
+
+                    $entityManager->persist($adjunto);
+
+                    $this->addFlash('info', 'Factura guardada en: /tmp/' . $filename);
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Error al guardar la factura: ' . $e->getMessage());
+                }
+            }
+
+            $entityManager->persist($service);
+            $entityManager->flush();
+
+            // Enviar email al operador
+            $this->enviarEmailAlOperador( $service);
+            $this->enviarEmailAlCliente($service);
+
+            $this->addFlash('success', 'Servicio creado exitosamente.');
+
+            return $this->redirectToRoute('app_secure_external_services');
+        }
+
+        return $this->render('secure/external/services/form.html.twig', [
+            'form' => $form->createView(),
+            'service' => $service,
+            'title' => 'Nuevo Servicio',
+            'provinciasByPais' => json_encode($provinciasByPais)
+        ]);
+    }
+
+    #[Route('/{id}/editar', name: 'app_secure_external_services_edit', requirements: ['id' => '\d+'])]
+    public function edit(Request $request, int $id, ServiciosRepository $serviciosRepository, EntityManagerInterface $entityManager, ProvinciasRepository $provinciasRepository): Response
+    {
+        $service = $serviciosRepository->find($id);
+
+        if (!$service) {
+            throw $this->createNotFoundException('Servicio no encontrado');
+        }
+
+        $user = $this->getUser();
+
+        // Verify that this service belongs to the user
+        if ($service->getServiceemail() !== $user->getEmail()) {
+            throw $this->createAccessDeniedException('No tiene permiso para editar este servicio');
+        }
+
+        // Obtener todas las provincias agrupadas por país
+        $allProvincias = $provinciasRepository->findAll();
+        $provinciasByPais = [];
+        foreach ($allProvincias as $provincia) {
+            $paisId = $provincia->getPaisId();
+            if (!isset($provinciasByPais[$paisId])) {
+                $provinciasByPais[$paisId] = [];
+            }
+            $provinciasByPais[$paisId][] = [
+                'id' => $provincia->getProvinciaId(),
+                'nombre' => $provincia->getProvinciaNombre()
+            ];
+        }
+
+        $form = $this->createForm(ServicesFormType::class, $service, [
+            'disable_contact_fields' => true
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Manejar el archivo de factura PDF si existe
+            $facturaFile = $request->files->get('factura_compra');
+
+            if ($facturaFile && $facturaFile->isValid()) {
+                try {
+                    // Generar un nombre único para el archivo
+                    $filename = 'factura_' . $service->getServiceid() . '_' . uniqid() . '.pdf';
+
+                    // Mover el archivo a /tmp
+                    $facturaFile->move('/tmp', $filename);
+
+                    // Crear un registro en ServiciosAdjuntos
+                    $adjunto = new ServiciosAdjuntos();
+                    $adjunto->setFilename($filename);
+                    $adjunto->setFilepath('/tmp/' . $filename);
+                    $adjunto->setServicio($service);
+
+                    $entityManager->persist($adjunto);
+
+                    $this->addFlash('info', 'Factura actualizada');
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Error al actualizar la factura: ' . $e->getMessage());
+                }
+            }
+
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Servicio actualizado exitosamente.');
+
+            return $this->redirectToRoute('app_secure_external_services');
+        }
+
+        return $this->render('secure/external/services/form.html.twig', [
+            'form' => $form->createView(),
+            'service' => $service,
+            'title' => 'Editar Servicio',
+            'provinciasByPais' => json_encode($provinciasByPais)
+        ]);
+    }
+
+    #[Route('/{id}', name: 'app_secure_external_services_show', requirements: ['id' => '\d+'])]
+    public function show(int $id, ServiciosRepository $serviciosRepository): Response
+    {
+        $service = $serviciosRepository->find($id);
+
+        if (!$service) {
+            throw $this->createNotFoundException('Servicio no encontrado');
+        }
+
+        $user = $this->getUser();
+
+        // Verify that this service belongs to the user
+        if ($service->getServiceemail() !== $user->getEmail()) {
+            throw $this->createAccessDeniedException('No tiene permiso para ver este servicio');
+        }
+
+        return $this->render('secure/external/services/show.html.twig', [
+            'service' => $service,
+            'title' => 'Detalle del Servicio'
+        ]);
+    }
+
+    private function generarNroSeguimiento(ServiciosRepository $serviciosRepository): string
+    {
+        $maxAttempts = 10;
+        $attempt = 0;
+
+        while ($attempt < $maxAttempts) {
+            // Obtener todos los números de seguimiento y encontrar el máximo manualmente
+            $nrosSeguimiento = $serviciosRepository->createQueryBuilder('s')
+                ->select('s.servicenroseguimiento')
+                ->where('s.servicenroseguimiento IS NOT NULL')
+                ->andWhere('s.servicenroseguimiento != :empty')
+                ->setParameter('empty', '')
+                ->getQuery()
+                ->getScalarResult();
+
+            $maxNroSeguimiento = 0;
+            foreach ($nrosSeguimiento as $nro) {
+                $valor = (int)$nro['servicenroseguimiento'];
+                if ($valor > $maxNroSeguimiento) {
+                    $maxNroSeguimiento = $valor;
+                }
+            }
+
+            $nextNroSeguimiento = $maxNroSeguimiento + 1;
+            $nextNroSeguimientoStr = (string)$nextNroSeguimiento;
+
+            // Verificar que no exista este número en la base de datos
+            $existe = $serviciosRepository->createQueryBuilder('s')
+                ->select('COUNT(s.serviceid)')
+                ->where('s.servicenroseguimiento = :nro')
+                ->setParameter('nro', $nextNroSeguimientoStr)
+                ->getQuery()
+                ->getSingleScalarResult();
+
+            if ($existe == 0) {
+                return $nextNroSeguimientoStr;
+            }
+
+            $attempt++;
+        }
+
+        // Si después de los intentos sigue habiendo colisión, usar timestamp
+        return (string)time();
+    }
+
+    private function enviarEmailAlOperador($servicio)
+    {
+        $marca_id = $servicio->getServicemarcaid();
+        $marca = $this->marcas_repository->findOneBy(['serviceprodid'=>$marca_id]);
+        $marca_nombre = $marca ? $marca->getServiceproddescrip() : null;
+        
+        $pais_id = $servicio->getServicepaisid();
+        $pais = $this->pais_repository->findOneBy(["paisId"=>$pais_id]);
+        $pais_nombre = $pais ? $pais->getPaisNombre() : null;
+        
+        $tipo_id = $servicio->getServicetypeid();
+        $tipo = $this->tipo_repository->findOneBy([ "servicetypeid" => $tipo_id ]);
+        $tipo_nombre = $tipo ? $tipo->getServicetypedescrip() : null;
+        
+        $provincia_id = $servicio->getServiceprovinciaid();
+        $provincia = $this->provincia_repository->findOneBy([ "provinciaId" => $provincia_id ]);
+        $provincia_nombre = $provincia ? $provincia->getProvinciaNombre() : null;
+        
+
+        $logoBase64 = base64_encode(file_get_contents($this->getParameter('kernel.project_dir') . '/assets/images/logo-racklatina-light.png'));
+
+        $htmlPdf = $this->renderView('pdf/adjunto_mail_solicitud.html.twig', [
+            'solicitud' => $servicio,
+            'marca' => $marca_nombre,
+            'pais' => $pais_nombre,
+            'logo' => $logoBase64,
+            'tipo' => $tipo_nombre
+        ]);
+
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml($htmlPdf);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $pdfContent = $dompdf->output();
+
+        $template = "emails/seguimiento_servicio_operador.html.twig";
+        $email = (new Email())
+            ->from($_ENV['MAIL_FROM'])
+            ->to($_ENV['MAIL_CENTRO_RAC'])
+            ->subject('Solicitud de servicio')
+            ->html($this->renderView($template, [
+                'numero_seguimiento' => $servicio->getServicenroseguimiento(),
+                'solicitud' => $servicio,
+                'pais' => $pais_nombre,
+                'marca' => $marca_nombre,
+                'provincia' => $provincia_nombre
+            ]))
+            ->attach($pdfContent, 'solicitud_servicio.pdf', 'application/pdf');
+        $this->mailer->send($email);
+    }
+    
+    public function enviarEmailAlCliente($servicio)
+    {
+        $marca_id = $servicio->getServicemarcaid();
+        $marca = $this->marcas_repository->findOneBy(['serviceprodid'=>$marca_id]);
+        $marca_nombre = $marca ? $marca->getServiceproddescrip() : null;
+        
+        $pais_id = $servicio->getServicepaisid();
+        $pais = $this->pais_repository->findOneBy(["paisId"=>$pais_id]);
+        $pais_nombre = $pais ? $pais->getPaisNombre() : null;
+
+        $tipo_id = $servicio->getServicetypeid();
+        $tipo = $this->tipo_repository->findOneBy([ "servicetypeid" => $tipo_id ]);
+        $tipo_nombre = $tipo ? $tipo->getServicetypedescrip() : null;
+        
+        $logoBase64 = base64_encode(file_get_contents($this->getParameter('kernel.project_dir') . '/assets/images/logo-racklatina-light.png'));
+        $dompdf = new Dompdf();
+        $htmlPdf = $this->renderView('pdf/adjunto_mail_solicitud.html.twig', [
+            'solicitud' => $servicio,
+            'marca' => $marca_nombre,
+            'pais' => $pais_nombre,
+            'logo' => $logoBase64,
+            'tipo' => $tipo_nombre
+        ]);
+        $dompdf->loadHtml($htmlPdf);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $pdfContent = $dompdf->output();
+
+        $template = "emails/seguimiento_servicio_cliente.html.twig";
+        $email = (new Email())
+            ->from($_ENV['MAIL_FROM'])
+            ->to($servicio->getServiceemail())
+            ->subject('Solicitud de servicio')
+            ->html($this->renderView($template, [
+                'numero_seguimiento' => $servicio->getServicenroseguimiento(),
+            ]))
+            ->attach($pdfContent, 'solicitud_servicio.pdf', 'application/pdf');
+
+        $this->mailer->send($email);
+    }
+
+    #[Route('/download' , name:'app_formulario_descarga')]
+    public function descargaPdf(Request $request)
+    {
+        //reporsitory de servicio paso el id por aca 
+        // dd($request);
+        $servicio_id =  $request->query->get('id');
+        if(!$servicio_id)
+        {
+            return $this->json(
+                ['message' => "No se envio el id"]
+                ,403);
+        }
+        $servicio  = $this->servicios_repository->findOneBy(["serviceid" => $servicio_id]);
+        if(!$servicio)
+        {
+            return $this->json(
+                ['message' => "No se encontro el servicio"]
+                ,404);
+        }
+        $marca_id = $servicio->getServicemarcaid();
+        $marca = $this->marcas_repository->findOneBy(['serviceprodid'=>$marca_id]);
+        $marca_nombre = $marca ? $marca->getServiceproddescrip() : null;
+        
+        $pais_id = $servicio->getServicepaisid();
+        $pais = $this->pais_repository->findOneBy(["paisId"=>$pais_id]);
+        $pais_nombre = $pais ? $pais->getPaisNombre() : null;
+        
+        $tipo_id = $servicio->getServicetypeid();
+        $tipo = $this->tipo_repository->findOneBy([ "servicetypeid" => $tipo_id ]);
+        $tipo_nombre = $tipo ? $tipo->getServicetypedescrip() : null;
+        
+        $provincia_id = $servicio->getServiceprovinciaid();
+        $provincia = $this->provincia_repository->findOneBy([ "provinciaId" => $provincia_id ]);
+        $provincia_nombre = $provincia ? $provincia->getProvinciaNombre() : null;
+        
+        $logoBase64 = base64_encode(file_get_contents($this->getParameter('kernel.project_dir') . '/assets/images/logo-racklatina-light.png'));
+
+        $dompdf = new Dompdf();
+        $htmlPdf = $this->renderView('pdf/adjunto_mail_solicitud.html.twig', [
+             'solicitud' => $servicio,
+            'marca' => $marca_nombre,
+            'pais' => $pais_nombre,
+            'logo' => $logoBase64,
+            'tipo' => $tipo_nombre
+        ]);
+        $dompdf->loadHtml($htmlPdf);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $pdfContent = $dompdf->output();
+        return new Response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="solicitud_servicio.pdf"'
+        ]);
+    }
+
+    #[Route('/adjunto/{id}/descargar', name: 'app_secure_external_services_adjunto_download', requirements: ['id' => '\d+'])]
+    public function downloadAdjunto(int $id, ServiciosAdjuntosRepository $adjuntosRepository): Response
+    {
+        $adjunto = $adjuntosRepository->find($id);
+
+        if (!$adjunto) {
+            throw $this->createNotFoundException('Adjunto no encontrado');
+        }
+
+        $user = $this->getUser();
+
+        // Verificar que el adjunto pertenezca a un servicio del usuario
+        if ($adjunto->getServicio()->getServiceemail() !== $user->getEmail()) {
+            throw $this->createAccessDeniedException('No tiene permiso para descargar este archivo');
+        }
+
+        $filepath = $adjunto->getFilepath();
+
+        if (!file_exists($filepath)) {
+            $this->addFlash('error', 'El archivo no existe en el servidor');
+            return $this->redirectToRoute('app_secure_external_services_show', ['id' => $adjunto->getServicio()->getServiceid()]);
+        }
+
+        return new BinaryFileResponse($filepath);
+    }
+
+    #[Route('/adjunto/{id}/eliminar', name: 'app_secure_external_services_adjunto_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteAdjunto(Request $request, int $id, ServiciosAdjuntosRepository $adjuntosRepository, EntityManagerInterface $entityManager): Response
+    {
+        $adjunto = $adjuntosRepository->find($id);
+
+        if (!$adjunto) {
+            throw $this->createNotFoundException('Adjunto no encontrado');
+        }
+
+        $user = $this->getUser();
+        $servicioId = $adjunto->getServicio()->getServiceid();
+
+        // Verificar que el adjunto pertenezca a un servicio del usuario
+        if ($adjunto->getServicio()->getServiceemail() !== $user->getEmail()) {
+            throw $this->createAccessDeniedException('No tiene permiso para eliminar este archivo');
+        }
+
+        if ($this->isCsrfTokenValid('delete_adjunto' . $adjunto->getId(), $request->request->get('_token'))) {
+            // Eliminar el archivo físico
+            $filepath = $adjunto->getFilepath();
+            if (file_exists($filepath)) {
+                unlink($filepath);
+            }
+
+            $entityManager->remove($adjunto);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Adjunto eliminado exitosamente.');
+        }
+
+        return $this->redirectToRoute('app_secure_external_services_edit', ['id' => $servicioId]);
+    }
+}

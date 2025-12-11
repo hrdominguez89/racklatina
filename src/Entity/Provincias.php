@@ -11,12 +11,13 @@ use Doctrine\ORM\Mapping as ORM;
 class Provincias
 {
     
+    #[ORM\Id]
     #[ORM\Column(name: "provincia_id", type: Types::SMALLINT, nullable: true, options: ["default" => NULL])]
     private ?int $provinciaId = NULL;
 
     #[ORM\Column(name: "provincia_nombre", length: 75, nullable: true)]
     private ?string $provinciaNombre = 'NULL';
-    #[ORM\Id]
+
     #[ORM\Column(name: "pais_id", type: Types::SMALLINT)]
     private ?int $paisId = null;
 
