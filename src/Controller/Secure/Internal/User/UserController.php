@@ -515,13 +515,17 @@ final class UserController extends AbstractController
         $id = $request->request->get('id');
         $user = $this->userRepository->find($id);
         if ($user) {
+            $roles = $this->userRoleRepository->findBy(["user" => $user->getId()]);
+            foreach($roles as $userRole)
+            {
+                $this->entityManager->remove($userRole);
+            }
             $this->entityManager->remove($user);
             $this->entityManager->flush();
             return $this->json([
                 'status' => true]);
         }
     }
-
     //FUNCION PARA ELIMINAR REPRESENTACION 
     #[Route('/eliminarrepresentado', name: 'app_usuarios_eliminar_representado')] // faltan las rutas en el retorno
     public function eliminarrepresentado(Request $request)
@@ -533,7 +537,6 @@ final class UserController extends AbstractController
             $this->entityManager->flush();
         }
     }
-
     public function enviarMailDeAlta($user,$password)
     {
         $id = $user->getId();
@@ -565,6 +568,17 @@ final class UserController extends AbstractController
         $user = $this->userRepository->findOneBy(["email" => $data["email"]]);
         if ($user) {
             $user->setDeletedAt(null);
+            $roles = $data['roles'];
+            foreach($roles as $rol)
+            {
+                $role = $this->roleRepository->find($rol);
+                if ($role) {
+                    $userRole = new UserRole();
+                    $userRole->setUser($user);
+                    $userRole->setRole($role);
+                    $this->entityManager->persist($userRole);
+                }
+            }
             $this->entityManager->persist($user);
             $this->entityManager->flush();
             $this->entityManager->getFilters()->enable('softdeleteable');
