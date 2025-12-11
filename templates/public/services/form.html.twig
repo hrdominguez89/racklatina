@@ -88,9 +88,15 @@
                                     </div>
 
                                     <div class="mb-3">
-                                        {{ form_label(form.servicetransporte, 'Nombre Transporte') }}
+                                        {{ form_label(form.servicetransporte, 'Transporte') }}
                                         {{ form_widget(form.servicetransporte) }}
                                         {{ form_errors(form.servicetransporte) }}
+                                    </div>
+
+                                    <div class="mb-3" id="transporte-nombre-container" style="display: none;">
+                                        {{ form_label(form.servicetransportenombre, 'Nombre del Transporte') }}
+                                        {{ form_widget(form.servicetransportenombre) }}
+                                        {{ form_errors(form.servicetransportenombre) }}
                                     </div>
                                 </div>
                             </div>
@@ -235,8 +241,8 @@
             const form = document.querySelector('form');
 
             // === FILTRADO DE PROVINCIAS POR PAÍS ===
-            const selectPais = document.getElementById('pais-select');
-            const selectProvincia = document.getElementById('provincia-select');
+            const selectPais = document.querySelector('select[name*="servicepaisid"]');
+            const selectProvincia = document.querySelector('select[name*="serviceprovinciaid"]');
             const provinciasByPais = {{ provinciasByPais|raw }};
 
             if (!selectPais || !selectProvincia) {
@@ -294,6 +300,28 @@
 
             // Escuchar cambios en el select
             selectMeses.addEventListener('change', toggleFacturaField);
+
+            // === MOSTRAR/OCULTAR CAMPO NOMBRE DE TRANSPORTE ===
+            const selectTransporte = document.querySelector('select[name*="servicetransporte"]');
+            const transporteNombreContainer = document.querySelector('input[name*="servicetransportenombre"]')?.closest('.mb-3');
+
+            function toggleTransporteNombreField() {
+                if (selectTransporte && transporteNombreContainer) {
+                    if (selectTransporte.value === 'Aplica') {
+                        transporteNombreContainer.style.display = 'block';
+                    } else {
+                        transporteNombreContainer.style.display = 'none';
+                    }
+                }
+            }
+
+            // Inicializar el estado del campo al cargar
+            toggleTransporteNombreField();
+
+            // Escuchar cambios en el select de transporte
+            if (selectTransporte) {
+                selectTransporte.addEventListener('change', toggleTransporteNombreField);
+            }
         });
     </script>
 {% endblock %}

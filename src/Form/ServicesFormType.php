@@ -122,14 +122,14 @@ class ServicesFormType extends AbstractType
                 'placeholder' => 'Seleccione un país',
                 'required' => true,
                 'choices' => $paisesChoices,
-                'attr' => ['class' => 'form-select', 'id' => 'pais-select']
+                'attr' => ['class' => 'form-select']
             ])
             ->add('serviceprovinciaid', ChoiceType::class, [
                 'label' => 'Provincia',
                 'placeholder' => 'Seleccione primero un país',
                 'required' => true,
                 'choices' => $provinciasChoices,
-                'attr' => ['class' => 'form-select', 'id' => 'provincia-select']
+                'attr' => ['class' => 'form-select']
             ])
             ->add('servicelocalidad', TextType::class, [
                 'label' => 'Localidad',
@@ -146,11 +146,11 @@ class ServicesFormType extends AbstractType
                 'placeholder' => 'Seleccione una opción',
                 'attr' => ['class' => 'form-select']
             ])
-            // ->add('servicetransportenombre', TextType::class, [
-            //     'label' => 'Nombre del Transporte',
-            //     'required' => false,
-            //     'attr' => ['class' => 'form-control', 'placeholder' => 'Nombre del transporte']
-            // ])
+            ->add('servicetransportenombre', TextType::class, [
+                'label' => 'Nombre del Transporte',
+                'required' => false,
+                'attr' => ['class' => 'form-control', 'placeholder' => 'Nombre del transporte']
+            ])
             // ->add('servicetransportedireccion', TextType::class, [
             //     'label' => 'Dirección del Transporte',
             //     'required' => false,
