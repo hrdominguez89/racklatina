@@ -19,115 +19,38 @@
 			</div>
 		</div>
 		<!-- end page title -->
-		<div	class="row">
-			{% if is_granted('ROLE_SUPER_ADMIN') %}
-			<div	class="col-12 col-sm-6 col-md-4 col-lg-3">
-				<!-- Simple card -->
-				<a	href="{{ path('app_secure_internal_user_user_racklatina') }}">
-					<div	class="card">
-						<img	class="card-img-top img-fluid"	src="{{ asset('images/usuariosRacklatina.png') }}"	alt="Card image cap" />
-						<div	class="card-body"	style="min-height: 190px;">
-							<h4	class="card-title mb-2">
-								Gestión de usuarios Racklatina
-							</h4>
-							<p	class="card-text">
-								Desde aquí podrás gestionar a los usuarios internos de Racklatina. Podés crear, editar, eliminar
-							</p>
-							<div	class="text-end"></div>
+		<div class="row">
+			<div class="col-12">
+				<!-- Carousel -->
+				{% if carousel_images is not empty %}
+					<div id="homeCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+						<div class="carousel-indicators">
+							{% for image in carousel_images %}
+								<button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="{{ loop.index0 }}" {% if loop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ loop.index }}"></button>
+							{% endfor %}
 						</div>
-					</div>
-				</a>
-			<!-- end card -->
-			</div>
-			
-			<div class="col-12 col-sm-6 col-md-4 col-lg-3">
-				<!-- Simple card -->
-				<a	href="{{ path('app_secure_internal_user_user_cliente') }}">
-					<div	class="card">
-						<img	class="card-img-top img-fluid"	src="{{ asset('images/usuariosclientes.png') }}"	alt="Card image cap" />
-						<div	class="card-body"	style="min-height: 190px;">
-							<h4	class="card-title mb-2">
-								Gestión de usuarios clientes
-							</h4>
-							<p	class="card-text">
-								Desde aquí podrás gestionar a los usuarios clientes de la plataforma. Podés crear, editar, eliminar
-							</p>
-							<div	class="text-end"></div>
+						<div class="carousel-inner">
+							{% for image in carousel_images %}
+								<div class="carousel-item {% if loop.first %}active{% endif %}">
+									<img src="{{ asset(image.path) }}" class="d-block w-100 carousel-image" alt="{{ image.name }}">
+								</div>
+							{% endfor %}
 						</div>
+						<button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev">
+							<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+							<span class="visually-hidden">Anterior</span>
+						</button>
+						<button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next">
+							<span class="carousel-control-next-icon" aria-hidden="true"></span>
+							<span class="visually-hidden">Siguiente</span>
+						</button>
 					</div>
-				</a>
-			<!-- end card -->
-			</div>
-			{% endif %}
-			<div	class="col-12 col-sm-6 col-md-4 col-lg-3">
-				<!-- Simple card -->
-				<a	href="{{ path('app_secure_internal_customer_request') }}">
-					<div	class="card">
-						<img	class="card-img-top img-fluid"	height="150"	src="{{ asset('images/solicitudes.png') }}"	alt="Card image cap" />
-						<div	class="card-body"	style="min-height: 190px;">
-							<h4	class="card-title mb-2">
-								Gestión de solicitudes
-							</h4>
-							<p	class="card-text">
-								Desde aquí podrás ver y gestionar las solicitudes enviadas por los usuarios para acceder a funcionalidades o permisos específicos dentro de la plataforma. Podés aprobarlas, rechazarlas o revisarlas en detalle.
-							</p>
-							<div	class="text-end"></div>
-						</div>
+				{% else %}
+					<div class="alert alert-info">
+						No hay imágenes disponibles en el carousel.
 					</div>
-				</a>
-			<!-- end card -->
-			</div>
-			<!-- end col -->
-			<div	class="col-12 col-sm-6 col-md-4 col-lg-3">
-				<!-- Simple card -->
-				<a	href="{{ path('app_gestor_ordenes_de_compra') }}">
-					<div	class="card">
-						<img	class="card-img-top img-fluid"	height="150"	src="{{ asset('images/ordenes_de_compra.png') }}"	alt="Card image cap" />
-						<div	class="card-body"	style="min-height: 190px;">
-							<h4	class="card-title mb-2">
-								Informes de órdenes de compra
-							</h4>
-							<p	class="card-text">
-								Desde aquí podras ver las órdenes de compra de los clientes registrados.
-							</p>
-							<div	class="text-end"></div>
-						</div>
-					</div>
-				</a>
-			</div>
-			<div class="col-12 col-sm-6 col-md-4 col-lg-3">
-				<!-- Simple card -->
-				<a	href="{{ path('app_seccion_cuenta_internal') }}">
-					<div	class="card">
-						<img	class="card-img-top img-fluid"	height="150"	src="{{ asset('images/cuentas.png') }}"	alt="Card image cap" />
-						<div	class="card-body"	style="min-height: 190px;">
-							<h4	class="card-title mb-2">
-								Cuentas
-							</h4>
-							<p	class="card-text">
-								Desde aquí podras ver las cuentas.
-							</p>
-							<div class="text-end"></div>
-						</div>
-					</div>
-				</a>
-			</div>
-			<div class="col-12 col-sm-6 col-md-4 col-lg-3">
-				<!-- Simple card -->
-				<a	href="{{ path('app_secure_internal_services') }}">
-					<div	class="card">
-						<img	class="card-img-top img-fluid"	height="150"	src="{{ asset('images/solicitud_servicios.png') }}"	alt="Card image cap" />
-						<div	class="card-body"	style="min-height: 190px;">
-							<h4	class="card-title mb-2">
-								Solicitudes de Servicio
-							</h4>
-							<p	class="card-text">
-								Gestioná las solicitudes de servicio técnico y seguimiento de equipos.
-							</p>
-							<div class="text-end"></div>
-						</div>
-					</div>
-				</a>
+				{% endif %}
+				<!-- end Carousel -->
 			</div>
 		</div>
 	</div>

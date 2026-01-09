@@ -1,0 +1,73 @@
+{% set current_route = app.request.attributes.get('_route') %}
+
+<div class="horizontal-nav">
+    <div class="container-fluid">
+        <nav class="horizontal-nav-menu">
+            <ul class="nav-horizontal-list">
+                {% if is_granted('ROLE_ADMIN') %}
+                    {% if is_granted('ROLE_SUPER_ADMIN') %}
+                        <li class="nav-horizontal-item">
+                            <a href="{{ path('app_secure_internal_user_user_racklatina') }}"
+                               class="nav-horizontal-link {% if current_route == 'app_secure_internal_user_user_racklatina' %}active{% endif %}">
+                                Usuarios Racklatina
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    <li class="nav-horizontal-item">
+                        <a href="{{ path('app_secure_internal_user_user_cliente') }}"
+                           class="nav-horizontal-link {% if current_route == 'app_secure_internal_user_user_cliente' %}active{% endif %}">
+                            Usuarios Clientes
+                        </a>
+                    </li>
+
+                    <li class="nav-horizontal-item">
+                        <a href="{{ path('app_secure_internal_customer_request') }}"
+                           class="nav-horizontal-link {% if current_route == 'app_secure_internal_customer_request' %}active{% endif %}">
+                            Solicitudes
+                        </a>
+                    </li>
+
+                    <li class="nav-horizontal-item">
+                        <a href="{{ path('app_gestor_ordenes_de_compra') }}"
+                           class="nav-horizontal-link {% if current_route == 'app_gestor_ordenes_de_compra' %}active{% endif %}">
+                            Ordenes de compra
+                        </a>
+                    </li>
+
+                    <li class="nav-horizontal-item">
+                        <a href="{{ path('app_seccion_cuenta_internal') }}"
+                           class="nav-horizontal-link {% if current_route == 'app_seccion_cuenta_internal' %}active{% endif %}">
+                            Cuentas
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% if is_granted('ROLE_COMPRADOR') %}
+                    <li class="nav-horizontal-item">
+                        <a href="{{ path('app_secure_external_customer_request') }}"
+                           class="nav-horizontal-link {% if current_route == 'app_secure_external_customer_request' %}active{% endif %}">
+                            Mis solicitudes
+                        </a>
+                    </li>
+
+                    <li class="nav-horizontal-item">
+                        <a href="{{ path('app_secure_external_sales_order_sales_order') }}"
+                           class="nav-horizontal-link {% if current_route == 'app_secure_external_sales_order_sales_order' %}active{% endif %}">
+                            Ordenes de compra
+                        </a>
+                    </li>
+
+                    {% if is_granted('ROLE_ADMINISTRACION') %}
+                        <li class="nav-horizontal-item">
+                            <a href="{{ path('app_seccion_cuenta_external') }}"
+                               class="nav-horizontal-link {% if current_route == 'app_seccion_cuenta_external' %}active{% endif %}">
+                                Cuenta
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>

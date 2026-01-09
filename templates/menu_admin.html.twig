@@ -1,65 +1,75 @@
-<li class="nav-item">
-    <a class="nav-link menu-link" 
-       href="#sidebarDashboards" 
-       data-bs-toggle="collapse" 
-       role="button" 
-       aria-expanded="true" 
-       aria-controls="sidebarDashboards">
-        <i class="ri-dashboard-2-line"></i>
-        <span data-key="t-dashboards">Mi portal</span>
-    </a>
-    
-    <div class="collapse menu-dropdown show" id="sidebarDashboards">
-        <ul class="nav nav-sm flex-column">
-            {% if is_granted('ROLE_SUPER_ADMIN') %}
-                <li class="nav-item">
-                    <a href="{{ path('app_secure_internal_user_user_racklatina') }}" 
-                       class="nav-link" 
-                       data-key="t-analytics">
-                        Usuarios Racklatina
-                    </a>
-                </li>
-            {% endif %}
-            
-            <li class="nav-item">
-                <a href="{{ path('app_secure_internal_user_user_cliente') }}" 
-                   class="nav-link" 
-                   data-key="t-analytics">
-                    Usuarios clientes
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a href="{{ path('app_secure_internal_customer_request') }}" 
-                   class="nav-link" 
-                   data-key="t-crm">
-                    Solicitudes
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a href="{{ path('app_gestor_ordenes_de_compra') }}" 
-                   class="nav-link" 
-                   data-key="t-crm">
-                    Informes de órdenes de compra
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a href="{{ path('app_seccion_cuenta_internal') }}"
-                   class="nav-link"
-                   data-key="t-crm">
-                    Cuentas
-                </a>
-            </li>
+{% set current_route = app.request.attributes.get('_route') %}
 
-            <li class="nav-item">
-                <a href="{{ path('app_secure_internal_services') }}"
-                   class="nav-link"
-                   data-key="t-crm">
-                    Solicitudes de Servicio
-                </a>
-            </li>
-        </ul>
-    </div>
+<li class="nav-item">
+    <a href="{{ path('app_home') }}"
+       class="nav-link {% if current_route == 'app_home' or current_route == 'app_secure_internal_home' %}active{% endif %}"
+       data-key="t-home">
+        <i class="ri-home-line"></i>
+        <span>Mi portal</span>
+    </a>
+</li>
+
+{% if is_granted('ROLE_SUPER_ADMIN') %}
+    <li class="nav-item">
+        <a href="{{ path('app_secure_internal_user_user_racklatina') }}"
+           class="nav-link {% if current_route == 'app_secure_internal_user_user_racklatina' %}active{% endif %}"
+           data-key="t-analytics">
+            <i class="ri-team-line"></i>
+            <span>Usuarios Racklatina</span>
+        </a>
+    </li>
+{% endif %}
+
+<li class="nav-item">
+    <a href="{{ path('app_secure_internal_user_user_cliente') }}"
+       class="nav-link {% if current_route == 'app_secure_internal_user_user_cliente' %}active{% endif %}"
+       data-key="t-analytics">
+        <i class="ri-group-line"></i>
+        <span>Usuarios clientes</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{{ path('app_secure_internal_customer_request') }}"
+       class="nav-link {% if current_route == 'app_secure_internal_customer_request' %}active{% endif %}"
+       data-key="t-crm">
+        <i class="ri-tools-line"></i>
+        <span>Solicitudes</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{{ path('app_gestor_ordenes_de_compra') }}"
+       class="nav-link {% if current_route == 'app_gestor_ordenes_de_compra' %}active{% endif %}"
+       data-key="t-crm">
+        <i class="ri-file-list-3-line"></i>
+        <span>Informes de órdenes de compra</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{{ path('app_seccion_cuenta_internal') }}"
+       class="nav-link {% if current_route == 'app_seccion_cuenta_internal' %}active{% endif %}"
+       data-key="t-crm">
+        <i class="ri-folder-user-line"></i>
+        <span>Cuentas</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{{ path('app_secure_internal_services') }}"
+       class="nav-link {% if current_route == 'app_secure_internal_services' %}active{% endif %}"
+       data-key="t-crm">
+        <i class="ri-customer-service-2-line"></i>
+        <span>Solicitudes de Servicio</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{{ path('app_carousel_index') }}"
+       class="nav-link {% if current_route starts with 'app_carousel_' %}active{% endif %}"
+       data-key="t-carousel">
+        <i class="ri-slideshow-3-line"></i>
+        <span>Carousel</span>
+    </a>
 </li>

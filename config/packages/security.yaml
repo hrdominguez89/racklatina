@@ -38,6 +38,7 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+        - { path: ^/secure/carousel/api/images, roles: PUBLIC_ACCESS }
         - { path: ^/secure/seccion-cuenta/clientes/*, roles: [ROLE_ADMINISTRACION] }
         - { path: ^/secure/clientes/*, roles: [ROLE_COMPRADOR] }
         - { path: ^/secure/mi-perfil/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN,ROLE_COMPRADOR,ROLE_ADMINISTRACION] }
@@ -45,6 +46,7 @@ security:
         - { path: ^/secure/service-requests-internos/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN] }
         - { path: ^/secure/servicios-externos/*, roles: [ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
         - { path: ^/secure/servicios-internos/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN] }
+        - { path: ^/secure/carousel/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN] }
         - { path: ^/secure/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN] }
         # - { path: ^/profile, roles: ROLE_USER }
 

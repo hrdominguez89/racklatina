@@ -8,6 +8,7 @@ use App\Repository\ClientesRepository;
 use App\Repository\CustomerRequestRepository;
 use App\Repository\EstadoClientesRepository;
 use App\Repository\UserCustomerRepository;
+use App\Repository\CarouselRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -16,9 +17,11 @@ use App\Services\EstadoCuentaService;
 final class HomeController extends AbstractController
 {
         
-    public function __construct(private CustomerRequestRepository $repository,
-    private EstadoCuentaService $estadoCuentaService)
-    {
+    public function __construct(
+        private CustomerRequestRepository $repository,
+        private EstadoCuentaService $estadoCuentaService,
+        private CarouselRepository $carouselRepository
+    ) {
         $this->repository = $repository;
     }
     #[Route('/', name: 'app_secure_external_home')]
@@ -29,7 +32,10 @@ final class HomeController extends AbstractController
         $user_id = $data["user"]->getId();
         $requests = $customerRequestRepository->findOneBy(["userRequest" => $user_id]);
         $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user_id);
-        
+
+        // Obtener imágenes del carousel
+        $data['carousel_images'] = $this->carouselRepository->findAllOrderedBySort();
+
         if(!empty($requests))
         {
             $this->auxiliar();
