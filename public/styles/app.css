@@ -668,14 +668,16 @@ a.btn.btn-secondary:visited {
 }
 
 /* Link ACTIVO - fondo gris como en el mockup */
-.navbar-menu .navbar-nav .nav-link.active {
-  background-color: #3D4F5E;
-  color: #ffffff;
+.navbar-menu .navbar-nav .nav-link.active,
+.navbar-menu .navbar-nav .nav-link.active:hover,
+.navbar-menu .navbar-nav .nav-link.active:focus {
+  background-color: #3D4F5E !important;
+  color: #ffffff !important;
 }
 
 /* Ícono del elemento activo */
 .navbar-menu .navbar-nav .nav-link.active i {
-  color: var(--rkl-primary);
+  color: var(--rkl-primary) !important;
 }
 
 /* Ícono especial para Mi portal activo (círculo amarillo) */

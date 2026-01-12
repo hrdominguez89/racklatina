@@ -1,8 +1,8 @@
-{% set current_route = app.request.attributes.get('_route') %}
+{% set current_route = app.request.get('_route') %}
 
 <li class="nav-item">
     <a href="{{ path('app_home') }}"
-       class="nav-link {% if current_route == 'app_home' or current_route == 'app_secure_external_home' %}active{% endif %}"
+       class="nav-link menu-link {% if current_route == 'app_home' or current_route == 'app_secure_external_home' %}active{% endif %}"
        data-key="t-home">
         <i class="ri-home-line"></i>
         <span>Mi portal</span>
@@ -11,7 +11,7 @@
 
 <li class="nav-item">
     <a href="{{ path('app_secure_external_customer_request') }}"
-       class="nav-link {% if current_route == 'app_secure_external_customer_request' %}active{% endif %}"
+       class="nav-link menu-link {% if current_route == 'app_secure_external_customer_request' %}active{% endif %}"
        data-key="t-analytics">
         <i class="ri-tools-line"></i>
         <span>Mis solicitudes</span>
@@ -20,7 +20,7 @@
 
 <li class="nav-item">
     <a href="{{ path('app_secure_external_sales_order_sales_order') }}"
-       class="nav-link {% if current_route == 'app_secure_external_sales_order_sales_order' %}active{% endif %}"
+       class="nav-link menu-link {% if current_route == 'app_secure_external_sales_order_sales_order' %}active{% endif %}"
        data-key="t-crm">
         <i class="ri-file-list-3-line"></i>
         <span>Ordenes de compra</span>
@@ -30,7 +30,7 @@
 {% if is_granted('ROLE_ADMINISTRACION') %}
     <li class="nav-item">
         <a href="{{ path('app_seccion_cuenta_external') }}"
-           class="nav-link {% if current_route == 'app_seccion_cuenta_external' %}active{% endif %}"
+           class="nav-link menu-link {% if current_route == 'app_seccion_cuenta_external' %}active{% endif %}"
            data-key="t-crm">
             <i class="ri-folder-user-line"></i>
             <span>Cuenta</span>
@@ -40,7 +40,7 @@
 
 <li class="nav-item">
     <a href="{{ path('app_secure_external_services') }}"
-       class="nav-link {% if current_route == 'app_secure_external_services' %}active{% endif %}"
+       class="nav-link menu-link {% if current_route == 'app_secure_external_services' %}active{% endif %}"
        data-key="t-crm">
         <i class="ri-customer-service-2-line"></i>
         <span>Mis Solicitudes de Servicio</span>

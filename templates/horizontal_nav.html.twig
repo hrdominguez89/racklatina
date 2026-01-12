@@ -1,4 +1,4 @@
-{% set current_route = app.request.attributes.get('_route') %}
+{% set current_route = app.request.get('_route') %}
 
 <div class="horizontal-nav">
     <div class="container-fluid">
