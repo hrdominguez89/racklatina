@@ -796,8 +796,12 @@ a.btn.btn-secondary:visited {
 
 /* Ajustar el contenido principal para que no quede tapado por la barra */
 .main-content {
-  margin-top: 3.5rem;
-  transition: margin-top 0.3s ease;
+  padding-top: 4rem;
+  transition: padding-top 0.3s ease;
+}
+
+.page-content {
+  padding-top: 1.5rem;
 }
 
 /* Responsive - tablets */
@@ -818,7 +822,11 @@ a.btn.btn-secondary:visited {
   }
 
   .main-content {
-    margin-top: 3rem;
+    padding-top: 4rem;
+  }
+
+  .page-content {
+    padding-top: 1rem;
   }
 }
 
@@ -845,7 +853,11 @@ a.btn.btn-secondary:visited {
   }
 
   .main-content {
-    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .page-content {
+    padding-top: 1.5rem;
   }
 
   /* Ocultar scrollbar pero mantener funcionalidad */
