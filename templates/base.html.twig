@@ -44,7 +44,7 @@
 		<!-- custom Css-->
 		<link href="{{ asset('css/custom.min.css') }}" rel="stylesheet" type="text/css"/>
 
-		<link href="{{ asset('styles/app.css') }}" rel="stylesheet" type="text/css"/> {% block stylesheets %}{% endblock %}
+		<link href="{{ asset('styles/app.css') }}?v={{ 'now'|date('U') }}" rel="stylesheet" type="text/css"/> {% block stylesheets %}{% endblock %}
 
 			
 		{% block javascripts %}
