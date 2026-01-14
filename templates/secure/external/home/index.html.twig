@@ -43,7 +43,7 @@
 			<div class="col-12">
 				<!-- Carousel -->
 				{% if carousel_images is not empty %}
-					<div id="homeCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+					<div id="homeCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="3500">
 						<div class="carousel-indicators">
 							{% for image in carousel_images %}
 								<button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="{{ loop.index0 }}" {% if loop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ loop.index }}"></button>

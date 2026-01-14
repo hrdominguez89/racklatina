@@ -41,6 +41,20 @@
                             Cuentas
                         </a>
                     </li>
+
+                    <li class="nav-horizontal-item">
+                        <a href="{{ path('app_comprobantes_impagos_internal') }}"
+                           class="nav-horizontal-link {% if current_route == 'app_comprobantes_impagos_internal' %}active{% endif %}">
+                            Comprobantes impagos
+                        </a>
+                    </li>
+
+                    <li class="nav-horizontal-item">
+                        <a href="{{ path('app_c_saldados', {tipo: 'TODAS'}) }}"
+                           class="nav-horizontal-link {% if current_route == 'app_c_saldados' %}active{% endif %}">
+                            Recibos
+                        </a>
+                    </li>
                 {% endif %}
 
                 {% if is_granted('ROLE_COMPRADOR') %}
@@ -63,6 +77,20 @@
                             <a href="{{ path('app_seccion_cuenta_external') }}"
                                class="nav-horizontal-link {% if current_route == 'app_seccion_cuenta_external' %}active{% endif %}">
                                 Cuenta
+                            </a>
+                        </li>
+
+                        <li class="nav-horizontal-item">
+                            <a href="{{ path('app_comprobantes_impagos_external') }}"
+                               class="nav-horizontal-link {% if current_route == 'app_comprobantes_impagos_external' %}active{% endif %}">
+                                Comprobantes impagos
+                            </a>
+                        </li>
+
+                        <li class="nav-horizontal-item">
+                            <a href="{{ path('app_comprobantes_saldados_external', {tipo: 'TODAS'}) }}"
+                               class="nav-horizontal-link {% if current_route == 'app_comprobantes_saldados_external' %}active{% endif %}">
+                                Recibos
                             </a>
                         </li>
                     {% endif %}
