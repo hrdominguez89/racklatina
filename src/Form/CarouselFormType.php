@@ -5,8 +5,8 @@ namespace App\Form;
 use App\Entity\Carousel;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
@@ -49,21 +49,16 @@ class CarouselFormType extends AbstractType
                         'maxSizeMessage' => 'La imagen no puede superar los 4MB'
                     ])
                 ]
-            ]);
-
-        // Solo mostrar el campo sort en edición
-        if ($isEdit) {
-            $builder->add('sort', IntegerType::class, [
-                'label' => 'Orden',
+            ])
+            ->add('href', UrlType::class, [
+                'label' => 'Enlace (URL)',
+                'required' => false,
                 'attr' => [
                     'class' => 'form-control',
-                    'min' => 0,
-                    'placeholder' => 'Número de orden (0 = primero)'
+                    'placeholder' => 'https://ejemplo.com/pagina'
                 ],
-                'help' => 'También puedes reordenar arrastrando en la lista principal',
-                'required' => true
+                'help' => 'URL a la que redirigirá al hacer clic en la imagen (opcional)'
             ]);
-        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void

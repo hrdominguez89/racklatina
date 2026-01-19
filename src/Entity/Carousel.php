@@ -33,6 +33,10 @@ class Carousel
     #[Assert\PositiveOrZero(message: 'El orden debe ser un número positivo o cero')]
     private ?int $sort = 0;
 
+    #[ORM\Column(type: Types::STRING, length: 500, nullable: true)]
+    #[Assert\Url(message: 'El enlace debe ser una URL válida')]
+    private ?string $href = null;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Gedmo\Timestampable(on: 'create')]
     private ?\DateTimeImmutable $createdAt = null;
@@ -79,6 +83,17 @@ class Carousel
     public function setSort(int $sort): static
     {
         $this->sort = $sort;
+        return $this;
+    }
+
+    public function getHref(): ?string
+    {
+        return $this->href;
+    }
+
+    public function setHref(?string $href): static
+    {
+        $this->href = $href;
         return $this;
     }
 

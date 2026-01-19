@@ -40,6 +40,7 @@ class CarouselController extends AbstractController
                 'name' => $carousel->getName(),
                 'path' => $carousel->getPath(),
                 'sort' => $carousel->getSort(),
+                'href' => $carousel->getHref(),
                 'url' => $this->generateUrl('app_home', [], true) . $carousel->getPath()
             ];
         }, $carousels);

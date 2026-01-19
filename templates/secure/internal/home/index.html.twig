@@ -32,7 +32,13 @@
 						<div class="carousel-inner">
 							{% for image in carousel_images %}
 								<div class="carousel-item {% if loop.first %}active{% endif %}">
-									<img src="{{ asset(image.path) }}" class="d-block w-100 carousel-image" alt="{{ image.name }}">
+									{% if image.href %}
+										<a href="{{ image.href }}" target="_blank" rel="noopener" class="carousel-link">
+											<img src="{{ asset(image.path) }}" class="d-block w-100 carousel-image" alt="{{ image.name }}">
+										</a>
+									{% else %}
+										<img src="{{ asset(image.path) }}" class="d-block w-100 carousel-image" alt="{{ image.name }}">
+									{% endif %}
 								</div>
 							{% endfor %}
 						</div>
