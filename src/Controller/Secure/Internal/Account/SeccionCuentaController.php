@@ -21,14 +21,6 @@ final class SeccionCuentaController extends AbstractController{
     {
         $this->mailer = $mailer;
     }
-    #[Route('/', name: 'app_seccion_cuenta_internal')]
-    public function index(): Response
-    {
-        return $this->render('secure/internal/seccion_cuenta/index.html.twig', [
-            'controller_name' => 'SeccionCuentaController',
-        ]);
-
-    }
     #[Route('/cuentasCorrientes',"app_cuentas_corrientes")]
     public function cuentasCorrientes(Request $request,
     CuentascorrientesRepository $cuentasCorrientesRepository)

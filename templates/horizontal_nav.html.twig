@@ -35,25 +35,25 @@
                         </a>
                     </li>
 
-                    <li class="nav-horizontal-item">
-                        <a href="{{ path('app_seccion_cuenta_internal') }}"
-                           class="nav-horizontal-link {% if current_route == 'app_seccion_cuenta_internal' %}active{% endif %}">
+                    <li class="nav-horizontal-item nav-horizontal-dropdown">
+                        <a href="#" class="nav-horizontal-link nav-horizontal-dropdown-toggle {% if current_route in ['app_comprobantes_impagos_internal', 'app_c_saldados'] %}active{% endif %}">
                             Cuentas
+                            <i class="ri-arrow-down-s-line"></i>
                         </a>
-                    </li>
-
-                    <li class="nav-horizontal-item">
-                        <a href="{{ path('app_comprobantes_impagos_internal') }}"
-                           class="nav-horizontal-link {% if current_route == 'app_comprobantes_impagos_internal' %}active{% endif %}">
-                            Comprobantes impagos
-                        </a>
-                    </li>
-
-                    <li class="nav-horizontal-item">
-                        <a href="{{ path('app_c_saldados', {tipo: 'TODAS'}) }}"
-                           class="nav-horizontal-link {% if current_route == 'app_c_saldados' %}active{% endif %}">
-                            Recibos
-                        </a>
+                        <ul class="nav-horizontal-dropdown-menu">
+                            <li>
+                                <a href="{{ path('app_comprobantes_impagos_internal') }}"
+                                   class="nav-horizontal-dropdown-item {% if current_route == 'app_comprobantes_impagos_internal' %}active{% endif %}">
+                                    Comprobantes impagos
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ path('app_c_saldados', {tipo: 'TODAS'}) }}"
+                                   class="nav-horizontal-dropdown-item {% if current_route == 'app_c_saldados' %}active{% endif %}">
+                                    Recibos
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                 {% endif %}
 
@@ -73,25 +73,25 @@
                     </li>
 
                     {% if is_granted('ROLE_ADMINISTRACION') %}
-                        <li class="nav-horizontal-item">
-                            <a href="{{ path('app_seccion_cuenta_external') }}"
-                               class="nav-horizontal-link {% if current_route == 'app_seccion_cuenta_external' %}active{% endif %}">
+                        <li class="nav-horizontal-item nav-horizontal-dropdown">
+                            <a href="#" class="nav-horizontal-link nav-horizontal-dropdown-toggle {% if current_route in ['app_comprobantes_impagos_external', 'app_comprobantes_saldados_external'] %}active{% endif %}">
                                 Cuenta
+                                <i class="ri-arrow-down-s-line"></i>
                             </a>
-                        </li>
-
-                        <li class="nav-horizontal-item">
-                            <a href="{{ path('app_comprobantes_impagos_external') }}"
-                               class="nav-horizontal-link {% if current_route == 'app_comprobantes_impagos_external' %}active{% endif %}">
-                                Comprobantes impagos
-                            </a>
-                        </li>
-
-                        <li class="nav-horizontal-item">
-                            <a href="{{ path('app_comprobantes_saldados_external', {tipo: 'TODAS'}) }}"
-                               class="nav-horizontal-link {% if current_route == 'app_comprobantes_saldados_external' %}active{% endif %}">
-                                Recibos
-                            </a>
+                            <ul class="nav-horizontal-dropdown-menu">
+                                <li>
+                                    <a href="{{ path('app_comprobantes_impagos_external') }}"
+                                       class="nav-horizontal-dropdown-item {% if current_route == 'app_comprobantes_impagos_external' %}active{% endif %}">
+                                        Comprobantes impagos
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ path('app_comprobantes_saldados_external', {tipo: 'TODAS'}) }}"
+                                       class="nav-horizontal-dropdown-item {% if current_route == 'app_comprobantes_saldados_external' %}active{% endif %}">
+                                        Recibos
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                     {% endif %}
                 {% endif %}

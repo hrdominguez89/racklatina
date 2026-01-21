@@ -30,22 +30,6 @@ final class CuentasController extends AbstractController
         $this->mailer = $mailer;
     }
     
-    #[Route('/', name: 'app_seccion_cuenta_external')]
-    public function index(UserCustomerRepository $userCustomerRepository): Response
-    {
-        $user = $this->getUser();
-        $user_customer = $userCustomerRepository->findOneBy(["user"=>$user->getId()]);
-        if(!$user_customer)
-        {
-            $this->addFlash('warning','No tienes asignado un cliente todavia');
-            return $this->render('secure/external/seccion_cuenta/index.html.twig', [
-            'controller_name' => 'CuentasController',
-        ]);
-        }
-        return $this->render('secure/external/seccion_cuenta/index.html.twig', [
-            'controller_name' => 'CuentasController',
-        ]);
-    }
 
     #[Route('/comprobantesSaldados/{tipo}', name: 'app_comprobantes_saldados_external', methods:['POST','GET'])]
     public function comprobantesSaldados(

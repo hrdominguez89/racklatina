@@ -48,12 +48,34 @@
 </li>
 
 <li class="nav-item">
-    <a href="{{ path('app_seccion_cuenta_internal') }}"
-       class="nav-link menu-link {% if current_route == 'app_seccion_cuenta_internal' %}active{% endif %}"
+    <a class="nav-link menu-link collapsed {% if current_route in ['app_comprobantes_impagos_internal', 'app_c_saldados'] %}active{% endif %}"
+       href="#sidebarCuentas"
+       data-bs-toggle="collapse"
+       role="button"
+       aria-expanded="{% if current_route in ['app_comprobantes_impagos_internal', 'app_c_saldados'] %}true{% else %}false{% endif %}"
+       aria-controls="sidebarCuentas"
        data-key="t-crm">
         <i class="ri-folder-user-line"></i>
         <span>Cuentas</span>
     </a>
+    <div class="collapse {% if current_route in ['app_comprobantes_impagos_internal', 'app_c_saldados'] %}show{% endif %}" id="sidebarCuentas">
+        <ul class="nav nav-sm flex-column">
+            <li class="nav-item">
+                <a href="{{ path('app_comprobantes_impagos_internal') }}"
+                   class="nav-link {% if current_route == 'app_comprobantes_impagos_internal' %}active{% endif %}"
+                   data-key="t-comprobantes-impagos">
+                    Comprobantes impagos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ path('app_c_saldados', {tipo: 'TODAS'}) }}"
+                   class="nav-link {% if current_route == 'app_c_saldados' %}active{% endif %}"
+                   data-key="t-recibos">
+                    Recibos
+                </a>
+            </li>
+        </ul>
+    </div>
 </li>
 
 <li class="nav-item">
