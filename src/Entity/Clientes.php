@@ -5,7 +5,7 @@ namespace App\Entity;
 use App\Repository\ClientesRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Table(name: 'clientes')]
+#[ORM\Table(name: 'Clientes')]
 #[ORM\Entity(repositoryClass: ClientesRepository::class, readOnly: true)]
 class Clientes
 {
