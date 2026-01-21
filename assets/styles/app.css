@@ -1151,6 +1151,7 @@ a.btn.btn-secondary:visited {
 /* Responsive dropdown */
 @media (max-width: 767px) {
   .nav-horizontal-dropdown-menu {
+    display: block;
     position: static;
     box-shadow: none;
     border: none;
