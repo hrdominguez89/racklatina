@@ -70,11 +70,11 @@ final class SalesOrderController extends AbstractController
                 ->setParameter('usuario', $usuario)
                 ->getQuery()
                 ->getSingleColumnResult();
-            $data["clientes"] = array_map(function($c) use ($clientesRepository)
+            $data["clientes"] = array_filter(array_map(function($c) use ($clientesRepository)
             {
                 $cliente = $clientesRepository->findOneBy(["codigoCalipso"=>$c]);
                 return $cliente;
-            },$clientes);
+            },$clientes));
             $data['pedidos'] = [];
             $qb = $em->createQueryBuilder()
                 ->select('p')
@@ -152,11 +152,11 @@ final class SalesOrderController extends AbstractController
 
             $data["mostrar_opciones_articulos"] = $data["articulos"] ? true : false;
         }
-        $data["clientes"] = array_map(function($c) use ($clientesRepository)
+        $data["clientes"] = array_filter(array_map(function($c) use ($clientesRepository)
             {
             $cliente = $clientesRepository->findOneBy(["codigoCalipso"=>$c]);
             return $cliente;
-        },$clientes);
+        },$clientes));
     
         $data["mostrar_tablas"] = !empty($cliente_get);
         
