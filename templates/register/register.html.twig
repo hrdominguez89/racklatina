@@ -92,8 +92,18 @@
 						</div>
 						<div class="col-12 col-md-6 mb-3">
 								{{ form_label(form.role) }}
-							<div class="d-flex flex-column gap-2 mt-2">
-								{{ form_widget(form.role) }}
+							<div class="d-flex flex-column gap-3 mt-2">
+								{% for child in form.role %}
+									<div class="form-check">
+										{{ form_widget(child, {'attr': {'class': 'form-check-input'}}) }}
+										{{ form_label(child, null, {'label_attr': {'class': 'form-check-label'}}) }}
+										{% if child.vars.attr['data-description'] is defined and child.vars.attr['data-description'] %}
+											<div class="text-muted small ms-4">
+												{{ child.vars.attr['data-description'] }}
+											</div>
+										{% endif %}
+									</div>
+								{% endfor %}
 							</div>
 							{{ form_errors(form.role) }}
 						</div>
