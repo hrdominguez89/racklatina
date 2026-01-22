@@ -111,8 +111,8 @@ class RegistrationFormType extends AbstractType
 
                     // Definir descripciones para cada rol
                     $descriptions = [
-                        'COMPRADOR' => 'Órdenes de compra, fechas de entrega, descargar facturas, etc.',
-                        'ADMINISTRACION' => 'Consultar facturas saldas, vencidas, etc.',
+                        'COMPRADOR' => 'Accede a órdenes de compra, fechas de entrega y descarga de facturas, etc.',
+                        'ADMINISTRACION' => 'Accede al estado y gestión de facturas y a la información administrativa vinculada a la cuenta.',
                     ];
 
                     return [
