@@ -102,6 +102,23 @@ class RegistrationFormType extends AbstractType
                 }, $roles),
         array_map(fn($r) => $r->getId(), $roles)
                 ),
+                'choice_attr' => function($choice) use ($roles) {
+                    // Obtener el rol correspondiente
+                    $role = array_values(array_filter($roles, fn($r) => $r->getId() === $choice))[0] ?? null;
+                    if (!$role) return [];
+
+                    $roleName = strtoupper(substr($role->getName(), 5));
+
+                    // Definir descripciones para cada rol
+                    $descriptions = [
+                        'COMPRADOR' => 'Accede a órdenes de compra, fechas de entrega y descarga de facturas, etc.',
+                        'ADMINISTRACION' => 'Accede al estado y gestión de facturas y a la información administrativa vinculada a la cuenta.',
+                    ];
+
+                    return [
+                        'data-description' => $descriptions[$roleName] ?? ''
+                    ];
+                },
                 'multiple' => true,
                 'expanded' => true,
                 'required' => true,

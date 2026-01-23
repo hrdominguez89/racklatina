@@ -39,99 +39,46 @@
 			{% endfor %}
 		{% endfor %}
 		<!-- end page title -->
-		<div	class="row">
-			<div	class="col-12 col-sm-6 col-lg-4">
-				<!-- Simple card -->
-				<a	href="{{ path('app_secure_external_customer_request') }}">
-					<div	class="card">
-						<img	class="card-img-top img-fluid"	src="{{ asset('images/mis_solicitudes.png') }}"	alt="Card image cap" />
-						<div	class="card-body"	style="min-height: 190px;">
-							<h4	class="card-title mb-2">
-								Gestioná tus solicitudes de permiso
-							</h4>
-							<p	class="card-text">
-								Desde aquí podés ver el estado de tus pedidos y generar nuevas solicitudes para actuar en representación de un cliente.
-							</p>
-							<div	class="text-end"></div>
+		<div class="row">
+			<div class="col-12">
+				<!-- Carousel -->
+				{% if carousel_images is not empty %}
+					<div id="homeCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="3500">
+						<div class="carousel-indicators">
+							{% for image in carousel_images %}
+								<button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="{{ loop.index0 }}" {% if loop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ loop.index }}"></button>
+							{% endfor %}
 						</div>
+						<div class="carousel-inner">
+							{% for image in carousel_images %}
+								<div class="carousel-item {% if loop.first %}active{% endif %}">
+									{% if image.href %}
+										<a href="{{ image.href }}" target="_blank" rel="noopener" class="carousel-link">
+											<img src="{{ asset(image.path) }}" class="d-block w-100 carousel-image" alt="{{ image.name }}">
+										</a>
+									{% else %}
+										<img src="{{ asset(image.path) }}" class="d-block w-100 carousel-image" alt="{{ image.name }}">
+									{% endif %}
+								</div>
+							{% endfor %}
+						</div>
+						<button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev">
+							<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+							<span class="visually-hidden">Anterior</span>
+						</button>
+						<button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next">
+							<span class="carousel-control-next-icon" aria-hidden="true"></span>
+							<span class="visually-hidden">Siguiente</span>
+						</button>
 					</div>
-				</a>
-			<!-- end card -->
-			</div>
-			<div class="col-12 col-sm-6 col-lg-4">
-				<!-- Simple card -->
-				<a	href="{{ path('app_secure_external_sales_order_sales_order',{status:'Todas'}) }}">
-					<div	class="card">
-						<img	class="card-img-top img-fluid"	height="150"	src="{{ asset('images/ordenes_de_compra.png') }}"	alt="Card image cap" />
-						<div	class="card-body"	style="min-height: 190px;">
-							<h4	class="card-title mb-2">
-								Órdenes de Compra
-							</h4>
-							<p	class="card-text">
-								Visualizá y gestioná las órdenes de compra de los clientes a los que representás.
-							</p>
-							<div class="text-end"></div>
-						</div>
+				{% else %}
+					<div class="alert alert-info">
+						No hay imágenes disponibles en el carousel.
 					</div>
-				</a>
+				{% endif %}
+				<!-- end Carousel -->
 			</div>
-			<div class="col-12 col-sm-6 col-lg-4">
-				<!-- Simple card -->
-				<a	href="{{ path('app_secure_external_services') }}">
-					<div	class="card">
-						<img	class="card-img-top img-fluid"	height="150"	src="{{ asset('images/solicitud_servicios.png') }}"	alt="Card image cap" />
-						<div	class="card-body"	style="min-height: 190px;">
-							<h4	class="card-title mb-2">
-								Solicitudes de Servicio
-							</h4>
-							<p	class="card-text">
-								Gestioná tus solicitudes de servicio técnico y seguimiento de equipos.
-							</p>
-							<div class="text-end"></div>
-						</div>
-					</div>
-				</a>
-			</div>
-			{% if is_granted('ROLE_ADMINISTRACION') %}
-			<!-- end card -->
-				<div class="col-12 col-sm-6 col-lg-4">
-					<!-- Simple card -->
-					<a	href="{{ path('app_seccion_cuenta_external') }}">
-						<div class="card">
-							<img	class="card-img-top img-fluid"	src="{{ asset('images/cuentas.png') }}"	alt="Card image cap" />
-							<div	class="card-body"	style="min-height: 190px;">
-								<h4	class="card-title mb-2">
-									Gestioná tus cuentas
-								</h4>
-								<p	class="card-text">
-									Desde aquí podés ver el estado de tus cuentas.
-								</p>
-								<div class="text-end"></div>
-							</div>
-						</div>
-					</a>
-				<!-- end card -->
-				</div>
-			{% endif %}
-				{# <div class="col-12 col-sm-6 col-lg-4">
-					<!-- Simple card -->
-					<a	href="{{ path('app_secure_external_formularios_servicios') }}">
-						<div class="card">
-							<img class="card-img-top img-fluid"	height="150"	src="{{ asset('images/ordenes_de_compra.png') }}"	alt="Card image cap" />
-							<div class="card-body"	style="min-height: 190px;">
-								<h4	class="card-title mb-2">
-									Formularios de servicios
-								</h4>
-								<p	class="card-text">
-									Aca podras completar tus formularios de servicios.
-								</p>
-								<div class="text-end"></div>
-							</div>
-						</div>
-					</a>
-				</div> #}
-			</div>
-		<!-- end col -->
 		</div>
 	</div>
 {% endblock %}
+

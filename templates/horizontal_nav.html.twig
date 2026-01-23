@@ -1,0 +1,101 @@
+{% set current_route = app.request.get('_route') %}
+
+<div class="horizontal-nav">
+    <div class="container-fluid">
+        <nav class="horizontal-nav-menu">
+            <ul class="nav-horizontal-list">
+                {% if is_granted('ROLE_ADMIN') %}
+                    {% if is_granted('ROLE_SUPER_ADMIN') %}
+                        <li class="nav-horizontal-item">
+                            <a href="{{ path('app_secure_internal_user_user_racklatina') }}"
+                               class="nav-horizontal-link {% if current_route == 'app_secure_internal_user_user_racklatina' %}active{% endif %}">
+                                Usuarios Racklatina
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    <li class="nav-horizontal-item">
+                        <a href="{{ path('app_secure_internal_user_user_cliente') }}"
+                           class="nav-horizontal-link {% if current_route == 'app_secure_internal_user_user_cliente' %}active{% endif %}">
+                            Usuarios Clientes
+                        </a>
+                    </li>
+
+                    <li class="nav-horizontal-item">
+                        <a href="{{ path('app_secure_internal_customer_request') }}"
+                           class="nav-horizontal-link {% if current_route == 'app_secure_internal_customer_request' %}active{% endif %}">
+                            Solicitudes
+                        </a>
+                    </li>
+
+                    <li class="nav-horizontal-item">
+                        <a href="{{ path('app_gestor_ordenes_de_compra') }}"
+                           class="nav-horizontal-link {% if current_route == 'app_gestor_ordenes_de_compra' %}active{% endif %}">
+                            Ordenes de compra
+                        </a>
+                    </li>
+
+                    <li class="nav-horizontal-item nav-horizontal-dropdown">
+                        <a href="#" class="nav-horizontal-link nav-horizontal-dropdown-toggle {% if current_route in ['app_comprobantes_impagos_internal', 'app_c_saldados'] %}active{% endif %}">
+                            Administración
+                            <i class="ri-arrow-down-s-line"></i>
+                        </a>
+                        <ul class="nav-horizontal-dropdown-menu">
+                            <li>
+                                <a href="{{ path('app_comprobantes_impagos_internal') }}"
+                                   class="nav-horizontal-dropdown-item {% if current_route == 'app_comprobantes_impagos_internal' %}active{% endif %}">
+                                    Comprobantes impagos
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ path('app_c_saldados', {tipo: 'TODAS'}) }}"
+                                   class="nav-horizontal-dropdown-item {% if current_route == 'app_c_saldados' %}active{% endif %}">
+                                    Comprobantes
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                {% endif %}
+
+                {% if is_granted('ROLE_COMPRADOR') %}
+                    <li class="nav-horizontal-item">
+                        <a href="{{ path('app_secure_external_customer_request') }}"
+                           class="nav-horizontal-link {% if current_route == 'app_secure_external_customer_request' %}active{% endif %}">
+                            Empresas vinculadas
+                        </a>
+                    </li>
+
+                    <li class="nav-horizontal-item">
+                        <a href="{{ path('app_secure_external_sales_order_sales_order') }}"
+                           class="nav-horizontal-link {% if current_route == 'app_secure_external_sales_order_sales_order' %}active{% endif %}">
+                            Ordenes de compra
+                        </a>
+                    </li>
+
+                    {% if is_granted('ROLE_ADMINISTRACION') %}
+                        <li class="nav-horizontal-item nav-horizontal-dropdown">
+                            <a href="#" class="nav-horizontal-link nav-horizontal-dropdown-toggle {% if current_route in ['app_comprobantes_impagos_external', 'app_comprobantes_saldados_external'] %}active{% endif %}">
+                                Administración
+                                <i class="ri-arrow-down-s-line"></i>
+                            </a>
+                            <ul class="nav-horizontal-dropdown-menu">
+                                <li>
+                                    <a href="{{ path('app_comprobantes_impagos_external') }}"
+                                       class="nav-horizontal-dropdown-item {% if current_route == 'app_comprobantes_impagos_external' %}active{% endif %}">
+                                        Comprobantes impagos
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ path('app_comprobantes_saldados_external', {tipo: 'TODAS'}) }}"
+                                       class="nav-horizontal-dropdown-item {% if current_route == 'app_comprobantes_saldados_external' %}active{% endif %}">
+                                        Comprobantes
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    {% endif %}
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>

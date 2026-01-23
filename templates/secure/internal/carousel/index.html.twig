@@ -1,0 +1,238 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">{{ title }}</h4>
+
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{{ path('app_secure_internal_home') }}">Inicio</a></li>
+                        <li class="breadcrumb-item active">Carousel</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h5 class="card-title mb-0">Imágenes del Carousel</h5>
+                        </div>
+                        <div class="col-auto">
+                            <a href="{{ path('app_carousel_new') }}" class="btn btn-primary">
+                                <i class="ri-add-line align-middle me-1"></i> Nueva Imagen
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% for message in app.flashes('success') %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="ri-checkbox-circle-line me-2"></i>{{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    {% for message in app.flashes('error') %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="ri-error-warning-line me-2"></i>{{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    {% if carousels is empty %}
+                        <div class="alert alert-info">
+                            <i class="ri-information-line me-2"></i>
+                            No hay imágenes en el carousel. <a href="{{ path('app_carousel_new') }}">Agrega la primera imagen</a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="ri-information-line me-2"></i>
+                            Arrastra las imágenes para reordenarlas. Los cambios se guardan automáticamente.
+                        </div>
+
+                        <div id="carousel-list" class="list-group">
+                            {% for carousel in carousels %}
+                                <div class="list-group-item carousel-item-draggable" data-id="{{ carousel.id }}" draggable="true">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            <i class="ri-drag-move-2-line fs-4 text-muted drag-handle" style="cursor: move;"></i>
+                                        </div>
+                                        <div class="col-auto">
+                                            <span class="badge bg-primary">{{ carousel.sort }}</span>
+                                        </div>
+                                        <div class="col-auto">
+                                            <img src="{{ asset(carousel.path) }}"
+                                                 alt="{{ carousel.name }}"
+                                                 class="img-thumbnail"
+                                                 style="max-width: 150px; max-height: 100px; object-fit: cover;">
+                                        </div>
+                                        <div class="col">
+                                            <h6 class="mb-1">{{ carousel.name }}</h6>
+                                            <small class="text-muted">{{ carousel.path }}</small>
+                                        </div>
+                                        <div class="col-auto">
+                                            <div class="btn-group">
+                                                <a href="{{ path('app_carousel_edit', {id: carousel.id}) }}"
+                                                   class="btn btn-sm btn-soft-info">
+                                                    <i class="ri-pencil-line"></i> Editar
+                                                </a>
+                                                <button type="button"
+                                                        class="btn btn-sm btn-soft-danger"
+                                                        data-carousel-id="{{ carousel.id }}"
+                                                        data-carousel-name="{{ carousel.name }}"
+                                                        data-csrf-token="{{ csrf_token('delete' ~ carousel.id) }}"
+                                                        onclick="confirmDelete(this)">
+                                                    <i class="ri-delete-bin-line"></i> Eliminar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Formulario oculto para eliminación #}
+<form id="delete-form" method="post" style="display: none;">
+    <input type="hidden" name="_token" id="delete-token">
+</form>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let draggedElement = null;
+
+        // Inicializar drag & drop
+        document.addEventListener('DOMContentLoaded', function() {
+            const items = document.querySelectorAll('.carousel-item-draggable');
+
+            items.forEach(item => {
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragover', handleDragOver);
+                item.addEventListener('drop', handleDrop);
+                item.addEventListener('dragend', handleDragEnd);
+            });
+        });
+
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.style.opacity = '0.5';
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            if (draggedElement !== this) {
+                const list = document.getElementById('carousel-list');
+                const draggedIndex = Array.from(list.children).indexOf(draggedElement);
+                const targetIndex = Array.from(list.children).indexOf(this);
+
+                if (draggedIndex < targetIndex) {
+                    this.parentNode.insertBefore(draggedElement, this.nextSibling);
+                } else {
+                    this.parentNode.insertBefore(draggedElement, this);
+                }
+
+                updateOrder();
+            }
+
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            this.style.opacity = '1';
+        }
+
+        function updateOrder() {
+            const items = document.querySelectorAll('.carousel-item-draggable');
+            const order = Array.from(items).map(item => item.dataset.id);
+
+            fetch('{{ path('app_carousel_update_order') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ order: order })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar badges de orden
+                    items.forEach((item, index) => {
+                        const badge = item.querySelector('.badge');
+                        badge.textContent = index;
+                    });
+
+                    // Mostrar mensaje de éxito
+                    showToast('success', 'Orden actualizado correctamente');
+                } else {
+                    showToast('error', 'Error al actualizar el orden');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('error', 'Error al actualizar el orden');
+            });
+        }
+
+        function confirmDelete(button) {
+            const id = button.dataset.carouselId;
+            const name = button.dataset.carouselName;
+            const token = button.dataset.csrfToken;
+
+            if (confirm(`¿Estás seguro de que deseas eliminar "${name}"?\n\nEsta acción no se puede deshacer y eliminará la imagen del servidor.`)) {
+                const form = document.getElementById('delete-form');
+                form.action = '{{ path('app_carousel_delete', {id: '__ID__'}) }}'.replace('__ID__', id);
+                document.getElementById('delete-token').value = token;
+                form.submit();
+            }
+        }
+
+        function showToast(type, message) {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const icon = type === 'success' ? 'ri-checkbox-circle-line' : 'ri-error-warning-line';
+
+            const toast = document.createElement('div');
+            toast.className = `alert ${alertClass} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+            toast.style.zIndex = '9999';
+            toast.innerHTML = `
+                <i class="${icon} me-2"></i>${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+    </script>
+{% endblock %}

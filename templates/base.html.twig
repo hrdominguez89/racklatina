@@ -44,7 +44,122 @@
 		<!-- custom Css-->
 		<link href="{{ asset('css/custom.min.css') }}" rel="stylesheet" type="text/css"/>
 
-		<link href="{{ asset('styles/app.css') }}" rel="stylesheet" type="text/css"/> {% block stylesheets %}{% endblock %}
+		<link href="{{ asset('styles/app.css') }}?v={{ 'now'|date('U') }}" rel="stylesheet" type="text/css"/>
+
+		<!-- Estilos críticos inline para evitar problemas de cache -->
+		<style>
+			/* Horizontal Nav Critical Styles */
+			.horizontal-nav {
+				background-color: #ffffff !important;
+				border-bottom: 0.0625rem solid #e0e0e0 !important;
+				padding: 0 !important;
+				position: fixed !important;
+				top: 4.375rem !important;
+				left: 15.625rem !important;
+				right: 0 !important;
+				z-index: 998 !important;
+				box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08) !important;
+			}
+
+			[data-sidebar-size="sm"] .horizontal-nav {
+				left: 4.375rem !important;
+			}
+
+			.nav-horizontal-list {
+				display: flex !important;
+				flex-direction: row !important;
+				list-style: none !important;
+				margin: 0 !important;
+				padding: 0 1rem !important;
+				flex-wrap: wrap !important;
+				align-items: center !important;
+				gap: 0.5rem !important;
+			}
+
+			.nav-horizontal-item {
+				margin: 0 !important;
+				padding: 0 !important;
+			}
+
+			.nav-horizontal-link {
+				display: inline-block !important;
+				padding: 0.875rem 1.25rem !important;
+				color: #333333 !important;
+				text-decoration: none !important;
+				font-size: 0.9375rem !important;
+				font-weight: 500 !important;
+				border-bottom: 0.1875rem solid transparent !important;
+				white-space: nowrap !important;
+			}
+
+			.nav-horizontal-link:hover {
+				background-color: rgba(172, 163, 0, 0.08) !important;
+				color: var(--rkl-primary) !important;
+			}
+
+			.nav-horizontal-link.active {
+				color: var(--rkl-primary) !important;
+				font-weight: 600 !important;
+				border-bottom-color: var(--rkl-primary) !important;
+				background-color: rgba(172, 163, 0, 0.05) !important;
+			}
+
+			/* Carousel Critical Styles */
+			#homeCarousel .carousel-image {
+				width: 100% !important;
+				height: 40rem !important;
+				max-height: 40rem !important;
+				object-fit: cover !important;
+				object-position: center !important;
+			}
+
+			#homeCarousel .carousel-link {
+				display: block !important;
+				position: relative !important;
+				z-index: 100 !important;
+				cursor: pointer !important;
+			}
+
+			#homeCarousel .carousel-control-prev,
+			#homeCarousel .carousel-control-next {
+				pointer-events: none !important;
+			}
+
+			#homeCarousel .carousel-control-prev-icon,
+			#homeCarousel .carousel-control-next-icon {
+				pointer-events: auto !important;
+			}
+
+			#homeCarousel .carousel-indicators {
+				pointer-events: none !important;
+			}
+
+			#homeCarousel .carousel-indicators button {
+				pointer-events: auto !important;
+			}
+
+			.main-content {
+				padding-top: 4rem !important;
+			}
+
+			.page-content {
+				padding-top: 1.5rem !important;
+			}
+
+			/* Menu Active Styles */
+			.navbar-menu .navbar-nav .nav-link.active,
+			.navbar-menu .navbar-nav .nav-link.active:hover,
+			.navbar-menu .navbar-nav .nav-link.active:focus {
+				background-color: #3D4F5E !important;
+				color: #ffffff !important;
+			}
+
+			.navbar-menu .navbar-nav .nav-link.active i {
+				color: var(--rkl-primary) !important;
+			}
+		</style>
+
+		{% block stylesheets %}{% endblock %}
 
 			
 		{% block javascripts %}
@@ -61,6 +176,9 @@
 			<!-- ========== App Menu ========== -->
 			{{ include('menu.html.twig') }}<!-- Left Sidebar End -->
 			<!-- Vertical Overlay--><div class="vertical-overlay"> </div>
+
+			<!-- ========== Barra de navegación horizontal ========== -->
+			{{ include('horizontal_nav.html.twig') }}
 
 			<!-- ============================================================== -->
 			<!-- Start right Content here -->
