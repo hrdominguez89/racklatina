@@ -37,7 +37,7 @@
 
                     <li class="nav-horizontal-item nav-horizontal-dropdown">
                         <a href="#" class="nav-horizontal-link nav-horizontal-dropdown-toggle {% if current_route in ['app_comprobantes_impagos_internal', 'app_c_saldados'] %}active{% endif %}">
-                            Cuentas
+                            Administración
                             <i class="ri-arrow-down-s-line"></i>
                         </a>
                         <ul class="nav-horizontal-dropdown-menu">
@@ -75,7 +75,7 @@
                     {% if is_granted('ROLE_ADMINISTRACION') %}
                         <li class="nav-horizontal-item nav-horizontal-dropdown">
                             <a href="#" class="nav-horizontal-link nav-horizontal-dropdown-toggle {% if current_route in ['app_comprobantes_impagos_external', 'app_comprobantes_saldados_external'] %}active{% endif %}">
-                                Cuenta
+                                Administración
                                 <i class="ri-arrow-down-s-line"></i>
                             </a>
                             <ul class="nav-horizontal-dropdown-menu">
