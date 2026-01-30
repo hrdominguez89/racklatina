@@ -28,11 +28,12 @@ class CarouselController extends AbstractController
     /**
      * Endpoint público para obtener las imágenes del carousel
      * (No requiere autenticación - para uso en el frontend público)
+     * Solo devuelve carruseles activos según su programación de visibilidad.
      */
     #[Route('/api/images', name: 'app_carousel_api_images', methods: ['GET'])]
     public function apiImages(): JsonResponse
     {
-        $carousels = $this->carouselRepository->findAllOrderedBySort();
+        $carousels = $this->carouselRepository->findActiveBySchedule();
 
         $images = array_map(function (Carousel $carousel) {
             return [
