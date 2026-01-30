@@ -48,6 +48,12 @@ class Carousel
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
 
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $startAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $endAt = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -128,5 +134,49 @@ class Carousel
     {
         $this->deletedAt = $deletedAt;
         return $this;
+    }
+
+    public function getStartAt(): ?\DateTimeImmutable
+    {
+        return $this->startAt;
+    }
+
+    public function setStartAt(?\DateTimeImmutable $startAt): static
+    {
+        $this->startAt = $startAt;
+        return $this;
+    }
+
+    public function getEndAt(): ?\DateTimeImmutable
+    {
+        return $this->endAt;
+    }
+
+    public function setEndAt(?\DateTimeImmutable $endAt): static
+    {
+        $this->endAt = $endAt;
+        return $this;
+    }
+
+    /**
+     * Determina si el carrusel está activo según las fechas de programación.
+     */
+    public function isCurrentlyActive(): bool
+    {
+        $now = new \DateTimeImmutable();
+
+        if ($this->startAt === null && $this->endAt === null) {
+            return true;
+        }
+
+        if ($this->startAt !== null && $this->endAt === null) {
+            return $now >= $this->startAt;
+        }
+
+        if ($this->startAt === null && $this->endAt !== null) {
+            return $now <= $this->endAt;
+        }
+
+        return $now >= $this->startAt && $now <= $this->endAt;
     }
 }

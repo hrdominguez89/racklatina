@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Carousel;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
@@ -58,6 +59,26 @@ class CarouselFormType extends AbstractType
                     'placeholder' => 'https://ejemplo.com/pagina'
                 ],
                 'help' => 'URL a la que redirigirá al hacer clic en la imagen (opcional)'
+            ])
+            ->add('startAt', DateTimeType::class, [
+                'label' => 'Mostrar desde',
+                'required' => false,
+                'widget' => 'single_text',
+                'input' => 'datetime_immutable',
+                'attr' => [
+                    'class' => 'form-control'
+                ],
+                'help' => 'Fecha y hora desde la cual el carrusel estará visible (opcional)'
+            ])
+            ->add('endAt', DateTimeType::class, [
+                'label' => 'Mostrar hasta',
+                'required' => false,
+                'widget' => 'single_text',
+                'input' => 'datetime_immutable',
+                'attr' => [
+                    'class' => 'form-control'
+                ],
+                'help' => 'Fecha y hora hasta la cual el carrusel estará visible (opcional)'
             ]);
     }
 

@@ -33,8 +33,8 @@ final class HomeController extends AbstractController
         $requests = $customerRequestRepository->findOneBy(["userRequest" => $user_id]);
         $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user_id);
 
-        // Obtener imágenes del carousel
-        $data['carousel_images'] = $this->carouselRepository->findAllOrderedBySort();
+        // Obtener imágenes del carousel (filtradas por fechas de programación)
+        $data['carousel_images'] = $this->carouselRepository->findActiveBySchedule();
 
         if(!empty($requests))
         {

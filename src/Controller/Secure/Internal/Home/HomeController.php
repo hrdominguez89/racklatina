@@ -15,7 +15,7 @@ final class HomeController extends AbstractController
     public function index(UserRepository $userRepository, CarouselRepository $carouselRepository): Response
     {
         $externalUsers = $userRepository->findExternalUsers();
-        $carouselImages = $carouselRepository->findAllOrderedBySort();
+        $carouselImages = $carouselRepository->findActiveBySchedule();
 
         return $this->render('secure/internal/home/index.html.twig', [
             'external_users' => $externalUsers,

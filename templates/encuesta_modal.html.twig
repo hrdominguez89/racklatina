@@ -1,0 +1,356 @@
+{# Modal de Encuesta de Satisfacción - Solo para clientes (ROLE_COMPRADOR) #}
+{% if is_granted('ROLE_COMPRADOR') %}
+<div id="encuestaModal" class="encuesta-modal" style="display: none;">
+    <div class="encuesta-content">
+        <button type="button" class="encuesta-close" id="encuestaCerrar" aria-label="Cerrar">
+            <i class="ri-close-line"></i>
+        </button>
+
+        <div class="encuesta-body" id="encuestaBody">
+            <p class="encuesta-intro">
+                Tu opinión nos ayuda a mejorar el Portal de Clientes. Te tomará menos de 10 segundos.
+            </p>
+
+            <p class="encuesta-pregunta">
+                ¿Qué tan útil te resulta el Portal de Clientes para encontrar la información que necesitas?
+            </p>
+
+            <div class="encuesta-estrellas" id="encuestaEstrellas">
+                <div class="estrella-container">
+                    <span class="estrella" data-value="1" title="1 - Nada útil">
+                        <i class="ri-star-line"></i>
+                    </span>
+                    <span class="estrella-label">Nada útil</span>
+                </div>
+                <div class="estrella-container">
+                    <span class="estrella" data-value="2" title="2 - Poco útil">
+                        <i class="ri-star-line"></i>
+                    </span>
+                    <span class="estrella-label">Poco útil</span>
+                </div>
+                <div class="estrella-container">
+                    <span class="estrella" data-value="3" title="3 - Normal">
+                        <i class="ri-star-line"></i>
+                    </span>
+                    <span class="estrella-label">Normal</span>
+                </div>
+                <div class="estrella-container">
+                    <span class="estrella" data-value="4" title="4 - Útil">
+                        <i class="ri-star-line"></i>
+                    </span>
+                    <span class="estrella-label">Útil</span>
+                </div>
+                <div class="estrella-container">
+                    <span class="estrella" data-value="5" title="5 - Muy útil">
+                        <i class="ri-star-line"></i>
+                    </span>
+                    <span class="estrella-label">Muy útil</span>
+                </div>
+            </div>
+
+            <div class="encuesta-botones">
+                <button type="button" class="btn btn-light btn-sm" id="encuestaCerrarBtn">
+                    Cerrar
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="encuestaEnviar" disabled>
+                    Enviar
+                </button>
+            </div>
+        </div>
+
+        <div class="encuesta-gracias" id="encuestaGracias" style="display: none;">
+            <div class="encuesta-gracias-icon">
+                <i class="ri-checkbox-circle-fill text-success"></i>
+            </div>
+            <p class="encuesta-gracias-texto">¡Gracias por tu opinión!</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .encuesta-modal {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1050;
+        max-width: 360px;
+        width: calc(100% - 40px);
+        animation: encuestaSlideIn 0.3s ease-out;
+    }
+
+    @keyframes encuestaSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .encuesta-content {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        padding: 20px;
+        position: relative;
+        border: 1px solid #e0e0e0;
+    }
+
+    .encuesta-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: none;
+        border: none;
+        font-size: 20px;
+        color: #999;
+        cursor: pointer;
+        padding: 5px;
+        line-height: 1;
+        transition: color 0.2s;
+    }
+
+    .encuesta-close:hover {
+        color: #333;
+    }
+
+    .encuesta-intro {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 15px;
+        line-height: 1.4;
+    }
+
+    .encuesta-pregunta {
+        font-size: 15px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 20px;
+        line-height: 1.4;
+    }
+
+    .encuesta-estrellas {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .encuesta-estrellas .estrella-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .encuesta-estrellas .estrella {
+        cursor: pointer;
+        font-size: 28px;
+        color: #ddd;
+        transition: color 0.2s, transform 0.2s;
+    }
+
+    .encuesta-estrellas .estrella:hover {
+        transform: scale(1.1);
+    }
+
+    .encuesta-estrellas .estrella.activa i,
+    .encuesta-estrellas .estrella.hover i {
+        color: #ffc107;
+    }
+
+    .encuesta-estrellas .estrella-label {
+        font-size: 10px;
+        color: #888;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .encuesta-botones {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .encuesta-botones .btn {
+        flex: 1;
+        padding: 8px 16px;
+    }
+
+    .encuesta-gracias {
+        text-align: center;
+        padding: 20px 0;
+    }
+
+    .encuesta-gracias-icon {
+        font-size: 48px;
+        margin-bottom: 10px;
+    }
+
+    .encuesta-gracias-texto {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+        .encuesta-modal {
+            bottom: 10px;
+            right: 10px;
+            left: 10px;
+            max-width: none;
+            width: auto;
+        }
+
+        .encuesta-estrellas {
+            gap: 4px;
+        }
+
+        .encuesta-estrellas .estrella {
+            font-size: 24px;
+        }
+
+        .encuesta-estrellas .estrella-label {
+            font-size: 8px;
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const STORAGE_KEY = 'encuesta_cerrada';
+    const modal = document.getElementById('encuestaModal');
+    const estrellas = document.querySelectorAll('.encuesta-estrellas .estrella');
+    const btnEnviar = document.getElementById('encuestaEnviar');
+    const btnCerrar = document.getElementById('encuestaCerrarBtn');
+    const btnCerrarX = document.getElementById('encuestaCerrar');
+    const bodyContent = document.getElementById('encuestaBody');
+    const graciasContent = document.getElementById('encuestaGracias');
+
+    let calificacionSeleccionada = 0;
+
+    // Verificar si debe mostrar el modal
+    function verificarYMostrar() {
+        // Si ya cerró en esta sesión, no mostrar
+        if (sessionStorage.getItem(STORAGE_KEY)) {
+            return;
+        }
+
+        // Verificar si ya respondió en el servidor
+        fetch('/secure/clientes/encuesta/verificar')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && !data.yaRespondio) {
+                    modal.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error al verificar encuesta:', error);
+            });
+    }
+
+    // Cerrar modal sin responder
+    function cerrarModal() {
+        sessionStorage.setItem(STORAGE_KEY, 'true');
+        modal.style.display = 'none';
+    }
+
+    // Función para actualizar icono de estrella
+    function actualizarIconoEstrella(estrella, llena) {
+        const icono = estrella.querySelector('i');
+        if (llena) {
+            icono.classList.remove('ri-star-line');
+            icono.classList.add('ri-star-fill');
+        } else {
+            icono.classList.remove('ri-star-fill');
+            icono.classList.add('ri-star-line');
+        }
+    }
+
+    // Función para actualizar todas las estrellas según selección
+    function actualizarEstrellas() {
+        estrellas.forEach((e, i) => {
+            const debeEstarLlena = i < calificacionSeleccionada;
+            e.classList.toggle('activa', debeEstarLlena);
+            actualizarIconoEstrella(e, debeEstarLlena);
+        });
+    }
+
+    // Manejar hover de estrellas
+    estrellas.forEach((estrella, index) => {
+        estrella.addEventListener('mouseenter', function() {
+            for (let i = 0; i <= index; i++) {
+                estrellas[i].classList.add('hover');
+                actualizarIconoEstrella(estrellas[i], true);
+            }
+            for (let i = index + 1; i < estrellas.length; i++) {
+                estrellas[i].classList.remove('hover');
+                actualizarIconoEstrella(estrellas[i], i < calificacionSeleccionada);
+            }
+        });
+
+        estrella.addEventListener('mouseleave', function() {
+            estrellas.forEach(e => e.classList.remove('hover'));
+            actualizarEstrellas();
+        });
+
+        // Manejar click
+        estrella.addEventListener('click', function() {
+            calificacionSeleccionada = parseInt(this.dataset.value);
+            actualizarEstrellas();
+            btnEnviar.disabled = false;
+        });
+    });
+
+    // Enviar respuesta
+    btnEnviar.addEventListener('click', function() {
+        if (calificacionSeleccionada === 0) return;
+
+        btnEnviar.disabled = true;
+        btnEnviar.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+        fetch('/secure/clientes/encuesta/responder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ calificacion: calificacionSeleccionada })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Mostrar mensaje de gracias
+                bodyContent.style.display = 'none';
+                graciasContent.style.display = 'block';
+
+                // Cerrar después de 2 segundos
+                setTimeout(function() {
+                    modal.style.display = 'none';
+                }, 2000);
+            } else {
+                alert(data.message || 'Error al enviar la respuesta');
+                btnEnviar.disabled = false;
+                btnEnviar.textContent = 'Enviar';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al enviar la respuesta');
+            btnEnviar.disabled = false;
+            btnEnviar.textContent = 'Enviar';
+        });
+    });
+
+    // Eventos de cierre
+    btnCerrar.addEventListener('click', cerrarModal);
+    btnCerrarX.addEventListener('click', cerrarModal);
+
+    // Iniciar verificación
+    verificarYMostrar();
+});
+</script>
+{% endif %}

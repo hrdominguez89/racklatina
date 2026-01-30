@@ -30,6 +30,34 @@ class CarouselRepository extends ServiceEntityRepository
     }
 
     /**
+     * Encuentra los carruseles activos según programación de fechas.
+     * Reglas:
+     * - Si ambos campos son null, el carrusel está siempre activo.
+     * - Si solo start_at tiene valor, se muestra desde esa fecha en adelante.
+     * - Si solo end_at tiene valor, se muestra hasta esa fecha.
+     * - Si ambos tienen valor, se muestra cuando now() esté entre start_at y end_at.
+     *
+     * @return Carousel[]
+     */
+    public function findActiveBySchedule(): array
+    {
+        $now = new \DateTimeImmutable();
+
+        return $this->createQueryBuilder('c')
+            ->where('c.deletedAt IS NULL')
+            ->andWhere(
+                '(c.startAt IS NULL AND c.endAt IS NULL) OR ' .
+                '(c.startAt IS NOT NULL AND c.endAt IS NULL AND c.startAt <= :now) OR ' .
+                '(c.startAt IS NULL AND c.endAt IS NOT NULL AND c.endAt >= :now) OR ' .
+                '(c.startAt IS NOT NULL AND c.endAt IS NOT NULL AND c.startAt <= :now AND c.endAt >= :now)'
+            )
+            ->setParameter('now', $now)
+            ->orderBy('c.sort', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Obtiene el siguiente valor disponible para el campo 'sort'.
      *
      * @return int
