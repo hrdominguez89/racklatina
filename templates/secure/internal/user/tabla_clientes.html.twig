@@ -2,28 +2,42 @@
     <thead>
         <tr>
             <th class="text-center">ID</th>
-            <th class="text-center">Email</th>
             <th class="text-center">Nombre</th>
             <th class="text-center">Apellido</th>
+            <th class="text-center">Email</th>
+            <th class="text-center">Celular</th>
+            <th class="text-center">Empresa</th>
+            <th class="text-center">Cargo</th>
+            <th class="text-center">Sector</th>
+            <th class="text-center">Segmento</th>
+            <th class="text-center">País</th>
+            <th class="text-center">Provincia</th>
             <th class="text-center">DNI</th>
             <th class="text-center">Roles</th>
-            <th class="text-center">Acciones</th>
+            <th class="text-center no-export">Acciones</th>
         </tr>
     </thead>
     <tbody>
         {% for user in clientes %}
             <tr>
                 <td class="text-center">{{ user.id }}</td>
-                <td>{{ user.email ?? null }}</td>
                 <td>{{ user.firstName }}</td>
                 <td>{{ user.lastName }}</td>
+                <td>{{ user.email ?? '' }}</td>
+                <td>{{ user.externalUserData ? user.externalUserData.phoneNumber : '' }}</td>
+                <td>{{ user.externalUserData ? user.externalUserData.companyName : '' }}</td>
+                <td>{{ user.externalUserData ? user.externalUserData.jobTitle : '' }}</td>
+                <td>{{ user.externalUserData and user.externalUserData.sector ? user.externalUserData.sector.name : '' }}</td>
+                <td>{{ user.externalUserData ? user.externalUserData.segmento : '' }}</td>
+                <td>{{ user.externalUserData ? user.externalUserData.pais : '' }}</td>
+                <td>{{ user.externalUserData ? user.externalUserData.provincia : '' }}</td>
                 <td class="text-center">{{ user.nationalIdNumber }}</td>
                 <td class="text-center">
                     {% for rol in user.getRoles %}
-                        <span class="badge bg-secondary"> {{ rol|replace({'ROLE_': ''})|replace({'_': ' '})|title }} </span>
+                        {{ rol|replace({'ROLE_': ''})|replace({'_': ' '})|title }}{% if not loop.last %}, {% endif %}
                     {% endfor %}
                 </td>
-                <td class="text-center">
+                <td class="text-center no-export">
                     <button onclick ="modalVer({{user.id}})" class="btn btn-sm btn-secondary mx-1" title="Ver usuario"><i style="font-size:16px;" class="ri-eye-fill"></i></button>
                     <button onclick="modalEditar({{user.id}})" class="btn btn-sm btn-warning mx-1" title="Editar usuario"><i style="font-size:16px;" class="ri-edit-2-fill"></i></button>
                     <button onclick="EliminarUsuario({{user.id}})" class="btn btn-sm btn-danger mx-1" title="Eliminar usuario"><i style="font-size:16px;" class="ri-delete-bin-6-fill"></i></button>
