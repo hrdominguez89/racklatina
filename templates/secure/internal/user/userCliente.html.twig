@@ -72,12 +72,21 @@
                 // Reinicializar DataTable
                 $('#tabla-usuarios').DataTable({
                     language: { url: esDatatable },
+                    columnDefs: [
+                        { targets: [6, 7, 8, 9, 10], visible: false } // Ocultar: Cargo, Sector, Segmento, País, Provincia
+                    ],
                     buttons: [
                     'colvis',
                     {
                         extend: 'excelHtml5',
-                        title: 'Usuarios',
-                        filename: 'Usuarios'
+                        title: 'Usuarios_Clientes',
+                        filename: 'Usuarios_Clientes',
+                        exportOptions: {
+                            columns: function(idx, data, node) {
+                                // Exportar todas las columnas excepto la última (Acciones)
+                                return idx < 13;
+                            }
+                        }
                     }
                     ],
                      dom: "<'row mb-3'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
