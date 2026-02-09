@@ -20,6 +20,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class ServicesFormType extends AbstractType
 {
@@ -96,6 +97,13 @@ class ServicesFormType extends AbstractType
             ->add('serviceemail', EmailType::class, [
                 'label' => 'Email',
                 'required' => true,
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'El email es obligatorio.']),
+                    new Assert\Email([
+                        'message' => 'El email "{{ value }}" no es una dirección válida.',
+                        'mode' => 'strict',
+                    ]),
+                ],
                 'attr' => [
                     'class' => 'form-control',
                     'placeholder' => 'correo@ejemplo.com',
