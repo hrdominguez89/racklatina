@@ -103,8 +103,16 @@ class PublicServicesController extends AbstractController
             $entityManager->flush();
 
             // Enviar emails
-            $this->enviarEmailAlOperador($service);
-            $this->enviarEmailAlCliente($service);
+            try {
+                $this->enviarEmailAlOperador($service);
+                $this->enviarEmailAlCliente($service);
+            } catch (\Exception $e) {
+                $this->addFlash('warning', 'Su solicitud fue registrada correctamente (Nro. Seguimiento: ' . $nroSeguimiento . '), pero no fue posible enviar el email de confirmación. Por favor, comuníquese con nosotros indicando su número de seguimiento.');
+
+                return $this->redirectToRoute('app_public_services_success', [
+                    'nroSeguimiento' => $nroSeguimiento
+                ]);
+            }
 
             // Redirigir a página de confirmación
             return $this->redirectToRoute('app_public_services_success', [
