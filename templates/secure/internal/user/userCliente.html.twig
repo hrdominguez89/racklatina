@@ -72,6 +72,8 @@
                 // Reinicializar DataTable
                 $('#tabla-usuarios').DataTable({
                     language: { url: esDatatable },
+                    scrollX: true,
+                    autoWidth: false,
                     columnDefs: [
                         { targets: [6, 7, 8, 9, 10], visible: false } // Ocultar: Cargo, Sector, Segmento, País, Provincia
                     ],

@@ -14,7 +14,7 @@
             <th class="text-center">Provincia</th>
             <th class="text-center">DNI</th>
             <th class="text-center">Roles</th>
-            <th class="text-center no-export">Acciones</th>
+            <th class="text-center no-export" style="white-space: nowrap;">Acciones</th>
         </tr>
     </thead>
     <tbody>
@@ -37,7 +37,7 @@
                         {{ rol|replace({'ROLE_': ''})|replace({'_': ' '})|title }}{% if not loop.last %}, {% endif %}
                     {% endfor %}
                 </td>
-                <td class="text-center no-export">
+                <td class="text-center no-export" style="white-space: nowrap;">
                     <button onclick ="modalVer({{user.id}})" class="btn btn-sm btn-secondary mx-1" title="Ver usuario"><i style="font-size:16px;" class="ri-eye-fill"></i></button>
                     <button onclick="modalEditar({{user.id}})" class="btn btn-sm btn-warning mx-1" title="Editar usuario"><i style="font-size:16px;" class="ri-edit-2-fill"></i></button>
                     <button onclick="EliminarUsuario({{user.id}})" class="btn btn-sm btn-danger mx-1" title="Eliminar usuario"><i style="font-size:16px;" class="ri-delete-bin-6-fill"></i></button>

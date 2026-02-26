@@ -272,6 +272,8 @@
     document.addEventListener('DOMContentLoaded', function () {
         // Solo inicializar DataTable si hay resultados de búsqueda con datos
             $('#tabla-comprobantes-saldados').DataTable({
+                scrollX: true,
+                autoWidth: false,
                 language: {
                     url: esDatatable
                 },
