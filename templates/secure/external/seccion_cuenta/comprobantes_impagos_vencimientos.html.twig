@@ -124,6 +124,8 @@
         document.addEventListener('DOMContentLoaded', function () {
             
             $('#tabla-comprobantes').DataTable({
+                scrollX: true,
+                autoWidth: false,
                 language: {
                     url: esDatatable,
                     emptyTable:"No hay comprobantes disponibles para mostrar"
