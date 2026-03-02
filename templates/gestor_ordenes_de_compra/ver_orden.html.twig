@@ -191,11 +191,15 @@
                                     </td>
                                     <td>
                                         {% if item.preparado > 0 and item.estado == "Pendiente" %}
-                                        {{ item.preparado }} preparado
+                                            {{ item.preparado }} preparado
                                         {% else %}
-                                        {{item.fechaentregarem ? 'Entregado' : item.estado }}
+                                            {{ item.fechaentregarem ? 'Entregado' : item.estado }}
                                         {% endif %}
-                                        
+                                        {% if item.subdividido %}
+                                            <br><button type="button" class="btn btn-sm btn-outline-info ver-desglose-btn mt-1" data-articulo="{{ item.articulo }}">
+                                                <i class="ri-git-branch-line"></i> {{ item.lineas|length }} líneas
+                                            </button>
+                                        {% endif %}
                                     </td>
                                     <td class="text-center">{{ item.cantidadasignada }}</td>
                                     <td class="text-center">{{ item.cantidadoriginal }}</td>
@@ -280,6 +284,7 @@
                                 <div class="d-none" id="desglose-{{ item.articulo }}">
                                     <p class="mb-2">
                                         <strong>{{ item.articulo }}</strong> – {{ item.detalle }}<br>
+                                        <span class="text-muted">Este artículo está dividido en {{ item.lineas|length }} líneas internas en Calypso.</span>
                                     </p>
                                     <table class="table table-sm table-bordered table-striped">
                                         <thead>
@@ -380,6 +385,21 @@
                         </div>
                     </div>
                 </div>
+                <!-- Modal Desglose de líneas -->
+                <div class="modal fade" id="modalDesglose" tabindex="-1" aria-labelledby="modalDesgloseLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalDesgloseLabel">Desglose de líneas del artículo</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body" id="modalDesgloseBody"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             {% endblock %}
             {% block javascripts %}
                 {{ parent() }}
@@ -451,6 +471,15 @@
                         modalFacturaBody.html('<div class="alert alert-danger">Error al cargar la factura</div>');
                     }
                 });
+            });
+
+            $(document).on('click', '.ver-desglose-btn', function() {
+                const articulo = $(this).data('articulo');
+                const sourceEl = document.getElementById('desglose-' + articulo);
+                if (!sourceEl) return;
+                $('#modalDesgloseBody').html(sourceEl.innerHTML);
+                const modal = new bootstrap.Modal(document.getElementById('modalDesglose'));
+                modal.show();
             });
 
             $('#tabla-detalle').DataTable({
