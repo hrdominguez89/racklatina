@@ -39,46 +39,39 @@
 			{% endfor %}
 		{% endfor %}
 		<!-- end page title -->
-		<div class="row">
-			<div class="col-12">
-				<!-- Carousel -->
-				{% if carousel_images is not empty %}
-					<div id="homeCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="3500">
-						<div class="carousel-indicators">
-							{% for image in carousel_images %}
-								<button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="{{ loop.index0 }}" {% if loop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ loop.index }}"></button>
-							{% endfor %}
-						</div>
-						<div class="carousel-inner">
-							{% for image in carousel_images %}
-								<div class="carousel-item {% if loop.first %}active{% endif %}">
-									{% if image.href %}
-										<a href="{{ image.href }}" target="_blank" rel="noopener" class="carousel-link">
-											<img src="{{ asset(image.path) }}" class="d-block w-100 carousel-image" alt="{{ image.name }}">
-										</a>
-									{% else %}
-										<img src="{{ asset(image.path) }}" class="d-block w-100 carousel-image" alt="{{ image.name }}">
-									{% endif %}
-								</div>
-							{% endfor %}
-						</div>
-						<button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev">
-							<span class="carousel-control-prev-icon" aria-hidden="true"></span>
-							<span class="visually-hidden">Anterior</span>
-						</button>
-						<button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next">
-							<span class="carousel-control-next-icon" aria-hidden="true"></span>
-							<span class="visually-hidden">Siguiente</span>
-						</button>
-					</div>
-				{% else %}
-					<div class="alert alert-info">
-						No hay imágenes disponibles en el carousel.
-					</div>
-				{% endif %}
-				<!-- end Carousel -->
-			</div>
-		</div>
 	</div>
+
+	<!-- Carousel full-width (fuera del container para evitar padding lateral) -->
+	{% if carousel_images is not empty %}
+		<div id="homeCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="3500">
+			<div class="carousel-indicators">
+				{% for image in carousel_images %}
+					<button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="{{ loop.index0 }}" {% if loop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ loop.index }}"></button>
+				{% endfor %}
+			</div>
+			<div class="carousel-inner">
+				{% for image in carousel_images %}
+					<div class="carousel-item {% if loop.first %}active{% endif %}">
+						{% if image.href %}
+							<a href="{{ image.href }}" target="_blank" rel="noopener" class="carousel-link">
+								<img src="{{ asset(image.path) }}" class="d-block w-100 carousel-image" alt="{{ image.name }}">
+							</a>
+						{% else %}
+							<img src="{{ asset(image.path) }}" class="d-block w-100 carousel-image" alt="{{ image.name }}">
+						{% endif %}
+					</div>
+				{% endfor %}
+			</div>
+			<button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev">
+				<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+				<span class="visually-hidden">Anterior</span>
+			</button>
+			<button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next">
+				<span class="carousel-control-next-icon" aria-hidden="true"></span>
+				<span class="visually-hidden">Siguiente</span>
+			</button>
+		</div>
+	{% endif %}
+	<!-- end Carousel -->
 {% endblock %}
 
