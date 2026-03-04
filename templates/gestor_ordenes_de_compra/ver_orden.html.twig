@@ -275,6 +275,43 @@
                                 
                                 </tbody>
                             </table>
+                            {% for item in ordenes_de_compra %}
+                                {% if item.subdividido %}
+                                <div class="d-none" id="desglose-{{ item.articulo }}">
+                                    <p class="mb-2">
+                                        <strong>{{ item.articulo }}</strong> – {{ item.detalle }}<br>
+                                    </p>
+                                    <table class="table table-sm table-bordered table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Cant. original</th>
+                                                <th>Cant. asignada</th>
+                                                <th>Cant. pendiente</th>
+                                                <th>Cant. entregada</th>
+                                                <th>Estado</th>
+                                                <th>Fecha entrega</th>
+                                                <th>Remito</th>
+                                                <th>Factura</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for linea in item.lineas %}
+                                            <tr>
+                                                <td>{{ linea.cantidadoriginal }}</td>
+                                                <td>{{ linea.cantidadasignada }}</td>
+                                                <td>{{ linea.cantidadPendiente }}</td>
+                                                <td>{{ linea.cantEnt }}</td>
+                                                <td>{{ linea.fechaentregarem ? 'Entregado' : linea.estado }}</td>
+                                                <td>{{ linea.fechaentrega ?? linea.fechaEstimada ?? '' }}</td>
+                                                <td>{{ linea.remitos ?? '-' }}</td>
+                                                <td>{{ linea.facturas ?? '-' }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
                         </div>
                     </div>
                     <div class="row mt-4">
