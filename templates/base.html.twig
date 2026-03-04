@@ -107,10 +107,9 @@
 			/* Carousel Critical Styles */
 			#homeCarousel .carousel-image {
 				width: 100% !important;
-				height: 40rem !important;
-				max-height: 40rem !important;
-				object-fit: cover !important;
-				object-position: center !important;
+				height: auto !important;
+				max-height: none !important;
+				display: block !important;
 			}
 
 			#homeCarousel .carousel-link {
@@ -144,6 +143,15 @@
 
 			.page-content {
 				padding-top: 1.5rem !important;
+			}
+
+			@media (max-width: 1199px) {
+				.horizontal-nav {
+					display: none !important;
+				}
+				.main-content {
+					padding-top: 0 !important;
+				}
 			}
 
 			/* Menu Active Styles */

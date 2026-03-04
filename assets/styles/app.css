@@ -554,6 +554,7 @@ a.btn.btn-secondary:visited {
   color: #ffffff;
 }
 
+
 #page-topbar {
   background-color: var(--rkl-secondary);
   border-bottom: 1px solid var(--rkl-secondary-light);
@@ -806,52 +807,18 @@ a.btn.btn-secondary:visited {
   padding-top: 1.5rem;
 }
 
-/* Responsive - tablets */
-@media (max-width: 991px) {
-  .horizontal-nav {
-    left: 0;
-    top: 4.375rem;
-  }
-
-  .nav-horizontal-list {
-    padding: 0 0.75rem;
-    gap: 0.25rem;
-  }
-
-  .nav-horizontal-link {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-  }
-
-  .main-content {
-    padding-top: 4rem;
-  }
-
-  .page-content {
-    padding-top: 1rem;
-  }
-}
-
-/* Responsive - móviles */
-@media (max-width: 767px) {
+/* Ocultar nav horizontal en todo lo que no sea desktop grande */
+@media (max-width: 1199px) {
   .horizontal-nav {
     display: none !important;
   }
 
   .main-content {
-    padding-top: 0;
+    padding-top: 0 !important;
   }
 
   .page-content {
     padding-top: 1.5rem;
-  }
-}
-
-/* Extra small devices */
-@media (max-width: 575px) {
-  .nav-horizontal-link {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.75rem;
   }
 }
 
