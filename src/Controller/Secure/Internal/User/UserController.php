@@ -258,6 +258,7 @@ final class UserController extends AbstractController
             $externalUserData->setPais($data['pais']);
             $externalUserData->setProvincia($data['provincia']);
             $externalUserData->setUser($user);
+            $externalUserData->setVerified(true); // Admin crea el usuario directamente, no necesita verificación por email
 
             $this->entityManager->persist($externalUserData);
 
