@@ -382,6 +382,8 @@
             searchTypeSelect.addEventListener('change', updateFormVisibility);
 
             $('#tabla-pedidos').DataTable({
+                scrollX: true,
+                autoWidth: false,
                 language: {
                     url: esDatatable
                 },

@@ -79,7 +79,7 @@ final class CustomerRequestController extends AbstractController
             $aprobados = is_array($aprobados) ? $aprobados : [];
 
             foreach ($clientes as $cliente) {
-                if (in_array($cliente['id'], $aprobados, true)) {
+                if (in_array((string)$cliente['id'], $aprobados)) {
                     $relacion = new UserCustomer();
                     $relacion->setUser($solicitud->getUserRequest());
                     $relacion->setCliente($cliente['id']);

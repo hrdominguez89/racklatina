@@ -127,6 +127,8 @@
         $(document).ready(function() {
             if ($('#tabla-service-requests').length) {
                 $('#tabla-service-requests').DataTable({
+                    "scrollX": true,
+                    "autoWidth": false,
                     "language": {
                         "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json"
                     },

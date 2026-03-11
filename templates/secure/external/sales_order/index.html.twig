@@ -286,6 +286,8 @@
             }
 
             $('#tabla-pedidos').DataTable({
+                scrollX: true,
+                autoWidth: false,
                 language: { url: esDatatable },
                 stateSave: true,
                 order: [[3, 'desc']],

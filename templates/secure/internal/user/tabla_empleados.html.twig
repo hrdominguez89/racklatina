@@ -7,7 +7,7 @@
             <th class="text-center">Apellido</th>
             <th class="text-center">DNI</th>
             <th class="text-center">Roles</th>
-            <th class="text-center">Acciones</th>
+            <th class="text-center" style="white-space: nowrap;">Acciones</th>
         </tr>
     </thead>
     <tbody>
@@ -23,7 +23,7 @@
                         <span class="badge bg-secondary">{{ rol|replace({'ROLE_': ''})|replace({'_': ' '})|title }}</span>
                     {% endfor %}
                 </td>
-                <td class="text-center">
+                <td class="text-center" style="white-space: nowrap;">
                 <button onclick="modalVerEmpleado({{user.id}})" class="btn btn-sm btn-secondary mx-1" title="Ver usuario"><i style="font-size:16px;" class="ri-eye-fill"></i></button>
                 <button onclick="modalEditarEmpleado({{user.id}})" class="btn btn-sm btn-warning mx-1" title="Editar usuario"><i style="font-size:16px;" class="ri-edit-2-fill"></i></button>
                 <button onclick="EliminarUsuarioEmpleado({{user.id}})" class="btn btn-sm btn-danger mx-1" title="Eliminar usuario"><i style="font-size:16px;" class="ri-delete-bin-6-fill"></i></button>

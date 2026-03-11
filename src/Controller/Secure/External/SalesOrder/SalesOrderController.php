@@ -184,6 +184,33 @@ final class SalesOrderController extends AbstractController
             ->getQuery()
             ->getArrayResult();
 
+        // Agrupar por artículo: Calypso puede dividir un mismo artículo en varias líneas (OCs internas)
+        $agrupados = [];
+        foreach ($ordenesDeCompra as $linea) {
+            $art = $linea['articulo'];
+            if (!isset($agrupados[$art])) {
+                $agrupados[$art] = $linea;
+                $agrupados[$art]['subdividido'] = false;
+                $agrupados[$art]['lineas'] = [$linea];
+            } else {
+                $agrupados[$art]['subdividido'] = true;
+                $agrupados[$art]['lineas'][] = $linea;
+                if (!empty($linea['remitos'])) {
+                    $agrupados[$art]['remitos'] = trim(($agrupados[$art]['remitos'] ?? '') . ' - ' . $linea['remitos'], ' - ');
+                }
+                if (!empty($linea['facturas'])) {
+                    $agrupados[$art]['facturas'] = trim(($agrupados[$art]['facturas'] ?? '') . ' - ' . $linea['facturas'], ' - ');
+                }
+                if (($agrupados[$art]['estado'] ?? '') !== ($linea['estado'] ?? '')) {
+                    $agrupados[$art]['estado'] = 'Parcial';
+                }
+                if (empty($agrupados[$art]['fechaentregarem']) && !empty($linea['fechaentregarem'])) {
+                    $agrupados[$art]['fechaentregarem'] = $linea['fechaentregarem'];
+                }
+            }
+        }
+        $ordenesDeCompra = array_values($agrupados);
+
         return $this->render('secure/external/sales_order/detalle.html.twig', [
             "orden_de_compra" => $ordenDeCompra,
             "ordenes_de_compra" => $ordenesDeCompra,

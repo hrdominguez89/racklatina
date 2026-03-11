@@ -69,7 +69,9 @@
                 document.getElementById('tabla-container').innerHTML = html;
                 // Reinicializar DataTable
                 $('#tabla-usuarios').DataTable({
-                    language: { url: esDatatable }
+                    language: { url: esDatatable },
+                    scrollX: true,
+                    autoWidth: false,
                 });
             });
     }

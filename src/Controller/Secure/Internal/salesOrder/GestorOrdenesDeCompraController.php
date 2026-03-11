@@ -133,9 +133,32 @@ final class GestorOrdenesDeCompraController extends AbstractController
         if (empty($ordenes)) {
             return $this->json(['error' => 'No se encontraron órdenes de compra para el cliente con CUIT ' . $cuit], 404);
         }
+        // Agrupar por ordencompracliente + numero para evitar duplicados (una fila por OC, no por ítem)
+        $agrupados = [];
+        foreach ($ordenes as $orden) {
+            $key = $orden['ordencompracliente'] . '|' . $orden['numero'];
+            if (!isset($agrupados[$key])) {
+                $agrupados[$key] = [
+                    'ordencompracliente' => $orden['ordencompracliente'],
+                    'numero'             => $orden['numero'],
+                    'cliente'            => $orden['cliente'],
+                    'razonsocial'        => $orden['razonsocial'],
+                    'fechapedido'        => $orden['fechapedido'],
+                    'fechaoc'            => $orden['fechaoc'],
+                    'pendientes'         => 0,
+                    'remitidos'          => 0,
+                ];
+            }
+            if ($orden['estado'] === 'Pendiente') {
+                $agrupados[$key]['pendientes']++;
+            } elseif ($orden['estado'] === 'Remitido') {
+                $agrupados[$key]['remitidos']++;
+            }
+        }
+
         // Renderizar la tabla con las órdenes encontradas
         return $this->render('gestor_ordenes_de_compra/_tabla_ordenes.html.twig', [
-            'ordenes' => $ordenes,
+            'ordenes' => array_values($agrupados),
             'cliente' => $cliente
         ]);
     }
@@ -164,6 +187,33 @@ final class GestorOrdenesDeCompraController extends AbstractController
         if (!$ordenesDeCompra) {
             throw $this->createNotFoundException('Orden no encontrada');
         }
+
+        // Agrupar por artículo: Calypso puede dividir un mismo artículo en varias líneas (OCs internas)
+        $agrupados = [];
+        foreach ($ordenesDeCompra as $linea) {
+            $art = $linea['articulo'];
+            if (!isset($agrupados[$art])) {
+                $agrupados[$art] = $linea;
+                $agrupados[$art]['subdividido'] = false;
+                $agrupados[$art]['lineas'] = [$linea];
+            } else {
+                $agrupados[$art]['subdividido'] = true;
+                $agrupados[$art]['lineas'][] = $linea;
+                if (!empty($linea['remitos'])) {
+                    $agrupados[$art]['remitos'] = trim(($agrupados[$art]['remitos'] ?? '') . ' - ' . $linea['remitos'], ' - ');
+                }
+                if (!empty($linea['facturas'])) {
+                    $agrupados[$art]['facturas'] = trim(($agrupados[$art]['facturas'] ?? '') . ' - ' . $linea['facturas'], ' - ');
+                }
+                if (($agrupados[$art]['estado'] ?? '') !== ($linea['estado'] ?? '')) {
+                    $agrupados[$art]['estado'] = 'Parcial';
+                }
+                if (empty($agrupados[$art]['fechaentregarem']) && !empty($linea['fechaentregarem'])) {
+                    $agrupados[$art]['fechaentregarem'] = $linea['fechaentregarem'];
+                }
+            }
+        }
+        $ordenesDeCompra = array_values($agrupados);
 
         return $this->render('gestor_ordenes_de_compra/ver_orden.html.twig', [
             "orden_de_compra" => $ordenDeCompra,
