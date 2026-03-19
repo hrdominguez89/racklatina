@@ -31,10 +31,10 @@
                 {% endfor %}
             </div>
           <form method="GET">
-            <div class="row">
-                <!-- Columna del selector de cliente -->
-                <div class="col-12 col-md-5">
-                    <label class="form-class">Seleccione un cliente:</label>
+            <div class="row align-items-end g-3">
+                <!-- Selector de cliente -->
+                <div class="col-12 col-md-4">
+                    <label class="form-label">Seleccione un cliente:</label>
                     <select class="form-select" name="Cliente" id="Cliente">
                         <option value=0>Seleccione un cliente</option>
                         {% for cliente in clientes %}
@@ -43,32 +43,45 @@
                     </select>
                 </div>
 
-                <!-- Columna de búsqueda por artículos -->
-                {% if mostrar_opciones_articulos %}
-                <div class="col-12 col-md-3 offset-md-2">
-                    <label class="form-class">Buscar por artículos(opcional)</label>
-                    <div class="d-flex gap-2">
-                        <input 
-                            type="text" 
-                            name="Articulo_seleccionado" 
-                            class="form-control"
-                            list="listado-de-articulos"
-                        >
-                        <datalist id="listado-de-articulos">
-                            {% for articulo in articulos %}
-                            <option value="{{articulo["articulo"]}}" {{ app.request.get('Articulo_seleccionado') == articulo["articulo"] ? 'selected' : ''}}>{{articulo["articulo"]|slice(2)}}</option>
-                            {% endfor %}
-                        </datalist>
-                        <button 
-                            type="button" 
-                            class="btn btn-primary flex-shrink-0" 
-                            id="btn-buscar-articulo"
-                        >
-                            <i class="ri-search-line"></i> 
-                        </button>
+                <!-- Filtros opcionales alineados a la derecha -->
+                <div class="col-12 col-md-8 d-flex align-items-end justify-content-end gap-3">
+                    {% if mostrar_opciones_articulos %}
+                    <div>
+                        <label class="form-label">Buscar por artículo (opcional)</label>
+                        <div class="d-flex gap-2">
+                            <input
+                                type="text"
+                                name="Articulo_seleccionado"
+                                class="form-control"
+                                list="listado-de-articulos"
+                                style="min-width: 180px"
+                            >
+                            <datalist id="listado-de-articulos">
+                                {% for articulo in articulos %}
+                                <option value="{{articulo["articulo"]}}" {{ app.request.get('Articulo_seleccionado') == articulo["articulo"] ? 'selected' : ''}}>{{articulo["articulo"]|slice(2)}}</option>
+                                {% endfor %}
+                            </datalist>
+                            <button type="button" class="btn btn-primary flex-shrink-0" id="btn-buscar-articulo">
+                                <i class="ri-search-line"></i>
+                            </button>
+                        </div>
                     </div>
+                    {% endif %}
+
+                    {% if compradores_disponibles is defined and compradores_disponibles %}
+                    <div style="min-width: 180px">
+                        <label class="form-label">Comprador</label>
+                        <select name="compradores[]" id="compradores" class="form-select" onchange="this.form.submit()">
+                            <option value="">Todos</option>
+                            {% for comprador in compradores_disponibles %}
+                                <option value="{{ comprador }}" {{ compradores_seleccionados[0] is defined and compradores_seleccionados[0] == comprador ? 'selected' : '' }}>
+                                    {{ comprador }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
             <div class="mb-4"></div>
         </form>
@@ -76,21 +89,21 @@
             <div class="row">
                 <div class="col-12 d-flex justify-content-start align-items-start mb-6"  >
                     <div>
-                        <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Todas',Cliente: cliente  }) }}"
+                        {% set baseParams = {Cliente: cliente, compradores: compradores_seleccionados} %}
+                        <a href="{{ path('app_secure_external_sales_order_sales_order', baseParams|merge({status:'Todas'})) }}"
                         class="btn {{ status=='Todas'? 'active':'' }} btn-outline-primary">
                             Todas
                         </a>
-                        <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Pendiente',Cliente: cliente }) }}" 
+                        <a href="{{ path('app_secure_external_sales_order_sales_order', baseParams|merge({status:'Pendiente'})) }}"
                         class="btn {{ status=='Pendiente'? 'active':'' }} btn-outline-primary">
                             Pendiente
                         </a>
-                        <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Remitido',Cliente: cliente  }) }}"
+                        <a href="{{ path('app_secure_external_sales_order_sales_order', baseParams|merge({status:'Remitido'})) }}"
                         class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">
                             Remitido
                         </a>
-                        <a href="{{ path('app_secure_external_sales_order_sales_order', {
-                                'status': 'articulos_pendientes',Cliente: cliente 
-                            }) }}" class="btn {{ status=='articulos_pendientes'? 'active':'' }} btn-outline-primary">
+                        <a href="{{ path('app_secure_external_sales_order_sales_order', baseParams|merge({status:'articulos_pendientes'})) }}"
+                        class="btn {{ status=='articulos_pendientes'? 'active':'' }} btn-outline-primary">
                             Artículos pendientes
                         </a>
                     </div>
@@ -227,6 +240,8 @@
             if (selectCliente) {
                 selectCliente.addEventListener('change', function() {
                     if (this.value != 0) {
+                        const compradorSelect = document.getElementById('compradores');
+                        if (compradorSelect) compradorSelect.value = '';
                         this.form.submit();
                     }
                 });
@@ -250,26 +265,31 @@
             if (btnArticulo && inputArticulo) {
                 btnArticulo.addEventListener('click', function() {
                     const valorArticulo = inputArticulo.value.trim();
-                    
+
                     if (valorArticulo !== '') {
                         const url = new URL(window.location);
-                        
-                        
+
                         url.searchParams.set('Articulo_seleccionado', valorArticulo);
-                        
-                        
+
                         const clienteSeleccionado = selectCliente ? selectCliente.value : null;
                         if (clienteSeleccionado && clienteSeleccionado != 0) {
                             url.searchParams.set('Cliente', clienteSeleccionado);
                         }
-                        
-                        
+
                         const statusActual = new URLSearchParams(window.location.search).get('status');
                         if (statusActual) {
                             url.searchParams.set('status', statusActual);
                         }
-                        
-                        
+
+                        // Preservar compradores seleccionados
+                        const selectCompradores = document.getElementById('compradores');
+                        url.searchParams.delete('compradores[]');
+                        if (selectCompradores) {
+                            Array.from(selectCompradores.selectedOptions).forEach(opt => {
+                                url.searchParams.append('compradores[]', opt.value);
+                            });
+                        }
+
                         window.location.href = url.toString();
                     } else {
                         alert('Por favor, selecciona o escribe un artículo');

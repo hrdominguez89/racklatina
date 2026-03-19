@@ -57,8 +57,11 @@ final class SalesOrderController extends AbstractController
         
         $cliente_get = $request->query->get("Cliente") ?? null;
         $articulo_seleccionado = $request->query->get("Articulo_seleccionado") ?? null;
+        $compradores = array_filter($request->query->all('compradores'), fn($c) => $c !== '');
         $this->estadoCuentaService->verificarYNotificarEstadoCuentaPorCliente($cliente_get);
         $data['status'] = $request->query->get('status') ?? 'Todas';
+        $data['compradores_disponibles'] = [];
+        $data['compradores_seleccionados'] = $compradores;
         $articulo = $request->query->get('search') ?? null;
         
         if( $data['status'] == "articulos_pendientes" || $articulo )
@@ -122,12 +125,22 @@ final class SalesOrderController extends AbstractController
             }
             $data['pedidos'] = $query->getQuery()
                 ->getArrayResult();
+
+            // Extraer compradores disponibles antes de aplicar el filtro
+            $data['compradores_disponibles'] = array_values(array_filter(array_unique(array_column($data['pedidos'], 'compradorcliente'))));
+            sort($data['compradores_disponibles']);
+
+            // Aplicar filtro de comprador si hay seleccionados
+            if (!empty($compradores)) {
+                $data['pedidos'] = array_values(array_filter($data['pedidos'], fn($p) => in_array($p['compradorcliente'], $compradores)));
+            }
+
             $agrupados = [];
             $data["articulos"] = [];
-            
+
             foreach ($data['pedidos'] as $pedido) {
                 $key = $pedido['ordencompracliente'] . '|' . $pedido['numero'];
-    
+
                 if (!isset($agrupados[$key])) {
                     $agrupados[$key] = [
                         'ordencompracliente' => $pedido['ordencompracliente'],
@@ -135,6 +148,7 @@ final class SalesOrderController extends AbstractController
                         'cliente' => $pedido['cliente'],
                         'razonsocial' => $pedido['razonsocial'],
                         'fechaoc' => $pedido['fechaoc'],
+                        'compradorcliente' => $pedido['compradorcliente'],
                         'pendientes' => 0,
                         'remitidos' => 0,
                     ];
@@ -146,7 +160,7 @@ final class SalesOrderController extends AbstractController
                     $agrupados[$key]['remitidos']++;
                 }
             }
-            
+
             $data['pedidos'] = array_values($agrupados);
             $data["articulos"] = $this->obtenerArticulosPorCliente($cliente_get);
 

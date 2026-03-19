@@ -67,19 +67,36 @@
                                             Artículos
                                         </label>
                                         <input id="articuloSeleccionado"
-                                            type="text" 
-                                            list="opciones-articulos" 
-                                            name="articuloSeleccionado" 
+                                            type="text"
+                                            list="opciones-articulos"
+                                            name="articuloSeleccionado"
                                             class="form-control"
                                             placeholder="Selecciona o escribe un artículo"
                                             value="{{ app.request.get('articuloSeleccionado') }}"
                                         >
                                         <datalist id="opciones-articulos">
-                                            
+
                                         {% for articulo in articulos_de_cliente %}
                                             <option value="{{articulo["articulo"]}}" >
                                         {% endfor %}
                                         </datalist>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if compradores_disponibles is defined and compradores_disponibles %}
+                                <div class="col-3">
+                                    <div class="mb-3">
+                                        <label for="compradores" class="form-label">
+                                            Comprador (opcional)
+                                        </label>
+                                        <select name="compradores[]" id="compradores" class="form-select" multiple size="4">
+                                            {% for comprador in compradores_disponibles %}
+                                                <option value="{{ comprador }}" {{ comprador in compradores_seleccionados ? 'selected' : '' }}>
+                                                    {{ comprador }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="form-text text-muted">Ctrl+click para seleccionar varios</div>
                                     </div>
                                 </div>
                                 {% endif %}
@@ -97,9 +114,10 @@
                         <div class="col-12 d-flex justify-content-end align-items-end mb-3">
                             <div>
                                 {% set searchParams = {
-                                    search: app.request.get('search'), 
+                                    search: app.request.get('search'),
                                     searchType: app.request.get('searchType'),
-                                    articuloSeleccionado: app.request.get('articuloSeleccionado')
+                                    articuloSeleccionado: app.request.get('articuloSeleccionado'),
+                                    compradores: compradores_seleccionados
                                 } %}
 
                                 {% if app.request.get('searchType') == 'cliente_y_articulo' %}
