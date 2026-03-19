@@ -161,7 +161,7 @@ class Pedidosrelacionados
     #[ORM\Column(name: "Cantidad_Pendiente", type: Types::INTEGER, nullable: true)]
     private ?string $cantidadPendiente = null;
 
-    #[ORM\Column(name: "CompradorCliente", length: 100, nullable: true)]
+    #[ORM\Column(name: "Comprador_Cliente", length: 100, nullable: true)]
     private ?string $compradorcliente = null;
 
     public function getDbschemaid(): ?string
