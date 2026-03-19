@@ -56,7 +56,7 @@ class CarouselController extends AbstractController
     #[Route('/', name: 'app_carousel_index')]
     public function index(): Response
     {
-        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_SUPER_ADMIN')) {
+        if (!$this->isGranted('ROLE_SUPER_ADMIN')) {
             throw $this->createAccessDeniedException('Acceso denegado.');
         }
 
@@ -71,7 +71,7 @@ class CarouselController extends AbstractController
     #[Route('/nuevo', name: 'app_carousel_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
-        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_SUPER_ADMIN')) {
+        if (!$this->isGranted('ROLE_SUPER_ADMIN')) {
             throw $this->createAccessDeniedException('Acceso denegado.');
         }
 
@@ -121,7 +121,7 @@ class CarouselController extends AbstractController
     #[Route('/{id}/editar', name: 'app_carousel_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, int $id): Response
     {
-        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_SUPER_ADMIN')) {
+        if (!$this->isGranted('ROLE_SUPER_ADMIN')) {
             throw $this->createAccessDeniedException('Acceso denegado.');
         }
 
@@ -177,7 +177,7 @@ class CarouselController extends AbstractController
     #[Route('/{id}/eliminar', name: 'app_carousel_delete', methods: ['POST'])]
     public function delete(Request $request, int $id): Response
     {
-        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_SUPER_ADMIN')) {
+        if (!$this->isGranted('ROLE_SUPER_ADMIN')) {
             throw $this->createAccessDeniedException('Acceso denegado.');
         }
 
@@ -205,7 +205,7 @@ class CarouselController extends AbstractController
     #[Route('/actualizar-orden', name: 'app_carousel_update_order', methods: ['POST'])]
     public function updateOrder(Request $request): JsonResponse
     {
-        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_SUPER_ADMIN')) {
+        if (!$this->isGranted('ROLE_SUPER_ADMIN')) {
             throw $this->createAccessDeniedException('Acceso denegado.');
         }
 
