@@ -69,16 +69,37 @@
                     {% endif %}
 
                     {% if compradores_disponibles is defined and compradores_disponibles %}
-                    <div style="min-width: 180px">
+                    <div>
                         <label class="form-label">Comprador</label>
-                        <select name="compradores[]" id="compradores" class="form-select" onchange="this.form.submit()">
-                            <option value="">Todos</option>
-                            {% for comprador in compradores_disponibles %}
-                                <option value="{{ comprador }}" {{ compradores_seleccionados[0] is defined and compradores_seleccionados[0] == comprador ? 'selected' : '' }}>
-                                    {{ comprador }}
-                                </option>
-                            {% endfor %}
-                        </select>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                    id="dropdownCompradores" data-bs-toggle="dropdown"
+                                    data-bs-auto-close="outside" aria-expanded="false"
+                                    style="min-width: 180px; text-align: left;">
+                                {% if compradores_seleccionados|length > 0 %}
+                                    {{ compradores_seleccionados|length }} seleccionado{{ compradores_seleccionados|length > 1 ? 's' : '' }}
+                                {% else %}
+                                    Todos
+                                {% endif %}
+                            </button>
+                            <ul class="dropdown-menu p-2 shadow-sm" style="min-width: 220px; max-height: 260px; overflow-y: auto;">
+                                {% for comprador in compradores_disponibles %}
+                                <li>
+                                    <label class="dropdown-item d-flex align-items-center gap-2 py-1" style="cursor:pointer; white-space:normal;">
+                                        <input type="checkbox" name="compradores[]" value="{{ comprador }}"
+                                               class="form-check-input comprador-check flex-shrink-0"
+                                               {{ comprador in compradores_seleccionados ? 'checked' : '' }}>
+                                        {{ comprador }}
+                                    </label>
+                                </li>
+                                {% endfor %}
+                                <li><hr class="dropdown-divider my-2"></li>
+                                <li class="px-2 d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1">Aplicar</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-limpiar-compradores">Limpiar</button>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                     {% endif %}
                 </div>
@@ -236,12 +257,35 @@
         <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
         <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Dropdown compradores: actualizar label y botón limpiar
+            const compradorChecks = document.querySelectorAll('.comprador-check');
+            const dropdownBtn = document.getElementById('dropdownCompradores');
+
+            function actualizarLabelComprador() {
+                if (!dropdownBtn) return;
+                const seleccionados = document.querySelectorAll('.comprador-check:checked').length;
+                dropdownBtn.textContent = seleccionados > 0
+                    ? seleccionados + ' seleccionado' + (seleccionados > 1 ? 's' : '')
+                    : 'Todos';
+                // re-agregar ícono de toggle
+                const icon = document.createElement('span');
+            }
+            actualizarLabelComprador();
+            compradorChecks.forEach(c => c.addEventListener('change', actualizarLabelComprador));
+
+            const btnLimpiarCompradores = document.getElementById('btn-limpiar-compradores');
+            if (btnLimpiarCompradores) {
+                btnLimpiarCompradores.addEventListener('click', function() {
+                    compradorChecks.forEach(c => c.checked = false);
+                    actualizarLabelComprador();
+                });
+            }
+
             const selectCliente = document.getElementById('Cliente');
             if (selectCliente) {
                 selectCliente.addEventListener('change', function() {
                     if (this.value != 0) {
-                        const compradorSelect = document.getElementById('compradores');
-                        if (compradorSelect) compradorSelect.value = '';
+                        compradorChecks.forEach(c => c.checked = false);
                         this.form.submit();
                     }
                 });
@@ -282,13 +326,10 @@
                         }
 
                         // Preservar compradores seleccionados
-                        const selectCompradores = document.getElementById('compradores');
                         url.searchParams.delete('compradores[]');
-                        if (selectCompradores) {
-                            Array.from(selectCompradores.selectedOptions).forEach(opt => {
-                                url.searchParams.append('compradores[]', opt.value);
-                            });
-                        }
+                        document.querySelectorAll('.comprador-check:checked').forEach(opt => {
+                            url.searchParams.append('compradores[]', opt.value);
+                        });
 
                         window.location.href = url.toString();
                     } else {
