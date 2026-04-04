@@ -1,142 +1,116 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-layout="vertical" data-topbar="light" data-sidebar="light" data-sidebar-size="sm" data-sidebar-image="none" data-preloader="disable" data-theme="default" data-bs-theme="light" data-theme-colors="default">
+
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Catálogo{% endblock %} – Racklatina</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Catálogo de productos Racklatina">
+    <meta content="Racklatina Catálogo" name="description"/>
     <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}">
 
-    <!-- Bootstrap CSS -->
-    <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
-    <!-- Icons -->
-    <link href="{{ asset('css/icons.min.css') }}" rel="stylesheet">
-    <!-- App CSS (variables, colores Racklatina) -->
-    <link href="{{ asset('css/app.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/custom.min.css') }}" rel="stylesheet">
+    <!-- Layout config Js -->
+    <script src="{{ asset('js/layout.js') }}"></script>
+    <!-- Bootstrap Css -->
+    <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <!-- Icons Css -->
+    <link href="{{ asset('css/icons.min.css') }}" rel="stylesheet" type="text/css"/>
+    <!-- App Css -->
+    <link href="{{ asset('css/app.min.css') }}" rel="stylesheet" type="text/css"/>
+    <!-- custom Css -->
+    <link href="{{ asset('css/custom.min.css') }}" rel="stylesheet" type="text/css"/>
 
     <style>
         :root {
             --rkl-primary: #ACA300;
             --rkl-primary-dark: #8a9b00;
         }
-        body { background-color: #f5f5f5; }
 
-        /* Navbar catálogo */
-        .catalogo-navbar {
-            background: #2C3E50;
-            padding: 0;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 8px rgba(0,0,0,.2);
+        /* Active nav */
+        .navbar-menu .navbar-nav .nav-link.active,
+        .navbar-menu .navbar-nav .nav-link.active:hover,
+        .navbar-menu .navbar-nav .nav-link.active:focus {
+            background-color: #3D4F5E !important;
+            color: #ffffff !important;
         }
-        .catalogo-navbar-inner {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 1.5rem;
-            display: flex;
-            align-items: center;
-            height: 60px;
-            gap: 1rem;
+        .navbar-menu .navbar-nav .nav-link.active i {
+            color: var(--rkl-primary) !important;
         }
-        .catalogo-logo {
-            flex-shrink: 0;
+
+        /* Forzar topbar blanco independientemente del tema */
+        #page-topbar {
+            background-color: #ffffff !important;
+            border-bottom: 1px solid #e9ecef !important;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .06) !important;
         }
-        .catalogo-logo img {
-            height: 32px;
+        #topnav-hamburger-icon .hamburger-icon span {
+            background-color: #555 !important;
         }
-        .catalogo-search {
-            flex: 1;
-            max-width: 520px;
-        }
-        .catalogo-search .input-group {
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        .catalogo-search input {
-            border: none;
-            font-size: .9rem;
-        }
-        .catalogo-search input:focus {
-            box-shadow: none;
-        }
-        .catalogo-search .btn {
-            background: var(--rkl-primary);
-            border: none;
-            color: #fff;
-            padding: 0 1rem;
-        }
-        .catalogo-nav-links {
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-            margin-left: auto;
-            flex-shrink: 0;
-        }
-        .catalogo-nav-links a {
-            color: rgba(255,255,255,.85);
-            text-decoration: none;
-            font-size: .875rem;
-            padding: .375rem .75rem;
-            border-radius: 4px;
-            transition: background .15s;
-            white-space: nowrap;
-        }
-        .catalogo-nav-links a:hover {
-            background: rgba(255,255,255,.1);
-            color: #fff;
-        }
-        .catalogo-nav-links .btn-login {
-            background: var(--rkl-primary);
-            color: #fff;
-            font-weight: 600;
-        }
-        .catalogo-nav-links .btn-login:hover {
-            background: var(--rkl-primary-dark);
-        }
-        .catalogo-user-name {
-            color: rgba(255,255,255,.9);
-            font-size: .875rem;
+        #page-topbar .breadcrumb-item a { color: #666 !important; }
+        #page-topbar .breadcrumb-item.active { color: #444 !important; }
+        #page-topbar .breadcrumb-item + .breadcrumb-item::before { color: #bbb !important; }
+
+        /* Header empresa badge */
+        .header-empresa-btn {
+            background: rgba(172, 163, 0, .1);
+            color: #7a7300;
+            border: 1px solid rgba(172, 163, 0, .3);
+            border-radius: 20px;
+            padding: .3rem .85rem;
+            font-size: .8rem;
             font-weight: 500;
+            white-space: nowrap;
+            max-width: 240px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .header-empresa-btn:hover {
+            background: rgba(172, 163, 0, .18);
         }
 
-        /* Subnavbar de categorías */
-        .catalogo-subnav {
-            background: #fff;
-            border-bottom: 1px solid #e0e0e0;
+        /* Header user section */
+        .header-user-btn {
+            background: none;
+            border: none;
+            padding: .25rem .5rem;
+            border-radius: 8px;
+            transition: background .15s;
         }
-        .catalogo-subnav-inner {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 1.5rem;
+        .header-user-btn:hover {
+            background: rgba(0, 0, 0, .05);
+        }
+        .header-user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #2C3E50;
             display: flex;
             align-items: center;
-            gap: 1.5rem;
-            height: 44px;
-            overflow-x: auto;
-            scrollbar-width: none;
+            justify-content: center;
+            color: #fff;
+            font-size: .8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            letter-spacing: .5px;
         }
-        .catalogo-subnav-inner::-webkit-scrollbar { display: none; }
-        .catalogo-subnav-inner a {
-            color: #444;
-            text-decoration: none;
-            font-size: .875rem;
-            white-space: nowrap;
-            padding: .25rem 0;
-            border-bottom: 2px solid transparent;
+        .header-user-name {
+            font-size: .85rem;
+            font-weight: 600;
+            color: #333;
+            line-height: 1.25;
         }
-        .catalogo-subnav-inner a:hover,
-        .catalogo-subnav-inner a.active {
-            color: var(--rkl-primary);
-            border-bottom-color: var(--rkl-primary);
+        .header-user-meta {
+            font-size: .72rem;
+            color: #999;
+            line-height: 1.25;
         }
 
-        /* Contenido principal */
-        .catalogo-main {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1.5rem;
+        .main-content {
+            padding-top: 0 !important;
+        }
+        .page-content {
+            padding-top: 1.5rem !important;
         }
 
         /* Cards */
@@ -146,133 +120,193 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-
-        /* Footer */
-        .catalogo-footer {
-            background: #2C3E50;
-            color: rgba(255,255,255,.6);
-            text-align: center;
-            padding: 1.5rem;
-            font-size: .8rem;
-            margin-top: 3rem;
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
-        .catalogo-footer a { color: var(--rkl-primary); }
     </style>
 
     {% block stylesheets %}{% endblock %}
+    {% block javascripts %}
+        {% block importmap %}{{ importmap('app') }}{% endblock %}
+    {% endblock %}
 </head>
+
 <body>
+<div id="layout-wrapper">
 
-<!-- NAVBAR PRINCIPAL -->
-<nav class="catalogo-navbar">
-    <div class="catalogo-navbar-inner">
-        <!-- Logo -->
-        <a href="{{ path('app_catalogo_index') }}" class="catalogo-logo">
-            <img src="{{ asset('images/logo-racklatina-light.png') }}" alt="Racklatina" height="28"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
-            <span style="display:none;color:#fff;font-weight:700;font-size:1.1rem;letter-spacing:.5px;">RACKLATINA</span>
-        </a>
+    <!-- ===== HEADER ===== -->
+    <header id="page-topbar">
+        <div class="layout-width">
+            <div class="navbar-header">
 
-        <!-- Buscador -->
-        <form class="catalogo-search d-none d-md-block"
-              action="{{ path('app_catalogo_lista') }}" method="GET">
-            <div class="input-group">
-                <input type="text" name="q" class="form-control"
-                       placeholder="Buscá un producto..."
-                       value="{{ app.request.query.get('q') ?? '' }}">
-                <button type="submit" class="btn">
-                    <i class="ri-search-line"></i>
-                </button>
+                <!-- Izquierda: hamburger + breadcrumb -->
+                <div class="d-flex align-items-center">
+                    <button type="button"
+                            class="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger material-shadow-none"
+                            id="topnav-hamburger-icon">
+                        <span class="hamburger-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </button>
+                    <nav aria-label="breadcrumb" class="ms-2 d-none d-sm-flex align-items-center">
+                        {% block breadcrumb %}
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item">
+                                    <a href="{{ path('app_catalogo_index') }}">Catálogo</a>
+                                </li>
+                            </ol>
+                        {% endblock %}
+                    </nav>
+                </div>
+
+                <!-- Derecha: empresa + usuario -->
+                <div class="d-flex align-items-center gap-2">
+
+                    {# Empresa dropdown: muestra la primera, permite cambiar si hay más #}
+                    {% if app.user is not null and app.user.userCustomers is not empty %}
+                        {% set ucList = app.user.userCustomers %}
+                        {% set firstUc = ucList|first %}
+                        <div class="dropdown d-none d-md-block">
+                            <button type="button"
+                                    class="header-empresa-btn"
+                                    {% if ucList|length > 1 %}data-bs-toggle="dropdown" aria-expanded="false"{% endif %}>
+                                <i class="ri-building-line me-1"></i>{{ firstUc.clienteCodigo }}
+                                {% if ucList|length > 1 %}
+                                    <i class="ri-arrow-down-s-line ms-1"></i>
+                                {% endif %}
+                            </button>
+                            {% if ucList|length > 1 %}
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                {% for uc in ucList %}
+                                <li>
+                                    <a class="dropdown-item small" href="#">
+                                        <i class="ri-building-line me-1 text-muted"></i>{{ uc.clienteCodigo }}
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    {# Usuario dropdown #}
+                    {% if app.user is not null %}
+                        <div class="dropdown">
+                            <button type="button"
+                                    class="header-user-btn d-flex align-items-center gap-2"
+                                    id="header-user-dropdown"
+                                    data-bs-toggle="dropdown"
+                                    aria-haspopup="true"
+                                    aria-expanded="false">
+                                <div class="header-user-avatar">
+                                    {{- app.user.firstName|first|upper -}}{{- app.user.lastName|first|upper -}}
+                                </div>
+                                <div class="d-none d-xl-block text-start">
+                                    <div class="header-user-name">
+                                        {{ app.user.firstName }} {{ app.user.lastName }}
+                                    </div>
+                                    <div class="header-user-meta">
+                                        {{ app.user.email }}
+                                    </div>
+                                </div>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end">
+                                <a class="dropdown-item" href="{{ path('app_mi_perfil_controllador_edicion') }}">
+                                    <i class="mdi mdi-account-circle fs-16 align-middle me-1"></i>
+                                    Perfil
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="{{ path('app_logout') }}">
+                                    <i class="mdi mdi-logout fs-16 align-middle me-1"></i>
+                                    Cerrar sesión
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="btn btn-sm btn-warning fw-semibold">
+                            Iniciar sesión
+                        </a>
+                    {% endif %}
+
+                </div>
             </div>
-        </form>
-
-        <!-- Links derecha -->
-        <div class="catalogo-nav-links">
-            {% if app.user %}
-                {# Usuario logueado #}
-                <span class="catalogo-user-name d-none d-md-inline">
-                    <i class="ri-user-line me-1"></i>{{ app.user.firstName }}
-                </span>
-                <a href="{{ path('app_proyectos_index') }}">
-                    <i class="ri-folder-line me-1"></i>
-                    Mis Proyectos
-                </a>
-                <a href="{{ path('app_logout') }}">
-                    <i class="ri-logout-box-line me-1"></i>Salir
-                </a>
-            {% else %}
-                {# No autenticado #}
-                <a href="{{ path('app_login') }}" class="btn-login">
-                    <i class="ri-login-box-line me-1"></i>Iniciar sesión
-                </a>
-            {% endif %}
         </div>
-    </div>
-</nav>
+    </header>
 
-<!-- SUBNAVBAR: categorías como breadcrumb rápido -->
-<div class="catalogo-subnav d-none d-md-block">
-    <div class="catalogo-subnav-inner">
-        <a href="{{ path('app_catalogo_index') }}"
-           class="{{ app.request.attributes.get('_route') == 'app_catalogo_index' ? 'active' : '' }}">
-            Inicio
-        </a>
-        <a href="{{ path('app_catalogo_lista') }}"
-           class="{{ app.request.attributes.get('_route') == 'app_catalogo_lista' ? 'active' : '' }}">
-            Todos los productos
-        </a>
-        {% block subnav_extra %}{% endblock %}
-    </div>
-</div>
-
-<!-- Buscador mobile -->
-<div class="d-md-none bg-light px-3 py-2 border-bottom">
-    <form action="{{ path('app_catalogo_lista') }}" method="GET">
-        <div class="input-group input-group-sm">
-            <input type="text" name="q" class="form-control"
-                   placeholder="Buscá un producto..."
-                   value="{{ app.request.query.get('q') ?? '' }}">
-            <button type="submit" class="btn btn-warning">
-                <i class="ri-search-line"></i>
+    <!-- ===== SIDEBAR (misma estructura que menu.html.twig del portal) ===== -->
+    <div class="app-menu navbar-menu">
+        <div class="navbar-brand-box">
+            <a href="{{ path('app_catalogo_index') }}" class="logo logo-dark">
+                <span class="logo-sm">
+                    <img src="{{ asset('images/logo-sm.png') }}" alt="" height="22">
+                </span>
+                <span class="logo-lg">
+                    <img src="{{ asset('images/logo-racklatina-light.png') }}" alt="" height="17">
+                </span>
+            </a>
+            <a href="{{ path('app_catalogo_index') }}" class="logo logo-light">
+                <span class="logo-sm">
+                    <img src="{{ asset('images/logo-sm.png') }}" alt="" height="22">
+                </span>
+                <span class="logo-lg">
+                    <img src="{{ asset('images/logo-racklatina-light.png') }}" alt="" height="17">
+                </span>
+            </a>
+            <button type="button"
+                    class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover"
+                    id="vertical-hover">
+                <i class="ri-record-circle-line"></i>
             </button>
         </div>
-    </form>
-</div>
+        <div id="scrollbar">
+            <div class="container-fluid">
+                <div id="two-column-menu"></div>
+                <ul class="navbar-nav" id="navbar-nav">
+                    <li class="menu-title">
+                        <span data-key="t-menu">Menu</span>
+                    </li>
+                    {{ include('menu_catalogo.html.twig') }}
+                </ul>
+            </div>
+        </div>
+        <div class="sidebar-background"></div>
+    </div>
 
-<!-- FLASHES -->
-{% for label, messages in app.flashes %}
-    {% for message in messages %}
-    <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show mb-0 rounded-0" role="alert">
-        <div style="max-width:1400px;margin:0 auto;padding:0 1.5rem;">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="vertical-overlay"></div>
+
+    <!-- ===== CONTENIDO ===== -->
+    <div class="main-content">
+        <div class="page-content">
+
+            {# Flashes #}
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
+            {% block body %}{% endblock %}
         </div>
     </div>
-    {% endfor %}
-{% endfor %}
 
-<!-- CONTENIDO PRINCIPAL -->
-<main class="catalogo-main">
-    {% block body %}{% endblock %}
-</main>
-
-<!-- FOOTER -->
-<footer class="catalogo-footer">
-    <p class="mb-1">
-        &copy; {{ "now"|date("Y") }} <strong style="color:#fff;">Racklatina S.A.</strong> – Catálogo de Productos
-    </p>
-    {% if not app.user %}
-    <p class="mb-0">
-        <a href="{{ path('app_login') }}">Iniciar sesión</a> para acceder a todas las funcionalidades
-    </p>
-    {% endif %}
-</footer>
+</div>
 
 <!-- JS -->
 <script src="{{ asset('libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('libs/simplebar/simplebar.min.js') }}"></script>
+<script src="{{ asset('libs/node-waves/waves.min.js') }}"></script>
+<script src="{{ asset('libs/feather-icons/feather.min.js') }}"></script>
 <script src="{{ asset('js/app.js') }}"></script>
 
-{% block javascripts %}{% endblock %}
+{% block extra_js %}{% endblock %}
 
 </body>
 </html>

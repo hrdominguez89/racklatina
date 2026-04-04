@@ -2,66 +2,70 @@
 
 {% block title %}Catálogo de Productos{% endblock %}
 
+{% block breadcrumb %}
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item active">Catálogo</li>
+    </ol>
+{% endblock %}
+
 {% block body %}
 
+    <h3 class="fw-semibold mb-4">Productos/Ordenes</h3>
+
     {# Barra de búsqueda #}
-    <div class="row mb-4">
-        <div class="col-12">
-            <form action="{{ path('app_catalogo_lista') }}" method="GET" class="d-flex gap-2">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0">
-                        <i class="ri-search-line text-muted"></i>
-                    </span>
-                    <input type="text" name="q" class="form-control border-start-0 ps-0"
-                           placeholder="Buscá un producto por nombre, código...">
-                    <button type="submit" class="btn btn-warning fw-semibold px-4">Buscar</button>
-                </div>
-            </form>
-        </div>
+    <div class="mb-4">
+        <form action="{{ path('app_catalogo_lista') }}" method="GET">
+            <div class="position-relative">
+                <i class="ri-search-line position-absolute text-muted"
+                   style="left:14px;top:50%;transform:translateY(-50%);font-size:1.1rem;"></i>
+                <input type="text" name="q"
+                       class="form-control rounded ps-5"
+                       style="height:44px;"
+                       placeholder="Buscá un producto"
+                       value="{{ app.request.query.get('q') ?? '' }}">
+            </div>
+        </form>
     </div>
 
     {# Categorías #}
-    <div class="row mb-4">
-        <div class="col-12 d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-semibold mb-0">Seleccioná una categoría</h5>
-            <a href="{{ path('app_catalogo_lista') }}" class="text-warning fw-semibold text-decoration-none small">VER MÁS</a>
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-muted small">Seleccioná una categoría</span>
+            <a href="{{ path('app_catalogo_lista') }}" class="fw-semibold text-decoration-none small"
+               style="color: var(--rkl-primary);">VER MÁS</a>
         </div>
-        <div class="col-12">
-            <div class="row g-3">
-                {% for categoria in categorias %}
-                <div class="col-6 col-md-3">
-                    <a href="{{ path('app_catalogo_lista', {categoria: categoria}) }}" class="text-decoration-none">
-                        <div class="card catalogo-categoria-card bg-warning border-0 h-100">
-                            <div class="card-body d-flex align-items-center justify-content-center text-center p-4">
-                                <h6 class="card-title text-white fw-semibold mb-0">{{ categoria }}</h6>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                {% else %}
-                <div class="col-12">
-                    <p class="text-muted">No hay categorías disponibles todavía.</p>
-                </div>
-                {% endfor %}
+        <div class="row g-3">
+            {% for categoria in categorias %}
+            <div class="col-6 col-md-3">
+                <a href="{{ path('app_catalogo_lista', {categoria: categoria}) }}" class="text-decoration-none">
+                    <div class="rounded d-flex align-items-center justify-content-center text-center p-3"
+                         style="background-color: var(--rkl-primary); min-height: 200px;">
+                        <h5 class="fw-semibold mb-0 text-white">{{ categoria }}</h5>
+                    </div>
+                </a>
             </div>
+            {% else %}
+            <div class="col-12">
+                <p class="text-muted">No hay categorías disponibles todavía.</p>
+            </div>
+            {% endfor %}
         </div>
     </div>
 
-    {# Productos recomendados #}
+    {# Productos más recomendados #}
     {% if recomendados is not empty %}
-    <div class="row mb-4">
-        <div class="col-12 d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-semibold mb-0">Productos más recomendados</h5>
-            <a href="{{ path('app_catalogo_lista') }}" class="text-warning fw-semibold text-decoration-none small">VER MÁS</a>
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="fw-semibold">Productos más recomendados</span>
+            <a href="{{ path('app_catalogo_lista') }}" class="fw-semibold text-decoration-none small"
+               style="color: var(--rkl-primary);">VER MÁS</a>
         </div>
-        <div class="col-12">
-            <div class="row g-3">
-                {% for articulo in recomendados %}
-                <div class="col-6 col-md-3">
-                    {% include 'secure/external/catalogo/_card_articulo.html.twig' with {articulo: articulo} %}
-                </div>
-                {% endfor %}
+        <div class="row g-3">
+            {% for articulo in recomendados %}
+            <div class="col-6 col-md-3">
+                {% include 'secure/external/catalogo/_card_articulo.html.twig' with {articulo: articulo} %}
             </div>
+            {% endfor %}
         </div>
     </div>
     {% endif %}

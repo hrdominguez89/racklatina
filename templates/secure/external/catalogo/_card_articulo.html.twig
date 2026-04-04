@@ -73,6 +73,9 @@
             <i class="ri-image-line fs-1 text-muted"></i>
             {% endif %}
         </div>
+        {# Badge de stock – hardcodeado hasta Sprint 4.1 #}
+        <span class="position-absolute top-0 start-0 m-2 badge"
+              style="background:#111;font-size:.7rem;font-weight:500;">En Stock</span>
     </div>
     <div class="card-body p-3 d-flex flex-column">
         <a href="{{ path('app_catalogo_detalle', {codigo: articulo.codigoCalipso}) }}" class="text-decoration-none text-dark">

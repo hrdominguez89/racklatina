@@ -1,0 +1,21 @@
+{% set current_route = app.request.get('_route') %}
+
+<li class="nav-item">
+    <a href="{{ path('app_catalogo_index') }}"
+       class="nav-link menu-link {% if current_route starts with 'app_catalogo' %}active{% endif %}"
+       data-key="t-catalogo">
+        <i class="ri-store-2-line"></i>
+        <span>Catálogo</span>
+    </a>
+</li>
+
+{% if app.user is not null %}
+<li class="nav-item">
+    <a href="{{ path('app_proyectos_index') }}"
+       class="nav-link menu-link {% if current_route starts with 'app_proyectos' %}active{% endif %}"
+       data-key="t-proyectos">
+        <i class="ri-folder-line"></i>
+        <span>Proyectos</span>
+    </a>
+</li>
+{% endif %}
