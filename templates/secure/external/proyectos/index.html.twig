@@ -1,0 +1,194 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mis Proyectos{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+
+    {# Breadcrumb #}
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                <h4 class="mb-0">Proyectos</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="#">Inicio</a></li>
+                        <li class="breadcrumb-item active">Proyectos</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Flashes #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+        <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endfor %}
+
+    {# Header: título + botón crear #}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <p class="text-muted mb-0">{{ proyectos|length }} proyecto{{ proyectos|length != 1 ? 's' : '' }}</p>
+        <button type="button" class="btn btn-warning fw-semibold" data-bs-toggle="modal" data-bs-target="#modalNuevoProyecto">
+            <i class="ri-add-line me-1"></i> Crear nuevo Proyecto
+        </button>
+    </div>
+
+    {# Grid de proyectos #}
+    {% if proyectos is empty %}
+    <div class="text-center py-5">
+        <i class="ri-folder-open-line fs-1 text-muted"></i>
+        <h5 class="text-muted mt-3">No tenés proyectos todavía</h5>
+        <p class="text-muted small">Creá un proyecto para empezar a agregar productos del catálogo.</p>
+        <button type="button" class="btn btn-warning fw-semibold mt-2" data-bs-toggle="modal" data-bs-target="#modalNuevoProyecto">
+            <i class="ri-add-line me-1"></i> Crear mi primer proyecto
+        </button>
+    </div>
+    {% else %}
+    <div class="row g-3">
+        {% for proyecto in proyectos %}
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-sm bg-warning bg-opacity-10 rounded d-flex align-items-center justify-content-center"
+                                 style="width:40px;height:40px;">
+                                <i class="ri-folder-line text-warning fs-5"></i>
+                            </div>
+                            <h6 class="fw-semibold mb-0">{{ proyecto.nombre }}</h6>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light border-0" data-bs-toggle="dropdown">
+                                <i class="ri-more-2-fill"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('app_proyectos_show', {id: proyecto.id}) }}">
+                                        <i class="ri-eye-line me-2"></i> Ver detalle
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('app_proyectos_editar', {id: proyecto.id}) }}">
+                                        <i class="ri-edit-line me-2"></i> Editar
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <button class="dropdown-item text-danger btn-eliminar-proyecto"
+                                            data-proyecto-id="{{ proyecto.id }}"
+                                            data-proyecto-nombre="{{ proyecto.nombre|e('html_attr') }}">
+                                        <i class="ri-delete-bin-line me-2"></i> Eliminar
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    {% if proyecto.descripcion %}
+                    <p class="text-muted small mb-2">{{ proyecto.descripcion }}</p>
+                    {% endif %}
+
+                    <p class="text-muted small mb-1">
+                        <i class="ri-calendar-line me-1"></i>
+                        {{ proyecto.createdAt|date('d/m/Y') }}
+                    </p>
+                    <p class="text-muted small mb-3">
+                        <i class="ri-shopping-bag-line me-1"></i>
+                        {{ proyecto.cantidadProductos }} producto{{ proyecto.cantidadProductos != 1 ? 's' : '' }} agregado{{ proyecto.cantidadProductos != 1 ? 's' : '' }}
+                    </p>
+
+                    <div class="mt-auto d-flex gap-2">
+                        <a href="{{ path('app_proyectos_show', {id: proyecto.id}) }}"
+                           class="btn btn-warning btn-sm flex-fill fw-semibold">
+                            Ver proyecto
+                        </a>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" disabled>
+                            Solicitar cotización
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+
+{# Modal: Crear Proyecto #}
+<div class="modal fade" id="modalNuevoProyecto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear nuevo Proyecto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ path('app_proyectos_nuevo') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('proyecto_nuevo') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nombre del proyecto <span class="text-danger">*</span></label>
+                        <input type="text" name="nombre" class="form-control" placeholder="Ej: Proyecto Planta Norte 2026" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Descripción <span class="text-muted small">(opcional)</span></label>
+                        <textarea name="descripcion" class="form-control" rows="3"
+                                  placeholder="Descripción breve del proyecto..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning fw-semibold">
+                        <i class="ri-add-line me-1"></i> Crear Proyecto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{# Modal: Confirmar Eliminar #}
+<div class="modal fade" id="modalEliminarProyecto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger"><i class="ri-delete-bin-line me-2"></i>Eliminar Proyecto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">¿Estás seguro que querés eliminar el proyecto <strong id="nombre-proyecto-eliminar"></strong>?</p>
+                <p class="text-danger small">Esta acción no se puede deshacer y eliminará todos los productos del proyecto.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <form id="form-eliminar-proyecto" method="POST" class="d-inline">
+                    <input type="hidden" name="_token" id="token-eliminar">
+                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.querySelectorAll('.btn-eliminar-proyecto').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const id = this.dataset.proyectoId;
+        const nombre = this.dataset.proyectoNombre;
+        document.getElementById('nombre-proyecto-eliminar').textContent = `"${nombre}"`;
+        document.getElementById('form-eliminar-proyecto').action = `/secure/proyectos/${id}/eliminar`;
+        document.getElementById('token-eliminar').value = '{{ csrf_token("proyecto_eliminar_") }}' + id;
+        new bootstrap.Modal(document.getElementById('modalEliminarProyecto')).show();
+    });
+});
+</script>
+{% endblock %}

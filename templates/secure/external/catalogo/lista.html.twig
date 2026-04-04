@@ -1,0 +1,420 @@
+{% extends 'base_catalogo.html.twig' %}
+
+{% block title %}Productos{% endblock %}
+
+{% block body %}
+
+    {# Barra superior: búsqueda + crear proyecto + toggle vista #}
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <form method="GET" action="{{ path('app_catalogo_lista') }}" id="form-busqueda">
+                {# Preservar filtros activos en la búsqueda #}
+                {% if filtros.categoria %}<input type="hidden" name="categoria" value="{{ filtros.categoria }}">{% endif %}
+                {% if filtros.subcategoria %}<input type="hidden" name="subcategoria" value="{{ filtros.subcategoria }}">{% endif %}
+                {% if filtros.bu %}<input type="hidden" name="bu" value="{{ filtros.bu }}">{% endif %}
+                {% if filtros.proveedor %}<input type="hidden" name="proveedor" value="{{ filtros.proveedor }}">{% endif %}
+                {% if filtros.marca %}<input type="hidden" name="marca" value="{{ filtros.marca }}">{% endif %}
+                <input type="hidden" name="vista" value="{{ vista }}">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="ri-search-line text-muted"></i>
+                    </span>
+                    <input type="text" name="q" class="form-control border-start-0 ps-0"
+                           placeholder="Buscá un producto..." value="{{ filtros.q ?? '' }}">
+                </div>
+            </form>
+        </div>
+        <div class="col-auto d-flex gap-2 align-items-center">
+            {# Toggle grid / lista #}
+            <div class="btn-group" role="group">
+                <a href="{{ path('app_catalogo_lista', filtros|merge({vista: 'grid', pagina: 1})) }}"
+                   class="btn btn-sm {{ vista == 'grid' ? 'btn-warning' : 'btn-outline-secondary' }}">
+                    <i class="ri-grid-line"></i>
+                </a>
+                <a href="{{ path('app_catalogo_lista', filtros|merge({vista: 'list', pagina: 1})) }}"
+                   class="btn btn-sm {{ vista == 'list' ? 'btn-warning' : 'btn-outline-secondary' }}">
+                    <i class="ri-list-unordered"></i>
+                </a>
+            </div>
+            {% if app.user %}
+            <a href="{{ path('app_proyectos_index') }}" class="btn btn-warning fw-semibold">
+                <i class="ri-folder-add-line me-1"></i> Mis Proyectos
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-3">
+
+        {# Panel de filtros izquierdo #}
+        <div class="col-12 col-md-3 col-lg-2" id="panel-filtros">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold text-uppercase small">Filtros</span>
+                        {% if filtros.categoria or filtros.subcategoria or filtros.bu or filtros.proveedor or filtros.marca %}
+                        <a href="{{ path('app_catalogo_lista', {q: filtros.q, vista: vista}) }}" class="text-danger small text-decoration-none">
+                            Limpiar todo
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <form method="GET" action="{{ path('app_catalogo_lista') }}" id="form-filtros">
+                        <input type="hidden" name="q" value="{{ filtros.q ?? '' }}">
+                        <input type="hidden" name="vista" value="{{ vista }}">
+                        <input type="hidden" name="pagina" value="1">
+
+                        {# Categoría #}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2 cursor-pointer"
+                                 data-bs-toggle="collapse" data-bs-target="#filtro-cat">
+                                <span class="fw-semibold small">Categoría</span>
+                                <i class="ri-arrow-up-s-line"></i>
+                            </div>
+                            <div class="collapse show" id="filtro-cat">
+                                {% for cat in opcionesFiltros.categorias %}
+                                <div class="form-check mb-1">
+                                    <input class="form-check-input filtro-check" type="radio" name="categoria"
+                                           id="cat-{{ loop.index }}" value="{{ cat }}"
+                                           {{ filtros.categoria == cat ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="cat-{{ loop.index }}">{{ cat }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        {# Subcategoría #}
+                        {% if opcionesFiltros.subcategorias is not empty %}
+                        <div class="mb-3 border-top pt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2 cursor-pointer"
+                                 data-bs-toggle="collapse" data-bs-target="#filtro-sub">
+                                <span class="fw-semibold small">Subcategoría</span>
+                                <i class="ri-arrow-up-s-line"></i>
+                            </div>
+                            <div class="collapse show" id="filtro-sub">
+                                {% for sub in opcionesFiltros.subcategorias %}
+                                <div class="form-check mb-1">
+                                    <input class="form-check-input filtro-check" type="radio" name="subcategoria"
+                                           id="sub-{{ loop.index }}" value="{{ sub }}"
+                                           {{ filtros.subcategoria == sub ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="sub-{{ loop.index }}">{{ sub }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {# Business Unit #}
+                        {% if opcionesFiltros.bus is not empty %}
+                        <div class="mb-3 border-top pt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2 cursor-pointer"
+                                 data-bs-toggle="collapse" data-bs-target="#filtro-bu">
+                                <span class="fw-semibold small">Business Unit</span>
+                                <i class="ri-arrow-down-s-line"></i>
+                            </div>
+                            <div class="collapse" id="filtro-bu">
+                                {% for item in opcionesFiltros.bus %}
+                                <div class="form-check mb-1">
+                                    <input class="form-check-input filtro-check" type="radio" name="bu"
+                                           id="bu-{{ loop.index }}" value="{{ item.bu }}"
+                                           {{ filtros.bu == item.bu ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="bu-{{ loop.index }}">{{ item.bu }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {# Proveedor #}
+                        {% if opcionesFiltros.proveedores is not empty %}
+                        <div class="mb-3 border-top pt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2 cursor-pointer"
+                                 data-bs-toggle="collapse" data-bs-target="#filtro-prov">
+                                <span class="fw-semibold small">Proveedor</span>
+                                <i class="ri-arrow-down-s-line"></i>
+                            </div>
+                            <div class="collapse" id="filtro-prov">
+                                {% for prov in opcionesFiltros.proveedores %}
+                                <div class="form-check mb-1">
+                                    <input class="form-check-input filtro-check" type="radio" name="proveedor"
+                                           id="prov-{{ loop.index }}" value="{{ prov }}"
+                                           {{ filtros.proveedor == prov ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="prov-{{ loop.index }}">{{ prov }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {# Marca #}
+                        {% if opcionesFiltros.marcas is not empty %}
+                        <div class="mb-3 border-top pt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2 cursor-pointer"
+                                 data-bs-toggle="collapse" data-bs-target="#filtro-marca">
+                                <span class="fw-semibold small">Marca</span>
+                                <i class="ri-arrow-down-s-line"></i>
+                            </div>
+                            <div class="collapse" id="filtro-marca">
+                                {% for m in opcionesFiltros.marcas %}
+                                {% if m %}
+                                <div class="form-check mb-1">
+                                    <input class="form-check-input filtro-check" type="radio" name="marca"
+                                           id="marca-{{ loop.index }}" value="{{ m }}"
+                                           {{ filtros.marca == m ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="marca-{{ loop.index }}">{{ m }}</label>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-warning btn-sm w-100 mt-2">Aplicar filtros</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {# Área de resultados #}
+        <div class="col-12 col-md-9 col-lg-10">
+
+            {# Tags de filtros activos + resultado count #}
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+                <span class="text-muted small">{{ total }} resultado{{ total != 1 ? 's' : '' }}</span>
+                {% if filtros.q %}
+                <span class="badge bg-light text-dark border">
+                    "{{ filtros.q }}"
+                    <a href="{{ path('app_catalogo_lista', filtros|merge({q: null, pagina: 1})) }}" class="text-muted ms-1">×</a>
+                </span>
+                {% endif %}
+                {% if filtros.categoria %}
+                <span class="badge bg-warning text-dark">
+                    {{ filtros.categoria }}
+                    <a href="{{ path('app_catalogo_lista', filtros|merge({categoria: null, subcategoria: null, pagina: 1})) }}" class="text-dark ms-1">×</a>
+                </span>
+                {% endif %}
+                {% if filtros.subcategoria %}
+                <span class="badge bg-warning text-dark">
+                    {{ filtros.subcategoria }}
+                    <a href="{{ path('app_catalogo_lista', filtros|merge({subcategoria: null, pagina: 1})) }}" class="text-dark ms-1">×</a>
+                </span>
+                {% endif %}
+                {% if filtros.bu %}
+                <span class="badge bg-light text-dark border">
+                    {{ filtros.bu }}
+                    <a href="{{ path('app_catalogo_lista', filtros|merge({bu: null, pagina: 1})) }}" class="text-muted ms-1">×</a>
+                </span>
+                {% endif %}
+                {% if filtros.proveedor %}
+                <span class="badge bg-light text-dark border">
+                    {{ filtros.proveedor }}
+                    <a href="{{ path('app_catalogo_lista', filtros|merge({proveedor: null, pagina: 1})) }}" class="text-muted ms-1">×</a>
+                </span>
+                {% endif %}
+                {% if filtros.marca %}
+                <span class="badge bg-light text-dark border">
+                    {{ filtros.marca }}
+                    <a href="{{ path('app_catalogo_lista', filtros|merge({marca: null, pagina: 1})) }}" class="text-muted ms-1">×</a>
+                </span>
+                {% endif %}
+            </div>
+
+            {# Grid o lista de artículos #}
+            {% if articulos is empty %}
+            <div class="text-center py-5">
+                <i class="ri-search-line fs-1 text-muted"></i>
+                <p class="text-muted mt-2">No se encontraron productos con los filtros aplicados.</p>
+                <a href="{{ path('app_catalogo_lista') }}" class="btn btn-outline-warning">Ver todos los productos</a>
+            </div>
+            {% elseif vista == 'list' %}
+            <div>
+                {% for articulo in articulos %}
+                    {% include 'secure/external/catalogo/_card_articulo.html.twig' with {articulo: articulo, proyectos: proyectos, vista: 'list'} %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="row g-3">
+                {% for articulo in articulos %}
+                <div class="col-6 col-md-4 col-xl-3">
+                    {% include 'secure/external/catalogo/_card_articulo.html.twig' with {articulo: articulo, proyectos: proyectos, vista: 'grid'} %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {# Paginación #}
+            {% if totalPaginas > 1 %}
+            <nav class="mt-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted">Mostrar:</span>
+                    {% for n in [24, 48, 72] %}
+                    <a href="{{ path('app_catalogo_lista', filtros|merge({por_pagina: n, pagina: 1, vista: vista})) }}"
+                       class="btn btn-sm {{ porPagina == n ? 'btn-warning' : 'btn-outline-secondary' }}">{{ n }}</a>
+                    {% endfor %}
+                </div>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item {{ pagina == 1 ? 'disabled' : '' }}">
+                        <a class="page-link" href="{{ path('app_catalogo_lista', filtros|merge({pagina: pagina - 1, por_pagina: porPagina, vista: vista})) }}">
+                            <i class="ri-arrow-left-s-line"></i>
+                        </a>
+                    </li>
+                    {% for p in 1..totalPaginas %}
+                    {% if p == 1 or p == totalPaginas or (p >= pagina - 2 and p <= pagina + 2) %}
+                    <li class="page-item {{ pagina == p ? 'active' : '' }}">
+                        <a class="page-link" href="{{ path('app_catalogo_lista', filtros|merge({pagina: p, por_pagina: porPagina, vista: vista})) }}">{{ p }}</a>
+                    </li>
+                    {% elseif p == pagina - 3 or p == pagina + 3 %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                    {% endfor %}
+                    <li class="page-item {{ pagina == totalPaginas ? 'disabled' : '' }}">
+                        <a class="page-link" href="{{ path('app_catalogo_lista', filtros|merge({pagina: pagina + 1, por_pagina: porPagina, vista: vista})) }}">
+                            <i class="ri-arrow-right-s-line"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+
+        </div>{# /col resultados #}
+    </div>{# /row #}
+
+{# Modal: Agregar a Proyecto #}
+<div class="modal fade" id="modalAgregarProyecto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Agregar a Proyecto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3" id="modal-articulo-nombre"></p>
+                {% if proyectos is empty %}
+                <div class="text-center py-3">
+                    <p class="text-muted">No tenés proyectos creados todavía.</p>
+                    <a href="{{ path('app_proyectos_index') }}" class="btn btn-warning btn-sm">Crear un proyecto</a>
+                </div>
+                {% else %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Seleccioná el proyecto:</label>
+                    <select class="form-select" id="select-proyecto">
+                        {% for p in proyectos %}
+                        <option value="{{ p.id }}">{{ p.nombre }} ({{ p.cantidadProductos }} productos)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Cantidad:</label>
+                    <div class="input-group" style="max-width:140px;">
+                        <button class="btn btn-outline-secondary" type="button" id="btn-menos">-</button>
+                        <input type="number" class="form-control text-center" id="input-cantidad" value="1" min="1" max="999">
+                        <button class="btn btn-outline-secondary" type="button" id="btn-mas">+</button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                {% if proyectos is not empty %}
+                <button type="button" class="btn btn-warning fw-semibold" id="btn-confirmar-agregar">
+                    Agregar
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+
+<script>
+(function() {
+    let articuloCodigoActual = null;
+
+    // Abrir modal al clickear "Agregar a Proyecto"
+    document.querySelectorAll('.btn-agregar-proyecto').forEach(btn => {
+        btn.addEventListener('click', function() {
+            articuloCodigoActual = this.dataset.articuloCodigo;
+            const el = document.getElementById('modal-articulo-nombre');
+            if (el) el.textContent = 'Artículo: ' + this.dataset.articuloNombre;
+            new bootstrap.Modal(document.getElementById('modalAgregarProyecto')).show();
+        });
+    });
+
+    // Cantidad +/-
+    document.getElementById('btn-menos')?.addEventListener('click', () => {
+        const input = document.getElementById('input-cantidad');
+        if (input.value > 1) input.value--;
+    });
+    document.getElementById('btn-mas')?.addEventListener('click', () => {
+        const input = document.getElementById('input-cantidad');
+        if (input.value < 999) input.value++;
+    });
+
+    // Confirmar agregar
+    document.getElementById('btn-confirmar-agregar')?.addEventListener('click', async function() {
+        const proyectoId = document.getElementById('select-proyecto')?.value;
+        const cantidad = document.getElementById('input-cantidad')?.value || 1;
+
+        if (!proyectoId || !articuloCodigoActual) return;
+
+        this.disabled = true;
+        this.textContent = 'Agregando...';
+
+        try {
+            const formData = new FormData();
+            formData.append('articulo_codigo', articuloCodigoActual);
+            formData.append('cantidad', cantidad);
+
+            const response = await fetch(`/secure/proyectos/${proyectoId}/agregar-articulo`, {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('modalAgregarProyecto')).hide();
+                // Feedback visual con toast o alert simple
+                mostrarToast(data.mensaje, 'success');
+            } else {
+                mostrarToast(data.error || 'Error al agregar', 'danger');
+            }
+        } catch (e) {
+            mostrarToast('Error de conexión', 'danger');
+        } finally {
+            this.disabled = false;
+            this.textContent = 'Agregar';
+        }
+    });
+
+    // Autosubmit al cambiar filtros con checkbox/radio
+    document.querySelectorAll('.filtro-check').forEach(el => {
+        el.addEventListener('change', () => {
+            document.getElementById('form-filtros').submit();
+        });
+    });
+
+    // Autosubmit búsqueda con debounce
+    let searchTimer;
+    document.querySelector('#form-busqueda input[name=q]')?.addEventListener('input', function() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+            document.getElementById('form-busqueda').submit();
+        }, 500);
+    });
+
+    function mostrarToast(mensaje, tipo) {
+        const container = document.createElement('div');
+        container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;';
+        container.innerHTML = `<div class="alert alert-${tipo} alert-dismissible shadow" role="alert">
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>`;
+        document.body.appendChild(container);
+        setTimeout(() => container.remove(), 4000);
+    }
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editar Proyecto{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between bg-galaxy-transparent">
+                <h4 class="mb-0">Editar Proyecto</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="#">Inicio</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('app_proyectos_index') }}">Proyectos</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('app_proyectos_show', {id: proyecto.id}) }}">{{ proyecto.nombre }}</a></li>
+                        <li class="breadcrumb-item active">Editar</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ path('app_proyectos_editar', {id: proyecto.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('proyecto_editar_' ~ proyecto.id) }}">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nombre del proyecto <span class="text-danger">*</span></label>
+                            <input type="text" name="nombre" class="form-control"
+                                   value="{{ proyecto.nombre }}" required autofocus>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Descripción <span class="text-muted small">(opcional)</span></label>
+                            <textarea name="descripcion" class="form-control" rows="3">{{ proyecto.descripcion }}</textarea>
+                        </div>
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{{ path('app_proyectos_show', {id: proyecto.id}) }}" class="btn btn-light">Cancelar</a>
+                            <button type="submit" class="btn btn-warning fw-semibold">Guardar cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

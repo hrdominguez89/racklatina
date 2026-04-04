@@ -1,0 +1,312 @@
+{% extends 'base_catalogo.html.twig' %}
+
+{% block title %}{{ articulo.nombreDisplay }}{% endblock %}
+
+{% block body %}
+
+    {# Breadcrumb #}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_catalogo_index') }}">Inicio</a></li>
+            {% if articulo.categoriaAdvisor %}
+            <li class="breadcrumb-item">
+                <a href="{{ path('app_catalogo_lista', {categoria: articulo.categoriaAdvisor}) }}">{{ articulo.categoriaAdvisor }}</a>
+            </li>
+            {% endif %}
+            <li class="breadcrumb-item active">{{ articulo.nombreDisplay|slice(0, 50) }}{% if articulo.nombreDisplay|length > 50 %}...{% endif %}</li>
+        </ol>
+    </nav>
+
+    {# Ficha del producto #}
+    <div class="row g-4">
+        {# Imagen #}
+        <div class="col-12 col-md-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center justify-content-center p-4"
+                     style="min-height:350px; background:#f8f9fa;">
+                    {% if articulo.imagen %}
+                    <img src="{{ articulo.imagen }}" alt="{{ articulo.nombreDisplay }}"
+                         class="img-fluid" style="max-height:300px; object-fit:contain;"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                    <div style="display:none" class="text-center">
+                        <i class="ri-image-line fs-1 text-muted"></i>
+                        <p class="text-muted small mt-2">Imagen no disponible</p>
+                    </div>
+                    {% else %}
+                    <div class="text-center">
+                        <i class="ri-image-line fs-1 text-muted"></i>
+                        <p class="text-muted small mt-2">Sin imagen</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# Info #}
+        <div class="col-12 col-md-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    {# Badges categoría #}
+                    <div class="d-flex gap-2 flex-wrap mb-2">
+                        {% if articulo.categoriaAdvisor %}
+                        <span class="badge bg-light text-dark border">{{ articulo.categoriaAdvisor }}</span>
+                        {% endif %}
+                        {% if articulo.subcategoriaAdvisor %}
+                        <span class="badge bg-warning text-dark">{{ articulo.subcategoriaAdvisor }}</span>
+                        {% endif %}
+                    </div>
+
+                    <h4 class="fw-bold mb-1">{{ articulo.nombreDisplay }}</h4>
+
+                    {% if articulo.codigoRockwell %}
+                    <p class="text-muted small mb-1">Código: <strong>{{ articulo.codigoRockwell }}</strong></p>
+                    {% endif %}
+                    {% if articulo.codigoCalipso %}
+                    <p class="text-muted small mb-3">Código Calypso: {{ articulo.codigoCalipso }}</p>
+                    {% endif %}
+
+                    {% if articulo.descripcion %}
+                    <p class="text-muted mb-3">{{ articulo.descripcion }}</p>
+                    {% endif %}
+
+                    <hr>
+
+                    {# Cantidad + acciones #}
+                    <div class="mb-3">
+                        <label class="fw-semibold mb-2 d-block">Cantidad:</label>
+                        <div class="input-group" style="max-width:150px;">
+                            <button class="btn btn-outline-secondary" type="button" id="btn-menos">-</button>
+                            <input type="number" class="form-control text-center" id="input-cantidad" value="1" min="1" max="999">
+                            <button class="btn btn-outline-secondary" type="button" id="btn-mas">+</button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 flex-wrap">
+                        {% if app.user %}
+                            <button type="button" class="btn btn-warning fw-semibold btn-agregar-proyecto"
+                                    data-articulo-codigo="{{ articulo.codigoCalipso }}"
+                                    data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}"
+                                    {% if proyectos is empty %}disabled title="Creá un proyecto primero"{% endif %}>
+                                <i class="ri-folder-add-line me-1"></i> Agregar a Proyecto
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" disabled>
+                                Pedir cotización
+                            </button>
+                        {% else %}
+                            <a href="{{ path('app_login') }}" class="btn btn-warning fw-semibold">
+                                <i class="ri-login-box-line me-1"></i> Iniciá sesión para agregar
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    {% if app.user and proyectos is empty %}
+                    <p class="text-muted small mt-2">
+                        <a href="{{ path('app_proyectos_index') }}" class="text-warning">Creá un proyecto</a> para agregar productos.
+                    </p>
+                    {% endif %}
+
+                    {# Info del proveedor #}
+                    {% if articulo.proveedor %}
+                    <hr>
+                    <div class="row g-2 small text-muted">
+                        <div class="col-6">
+                            <strong>Proveedor:</strong><br>{{ articulo.proveedor }}
+                        </div>
+                        {% if articulo.bu %}
+                        <div class="col-6">
+                            <strong>BU:</strong><br>{{ articulo.bu }}
+                        </div>
+                        {% endif %}
+                        {% if articulo.marca %}
+                        <div class="col-6">
+                            <strong>Marca:</strong><br>{{ articulo.marca }}
+                        </div>
+                        {% endif %}
+                        {% if articulo.soluciones %}
+                        <div class="col-12">
+                            <strong>Solución:</strong><br>{{ articulo.soluciones }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Acordeones: Características técnicas, Selección, Envíos #}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="accordion" id="acordeonProducto">
+
+                {% if articulo.descripcionTecnica %}
+                <div class="accordion-item border-0 border-bottom">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button fw-semibold" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#acc-caracteristicas">
+                            Características técnicas
+                        </button>
+                    </h2>
+                    <div id="acc-caracteristicas" class="accordion-collapse collapse show">
+                        <div class="accordion-body text-muted">
+                            {{ articulo.descripcionTecnica|nl2br }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="accordion-item border-0 border-bottom">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-semibold" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#acc-seleccion">
+                            Selección de productos
+                        </button>
+                    </h2>
+                    <div id="acc-seleccion" class="accordion-collapse collapse">
+                        <div class="accordion-body text-muted">
+                            Podés agregar este producto a tus proyectos.
+                            <a href="{{ path('app_proyectos_index') }}" class="text-warning">Ver mis proyectos</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item border-0">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-semibold" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#acc-envios">
+                            Envíos
+                        </button>
+                    </h2>
+                    <div id="acc-envios" class="accordion-collapse collapse">
+                        <div class="accordion-body text-muted">
+                            Para información sobre envíos y tiempos de entrega, contactate con tu representante comercial.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    {# Productos relacionados #}
+    {% if relacionados is not empty %}
+    <div class="row mt-5">
+        <div class="col-12 d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-semibold mb-0">Productos más recomendados</h5>
+            <a href="{{ path('app_catalogo_lista', {categoria: articulo.categoriaAdvisor}) }}"
+               class="text-warning fw-semibold text-decoration-none small">VER MÁS</a>
+        </div>
+        <div class="col-12">
+            <div class="row g-3">
+                {% for rel in relacionados %}
+                <div class="col-6 col-md-3">
+                    {% include 'secure/external/catalogo/_card_articulo.html.twig' with {articulo: rel, proyectos: proyectos} %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+{# Modal Agregar a Proyecto #}
+<div class="modal fade" id="modalAgregarProyecto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Agregar a Proyecto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% if proyectos is empty %}
+                <div class="text-center py-3">
+                    <p class="text-muted">No tenés proyectos creados todavía.</p>
+                    <a href="{{ path('app_proyectos_index') }}" class="btn btn-warning btn-sm">Crear un proyecto</a>
+                </div>
+                {% else %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Seleccioná el proyecto:</label>
+                    <select class="form-select" id="select-proyecto">
+                        {% for p in proyectos %}
+                        <option value="{{ p.id }}">{{ p.nombre }} ({{ p.cantidadProductos }} productos)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                {% if proyectos is not empty %}
+                <button type="button" class="btn btn-warning fw-semibold" id="btn-confirmar-agregar">Agregar</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+
+<script>
+(function() {
+    // Cantidad +/-
+    document.getElementById('btn-menos')?.addEventListener('click', () => {
+        const input = document.getElementById('input-cantidad');
+        if (input.value > 1) input.value = parseInt(input.value) - 1;
+    });
+    document.getElementById('btn-mas')?.addEventListener('click', () => {
+        const input = document.getElementById('input-cantidad');
+        if (input.value < 999) input.value = parseInt(input.value) + 1;
+    });
+
+    // Botón Agregar a Proyecto → abre modal
+    document.querySelector('.btn-agregar-proyecto')?.addEventListener('click', function() {
+        new bootstrap.Modal(document.getElementById('modalAgregarProyecto')).show();
+    });
+
+    // Confirmar
+    document.getElementById('btn-confirmar-agregar')?.addEventListener('click', async function() {
+        const proyectoId = document.getElementById('select-proyecto')?.value;
+        const cantidad = document.getElementById('input-cantidad')?.value || 1;
+        const articuloCodigo = '{{ articulo.codigoCalipso|e('js') }}';
+
+        if (!proyectoId) return;
+        this.disabled = true;
+        this.textContent = 'Agregando...';
+
+        const formData = new FormData();
+        formData.append('articulo_codigo', articuloCodigo);
+        formData.append('cantidad', cantidad);
+
+        try {
+            const response = await fetch(`/secure/proyectos/${proyectoId}/agregar-articulo`, {
+                method: 'POST', body: formData,
+            });
+            const data = await response.json();
+            bootstrap.Modal.getInstance(document.getElementById('modalAgregarProyecto')).hide();
+            if (data.success) {
+                mostrarToast(data.mensaje, 'success');
+            } else {
+                mostrarToast(data.error || 'Error', 'danger');
+            }
+        } catch(e) {
+            mostrarToast('Error de conexión', 'danger');
+        } finally {
+            this.disabled = false;
+            this.textContent = 'Agregar';
+        }
+    });
+
+    function mostrarToast(mensaje, tipo) {
+        const container = document.createElement('div');
+        container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;';
+        container.innerHTML = `<div class="alert alert-${tipo} alert-dismissible shadow" role="alert">
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>`;
+        document.body.appendChild(container);
+        setTimeout(() => container.remove(), 4000);
+    }
+})();
+</script>
+{% endblock %}
