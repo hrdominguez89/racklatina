@@ -31,10 +31,10 @@
                 {% endfor %}
             </div>
           <form method="GET">
-            <div class="row">
-                <!-- Columna del selector de cliente -->
-                <div class="col-12 col-md-5">
-                    <label class="form-class">Seleccione un cliente:</label>
+            <div class="row align-items-end g-3">
+                <!-- Selector de cliente -->
+                <div class="col-12 col-md-4">
+                    <label class="form-label">Seleccione un cliente:</label>
                     <select class="form-select" name="Cliente" id="Cliente">
                         <option value=0>Seleccione un cliente</option>
                         {% for cliente in clientes %}
@@ -43,32 +43,66 @@
                     </select>
                 </div>
 
-                <!-- Columna de búsqueda por artículos -->
-                {% if mostrar_opciones_articulos %}
-                <div class="col-12 col-md-3 offset-md-2">
-                    <label class="form-class">Buscar por artículos(opcional)</label>
-                    <div class="d-flex gap-2">
-                        <input 
-                            type="text" 
-                            name="Articulo_seleccionado" 
-                            class="form-control"
-                            list="listado-de-articulos"
-                        >
-                        <datalist id="listado-de-articulos">
-                            {% for articulo in articulos %}
-                            <option value="{{articulo["articulo"]}}" {{ app.request.get('Articulo_seleccionado') == articulo["articulo"] ? 'selected' : ''}}>{{articulo["articulo"]|slice(2)}}</option>
-                            {% endfor %}
-                        </datalist>
-                        <button 
-                            type="button" 
-                            class="btn btn-primary flex-shrink-0" 
-                            id="btn-buscar-articulo"
-                        >
-                            <i class="ri-search-line"></i> 
-                        </button>
+                <!-- Filtros opcionales alineados a la derecha -->
+                <div class="col-12 col-md-8 d-flex align-items-end justify-content-end gap-3">
+                    {% if mostrar_opciones_articulos %}
+                    <div>
+                        <label class="form-label">Buscar por artículo (opcional)</label>
+                        <div class="d-flex gap-2">
+                            <input
+                                type="text"
+                                name="Articulo_seleccionado"
+                                class="form-control"
+                                list="listado-de-articulos"
+                                style="min-width: 180px"
+                            >
+                            <datalist id="listado-de-articulos">
+                                {% for articulo in articulos %}
+                                <option value="{{articulo["articulo"]}}" {{ app.request.get('Articulo_seleccionado') == articulo["articulo"] ? 'selected' : ''}}>{{articulo["articulo"]|slice(2)}}</option>
+                                {% endfor %}
+                            </datalist>
+                            <button type="button" class="btn btn-primary flex-shrink-0" id="btn-buscar-articulo">
+                                <i class="ri-search-line"></i>
+                            </button>
+                        </div>
                     </div>
+                    {% endif %}
+
+                    {% if compradores_disponibles is defined and compradores_disponibles %}
+                    <div>
+                        <label class="form-label">Comprador</label>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                    id="dropdownCompradores" data-bs-toggle="dropdown"
+                                    data-bs-auto-close="outside" aria-expanded="false"
+                                    style="min-width: 180px; text-align: left;">
+                                {% if compradores_seleccionados|length > 0 %}
+                                    {{ compradores_seleccionados|length }} seleccionado{{ compradores_seleccionados|length > 1 ? 's' : '' }}
+                                {% else %}
+                                    Todos
+                                {% endif %}
+                            </button>
+                            <ul class="dropdown-menu p-2 shadow-sm" style="min-width: 220px; max-height: 260px; overflow-y: auto;">
+                                {% for comprador in compradores_disponibles %}
+                                <li>
+                                    <label class="dropdown-item d-flex align-items-center gap-2 py-1" style="cursor:pointer; white-space:normal;">
+                                        <input type="checkbox" name="compradores[]" value="{{ comprador }}"
+                                               class="form-check-input comprador-check flex-shrink-0"
+                                               {{ comprador in compradores_seleccionados ? 'checked' : '' }}>
+                                        {{ comprador }}
+                                    </label>
+                                </li>
+                                {% endfor %}
+                                <li><hr class="dropdown-divider my-2"></li>
+                                <li class="px-2 d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1">Aplicar</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-limpiar-compradores">Limpiar</button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
             <div class="mb-4"></div>
         </form>
@@ -76,21 +110,21 @@
             <div class="row">
                 <div class="col-12 d-flex justify-content-start align-items-start mb-6"  >
                     <div>
-                        <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Todas',Cliente: cliente  }) }}"
+                        {% set baseParams = {Cliente: cliente, compradores: compradores_seleccionados} %}
+                        <a href="{{ path('app_secure_external_sales_order_sales_order', baseParams|merge({status:'Todas'})) }}"
                         class="btn {{ status=='Todas'? 'active':'' }} btn-outline-primary">
                             Todas
                         </a>
-                        <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Pendiente',Cliente: cliente }) }}" 
+                        <a href="{{ path('app_secure_external_sales_order_sales_order', baseParams|merge({status:'Pendiente'})) }}"
                         class="btn {{ status=='Pendiente'? 'active':'' }} btn-outline-primary">
                             Pendiente
                         </a>
-                        <a href="{{ path('app_secure_external_sales_order_sales_order',{status:'Remitido',Cliente: cliente  }) }}"
+                        <a href="{{ path('app_secure_external_sales_order_sales_order', baseParams|merge({status:'Remitido'})) }}"
                         class="btn {{ status=='Remitido'? 'active':'' }} btn-outline-primary">
                             Remitido
                         </a>
-                        <a href="{{ path('app_secure_external_sales_order_sales_order', {
-                                'status': 'articulos_pendientes',Cliente: cliente 
-                            }) }}" class="btn {{ status=='articulos_pendientes'? 'active':'' }} btn-outline-primary">
+                        <a href="{{ path('app_secure_external_sales_order_sales_order', baseParams|merge({status:'articulos_pendientes'})) }}"
+                        class="btn {{ status=='articulos_pendientes'? 'active':'' }} btn-outline-primary">
                             Artículos pendientes
                         </a>
                     </div>
@@ -223,10 +257,35 @@
         <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
         <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Dropdown compradores: actualizar label y botón limpiar
+            const compradorChecks = document.querySelectorAll('.comprador-check');
+            const dropdownBtn = document.getElementById('dropdownCompradores');
+
+            function actualizarLabelComprador() {
+                if (!dropdownBtn) return;
+                const seleccionados = document.querySelectorAll('.comprador-check:checked').length;
+                dropdownBtn.textContent = seleccionados > 0
+                    ? seleccionados + ' seleccionado' + (seleccionados > 1 ? 's' : '')
+                    : 'Todos';
+                // re-agregar ícono de toggle
+                const icon = document.createElement('span');
+            }
+            actualizarLabelComprador();
+            compradorChecks.forEach(c => c.addEventListener('change', actualizarLabelComprador));
+
+            const btnLimpiarCompradores = document.getElementById('btn-limpiar-compradores');
+            if (btnLimpiarCompradores) {
+                btnLimpiarCompradores.addEventListener('click', function() {
+                    compradorChecks.forEach(c => c.checked = false);
+                    actualizarLabelComprador();
+                });
+            }
+
             const selectCliente = document.getElementById('Cliente');
             if (selectCliente) {
                 selectCliente.addEventListener('change', function() {
                     if (this.value != 0) {
+                        compradorChecks.forEach(c => c.checked = false);
                         this.form.submit();
                     }
                 });
@@ -250,26 +309,28 @@
             if (btnArticulo && inputArticulo) {
                 btnArticulo.addEventListener('click', function() {
                     const valorArticulo = inputArticulo.value.trim();
-                    
+
                     if (valorArticulo !== '') {
                         const url = new URL(window.location);
-                        
-                        
+
                         url.searchParams.set('Articulo_seleccionado', valorArticulo);
-                        
-                        
+
                         const clienteSeleccionado = selectCliente ? selectCliente.value : null;
                         if (clienteSeleccionado && clienteSeleccionado != 0) {
                             url.searchParams.set('Cliente', clienteSeleccionado);
                         }
-                        
-                        
+
                         const statusActual = new URLSearchParams(window.location.search).get('status');
                         if (statusActual) {
                             url.searchParams.set('status', statusActual);
                         }
-                        
-                        
+
+                        // Preservar compradores seleccionados
+                        url.searchParams.delete('compradores[]');
+                        document.querySelectorAll('.comprador-check:checked').forEach(opt => {
+                            url.searchParams.append('compradores[]', opt.value);
+                        });
+
                         window.location.href = url.toString();
                     } else {
                         alert('Por favor, selecciona o escribe un artículo');

@@ -32,7 +32,10 @@ final class GestorOrdenesDeCompraController extends AbstractController
         $search = $request->query->get('search') ?? null;
         $searchArticulo = $request->query->get('searchArticulo') ?? null;
         $articuloSeleccionado = $request->query->get('articuloSeleccionado') ?? null;
+        $compradores = $request->query->all('compradores');
         $data["articulos_de_cliente"] = false;
+        $data['compradores_disponibles'] = [];
+        $data['compradores_seleccionados'] = $compradores;
         if ($searchType && (($searchType === 'cliente_y_articulo' && $searchArticulo) || ($searchType !== 'cliente_y_articulo' && $search))) {
             $query = $pedidosrelacionadosRepository->createQueryBuilder('p');
             switch ($searchType) {
@@ -81,6 +84,16 @@ final class GestorOrdenesDeCompraController extends AbstractController
             
             $data['pedidos'] = $query->getQuery()
                 ->getArrayResult();
+
+            // Extraer compradores disponibles antes de aplicar el filtro
+            $data['compradores_disponibles'] = array_values(array_filter(array_unique(array_column($data['pedidos'], 'compradorcliente'))));
+            sort($data['compradores_disponibles']);
+
+            // Aplicar filtro de comprador si hay seleccionados
+            if (!empty($compradores)) {
+                $data['pedidos'] = array_values(array_filter($data['pedidos'], fn($p) => in_array($p['compradorcliente'], $compradores)));
+            }
+
             $agrupados = [];
             if($data["status"] != "articulos_pendientes")
             {
@@ -89,14 +102,14 @@ final class GestorOrdenesDeCompraController extends AbstractController
                     if (!isset($agrupados[$key])) {
                         $agrupados[$key] = [
                             'ordencompracliente' => $pedido['ordencompracliente'],
-                        'numero' => $pedido['numero'],
-                        'cliente' => $pedido['cliente'],
-                        'razonsocial' => $pedido['razonsocial'],
-                        'fechapedido' => $pedido['fechapedido'],
-                        'fechaoc' => $pedido['fechaoc'],
-                        'pendientes' => 0,
-                        'remitidos' => 0,
-                        
+                            'numero' => $pedido['numero'],
+                            'cliente' => $pedido['cliente'],
+                            'razonsocial' => $pedido['razonsocial'],
+                            'fechapedido' => $pedido['fechapedido'],
+                            'fechaoc' => $pedido['fechaoc'],
+                            'compradorcliente' => $pedido['compradorcliente'],
+                            'pendientes' => 0,
+                            'remitidos' => 0,
                     ];
                 }
                 // Contar estados

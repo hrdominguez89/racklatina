@@ -161,6 +161,9 @@ class Pedidosrelacionados
     #[ORM\Column(name: "Cantidad_Pendiente", type: Types::INTEGER, nullable: true)]
     private ?string $cantidadPendiente = null;
 
+    #[ORM\Column(name: "Comprador_Cliente", length: 100, nullable: true)]
+    private ?string $compradorcliente = null;
+
     public function getDbschemaid(): ?string
     {
         return $this->dbschemaid;
@@ -761,6 +764,18 @@ class Pedidosrelacionados
         return $this;
     }
 
+    public function getCompradorcliente(): ?string
+    {
+        return $this->compradorcliente;
+    }
+
+    public function setCompradorcliente(?string $compradorcliente): static
+    {
+        $this->compradorcliente = $compradorcliente;
+
+        return $this;
+    }
+
     public function getInfo()
     {
         $data = [
@@ -814,6 +829,7 @@ class Pedidosrelacionados
             'hojaruta' => $this->hojaruta,
             'fechaoc' => $this->fechaoc,
             'cantidaPendiente' => $this->cantidadPendiente,
+            'compradorcliente' => $this->compradorcliente,
         ];
 
         return json_encode($data);
