@@ -10,6 +10,32 @@
 
     <!-- Layout config Js -->
     <script src="{{ asset('js/layout.js') }}"></script>
+    <!-- RKL global namespace + toast — must be defined before any child template script -->
+    <script>
+    window.RKL = window.RKL || {};
+    RKL.proyectoActivo = RKL.proyectoActivo || null;
+    RKL.toast = function(mensaje, tipo, duracion) {
+        tipo     = tipo     || 'success';
+        duracion = duracion || 4000;
+        var icons  = { success: 'ri-check-circle-line', danger: 'ri-error-warning-line', warning: 'ri-alert-line', info: 'ri-information-line' };
+        var colors = { success: '#198754',              danger: '#dc3545',               warning: '#ffc107',       info: '#0dcaf0' };
+        var icon  = icons[tipo]  || icons.info;
+        var color = colors[tipo] || colors.info;
+        var el = document.createElement('div');
+        el.style.cssText = 'background:#fff;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);border-left:4px solid '+color+';padding:.75rem 1rem;display:flex;align-items:flex-start;gap:.6rem;';
+        el.innerHTML = '<i class="'+icon+' fs-5 mt-1 flex-shrink-0" style="color:'+color+'"></i>'
+            + '<span class="flex-grow-1 small" style="color:#333;">'+mensaje+'</span>'
+            + '<button style="background:none;border:none;padding:0;line-height:1;color:#aaa;cursor:pointer;font-size:1rem;" onclick="this.closest(\'div\').remove()">×</button>';
+        var container = document.getElementById('rkl-toast-container');
+        if (container) {
+            container.appendChild(el);
+            setTimeout(function() { el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(function(){ el.remove(); }, 300); }, duracion);
+        } else {
+            // Fallback si el container aún no existe (muy raro)
+            console.info('[RKL toast]', tipo, mensaje);
+        }
+    };
+    </script>
     <!-- Bootstrap Css -->
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
     <!-- Icons Css -->
@@ -164,18 +190,88 @@
                     </nav>
                 </div>
 
-                <!-- Derecha: empresa + usuario -->
+                <!-- Derecha: proyecto activo + empresa + usuario -->
                 <div class="d-flex align-items-center gap-2">
 
-                    {# Empresa dropdown: muestra la primera, permite cambiar si hay más #}
+                    {# Proyecto activo #}
+                    {% if app.user is not null %}
+                        {% set _proyectoActivo = proyecto_activo(app.user) %}
+                        {% set _todosProyectos = proyectos_del_usuario(app.user) %}
+
+                        {% if _proyectoActivo is not null %}
+                        {# Hay proyecto activo: dropdown para cambiar o ver #}
+                        <div class="dropdown d-none d-md-block">
+                            <button type="button"
+                                    class="btn btn-sm btn-warning d-flex align-items-center gap-1 position-relative"
+                                    data-bs-toggle="dropdown" aria-expanded="false"
+                                    title="Proyecto activo">
+                                <i class="ri-folder-open-line"></i>
+                                <span class="d-none d-lg-inline fw-semibold" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                    {{ _proyectoActivo.nombre }}
+                                </span>
+                                <span class="badge bg-dark text-white ms-1" style="font-size:.65rem;">
+                                    {{ _proyectoActivo.cantidadProductos }}
+                                </span>
+                                <i class="ri-arrow-down-s-line"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" style="min-width:240px;">
+                                <li>
+                                    <a class="dropdown-item small fw-semibold" href="{{ path('app_proyectos_show', {id: _proyectoActivo.id}) }}">
+                                        <i class="ri-eye-line me-1"></i> Ver proyecto actual
+                                    </a>
+                                </li>
+                                {% if _todosProyectos|length > 1 %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><span class="dropdown-item-text text-muted small">Cambiar proyecto activo:</span></li>
+                                {% for p in _todosProyectos %}
+                                    {% if p.id != _proyectoActivo.id %}
+                                    <li>
+                                        <button type="button"
+                                                class="dropdown-item small btn-set-proyecto-activo"
+                                                data-proyecto-id="{{ p.id }}"
+                                                data-proyecto-nombre="{{ p.nombre|e('html_attr') }}">
+                                            <i class="ri-folder-line me-1 text-muted"></i>
+                                            {{ p.nombre }}
+                                            <span class="text-muted">({{ p.cantidadProductos }})</span>
+                                        </button>
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item small" href="{{ path('app_proyectos_index') }}">
+                                        <i class="ri-list-unordered me-1"></i> Todos mis proyectos
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        {% else %}
+                        {# Sin proyecto activo: botón simple #}
+                        <a href="{{ path('app_proyectos_index') }}"
+                           class="btn btn-sm btn-outline-secondary d-none d-md-inline-flex align-items-center gap-1"
+                           title="Mis Proyectos">
+                            <i class="ri-folder-line"></i>
+                            <span class="d-none d-lg-inline">Proyectos</span>
+                            {% if _todosProyectos|length > 0 %}
+                            <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem;">
+                                {{ _todosProyectos|length }}
+                            </span>
+                            {% endif %}
+                        </a>
+                        {% endif %}
+                    {% endif %}
+
+                    {# Empresa dropdown: muestra la activa, permite cambiar si hay más #}
                     {% if app.user is not null and app.user.userCustomers is not empty %}
                         {% set ucList = app.user.userCustomers %}
-                        {% set firstUc = ucList|first %}
+                        {% set activoCodigo = app.user.activeClienteCodigo %}
                         <div class="dropdown d-none d-md-block">
                             <button type="button"
                                     class="header-empresa-btn"
                                     {% if ucList|length > 1 %}data-bs-toggle="dropdown" aria-expanded="false"{% endif %}>
-                                <i class="ri-building-line me-1"></i>{{ firstUc.clienteCodigo }}
+                                <i class="ri-building-line me-1"></i>
+                                {{ cliente_razon_social(activoCodigo) }} ({{ activoCodigo }})
                                 {% if ucList|length > 1 %}
                                     <i class="ri-arrow-down-s-line ms-1"></i>
                                 {% endif %}
@@ -184,9 +280,18 @@
                             <ul class="dropdown-menu dropdown-menu-end">
                                 {% for uc in ucList %}
                                 <li>
-                                    <a class="dropdown-item small" href="#">
-                                        <i class="ri-building-line me-1 text-muted"></i>{{ uc.clienteCodigo }}
-                                    </a>
+                                    <form method="POST" action="{{ path('app_catalogo_switch_empresa') }}">
+                                        <input type="hidden" name="cliente_codigo" value="{{ uc.clienteCodigo }}">
+                                        <button type="submit"
+                                                class="dropdown-item small {% if uc.clienteCodigo == activoCodigo %}fw-semibold{% endif %}">
+                                            <i class="ri-building-line me-1 text-muted"></i>
+                                            {{ cliente_razon_social(uc.clienteCodigo) }}
+                                            <span class="text-muted ms-1">({{ uc.clienteCodigo }})</span>
+                                            {% if uc.clienteCodigo == activoCodigo %}
+                                                <i class="ri-check-line ms-1 text-success"></i>
+                                            {% endif %}
+                                        </button>
+                                    </form>
                                 </li>
                                 {% endfor %}
                             </ul>
@@ -299,6 +404,11 @@
 
 </div>
 
+{# Toast container global #}
+<div id="rkl-toast-container"
+     style="position:fixed;top:72px;right:1rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem;min-width:280px;max-width:360px;">
+</div>
+
 <!-- JS -->
 <script src="{{ asset('libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('libs/simplebar/simplebar.min.js') }}"></script>
@@ -306,7 +416,40 @@
 <script src="{{ asset('libs/feather-icons/feather.min.js') }}"></script>
 <script src="{{ asset('js/app.js') }}"></script>
 
-{% block extra_js %}{% endblock %}
+<script>
+{% if app.user is not null %}
+{% set _pa = proyecto_activo(app.user) %}
+RKL.proyectoActivo = {{ _pa is not null ? '{id:' ~ _pa.id ~ ',nombre:' ~ _pa.nombre|json_encode ~ '}' : 'null' }};
+{% else %}
+RKL.proyectoActivo = null;
+{% endif %}
 
+// Cambiar proyecto activo desde el header dropdown
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn-set-proyecto-activo');
+    if (!btn) return;
+    const id = btn.dataset.proyectoId;
+    const nombre = btn.dataset.proyectoNombre;
+    fetch(`/secure/proyectos/${id}/set-activo`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                RKL.proyectoActivo = { id: parseInt(id), nombre: nombre };
+                RKL.toast(`Proyecto activo: <strong>${nombre}</strong>`, 'success');
+                setTimeout(() => location.reload(), 800);
+            }
+        })
+        .catch(() => RKL.toast('Error al cambiar proyecto', 'danger'));
+});
+</script>
+
+<style>
+@keyframes rklSlideIn {
+    from { transform: translateX(20px); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+}
+</style>
+
+{% block extra_js %}{% endblock %}
 </body>
 </html>

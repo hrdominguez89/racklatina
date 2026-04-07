@@ -4,6 +4,7 @@ namespace App\Controller\Secure\External\Catalogo;
 
 use App\Repository\ArticuloEcommerceRepository;
 use App\Repository\ProyectoRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,7 +16,35 @@ class CatalogoController extends AbstractController
     public function __construct(
         private ArticuloEcommerceRepository $articuloRepo,
         private ProyectoRepository $proyectoRepo,
+        private EntityManagerInterface $em,
     ) {}
+
+    #[Route('/switch-empresa', name: 'app_catalogo_switch_empresa', methods: ['POST'])]
+    public function switchEmpresa(Request $request): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+
+        $codigo = $request->request->get('cliente_codigo', '');
+        $user = $this->getUser();
+
+        $valido = false;
+        foreach ($user->getUserCustomers() as $uc) {
+            if ($uc->getClienteCodigo() === $codigo) {
+                $valido = true;
+                break;
+            }
+        }
+
+        if (!$valido) {
+            throw $this->createAccessDeniedException('Empresa no asociada al usuario.');
+        }
+
+        $user->setActiveCliente($codigo);
+        $this->em->flush();
+
+        $referer = $request->headers->get('referer');
+        return $this->redirect($referer ?: $this->generateUrl('app_catalogo_index'));
+    }
 
     #[Route('', name: 'app_catalogo_index')]
     public function index(): Response
@@ -51,8 +80,9 @@ class CatalogoController extends AbstractController
         $totalPaginas = (int)ceil($resultado['total'] / $porPagina);
 
         // Proyectos solo si el usuario está autenticado
-        $proyectos = $this->getUser()
-            ? $this->proyectoRepo->findByUser($this->getUser())
+        $user = $this->getUser();
+        $proyectos = $user
+            ? $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo())
             : [];
 
         return $this->render('secure/external/catalogo/lista.html.twig', [
@@ -89,8 +119,9 @@ class CatalogoController extends AbstractController
             throw $this->createNotFoundException('Producto no encontrado');
         }
 
-        $proyectos = $this->getUser()
-            ? $this->proyectoRepo->findByUser($this->getUser())
+        $user = $this->getUser();
+        $proyectos = $user
+            ? $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo())
             : [];
 
         $relacionados = array_values(array_filter(

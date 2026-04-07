@@ -92,6 +92,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: UserCustomer::class, mappedBy: 'user')]
     private Collection $userCustomers;
 
+    #[ORM\Column(name: 'active_cliente', length: 22, nullable: true)]
+    private ?string $activeCliente = null;
+
+    #[ORM\Column(name: 'active_proyecto_id', nullable: true)]
+    private ?int $activeProyectoId = null;
+
     public function __construct()
     {
         $this->userRoles = new ArrayCollection();
@@ -414,5 +420,40 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
+    }
+
+    public function getActiveCliente(): ?string
+    {
+        return $this->activeCliente;
+    }
+
+    public function setActiveCliente(?string $activeCliente): static
+    {
+        $this->activeCliente = $activeCliente;
+        return $this;
+    }
+
+    public function getActiveProyectoId(): ?int
+    {
+        return $this->activeProyectoId;
+    }
+
+    public function setActiveProyectoId(?int $activeProyectoId): static
+    {
+        $this->activeProyectoId = $activeProyectoId;
+        return $this;
+    }
+
+    /**
+     * Devuelve el código Calypso de la empresa activa.
+     * Si no hay una explícita, usa el primer UserCustomer disponible.
+     */
+    public function getActiveClienteCodigo(): ?string
+    {
+        if ($this->activeCliente !== null) {
+            return $this->activeCliente;
+        }
+        $first = $this->userCustomers->first();
+        return $first ? $first->getClienteCodigo() : null;
     }
 }

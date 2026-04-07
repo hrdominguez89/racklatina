@@ -17,6 +17,8 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/secure/proyectos')]
 class ProyectoController extends AbstractController
 {
+    private const ROLES = ['ROLE_COMPRADOR', 'ROLE_ADMINISTRACION'];
+
     public function __construct(
         private ProyectoRepository $proyectoRepo,
         private ProyectoItemRepository $itemRepo,
@@ -29,7 +31,8 @@ class ProyectoController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
 
-        $proyectos = $this->proyectoRepo->findByUser($this->getUser());
+        $user = $this->getUser();
+        $proyectos = $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo());
 
         return $this->render('secure/external/proyectos/index.html.twig', [
             'proyectos' => $proyectos,
@@ -52,15 +55,21 @@ class ProyectoController extends AbstractController
             return $this->redirectToRoute('app_proyectos_index');
         }
 
+        $user = $this->getUser();
         $proyecto = new Proyecto();
-        $proyecto->setUser($this->getUser());
+        $proyecto->setUser($user);
         $proyecto->setNombre($nombre);
         $proyecto->setDescripcion(trim($request->request->get('descripcion', '')) ?: null);
+        $proyecto->setClienteCodigo($user->getActiveClienteCodigo());
 
         $this->em->persist($proyecto);
         $this->em->flush();
 
-        $this->addFlash('success', "Proyecto \"{$nombre}\" creado.");
+        // Setear como proyecto activo automáticamente
+        $user->setActiveProyectoId($proyecto->getId());
+        $this->em->flush();
+
+        $this->addFlash('success', "Proyecto \"{$nombre}\" creado y seleccionado como activo.");
         return $this->redirectToRoute('app_proyectos_show', ['id' => $proyecto->getId()]);
     }
 
@@ -114,12 +123,54 @@ class ProyectoController extends AbstractController
             return $this->redirectToRoute('app_proyectos_index');
         }
 
+        $user = $this->getUser();
         $nombre = $proyecto->getNombre();
+
+        // Si era el activo, limpiar
+        if ($user->getActiveProyectoId() === $proyecto->getId()) {
+            $user->setActiveProyectoId(null);
+        }
+
         $this->em->remove($proyecto);
         $this->em->flush();
 
         $this->addFlash('success', "Proyecto \"{$nombre}\" eliminado.");
         return $this->redirectToRoute('app_proyectos_index');
+    }
+
+    // --- Lista de proyectos (JSON, para el modal del catálogo) ---
+
+    #[Route('/mis-proyectos-json', name: 'app_proyectos_json', methods: ['GET'])]
+    public function misProyectosJson(): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+        $user = $this->getUser();
+        $proyectos = $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo());
+
+        return $this->json(array_map(fn($p) => [
+            'id'       => $p->getId(),
+            'nombre'   => $p->getNombre(),
+            'cantidad' => $p->getCantidadProductos(),
+        ], $proyectos));
+    }
+
+    // --- Set proyecto activo ---
+
+    #[Route('/{id}/set-activo', name: 'app_proyectos_set_activo', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function setActivo(int $id): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+        $proyecto = $this->getProyectoDelUsuario($id);
+
+        $user = $this->getUser();
+        $user->setActiveProyectoId($proyecto->getId());
+        $this->em->flush();
+
+        return $this->json([
+            'success' => true,
+            'proyectoId' => $proyecto->getId(),
+            'proyectoNombre' => $proyecto->getNombre(),
+        ]);
     }
 
     // --- Manejo de items (AJAX) ---
@@ -128,35 +179,49 @@ class ProyectoController extends AbstractController
     public function agregarArticulo(int $id, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
-        $proyecto = $this->getProyectoDelUsuario($id);
 
-        $articuloCodigo = trim($request->request->get('articulo_codigo', ''));
-        $cantidad = max(1, (int)$request->request->get('cantidad', 1));
+        try {
+            $proyecto = $this->getProyectoDelUsuario($id);
 
-        $articulo = $this->articuloRepo->find($articuloCodigo);
-        if (!$articulo) {
-            return $this->json(['error' => 'Artículo no encontrado'], 404);
+            $articuloCodigo = trim($request->request->get('articulo_codigo', ''));
+            $cantidad = max(1, (int)$request->request->get('cantidad', 1));
+
+            if (empty($articuloCodigo)) {
+                return $this->json(['error' => 'Código de artículo requerido'], 400);
+            }
+
+            $articulo = $this->articuloRepo->find($articuloCodigo);
+            if (!$articulo) {
+                return $this->json(['error' => "Artículo '{$articuloCodigo}' no encontrado"], 404);
+            }
+
+            $item = $this->itemRepo->findOneBy(['proyecto' => $proyecto, 'articulo' => $articulo]);
+            if ($item) {
+                $item->setCantidad($item->getCantidad() + $cantidad);
+            } else {
+                $item = new ProyectoItem();
+                $item->setProyecto($proyecto);
+                $item->setArticulo($articulo);
+                $item->setCantidad($cantidad);
+                $this->em->persist($item);
+            }
+
+            $this->em->flush();
+
+            // Refrescar count
+            $this->em->refresh($proyecto);
+
+            return $this->json([
+                'success' => true,
+                'mensaje' => "Artículo agregado al proyecto \"{$proyecto->getNombre()}\"",
+                'cantidadItems' => $proyecto->getCantidadProductos(),
+                'proyectoNombre' => $proyecto->getNombre(),
+            ]);
+        } catch (\Throwable $e) {
+            return $this->json([
+                'error' => 'Error interno: ' . $e->getMessage(),
+            ], 500);
         }
-
-        // Si ya existe, actualizar cantidad
-        $item = $this->itemRepo->findOneBy(['proyecto' => $proyecto, 'articulo' => $articulo]);
-        if ($item) {
-            $item->setCantidad($item->getCantidad() + $cantidad);
-        } else {
-            $item = new ProyectoItem();
-            $item->setProyecto($proyecto);
-            $item->setArticulo($articulo);
-            $item->setCantidad($cantidad);
-            $this->em->persist($item);
-        }
-
-        $this->em->flush();
-
-        return $this->json([
-            'success' => true,
-            'mensaje' => "Artículo agregado al proyecto \"{$proyecto->getNombre()}\"",
-            'cantidadProductos' => $proyecto->getCantidadProductos(),
-        ]);
     }
 
     #[Route('/item/{itemId}/cantidad', name: 'app_proyectos_update_cantidad', requirements: ['itemId' => '\d+'], methods: ['POST'])]
@@ -165,7 +230,7 @@ class ProyectoController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
 
         $item = $this->itemRepo->find($itemId);
-        if (!$item || $item->getProyecto()->getUser() !== $this->getUser()) {
+        if (!$item || $item->getProyecto()->getUser()->getId() !== $this->getUser()->getId()) {
             return $this->json(['error' => 'No autorizado'], 403);
         }
 
@@ -182,7 +247,7 @@ class ProyectoController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
 
         $item = $this->itemRepo->find($itemId);
-        if (!$item || $item->getProyecto()->getUser() !== $this->getUser()) {
+        if (!$item || $item->getProyecto()->getUser()->getId() !== $this->getUser()->getId()) {
             return $this->json(['error' => 'No autorizado'], 403);
         }
 
@@ -195,7 +260,7 @@ class ProyectoController extends AbstractController
     private function getProyectoDelUsuario(int $id): Proyecto
     {
         $proyecto = $this->proyectoRepo->find($id);
-        if (!$proyecto || $proyecto->getUser() !== $this->getUser()) {
+        if (!$proyecto || $proyecto->getUser()->getId() !== $this->getUser()->getId()) {
             throw $this->createNotFoundException('Proyecto no encontrado');
         }
         return $proyecto;

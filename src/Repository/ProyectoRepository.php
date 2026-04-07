@@ -17,15 +17,20 @@ class ProyectoRepository extends ServiceEntityRepository
         parent::__construct($registry, Proyecto::class);
     }
 
-    public function findByUser(User $user): array
+    public function findByUser(User $user, ?string $clienteCodigo = null): array
     {
-        return $this->createQueryBuilder('p')
+        $qb = $this->createQueryBuilder('p')
             ->leftJoin('p.items', 'i')
             ->addSelect('i')
             ->where('p.user = :user')
             ->setParameter('user', $user)
-            ->orderBy('p.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->orderBy('p.createdAt', 'DESC');
+
+        if ($clienteCodigo !== null) {
+            $qb->andWhere('p.clienteCodigo = :cliente OR p.clienteCodigo IS NULL')
+               ->setParameter('cliente', $clienteCodigo);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }

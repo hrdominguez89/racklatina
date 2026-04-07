@@ -39,9 +39,8 @@
                 {% if app.user %}
                     <button type="button" class="btn btn-dark btn-sm btn-agregar-proyecto"
                             data-articulo-codigo="{{ articulo.codigoCalipso }}"
-                            data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}"
-                            {% if proyectos is empty %}disabled title="Creá un proyecto primero"{% endif %}>
-                        Agregar a Proyecto
+                            data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}">
+                        <i class="ri-folder-add-line"></i> Agregar
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm" disabled>
                         Pedir cotización
@@ -91,9 +90,8 @@
             {% if app.user %}
                 <button type="button" class="btn btn-warning btn-sm flex-fill btn-agregar-proyecto"
                         data-articulo-codigo="{{ articulo.codigoCalipso }}"
-                        data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}"
-                        {% if proyectos is empty %}disabled title="Creá un proyecto primero"{% endif %}>
-                    Agregar
+                        data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}">
+                    <i class="ri-folder-add-line"></i> Agregar
                 </button>
                 <button type="button" class="btn btn-outline-secondary btn-sm" disabled>
                     Cotización

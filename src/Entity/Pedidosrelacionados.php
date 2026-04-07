@@ -6,7 +6,7 @@ use App\Repository\PedidosrelacionadosRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Table(name: 'PedidosRelacionados')]
+#[ORM\Table(name: 'pedidosrelacionados')]
 #[ORM\Entity(repositoryClass: PedidosrelacionadosRepository::class, readOnly: true)]
 class Pedidosrelacionados
 {
@@ -161,7 +161,7 @@ class Pedidosrelacionados
     #[ORM\Column(name: "Cantidad_Pendiente", type: Types::INTEGER, nullable: true)]
     private ?string $cantidadPendiente = null;
 
-    #[ORM\Column(name: "Comprador_Cliente", length: 100, nullable: true)]
+    #[ORM\Column(name: "CompradorCliente", length: 100, nullable: true)]
     private ?string $compradorcliente = null;
 
     public function getDbschemaid(): ?string

@@ -33,6 +33,9 @@ class Proyecto
     #[ORM\Column(name: 'descripcion', type: 'text', nullable: true)]
     private ?string $descripcion = null;
 
+    #[ORM\Column(name: 'cliente_codigo', length: 22, nullable: true)]
+    private ?string $clienteCodigo = null;
+
     #[ORM\OneToMany(targetEntity: ProyectoItem::class, mappedBy: 'proyecto', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $items;
 
@@ -51,6 +54,9 @@ class Proyecto
 
     public function getDescripcion(): ?string { return $this->descripcion; }
     public function setDescripcion(?string $descripcion): static { $this->descripcion = $descripcion; return $this; }
+
+    public function getClienteCodigo(): ?string { return $this->clienteCodigo; }
+    public function setClienteCodigo(?string $clienteCodigo): static { $this->clienteCodigo = $clienteCodigo; return $this; }
 
     public function getItems(): Collection { return $this->items; }
 

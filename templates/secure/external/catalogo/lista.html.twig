@@ -279,47 +279,45 @@
         </div>{# /col resultados #}
     </div>{# /row #}
 
-{# Modal: Agregar a Proyecto #}
+{# Modal: Agregar a Proyecto — contenido cargado vía JS #}
 <div class="modal fade" id="modalAgregarProyecto" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Agregar a Proyecto</h5>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:12px;overflow:hidden;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Agregar a Proyecto</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p class="text-muted small mb-3" id="modal-articulo-nombre"></p>
-                {% if proyectos is empty %}
-                <div class="text-center py-3">
-                    <p class="text-muted">No tenés proyectos creados todavía.</p>
-                    <a href="{{ path('app_proyectos_index') }}" class="btn btn-warning btn-sm">Crear un proyecto</a>
+
+                {# Sin proyectos — oculto por defecto, JS lo muestra si hace falta #}
+                <div id="modal-sin-proyectos" style="display:none;" class="text-center py-3">
+                    <i class="ri-folder-line fs-1 text-muted d-block mb-2"></i>
+                    <p class="text-muted mb-3">No tenés proyectos para esta empresa.</p>
+                    <a href="{{ path('app_proyectos_index') }}" class="btn btn-warning fw-semibold px-4">
+                        Ir a Proyectos
+                    </a>
                 </div>
-                {% else %}
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Seleccioná el proyecto:</label>
-                    <select class="form-select" id="select-proyecto">
-                        {% for p in proyectos %}
-                        <option value="{{ p.id }}">{{ p.nombre }} ({{ p.cantidadProductos }} productos)</option>
-                        {% endfor %}
+
+                {# Con proyectos #}
+                <div id="modal-con-proyectos">
+                    <label class="form-label fw-semibold">Proyecto:</label>
+                    <select class="form-select mb-3" id="select-proyecto">
+                        <option>Cargando…</option>
                     </select>
-                </div>
-                <div class="mb-3">
                     <label class="form-label fw-semibold">Cantidad:</label>
                     <div class="input-group" style="max-width:140px;">
-                        <button class="btn btn-outline-secondary" type="button" id="btn-menos">-</button>
+                        <button class="btn btn-outline-secondary" type="button" id="btn-menos">−</button>
                         <input type="number" class="form-control text-center" id="input-cantidad" value="1" min="1" max="999">
                         <button class="btn btn-outline-secondary" type="button" id="btn-mas">+</button>
                     </div>
                 </div>
-                {% endif %}
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                {% if proyectos is not empty %}
-                <button type="button" class="btn btn-warning fw-semibold" id="btn-confirmar-agregar">
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light fw-semibold" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning fw-semibold px-4" id="btn-confirmar-agregar">
                     Agregar
                 </button>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -327,94 +325,166 @@
 
 {% endblock %}
 
-{% block javascripts %}
-
+{% block extra_js %}
 <script>
-(function() {
-    let articuloCodigoActual = null;
+console.log('[RKL] ✅ script extra_js cargando...');
+console.log('[RKL] RKL global:', typeof window.RKL, window.RKL);
+console.log('[RKL] proyectoActivo:', window.RKL?.proyectoActivo);
+console.log('[RKL] bootstrap disponible:', typeof window.bootstrap);
 
-    // Abrir modal al clickear "Agregar a Proyecto"
-    document.querySelectorAll('.btn-agregar-proyecto').forEach(btn => {
-        btn.addEventListener('click', function() {
+(function() {
+    // ── Verificar botones en el DOM ─────────────────────────────────────────
+    const btns = document.querySelectorAll('.btn-agregar-proyecto');
+    console.log('[RKL] botones .btn-agregar-proyecto encontrados:', btns.length);
+    btns.forEach((b, i) => console.log(`  [${i}] disabled=${b.disabled} codigo=${b.dataset.articuloCodigo}`));
+
+    let articuloCodigoActual = null;
+    let articuloNombreActual = null;
+
+    // ── Agregar artículo ────────────────────────────────────────────────────
+    async function agregarArticulo(proyectoId, articuloCodigo, cantidad, btnOrigen) {
+        console.log('[RKL] agregarArticulo() →', { proyectoId, articuloCodigo, cantidad });
+        if (btnOrigen) btnOrigen.disabled = true;
+
+        const fd = new FormData();
+        fd.append('articulo_codigo', articuloCodigo);
+        fd.append('cantidad', cantidad || 1);
+
+        const url = `/secure/proyectos/${proyectoId}/agregar-articulo`;
+        console.log('[RKL] fetch POST', url);
+
+        try {
+            const res  = await fetch(url, { method: 'POST', body: fd });
+            console.log('[RKL] respuesta HTTP status:', res.status, res.headers.get('content-type'));
+            const text = await res.text();
+            console.log('[RKL] respuesta body:', text);
+
+            let data;
+            try { data = JSON.parse(text); } catch(e) {
+                console.error('[RKL] no es JSON válido:', e.message);
+                RKL.toast('Error: respuesta inesperada del servidor (ver consola)', 'danger');
+                return;
+            }
+
+            console.log('[RKL] data:', data);
+            if (data.success) {
+                RKL.toast(data.mensaje, 'success');
+            } else {
+                RKL.toast(data.error || 'Error al agregar', 'danger');
+            }
+        } catch (e) {
+            console.error('[RKL] fetch error:', e);
+            RKL.toast('Error de red: ' + e.message, 'danger');
+        } finally {
+            if (btnOrigen) btnOrigen.disabled = false;
+        }
+    }
+
+    // ── Cargar proyectos vía API ────────────────────────────────────────────
+    async function cargarProyectosEnModal() {
+        console.log('[RKL] cargarProyectosEnModal()...');
+        const select             = document.getElementById('select-proyecto');
+        const cuerpoSinProyectos = document.getElementById('modal-sin-proyectos');
+        const cuerpoConProyectos = document.getElementById('modal-con-proyectos');
+        const btnConfirmar       = document.getElementById('btn-confirmar-agregar');
+
+        console.log('[RKL] elementos modal:', { select: !!select, sinProyectos: !!cuerpoSinProyectos, conProyectos: !!cuerpoConProyectos, btnConfirmar: !!btnConfirmar });
+
+        if (select) select.innerHTML = '<option>Cargando…</option>';
+
+        try {
+            const res  = await fetch('/secure/proyectos/mis-proyectos-json');
+            console.log('[RKL] mis-proyectos-json status:', res.status);
+            const text = await res.text();
+            console.log('[RKL] mis-proyectos-json body:', text);
+
+            const proyectos = JSON.parse(text);
+            console.log('[RKL] proyectos recibidos:', proyectos.length, proyectos);
+
+            if (proyectos.length === 0) {
+                if (cuerpoSinProyectos) cuerpoSinProyectos.style.display = '';
+                if (cuerpoConProyectos) cuerpoConProyectos.style.display = 'none';
+                if (btnConfirmar)       btnConfirmar.style.display       = 'none';
+            } else {
+                if (cuerpoSinProyectos) cuerpoSinProyectos.style.display = 'none';
+                if (cuerpoConProyectos) cuerpoConProyectos.style.display = '';
+                if (btnConfirmar)       btnConfirmar.style.display       = '';
+                if (select) {
+                    select.innerHTML = proyectos.map(p =>
+                        `<option value="${p.id}">${p.nombre} (${p.cantidad} items)</option>`
+                    ).join('');
+                }
+            }
+        } catch (e) {
+            console.error('[RKL] error cargando proyectos:', e);
+            if (select) select.innerHTML = '<option>Error al cargar</option>';
+        }
+    }
+
+    // ── Click en "Agregar" ──────────────────────────────────────────────────
+    btns.forEach(btn => {
+        btn.addEventListener('click', function () {
             articuloCodigoActual = this.dataset.articuloCodigo;
+            articuloNombreActual = this.dataset.articuloNombre;
+            console.log('[RKL] click Agregar → codigo:', articuloCodigoActual, '| proyectoActivo:', RKL.proyectoActivo);
+
+            if (RKL.proyectoActivo) {
+                console.log('[RKL] → agregar directo al proyecto activo', RKL.proyectoActivo.id);
+                agregarArticulo(RKL.proyectoActivo.id, articuloCodigoActual, 1, this);
+                return;
+            }
+
+            console.log('[RKL] → sin proyecto activo, abriendo modal');
             const el = document.getElementById('modal-articulo-nombre');
-            if (el) el.textContent = 'Artículo: ' + this.dataset.articuloNombre;
+            if (el) el.textContent = articuloNombreActual;
+            cargarProyectosEnModal();
             new bootstrap.Modal(document.getElementById('modalAgregarProyecto')).show();
         });
     });
 
-    // Cantidad +/-
+    // ── Confirmar desde modal ───────────────────────────────────────────────
+    const btnConfirmar = document.getElementById('btn-confirmar-agregar');
+    console.log('[RKL] btn-confirmar-agregar en DOM:', !!btnConfirmar);
+    btnConfirmar?.addEventListener('click', async function () {
+        const proyectoId = document.getElementById('select-proyecto')?.value;
+        const cantidad   = document.getElementById('input-cantidad')?.value || 1;
+        console.log('[RKL] confirmar → proyectoId:', proyectoId, 'cantidad:', cantidad, 'articulo:', articuloCodigoActual);
+
+        if (!proyectoId || !articuloCodigoActual) {
+            console.warn('[RKL] faltan datos, abortando');
+            return;
+        }
+
+        this.disabled    = true;
+        this.textContent = 'Agregando…';
+        bootstrap.Modal.getInstance(document.getElementById('modalAgregarProyecto')).hide();
+        await agregarArticulo(proyectoId, articuloCodigoActual, cantidad);
+        this.disabled    = false;
+        this.textContent = 'Agregar';
+    });
+
+    // ── +/- cantidad modal ──────────────────────────────────────────────────
     document.getElementById('btn-menos')?.addEventListener('click', () => {
-        const input = document.getElementById('input-cantidad');
-        if (input.value > 1) input.value--;
+        const inp = document.getElementById('input-cantidad');
+        if (inp && parseInt(inp.value) > 1) inp.value = parseInt(inp.value) - 1;
     });
     document.getElementById('btn-mas')?.addEventListener('click', () => {
-        const input = document.getElementById('input-cantidad');
-        if (input.value < 999) input.value++;
+        const inp = document.getElementById('input-cantidad');
+        if (inp && parseInt(inp.value) < 999) inp.value = parseInt(inp.value) + 1;
     });
 
-    // Confirmar agregar
-    document.getElementById('btn-confirmar-agregar')?.addEventListener('click', async function() {
-        const proyectoId = document.getElementById('select-proyecto')?.value;
-        const cantidad = document.getElementById('input-cantidad')?.value || 1;
-
-        if (!proyectoId || !articuloCodigoActual) return;
-
-        this.disabled = true;
-        this.textContent = 'Agregando...';
-
-        try {
-            const formData = new FormData();
-            formData.append('articulo_codigo', articuloCodigoActual);
-            formData.append('cantidad', cantidad);
-
-            const response = await fetch(`/secure/proyectos/${proyectoId}/agregar-articulo`, {
-                method: 'POST',
-                body: formData,
-            });
-            const data = await response.json();
-
-            if (data.success) {
-                bootstrap.Modal.getInstance(document.getElementById('modalAgregarProyecto')).hide();
-                // Feedback visual con toast o alert simple
-                mostrarToast(data.mensaje, 'success');
-            } else {
-                mostrarToast(data.error || 'Error al agregar', 'danger');
-            }
-        } catch (e) {
-            mostrarToast('Error de conexión', 'danger');
-        } finally {
-            this.disabled = false;
-            this.textContent = 'Agregar';
-        }
-    });
-
-    // Autosubmit al cambiar filtros con checkbox/radio
+    // ── Filtros ─────────────────────────────────────────────────────────────
     document.querySelectorAll('.filtro-check').forEach(el => {
-        el.addEventListener('change', () => {
-            document.getElementById('form-filtros').submit();
-        });
+        el.addEventListener('change', () => document.getElementById('form-filtros').submit());
     });
 
-    // Autosubmit búsqueda con debounce
     let searchTimer;
-    document.querySelector('#form-busqueda input[name=q]')?.addEventListener('input', function() {
+    document.querySelector('#form-busqueda input[name=q]')?.addEventListener('input', function () {
         clearTimeout(searchTimer);
-        searchTimer = setTimeout(() => {
-            document.getElementById('form-busqueda').submit();
-        }, 500);
+        searchTimer = setTimeout(() => document.getElementById('form-busqueda').submit(), 500);
     });
 
-    function mostrarToast(mensaje, tipo) {
-        const container = document.createElement('div');
-        container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;';
-        container.innerHTML = `<div class="alert alert-${tipo} alert-dismissible shadow" role="alert">
-            ${mensaje}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>`;
-        document.body.appendChild(container);
-        setTimeout(() => container.remove(), 4000);
-    }
+    console.log('[RKL] ✅ script inicializado correctamente');
 })();
 </script>
-{% endblock %}
+{% endblock extra_js %}
