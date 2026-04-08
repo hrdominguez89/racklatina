@@ -81,15 +81,20 @@ final class SalesOrderController extends AbstractController
             $data['pedidos'] = [];
             $qb = $em->createQueryBuilder()
                 ->select('p')
-                ->from(Pedidosrelacionados::class, 'p');
+                ->from(Pedidosrelacionados::class, 'p')
+                ->where('p.cliente IN (:clientes)')
+                ->andWhere('p.cantidadoriginal != 0')
+                ->setParameter('clientes', $clientes);
             if(!$articulo)
             {
-                $qb->where('p.cliente = :cliente')
-                ->andWhere("p.estado = 'Pendiente'");
+                $qb->andWhere("p.estado = 'Pendiente'");
             }
-            $aux = $qb->andWhere('p.cantidadoriginal != 0')
-                ->setParameter('cliente', $cliente_get)
-                ->getQuery()
+            else
+            {
+                $qb->andWhere('p.articulo LIKE :articulo OR p.detalle LIKE :articulo')
+                    ->setParameter('articulo', '%' . $articulo . '%');
+            }
+            $aux = $qb->getQuery()
                 ->getArrayResult();
             $data['pedidos'] = $aux;
             $data["mostrar_tablas"] = !empty($cliente_get);
