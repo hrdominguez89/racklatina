@@ -4,239 +4,178 @@
 
 {% block body %}
 
-    {# Barra superior: búsqueda + crear proyecto + toggle vista #}
-    <div class="row mb-3 align-items-center">
-        <div class="col">
-            <form method="GET" action="{{ path('app_catalogo_lista') }}" id="form-busqueda">
-                {# Preservar filtros activos en la búsqueda #}
-                {% if filtros.categoria %}<input type="hidden" name="categoria" value="{{ filtros.categoria }}">{% endif %}
-                {% if filtros.subcategoria %}<input type="hidden" name="subcategoria" value="{{ filtros.subcategoria }}">{% endif %}
-                {% if filtros.bu %}<input type="hidden" name="bu" value="{{ filtros.bu }}">{% endif %}
-                {% if filtros.proveedor %}<input type="hidden" name="proveedor" value="{{ filtros.proveedor }}">{% endif %}
-                {% if filtros.marca %}<input type="hidden" name="marca" value="{{ filtros.marca }}">{% endif %}
-                <input type="hidden" name="vista" value="{{ vista }}">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0">
-                        <i class="ri-search-line text-muted"></i>
-                    </span>
-                    <input type="text" name="q" class="form-control border-start-0 ps-0"
-                           placeholder="Buscá un producto..." value="{{ filtros.q ?? '' }}">
-                </div>
-            </form>
-        </div>
-        <div class="col-auto d-flex gap-2 align-items-center">
-            {# Toggle grid / lista #}
-            <div class="btn-group" role="group">
-                <a href="{{ path('app_catalogo_lista', filtros|merge({vista: 'grid', pagina: 1})) }}"
-                   class="btn btn-sm {{ vista == 'grid' ? 'btn-warning' : 'btn-outline-secondary' }}">
-                    <i class="ri-grid-line"></i>
-                </a>
-                <a href="{{ path('app_catalogo_lista', filtros|merge({vista: 'list', pagina: 1})) }}"
-                   class="btn btn-sm {{ vista == 'list' ? 'btn-warning' : 'btn-outline-secondary' }}">
-                    <i class="ri-list-unordered"></i>
-                </a>
-            </div>
-            {% if app.user %}
-            <a href="{{ path('app_proyectos_index') }}" class="btn btn-warning fw-semibold">
-                <i class="ri-folder-add-line me-1"></i> Mis Proyectos
-            </a>
-            {% endif %}
-        </div>
+    {# TÍTULO + BOTÓN CREAR PROYECTO #}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-semibold mb-0">Productos/Ordenes</h3>
+        {% if app.user %}
+        <button type="button"
+                class="btn fw-semibold"
+                style="background-color:var(--rkl-primary);color:#fff;border:none;padding:.5rem 2rem;"
+                data-bs-toggle="modal" data-bs-target="#modalCrearProyecto">
+            <i class="ri-add-line me-1"></i> Crear nuevo Proyecto
+        </button>
+        {% endif %}
     </div>
 
     <div class="row g-3">
 
-        {# Panel de filtros izquierdo #}
+        {# PANEL DE FILTROS — sin card wrapper #}
         <div class="col-12 col-md-3 col-lg-2" id="panel-filtros">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="fw-bold text-uppercase small">Filtros</span>
-                        {% if filtros.categoria or filtros.subcategoria or filtros.bu or filtros.proveedor or filtros.marca %}
-                        <a href="{{ path('app_catalogo_lista', {q: filtros.q, vista: vista}) }}" class="text-danger small text-decoration-none">
-                            Limpiar todo
-                        </a>
-                        {% endif %}
-                    </div>
 
-                    <form method="GET" action="{{ path('app_catalogo_lista') }}" id="form-filtros">
-                        <input type="hidden" name="q" value="{{ filtros.q ?? '' }}">
-                        <input type="hidden" name="vista" value="{{ vista }}">
-                        <input type="hidden" name="pagina" value="1">
-
-                        {# Categoría #}
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2 cursor-pointer"
-                                 data-bs-toggle="collapse" data-bs-target="#filtro-cat">
-                                <span class="fw-semibold small">Categoría</span>
-                                <i class="ri-arrow-up-s-line"></i>
-                            </div>
-                            <div class="collapse show" id="filtro-cat">
-                                {% for cat in opcionesFiltros.categorias %}
-                                <div class="form-check mb-1">
-                                    <input class="form-check-input filtro-check" type="radio" name="categoria"
-                                           id="cat-{{ loop.index }}" value="{{ cat }}"
-                                           {{ filtros.categoria == cat ? 'checked' : '' }}>
-                                    <label class="form-check-label small" for="cat-{{ loop.index }}">{{ cat }}</label>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        {# Subcategoría #}
-                        {% if opcionesFiltros.subcategorias is not empty %}
-                        <div class="mb-3 border-top pt-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2 cursor-pointer"
-                                 data-bs-toggle="collapse" data-bs-target="#filtro-sub">
-                                <span class="fw-semibold small">Subcategoría</span>
-                                <i class="ri-arrow-up-s-line"></i>
-                            </div>
-                            <div class="collapse show" id="filtro-sub">
-                                {% for sub in opcionesFiltros.subcategorias %}
-                                <div class="form-check mb-1">
-                                    <input class="form-check-input filtro-check" type="radio" name="subcategoria"
-                                           id="sub-{{ loop.index }}" value="{{ sub }}"
-                                           {{ filtros.subcategoria == sub ? 'checked' : '' }}>
-                                    <label class="form-check-label small" for="sub-{{ loop.index }}">{{ sub }}</label>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        {# Business Unit #}
-                        {% if opcionesFiltros.bus is not empty %}
-                        <div class="mb-3 border-top pt-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2 cursor-pointer"
-                                 data-bs-toggle="collapse" data-bs-target="#filtro-bu">
-                                <span class="fw-semibold small">Business Unit</span>
-                                <i class="ri-arrow-down-s-line"></i>
-                            </div>
-                            <div class="collapse" id="filtro-bu">
-                                {% for item in opcionesFiltros.bus %}
-                                <div class="form-check mb-1">
-                                    <input class="form-check-input filtro-check" type="radio" name="bu"
-                                           id="bu-{{ loop.index }}" value="{{ item.bu }}"
-                                           {{ filtros.bu == item.bu ? 'checked' : '' }}>
-                                    <label class="form-check-label small" for="bu-{{ loop.index }}">{{ item.bu }}</label>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        {# Proveedor #}
-                        {% if opcionesFiltros.proveedores is not empty %}
-                        <div class="mb-3 border-top pt-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2 cursor-pointer"
-                                 data-bs-toggle="collapse" data-bs-target="#filtro-prov">
-                                <span class="fw-semibold small">Proveedor</span>
-                                <i class="ri-arrow-down-s-line"></i>
-                            </div>
-                            <div class="collapse" id="filtro-prov">
-                                {% for prov in opcionesFiltros.proveedores %}
-                                <div class="form-check mb-1">
-                                    <input class="form-check-input filtro-check" type="radio" name="proveedor"
-                                           id="prov-{{ loop.index }}" value="{{ prov }}"
-                                           {{ filtros.proveedor == prov ? 'checked' : '' }}>
-                                    <label class="form-check-label small" for="prov-{{ loop.index }}">{{ prov }}</label>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        {# Marca #}
-                        {% if opcionesFiltros.marcas is not empty %}
-                        <div class="mb-3 border-top pt-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2 cursor-pointer"
-                                 data-bs-toggle="collapse" data-bs-target="#filtro-marca">
-                                <span class="fw-semibold small">Marca</span>
-                                <i class="ri-arrow-down-s-line"></i>
-                            </div>
-                            <div class="collapse" id="filtro-marca">
-                                {% for m in opcionesFiltros.marcas %}
-                                {% if m %}
-                                <div class="form-check mb-1">
-                                    <input class="form-check-input filtro-check" type="radio" name="marca"
-                                           id="marca-{{ loop.index }}" value="{{ m }}"
-                                           {{ filtros.marca == m ? 'checked' : '' }}>
-                                    <label class="form-check-label small" for="marca-{{ loop.index }}">{{ m }}</label>
-                                </div>
-                                {% endif %}
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        <button type="submit" class="btn btn-warning btn-sm w-100 mt-2">Aplicar filtros</button>
-                    </form>
-                </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="fw-bold text-uppercase small">Filtros</span>
+                {% if filtros.categoria or filtros.subcategoria or filtros.marca %}
+                <a href="{{ path('app_catalogo_lista', {q: filtros.q, ordenar: filtros.ordenar}) }}"
+                   class="text-danger small text-decoration-none">Limpiar todo</a>
+                {% endif %}
             </div>
+
+            <form method="GET" action="{{ path('app_catalogo_lista') }}" id="form-filtros">
+                <input type="hidden" name="q" value="{{ filtros.q ?? '' }}">
+                <input type="hidden" name="ordenar" value="{{ filtros.ordenar ?? 'az' }}">
+                <input type="hidden" name="pagina" value="1">
+
+                {# Categoría #}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2"
+                         style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#filtro-cat">
+                        <span class="small fw-semibold">Categoría</span>
+                        <i class="ri-arrow-up-s-line"></i>
+                    </div>
+                    <div class="collapse show" id="filtro-cat">
+                        {% for cat in opcionesFiltros.categorias %}
+                        <div class="form-check mb-1">
+                            <input class="form-check-input filtro-check" type="radio" name="categoria"
+                                   id="cat-{{ loop.index }}" value="{{ cat }}"
+                                   {{ filtros.categoria == cat ? 'checked' : '' }}>
+                            <label class="form-check-label small" for="cat-{{ loop.index }}">{{ cat }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if opcionesFiltros.subcategorias is not empty %}
+                <div class="mb-3 border-top pt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2"
+                         style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#filtro-sub">
+                        <span class="small fw-semibold">Subcategoría</span>
+                        <i class="ri-arrow-up-s-line"></i>
+                    </div>
+                    <div class="collapse show" id="filtro-sub">
+                        {% for sub in opcionesFiltros.subcategorias %}
+                        <div class="form-check mb-1">
+                            <input class="form-check-input filtro-check" type="radio" name="subcategoria"
+                                   id="sub-{{ loop.index }}" value="{{ sub }}"
+                                   {{ filtros.subcategoria == sub ? 'checked' : '' }}>
+                            <label class="form-check-label small" for="sub-{{ loop.index }}">{{ sub }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if opcionesFiltros.marcas is not empty %}
+                <div class="mb-3 border-top pt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2"
+                         style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#filtro-marca">
+                        <span class="small fw-semibold">Marca</span>
+                        <i class="ri-arrow-down-s-line"></i>
+                    </div>
+                    <div class="collapse" id="filtro-marca">
+                        {% for m in opcionesFiltros.marcas %}{% if m %}
+                        <div class="form-check mb-1">
+                            <input class="form-check-input filtro-check" type="radio" name="marca"
+                                   id="marca-{{ loop.index }}" value="{{ m }}"
+                                   {{ filtros.marca == m ? 'checked' : '' }}>
+                            <label class="form-check-label small" for="marca-{{ loop.index }}">{{ m }}</label>
+                        </div>
+                        {% endif %}{% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+            </form>
         </div>
 
-        {# Área de resultados #}
+        {# ÁREA DE RESULTADOS #}
         <div class="col-12 col-md-9 col-lg-10">
 
-            {# Tags de filtros activos + resultado count #}
-            <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
-                <span class="text-muted small">{{ total }} resultado{{ total != 1 ? 's' : '' }}</span>
-                {% if filtros.q %}
-                <span class="badge bg-light text-dark border">
-                    "{{ filtros.q }}"
-                    <a href="{{ path('app_catalogo_lista', filtros|merge({q: null, pagina: 1})) }}" class="text-muted ms-1">×</a>
-                </span>
-                {% endif %}
-                {% if filtros.categoria %}
-                <span class="badge bg-warning text-dark">
-                    {{ filtros.categoria }}
-                    <a href="{{ path('app_catalogo_lista', filtros|merge({categoria: null, subcategoria: null, pagina: 1})) }}" class="text-dark ms-1">×</a>
-                </span>
-                {% endif %}
-                {% if filtros.subcategoria %}
-                <span class="badge bg-warning text-dark">
-                    {{ filtros.subcategoria }}
-                    <a href="{{ path('app_catalogo_lista', filtros|merge({subcategoria: null, pagina: 1})) }}" class="text-dark ms-1">×</a>
-                </span>
-                {% endif %}
-                {% if filtros.bu %}
-                <span class="badge bg-light text-dark border">
-                    {{ filtros.bu }}
-                    <a href="{{ path('app_catalogo_lista', filtros|merge({bu: null, pagina: 1})) }}" class="text-muted ms-1">×</a>
-                </span>
-                {% endif %}
-                {% if filtros.proveedor %}
-                <span class="badge bg-light text-dark border">
-                    {{ filtros.proveedor }}
-                    <a href="{{ path('app_catalogo_lista', filtros|merge({proveedor: null, pagina: 1})) }}" class="text-muted ms-1">×</a>
-                </span>
-                {% endif %}
-                {% if filtros.marca %}
-                <span class="badge bg-light text-dark border">
-                    {{ filtros.marca }}
-                    <a href="{{ path('app_catalogo_lista', filtros|merge({marca: null, pagina: 1})) }}" class="text-muted ms-1">×</a>
-                </span>
-                {% endif %}
+            {# BARRA DE BÚSQUEDA #}
+            <form method="GET" action="{{ path('app_catalogo_lista') }}" id="form-busqueda" class="mb-3">
+                {% if filtros.categoria %}<input type="hidden" name="categoria" value="{{ filtros.categoria }}">{% endif %}
+                {% if filtros.subcategoria %}<input type="hidden" name="subcategoria" value="{{ filtros.subcategoria }}">{% endif %}
+                {% if filtros.marca %}<input type="hidden" name="marca" value="{{ filtros.marca }}">{% endif %}
+                {% if filtros.ordenar %}<input type="hidden" name="ordenar" value="{{ filtros.ordenar }}">{% endif %}
+                <div class="position-relative">
+                    <i class="ri-search-line position-absolute text-muted"
+                       style="left:14px;top:50%;transform:translateY(-50%);font-size:1.1rem;"></i>
+                    <input type="text" name="q"
+                           class="form-control rounded ps-5"
+                           style="height:44px;"
+                           placeholder="Buscá un producto"
+                           value="{{ filtros.q ?? '' }}">
+                </div>
+            </form>
+
+            {# "Resultados para" + tags activos + Ordenar por #}
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="small fw-semibold">Resultados para</span>
+                    {% if filtros.q %}
+                    <span class="badge bg-light text-dark border rounded-pill">
+                        {{ filtros.q }}
+                        <a href="{{ path('app_catalogo_lista', filtros|merge({q: null, pagina: 1})) }}" class="text-muted ms-1 text-decoration-none">×</a>
+                    </span>
+                    {% endif %}
+                    {% if filtros.categoria %}
+                    <span class="badge bg-light text-dark border rounded-pill">
+                        {{ filtros.categoria }}
+                        <a href="{{ path('app_catalogo_lista', filtros|merge({categoria: null, subcategoria: null, pagina: 1})) }}" class="text-dark ms-1 text-decoration-none">×</a>
+                    </span>
+                    {% endif %}
+                    {% if filtros.subcategoria %}
+                    <span class="badge bg-light text-dark border rounded-pill">
+                        {{ filtros.subcategoria }}
+                        <a href="{{ path('app_catalogo_lista', filtros|merge({subcategoria: null, pagina: 1})) }}" class="text-dark ms-1 text-decoration-none">×</a>
+                    </span>
+                    {% endif %}
+                    {% if filtros.marca %}
+                    <span class="badge bg-light text-dark border rounded-pill">
+                        {{ filtros.marca }}
+                        <a href="{{ path('app_catalogo_lista', filtros|merge({marca: null, pagina: 1})) }}" class="text-muted ms-1 text-decoration-none">×</a>
+                    </span>
+                    {% endif %}
+                </div>
+
+                <div class="dropdown">
+                    <span class="small text-muted" style="cursor:pointer;" data-bs-toggle="dropdown">
+                        Ordenar por <i class="ri-arrow-down-s-line"></i>
+                    </span>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item small {% if filtros.ordenar != 'za' %}fw-semibold{% endif %}"
+                               href="{{ path('app_catalogo_lista', filtros|merge({ordenar: 'az', pagina: 1})) }}">A - Z</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item small {% if filtros.ordenar == 'za' %}fw-semibold{% endif %}"
+                               href="{{ path('app_catalogo_lista', filtros|merge({ordenar: 'za', pagina: 1})) }}">Z - A</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
-            {# Grid o lista de artículos #}
+            {# Grid de artículos #}
             {% if articulos is empty %}
             <div class="text-center py-5">
                 <i class="ri-search-line fs-1 text-muted"></i>
                 <p class="text-muted mt-2">No se encontraron productos con los filtros aplicados.</p>
                 <a href="{{ path('app_catalogo_lista') }}" class="btn btn-outline-warning">Ver todos los productos</a>
             </div>
-            {% elseif vista == 'list' %}
-            <div>
-                {% for articulo in articulos %}
-                    {% include 'secure/external/catalogo/_card_articulo.html.twig' with {articulo: articulo, proyectos: proyectos, vista: 'list'} %}
-                {% endfor %}
-            </div>
             {% else %}
             <div class="row g-3">
                 {% for articulo in articulos %}
-                <div class="col-6 col-md-4 col-xl-3">
-                    {% include 'secure/external/catalogo/_card_articulo.html.twig' with {articulo: articulo, proyectos: proyectos, vista: 'grid'} %}
+                <div class="col-6 col-md-4">
+                    {% include 'secure/external/catalogo/_card_articulo.html.twig' with {articulo: articulo, proyectos: proyectos} %}
                 </div>
                 {% endfor %}
             </div>
@@ -248,27 +187,27 @@
                 <div class="d-flex align-items-center gap-2">
                     <span class="small text-muted">Mostrar:</span>
                     {% for n in [24, 48, 72] %}
-                    <a href="{{ path('app_catalogo_lista', filtros|merge({por_pagina: n, pagina: 1, vista: vista})) }}"
+                    <a href="{{ path('app_catalogo_lista', filtros|merge({por_pagina: n, pagina: 1})) }}"
                        class="btn btn-sm {{ porPagina == n ? 'btn-warning' : 'btn-outline-secondary' }}">{{ n }}</a>
                     {% endfor %}
                 </div>
                 <ul class="pagination pagination-sm mb-0">
                     <li class="page-item {{ pagina == 1 ? 'disabled' : '' }}">
-                        <a class="page-link" href="{{ path('app_catalogo_lista', filtros|merge({pagina: pagina - 1, por_pagina: porPagina, vista: vista})) }}">
+                        <a class="page-link" href="{{ path('app_catalogo_lista', filtros|merge({pagina: pagina - 1, por_pagina: porPagina})) }}">
                             <i class="ri-arrow-left-s-line"></i>
                         </a>
                     </li>
                     {% for p in 1..totalPaginas %}
                     {% if p == 1 or p == totalPaginas or (p >= pagina - 2 and p <= pagina + 2) %}
                     <li class="page-item {{ pagina == p ? 'active' : '' }}">
-                        <a class="page-link" href="{{ path('app_catalogo_lista', filtros|merge({pagina: p, por_pagina: porPagina, vista: vista})) }}">{{ p }}</a>
+                        <a class="page-link" href="{{ path('app_catalogo_lista', filtros|merge({pagina: p, por_pagina: porPagina})) }}">{{ p }}</a>
                     </li>
                     {% elseif p == pagina - 3 or p == pagina + 3 %}
                     <li class="page-item disabled"><span class="page-link">…</span></li>
                     {% endif %}
                     {% endfor %}
                     <li class="page-item {{ pagina == totalPaginas ? 'disabled' : '' }}">
-                        <a class="page-link" href="{{ path('app_catalogo_lista', filtros|merge({pagina: pagina + 1, por_pagina: porPagina, vista: vista})) }}">
+                        <a class="page-link" href="{{ path('app_catalogo_lista', filtros|merge({pagina: pagina + 1, por_pagina: porPagina})) }}">
                             <i class="ri-arrow-right-s-line"></i>
                         </a>
                     </li>
@@ -279,7 +218,7 @@
         </div>{# /col resultados #}
     </div>{# /row #}
 
-{# Modal: Agregar a Proyecto — contenido cargado vía JS #}
+{# ─── Modal: Agregar a Proyecto ─────────────────────────────────────────────── #}
 <div class="modal fade" id="modalAgregarProyecto" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius:12px;overflow:hidden;">
@@ -289,17 +228,14 @@
             </div>
             <div class="modal-body">
                 <p class="text-muted small mb-3" id="modal-articulo-nombre"></p>
-
-                {# Sin proyectos — oculto por defecto, JS lo muestra si hace falta #}
                 <div id="modal-sin-proyectos" style="display:none;" class="text-center py-3">
                     <i class="ri-folder-line fs-1 text-muted d-block mb-2"></i>
                     <p class="text-muted mb-3">No tenés proyectos para esta empresa.</p>
-                    <a href="{{ path('app_proyectos_index') }}" class="btn btn-warning fw-semibold px-4">
+                    <a href="{{ path('app_proyectos_index') }}" class="btn fw-semibold px-4"
+                       style="background-color:var(--rkl-primary);color:#fff;border:none;">
                         Ir a Proyectos
                     </a>
                 </div>
-
-                {# Con proyectos #}
                 <div id="modal-con-proyectos">
                     <label class="form-label fw-semibold">Proyecto:</label>
                     <select class="form-select mb-3" id="select-proyecto">
@@ -315,8 +251,45 @@
             </div>
             <div class="modal-footer border-0 pt-0">
                 <button type="button" class="btn btn-light fw-semibold" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-warning fw-semibold px-4" id="btn-confirmar-agregar">
+                <button type="button" class="btn fw-semibold px-4" id="btn-confirmar-agregar"
+                        style="background-color:var(--rkl-primary);color:#fff;border:none;">
                     Agregar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ─── Modal: Crear nuevo Proyecto ───────────────────────────────────────────── #}
+<div class="modal fade" id="modalCrearProyecto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:12px;overflow:hidden;">
+            <div class="modal-header border-0 pb-1">
+                <h5 class="modal-title fw-bold">Nuevo Proyecto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-4">
+                    Ingresá a tu cuenta de Racklatina para conocer los precios, la cantidad de stock
+                    y los tiempos de espera de los productos.
+                </p>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Nombre del proyecto</label>
+                    <input type="text" class="form-control" id="nuevo-proyecto-nombre" placeholder="Proyecto 1">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Rubro</label>
+                    <select class="form-select" id="nuevo-proyecto-rubro">
+                        <option value="">Seleccioná un rubro</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Notas</label>
+                    <textarea class="form-control" id="nuevo-proyecto-notas" rows="4"></textarea>
+                </div>
+                <button type="button" class="btn fw-semibold w-100" id="btn-crear-proyecto"
+                        style="background-color:var(--rkl-primary);color:#fff;border:none;">
+                    Creá el proyecto
                 </button>
             </div>
         </div>
@@ -327,80 +300,38 @@
 
 {% block extra_js %}
 <script>
-console.log('[RKL] ✅ script extra_js cargando...');
-console.log('[RKL] RKL global:', typeof window.RKL, window.RKL);
-console.log('[RKL] proyectoActivo:', window.RKL?.proyectoActivo);
-console.log('[RKL] bootstrap disponible:', typeof window.bootstrap);
-
 (function() {
-    // ── Verificar botones en el DOM ─────────────────────────────────────────
-    const btns = document.querySelectorAll('.btn-agregar-proyecto');
-    console.log('[RKL] botones .btn-agregar-proyecto encontrados:', btns.length);
-    btns.forEach((b, i) => console.log(`  [${i}] disabled=${b.disabled} codigo=${b.dataset.articuloCodigo}`));
-
     let articuloCodigoActual = null;
     let articuloNombreActual = null;
 
-    // ── Agregar artículo ────────────────────────────────────────────────────
     async function agregarArticulo(proyectoId, articuloCodigo, cantidad, btnOrigen) {
-        console.log('[RKL] agregarArticulo() →', { proyectoId, articuloCodigo, cantidad });
         if (btnOrigen) btnOrigen.disabled = true;
-
         const fd = new FormData();
         fd.append('articulo_codigo', articuloCodigo);
         fd.append('cantidad', cantidad || 1);
-
-        const url = `/secure/proyectos/${proyectoId}/agregar-articulo`;
-        console.log('[RKL] fetch POST', url);
-
         try {
-            const res  = await fetch(url, { method: 'POST', body: fd });
-            console.log('[RKL] respuesta HTTP status:', res.status, res.headers.get('content-type'));
-            const text = await res.text();
-            console.log('[RKL] respuesta body:', text);
-
-            let data;
-            try { data = JSON.parse(text); } catch(e) {
-                console.error('[RKL] no es JSON válido:', e.message);
-                RKL.toast('Error: respuesta inesperada del servidor (ver consola)', 'danger');
-                return;
-            }
-
-            console.log('[RKL] data:', data);
+            const res  = await fetch(`/secure/proyectos/${proyectoId}/agregar-articulo`, { method: 'POST', body: fd });
+            const data = await res.json();
             if (data.success) {
                 RKL.toast(data.mensaje, 'success');
             } else {
                 RKL.toast(data.error || 'Error al agregar', 'danger');
             }
         } catch (e) {
-            console.error('[RKL] fetch error:', e);
             RKL.toast('Error de red: ' + e.message, 'danger');
         } finally {
             if (btnOrigen) btnOrigen.disabled = false;
         }
     }
 
-    // ── Cargar proyectos vía API ────────────────────────────────────────────
     async function cargarProyectosEnModal() {
-        console.log('[RKL] cargarProyectosEnModal()...');
         const select             = document.getElementById('select-proyecto');
         const cuerpoSinProyectos = document.getElementById('modal-sin-proyectos');
         const cuerpoConProyectos = document.getElementById('modal-con-proyectos');
         const btnConfirmar       = document.getElementById('btn-confirmar-agregar');
-
-        console.log('[RKL] elementos modal:', { select: !!select, sinProyectos: !!cuerpoSinProyectos, conProyectos: !!cuerpoConProyectos, btnConfirmar: !!btnConfirmar });
-
         if (select) select.innerHTML = '<option>Cargando…</option>';
-
         try {
-            const res  = await fetch('/secure/proyectos/mis-proyectos-json');
-            console.log('[RKL] mis-proyectos-json status:', res.status);
-            const text = await res.text();
-            console.log('[RKL] mis-proyectos-json body:', text);
-
-            const proyectos = JSON.parse(text);
-            console.log('[RKL] proyectos recibidos:', proyectos.length, proyectos);
-
+            const proyectos = await fetch('/secure/proyectos/mis-proyectos-json').then(r => r.json());
             if (proyectos.length === 0) {
                 if (cuerpoSinProyectos) cuerpoSinProyectos.style.display = '';
                 if (cuerpoConProyectos) cuerpoConProyectos.style.display = 'none';
@@ -409,32 +340,24 @@ console.log('[RKL] bootstrap disponible:', typeof window.bootstrap);
                 if (cuerpoSinProyectos) cuerpoSinProyectos.style.display = 'none';
                 if (cuerpoConProyectos) cuerpoConProyectos.style.display = '';
                 if (btnConfirmar)       btnConfirmar.style.display       = '';
-                if (select) {
-                    select.innerHTML = proyectos.map(p =>
-                        `<option value="${p.id}">${p.nombre} (${p.cantidad} items)</option>`
-                    ).join('');
-                }
+                if (select) select.innerHTML = proyectos.map(p =>
+                    `<option value="${p.id}">${p.nombre} (${p.cantidad} items)</option>`
+                ).join('');
             }
         } catch (e) {
-            console.error('[RKL] error cargando proyectos:', e);
             if (select) select.innerHTML = '<option>Error al cargar</option>';
         }
     }
 
-    // ── Click en "Agregar" ──────────────────────────────────────────────────
-    btns.forEach(btn => {
+    // Click en "Agregar a Proyecto"
+    document.querySelectorAll('.btn-agregar-proyecto').forEach(btn => {
         btn.addEventListener('click', function () {
             articuloCodigoActual = this.dataset.articuloCodigo;
             articuloNombreActual = this.dataset.articuloNombre;
-            console.log('[RKL] click Agregar → codigo:', articuloCodigoActual, '| proyectoActivo:', RKL.proyectoActivo);
-
             if (RKL.proyectoActivo) {
-                console.log('[RKL] → agregar directo al proyecto activo', RKL.proyectoActivo.id);
                 agregarArticulo(RKL.proyectoActivo.id, articuloCodigoActual, 1, this);
                 return;
             }
-
-            console.log('[RKL] → sin proyecto activo, abriendo modal');
             const el = document.getElementById('modal-articulo-nombre');
             if (el) el.textContent = articuloNombreActual;
             cargarProyectosEnModal();
@@ -442,19 +365,11 @@ console.log('[RKL] bootstrap disponible:', typeof window.bootstrap);
         });
     });
 
-    // ── Confirmar desde modal ───────────────────────────────────────────────
-    const btnConfirmar = document.getElementById('btn-confirmar-agregar');
-    console.log('[RKL] btn-confirmar-agregar en DOM:', !!btnConfirmar);
-    btnConfirmar?.addEventListener('click', async function () {
+    // Confirmar desde modal agregar
+    document.getElementById('btn-confirmar-agregar')?.addEventListener('click', async function () {
         const proyectoId = document.getElementById('select-proyecto')?.value;
         const cantidad   = document.getElementById('input-cantidad')?.value || 1;
-        console.log('[RKL] confirmar → proyectoId:', proyectoId, 'cantidad:', cantidad, 'articulo:', articuloCodigoActual);
-
-        if (!proyectoId || !articuloCodigoActual) {
-            console.warn('[RKL] faltan datos, abortando');
-            return;
-        }
-
+        if (!proyectoId || !articuloCodigoActual) return;
         this.disabled    = true;
         this.textContent = 'Agregando…';
         bootstrap.Modal.getInstance(document.getElementById('modalAgregarProyecto')).hide();
@@ -463,7 +378,7 @@ console.log('[RKL] bootstrap disponible:', typeof window.bootstrap);
         this.textContent = 'Agregar';
     });
 
-    // ── +/- cantidad modal ──────────────────────────────────────────────────
+    // +/- cantidad modal
     document.getElementById('btn-menos')?.addEventListener('click', () => {
         const inp = document.getElementById('input-cantidad');
         if (inp && parseInt(inp.value) > 1) inp.value = parseInt(inp.value) - 1;
@@ -473,18 +388,47 @@ console.log('[RKL] bootstrap disponible:', typeof window.bootstrap);
         if (inp && parseInt(inp.value) < 999) inp.value = parseInt(inp.value) + 1;
     });
 
-    // ── Filtros ─────────────────────────────────────────────────────────────
+    // Crear nuevo proyecto
+    document.getElementById('btn-crear-proyecto')?.addEventListener('click', async function () {
+        const nombre = document.getElementById('nuevo-proyecto-nombre')?.value?.trim();
+        const rubro  = document.getElementById('nuevo-proyecto-rubro')?.value;
+        const notas  = document.getElementById('nuevo-proyecto-notas')?.value;
+        if (!nombre) { RKL.toast('El nombre del proyecto es obligatorio', 'warning'); return; }
+        this.disabled    = true;
+        this.textContent = 'Creando…';
+        const fd = new FormData();
+        fd.append('nombre', nombre);
+        if (rubro)  fd.append('rubro', rubro);
+        if (notas)  fd.append('notas', notas);
+        try {
+            const res  = await fetch('/secure/proyectos/crear-ajax', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                RKL.toast('Proyecto <strong>' + nombre + '</strong> creado', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('modalCrearProyecto')).hide();
+                setTimeout(() => location.reload(), 800);
+            } else {
+                RKL.toast(data.error || 'Error al crear el proyecto', 'danger');
+            }
+        } catch (e) {
+            RKL.toast('Error de red: ' + e.message, 'danger');
+        } finally {
+            this.disabled    = false;
+            this.textContent = 'Creá el proyecto';
+        }
+    });
+
+    // Auto-submit filtros al seleccionar checkbox
     document.querySelectorAll('.filtro-check').forEach(el => {
         el.addEventListener('change', () => document.getElementById('form-filtros').submit());
     });
 
+    // Auto-submit búsqueda con debounce
     let searchTimer;
     document.querySelector('#form-busqueda input[name=q]')?.addEventListener('input', function () {
         clearTimeout(searchTimer);
         searchTimer = setTimeout(() => document.getElementById('form-busqueda').submit(), 500);
     });
-
-    console.log('[RKL] ✅ script inicializado correctamente');
 })();
 </script>
 {% endblock extra_js %}

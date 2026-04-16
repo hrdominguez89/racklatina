@@ -20,11 +20,10 @@ class ArticuloEcommerceRepository extends ServiceEntityRepository
         ?string $q,
         ?string $categoria,
         ?string $subcategoria,
-        ?string $bu,
-        ?string $proveedor,
         ?string $marca,
         int $pagina = 1,
-        int $porPagina = 24
+        int $porPagina = 24,
+        string $ordenar = 'az'
     ): array {
         $qb = $this->createQueryBuilder('a');
 
@@ -38,20 +37,15 @@ class ArticuloEcommerceRepository extends ServiceEntityRepository
         if ($subcategoria) {
             $qb->andWhere('a.subcategoriaAdvisor = :sub')->setParameter('sub', $subcategoria);
         }
-        if ($bu) {
-            $qb->andWhere('a.bu = :bu')->setParameter('bu', $bu);
-        }
-        if ($proveedor) {
-            $qb->andWhere('a.proveedor = :prov')->setParameter('prov', $proveedor);
-        }
         if ($marca) {
             $qb->andWhere('a.marca = :marca')->setParameter('marca', $marca);
         }
 
         $total = (clone $qb)->select('COUNT(a.codigoCalipso)')->getQuery()->getSingleScalarResult();
 
+        $direction = $ordenar === 'za' ? 'DESC' : 'ASC';
         $items = $qb->select('a')
-            ->orderBy('a.descripcionIdeaconector', 'ASC')
+            ->orderBy('a.descripcionIdeaconector', $direction)
             ->setFirstResult(($pagina - 1) * $porPagina)
             ->setMaxResults($porPagina)
             ->getQuery()
@@ -81,26 +75,6 @@ class ArticuloEcommerceRepository extends ServiceEntityRepository
         }
 
         return $qb->orderBy('a.subcategoriaAdvisor', 'ASC')->getQuery()->getSingleColumnResult();
-    }
-
-    public function getBus(): array
-    {
-        return $this->createQueryBuilder('a')
-            ->select('DISTINCT a.bu, a.idBu')
-            ->where('a.bu IS NOT NULL')
-            ->orderBy('a.bu', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function getProveedores(): array
-    {
-        return $this->createQueryBuilder('a')
-            ->select('DISTINCT a.proveedor')
-            ->where('a.proveedor IS NOT NULL')
-            ->orderBy('a.proveedor', 'ASC')
-            ->getQuery()
-            ->getSingleColumnResult();
     }
 
     public function getMarcas(): array

@@ -140,6 +140,36 @@ class ProyectoController extends AbstractController
 
     // --- Lista de proyectos (JSON, para el modal del catálogo) ---
 
+    #[Route('/crear-ajax', name: 'app_proyectos_crear_ajax', methods: ['POST'])]
+    public function crearAjax(Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+
+        $nombre = trim($request->request->get('nombre', ''));
+        if (empty($nombre)) {
+            return $this->json(['success' => false, 'error' => 'El nombre del proyecto es obligatorio.']);
+        }
+
+        $user = $this->getUser();
+        $proyecto = new Proyecto();
+        $proyecto->setUser($user);
+        $proyecto->setNombre($nombre);
+        $proyecto->setRubro(trim($request->request->get('rubro', '')) ?: null);
+        $proyecto->setDescripcion(trim($request->request->get('notas', '')) ?: null);
+        $proyecto->setClienteCodigo($user->getActiveClienteCodigo());
+
+        $this->em->persist($proyecto);
+        $this->em->flush();
+
+        $user->setActiveProyectoId($proyecto->getId());
+        $this->em->flush();
+
+        return $this->json([
+            'success' => true,
+            'proyecto' => ['id' => $proyecto->getId(), 'nombre' => $proyecto->getNombre()],
+        ]);
+    }
+
     #[Route('/mis-proyectos-json', name: 'app_proyectos_json', methods: ['GET'])]
     public function misProyectosJson(): JsonResponse
     {

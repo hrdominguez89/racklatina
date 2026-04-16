@@ -12,215 +12,310 @@
         <a href="{{ path('app_catalogo_lista', {categoria: articulo.categoriaAdvisor}) }}">{{ articulo.categoriaAdvisor }}</a>
     </li>
     {% endif %}
-    <li class="breadcrumb-item active">{{ articulo.nombreDisplay|slice(0, 40) }}{% if articulo.nombreDisplay|length > 40 %}…{% endif %}</li>
+    <li class="breadcrumb-item active">{{ articulo.nombreDisplay|slice(0,40) }}{% if articulo.nombreDisplay|length > 40 %}…{% endif %}</li>
 </ol>
 {% endblock %}
 
+{% block stylesheets %}
+<style>
+/* ── Imagen ── */
+.det-img-wrap {
+    background: #f0f0f0;
+    border-radius: 8px;
+    min-height: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.det-img-wrap img {
+    max-height: 340px;
+    max-width: 100%;
+    object-fit: contain;
+    padding: 2rem;
+}
+.det-img-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #bbb;
+    min-height: 340px;
+}
+
+/* ── Badge En Stock ── */
+.badge-stock {
+    display: inline-block;
+    background: #444;
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 500;
+    padding: .3em .75em;
+    border-radius: 4px;
+    letter-spacing: .3px;
+}
+
+/* ── Selector de cantidad ── */
+.qty-ctrl {
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.qty-ctrl button {
+    background: #f5f5f5;
+    border: none;
+    width: 36px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    cursor: pointer;
+    line-height: 1;
+    transition: background .12s;
+}
+.qty-ctrl button:hover { background: #e8e8e8; }
+.qty-ctrl input {
+    border: none;
+    border-left: 1px solid #d0d0d0;
+    border-right: 1px solid #d0d0d0;
+    width: 52px;
+    height: 36px;
+    text-align: center;
+    font-weight: 600;
+    font-size: .9rem;
+    background: #fff;
+    outline: none;
+    box-shadow: none;
+    -moz-appearance: textfield;
+}
+.qty-ctrl input::-webkit-outer-spin-button,
+.qty-ctrl input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+/* ── Acordeón ── */
+#acordeonDetalle {
+    margin-top: 2rem;
+    border-top: 1px solid #e0e0e0;
+}
+#acordeonDetalle .accordion-item {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #e0e0e0;
+    border-radius: 0 !important;
+}
+#acordeonDetalle .accordion-button {
+    background: transparent !important;
+    color: #1a1a1a !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    font-size: .875rem;
+    font-weight: 600;
+    padding: .85rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+#acordeonDetalle .accordion-button::after {
+    display: none; /* ocultar chevron Bootstrap */
+}
+#acordeonDetalle .accordion-button .acc-icon {
+    font-size: 1.3rem;
+    color: #333;
+    flex-shrink: 0;
+    transition: transform .18s;
+}
+#acordeonDetalle .accordion-button:not(.collapsed) .acc-icon {
+    transform: rotate(45deg); /* + → × cuando está abierto */
+}
+#acordeonDetalle .accordion-body {
+    padding: 0 0 1rem 0;
+    font-size: .85rem;
+    color: #555;
+    line-height: 1.75;
+}
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="row g-4">
+<h3 class="fw-semibold mb-4">Productos/Ordenes</h3>
+
+<div class="row g-4 g-lg-5">
 
     {# ── Columna imagen ── #}
     <div class="col-12 col-md-5">
-        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
-            <div class="position-relative d-flex align-items-center justify-content-center bg-light"
-                 style="min-height:360px;">
-                {% if articulo.imagen %}
+        <div class="det-img-wrap">
+            {% if articulo.imagen %}
                 <img src="{{ articulo.imagen }}"
                      alt="{{ articulo.nombreDisplay }}"
-                     class="img-fluid p-4"
-                     style="max-height:340px;object-fit:contain;"
-                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                <div style="display:none;min-height:340px;" class="w-100 align-items-center justify-content-center flex-column text-muted">
-                    <i class="ri-image-line fs-1 mb-2"></i>
-                    <span class="small">Sin imagen</span>
+                     onerror="this.closest('.det-img-wrap').innerHTML='<div class=\'det-img-placeholder\'><i class=\'ri-image-line\' style=\'font-size:2.5rem;\'></i></div>'">
+            {% else %}
+                <div class="det-img-placeholder">
+                    <i class="ri-image-line" style="font-size:2.5rem;"></i>
                 </div>
-                {% else %}
-                <div class="d-flex flex-column align-items-center justify-content-center text-muted" style="min-height:340px;">
-                    <i class="ri-image-line fs-1 mb-2"></i>
-                    <span class="small">Sin imagen</span>
-                </div>
-                {% endif %}
-
-                <span class="position-absolute top-0 start-0 m-3 badge text-white fw-semibold px-3 py-2"
-                      style="background:#111;border-radius:20px;font-size:.75rem;letter-spacing:.3px;">
-                    En Stock
-                </span>
-            </div>
+            {% endif %}
         </div>
     </div>
 
     {# ── Columna info ── #}
     <div class="col-12 col-md-7">
-        <div class="card border-0 shadow-sm h-100 p-4" style="border-radius:12px;">
 
-            {# Categorías #}
-            <div class="d-flex gap-2 flex-wrap mb-3">
-                {% if articulo.categoriaAdvisor %}
-                <a href="{{ path('app_catalogo_lista', {categoria: articulo.categoriaAdvisor}) }}"
-                   class="badge bg-light text-dark border text-decoration-none fw-normal">
-                    {{ articulo.categoriaAdvisor }}
-                </a>
-                {% endif %}
-                {% if articulo.subcategoriaAdvisor %}
-                <span class="badge fw-normal px-2" style="background:#f5f2c0;color:#7a7300;">
-                    {{ articulo.subcategoriaAdvisor }}
-                </span>
-                {% endif %}
-            </div>
-
-            {# Nombre #}
-            <h4 class="fw-bold mb-1" style="color:#1a1a1a;">{{ articulo.nombreDisplay }}</h4>
-
-            {# Código #}
-            {% if articulo.codigoRockwell %}
-            <p class="text-muted small mb-1">Ref: <strong>{{ articulo.codigoRockwell }}</strong></p>
-            {% endif %}
-
-            {# Descripción corta #}
-            {% if articulo.descripcion %}
-            <p class="text-muted mb-3" style="font-size:.9rem;line-height:1.6;">{{ articulo.descripcion }}</p>
-            {% endif %}
-
-            {# Proveedor / Marca #}
-            {% if articulo.proveedor or articulo.marca %}
-            <div class="d-flex gap-3 mb-3 small text-muted">
-                {% if articulo.proveedor %}
-                <span><i class="ri-store-2-line me-1"></i>{{ articulo.proveedor }}</span>
-                {% endif %}
-                {% if articulo.marca %}
-                <span><i class="ri-price-tag-3-line me-1"></i>{{ articulo.marca }}</span>
-                {% endif %}
-            </div>
-            {% endif %}
-
-            <hr class="my-3">
-
-            {# Cantidad #}
-            <div class="mb-4">
-                <label class="fw-semibold small text-uppercase text-muted d-block mb-2" style="letter-spacing:.5px;">Cantidad</label>
-                <div class="d-flex align-items-center gap-0 border rounded-3 d-inline-flex" style="overflow:hidden;width:fit-content;">
-                    <button class="btn btn-light border-0 px-3 py-2 fw-bold" type="button" id="btn-menos"
-                            style="border-radius:0;background:#f8f9fa;">−</button>
-                    <input type="number" id="input-cantidad" value="1" min="1" max="999"
-                           class="form-control border-0 text-center fw-semibold"
-                           style="width:60px;border-radius:0;box-shadow:none;background:#fff;">
-                    <button class="btn btn-light border-0 px-3 py-2 fw-bold" type="button" id="btn-mas"
-                            style="border-radius:0;background:#f8f9fa;">+</button>
-                </div>
-            </div>
-
-            {# Botones #}
-            <div class="d-flex gap-2 flex-wrap mb-2">
-                {% if app.user %}
-                    <button type="button"
-                            class="btn fw-semibold px-4 btn-agregar-proyecto"
-                            style="background:#1a1a1a;color:#fff;border-radius:8px;"
-                            data-articulo-codigo="{{ articulo.codigoCalipso }}"
-                            data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}">
-                        <i class="ri-folder-add-line me-1"></i> Agregar a Proyecto
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary fw-semibold px-4" disabled
-                            style="border-radius:8px;">
-                        Pedir cotización
-                    </button>
-                {% else %}
-                    <a href="{{ path('app_login') }}" class="btn btn-warning fw-semibold px-4"
-                       style="border-radius:8px;">
-                        Iniciá sesión para agregar
-                    </a>
-                {% endif %}
-            </div>
-
-            {% if app.user and proyectos is empty %}
-            <p class="text-muted small mt-1">
-                <a href="{{ path('app_proyectos_index') }}" class="text-warning fw-semibold">Creá un proyecto</a>
-                para poder agregar productos.
-            </p>
-            {% endif %}
-
+        {# Badge En Stock #}
+        <div class="mb-2">
+            <span class="badge-stock">En Stock</span>
         </div>
-    </div>
-</div>
 
-{# ── Acordeones ── #}
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="accordion accordion-flush border rounded-3 overflow-hidden shadow-sm" id="acordeonProducto">
+        {# Nombre #}
+        <h4 class="fw-bold mb-1" style="color:#1a1a1a;line-height:1.3;">{{ articulo.nombreDisplay }}</h4>
 
-            {% if articulo.descripcionTecnica %}
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button fw-semibold" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#acc-caracteristicas"
-                            style="font-size:.95rem;">
-                        Características técnicas
-                    </button>
-                </h2>
-                <div id="acc-caracteristicas" class="accordion-collapse collapse show">
-                    <div class="accordion-body text-muted" style="line-height:1.7;font-size:.9rem;">
-                        {{ articulo.descripcionTecnica|nl2br }}
-                    </div>
-                </div>
-            </div>
+        {# Descripción #}
+        {% if articulo.descripcion %}
+        <p class="mb-2" style="font-size:.875rem;color:#555;line-height:1.65;">{{ articulo.descripcion }}</p>
+        {% endif %}
+
+        {# Meta inline #}
+        <div class="mb-3" style="font-size:.8rem;color:#888;">
+            {% if articulo.codigoRockwell %}
+            <span class="me-3">Cód: <strong class="text-dark">{{ articulo.codigoRockwell }}</strong></span>
             {% endif %}
+            {% if articulo.marca %}
+            <span class="me-3">{{ articulo.marca }}</span>
+            {% endif %}
+            {% if articulo.subcategoriaAdvisor %}
+            <span>{{ articulo.subcategoriaAdvisor }}</span>
+            {% endif %}
+        </div>
+
+        <hr style="border-color:#e8e8e8;margin:.75rem 0 1rem;">
+
+        {# Cantidad #}
+        <p class="mb-2 fw-semibold" style="font-size:.8rem;color:#666;text-transform:uppercase;letter-spacing:.4px;">Cantidad</p>
+        <div class="qty-ctrl mb-4">
+            <button type="button" id="btn-menos">−</button>
+            <input type="number" id="input-cantidad" value="1" min="1" max="999">
+            <button type="button" id="btn-mas">+</button>
+        </div>
+
+        {# Botones #}
+        <div class="d-flex gap-2 flex-wrap align-items-center">
+            {% if app.user %}
+                <button type="button"
+                        class="btn fw-semibold px-4 btn-agregar-proyecto"
+                        style="background:#2C3E50;color:#fff;border-radius:4px;border:1px solid #2C3E50;"
+                        data-articulo-codigo="{{ articulo.codigoCalipso }}"
+                        data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}">
+                    Agregar a Proyecto
+                </button>
+                <button type="button"
+                        class="btn fw-semibold px-4"
+                        style="background:#fff;color:#555;border-radius:4px;border:1px solid #ccc;cursor:default;"
+                        tabindex="-1">
+                    Pedir cotización
+                </button>
+            {% else %}
+                <a href="{{ path('app_login') }}" class="btn fw-semibold px-4"
+                   style="background:var(--rkl-primary);color:#fff;border-radius:4px;">
+                    Iniciá sesión para agregar
+                </a>
+            {% endif %}
+        </div>
+
+        {% if app.user and proyectos is empty %}
+        <p class="mt-2 mb-0" style="font-size:.8rem;color:#999;">
+            <a href="{{ path('app_proyectos_index') }}" class="fw-semibold" style="color:var(--rkl-primary);">Creá un proyecto</a>
+            para poder agregar productos.
+        </p>
+        {% endif %}
+
+        {# ── Acordeón ── #}
+        <div class="accordion mt-4" id="acordeonDetalle">
 
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed fw-semibold" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#acc-seleccion"
-                            style="font-size:.95rem;">
-                        Selección de productos
+                    <button class="accordion-button {% if not articulo.descripcionTecnica %}collapsed{% endif %}"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#acc-caract"
+                            aria-expanded="{{ articulo.descripcionTecnica ? 'true' : 'false' }}">
+                        Características
+                        <i class="ri-add-line acc-icon"></i>
                     </button>
                 </h2>
-                <div id="acc-seleccion" class="accordion-collapse collapse">
-                    <div class="accordion-body text-muted" style="font-size:.9rem;">
-                        Agregá este producto a uno de tus proyectos para gestionarlo junto con otros artículos.
-                        <a href="{{ path('app_proyectos_index') }}" class="text-warning fw-semibold ms-1">Ver mis proyectos →</a>
+                <div id="acc-caract"
+                     class="accordion-collapse collapse {% if articulo.descripcionTecnica %}show{% endif %}"
+                     data-bs-parent="#acordeonDetalle">
+                    <div class="accordion-body">
+                        {% if articulo.descripcionTecnica %}
+                            {{ articulo.descripcionTecnica|nl2br }}
+                        {% else %}
+                            <span class="text-muted">Sin información técnica disponible.</span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
 
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed fw-semibold" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#acc-envios"
-                            style="font-size:.95rem;">
-                        Envíos
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#acc-seleccion"
+                            aria-expanded="false">
+                        Selección de productos
+                        <i class="ri-add-line acc-icon"></i>
                     </button>
                 </h2>
-                <div id="acc-envios" class="accordion-collapse collapse">
-                    <div class="accordion-body text-muted" style="font-size:.9rem;">
+                <div id="acc-seleccion" class="accordion-collapse collapse" data-bs-parent="#acordeonDetalle">
+                    <div class="accordion-body">
+                        Agregá este producto a uno de tus proyectos para gestionarlo junto con otros artículos.
+                        {% if app.user %}
+                        <a href="{{ path('app_proyectos_index') }}" class="fw-semibold ms-1"
+                           style="color:var(--rkl-primary);">Ver mis proyectos →</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#acc-envios"
+                            aria-expanded="false">
+                        Envíos
+                        <i class="ri-add-line acc-icon"></i>
+                    </button>
+                </h2>
+                <div id="acc-envios" class="accordion-collapse collapse" data-bs-parent="#acordeonDetalle">
+                    <div class="accordion-body">
                         Para información sobre envíos y tiempos de entrega, contactate con tu representante comercial.
                     </div>
                 </div>
             </div>
 
-        </div>
-    </div>
-</div>
+        </div>{# /acordeonDetalle #}
+
+    </div>{# /col-md-7 #}
+</div>{# /row #}
 
 {# ── Relacionados ── #}
 {% if relacionados is not empty %}
-<div class="row mt-5">
-    <div class="col-12 d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold mb-0" style="color:#1a1a1a;">Productos más recomendados</h5>
+<div class="mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="fw-semibold" style="font-size:.95rem;color:#1a1a1a;">Productos más recomendados</span>
+        {% if articulo.categoriaAdvisor %}
         <a href="{{ path('app_catalogo_lista', {categoria: articulo.categoriaAdvisor}) }}"
            class="fw-semibold text-decoration-none small"
            style="color:var(--rkl-primary);">VER MÁS →</a>
+        {% endif %}
     </div>
-    <div class="col-12">
-        <div class="row g-3">
-            {% for rel in relacionados %}
-            <div class="col-6 col-md-3">
-                {% include 'secure/external/catalogo/_card_articulo.html.twig' with {articulo: rel, proyectos: proyectos} %}
-            </div>
-            {% endfor %}
+    <div class="row g-3">
+        {% for rel in relacionados %}
+        <div class="col-6 col-md-3">
+            {% include 'secure/external/catalogo/_card_articulo.html.twig' with {articulo: rel, proyectos: proyectos} %}
         </div>
+        {% endfor %}
     </div>
 </div>
 {% endif %}
 
-{# Modal: seleccionar proyecto — contenido cargado vía JS #}
+{# ── Modal agregar a proyecto ── #}
 <div class="modal fade" id="modalAgregarProyecto" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius:12px;overflow:hidden;">
@@ -235,21 +330,21 @@
                     <i class="ri-folder-line fs-1 text-muted d-block mb-2"></i>
                     <p class="text-muted mb-3">No tenés proyectos para esta empresa.</p>
                     <a href="{{ path('app_proyectos_index') }}" class="btn fw-semibold px-4"
-                       style="background:#1a1a1a;color:#fff;border-radius:8px;">Ir a Proyectos</a>
+                       style="background:#2C3E50;color:#fff;border-radius:4px;">Ir a Proyectos</a>
                 </div>
 
                 <div id="modal-con-proyectos">
                     <label class="form-label fw-semibold small">Proyecto:</label>
-                    <select class="form-select" id="select-proyecto" style="border-radius:8px;">
+                    <select class="form-select" id="select-proyecto">
                         <option>Cargando…</option>
                     </select>
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0">
                 <button type="button" class="btn btn-light fw-semibold px-4" data-bs-dismiss="modal"
-                        style="border-radius:8px;">Cancelar</button>
+                        style="border-radius:4px;">Cancelar</button>
                 <button type="button" class="btn fw-semibold px-4" id="btn-confirmar-agregar"
-                        style="background:#1a1a1a;color:#fff;border-radius:8px;">Agregar</button>
+                        style="background:#2C3E50;color:#fff;border-radius:4px;">Agregar</button>
             </div>
         </div>
     </div>
@@ -267,17 +362,10 @@
         const fd = new FormData();
         fd.append('articulo_codigo', articuloCodigo);
         fd.append('cantidad', cantidad || 1);
-
         try {
-            const res = await fetch(`/secure/proyectos/${proyectoId}/agregar-articulo`, {
-                method: 'POST', body: fd,
-            });
+            const res  = await fetch(`/secure/proyectos/${proyectoId}/agregar-articulo`, { method: 'POST', body: fd });
             const data = await res.json();
-            if (data.success) {
-                RKL.toast(data.mensaje, 'success');
-            } else {
-                RKL.toast(data.error || 'Error al agregar', 'danger');
-            }
+            RKL.toast(data.success ? data.mensaje : (data.error || 'Error al agregar'), data.success ? 'success' : 'danger');
         } catch (e) {
             RKL.toast('Error: ' + e.message, 'danger');
         } finally {
@@ -286,30 +374,24 @@
     }
 
     async function cargarProyectosEnModal() {
-        const select              = document.getElementById('select-proyecto');
-        const cuerpoSinProyectos  = document.getElementById('modal-sin-proyectos');
-        const cuerpoConProyectos  = document.getElementById('modal-con-proyectos');
-        const btnConfirmar        = document.getElementById('btn-confirmar-agregar');
-
+        const select       = document.getElementById('select-proyecto');
+        const cuerpoSin    = document.getElementById('modal-sin-proyectos');
+        const cuerpoCon    = document.getElementById('modal-con-proyectos');
+        const btnConfirmar = document.getElementById('btn-confirmar-agregar');
         if (select) select.innerHTML = '<option>Cargando…</option>';
-
         try {
-            const res      = await fetch('/secure/proyectos/mis-proyectos-json');
-            const proyectos = await res.json();
-
+            const proyectos = await fetch('/secure/proyectos/mis-proyectos-json').then(r => r.json());
             if (proyectos.length === 0) {
-                if (cuerpoSinProyectos) cuerpoSinProyectos.style.display = '';
-                if (cuerpoConProyectos) cuerpoConProyectos.style.display = 'none';
-                if (btnConfirmar)       btnConfirmar.style.display       = 'none';
+                if (cuerpoSin)    cuerpoSin.style.display    = '';
+                if (cuerpoCon)    cuerpoCon.style.display    = 'none';
+                if (btnConfirmar) btnConfirmar.style.display = 'none';
             } else {
-                if (cuerpoSinProyectos) cuerpoSinProyectos.style.display = 'none';
-                if (cuerpoConProyectos) cuerpoConProyectos.style.display = '';
-                if (btnConfirmar)       btnConfirmar.style.display       = '';
-                if (select) {
-                    select.innerHTML = proyectos.map(p =>
-                        `<option value="${p.id}">${p.nombre} (${p.cantidad} items)</option>`
-                    ).join('');
-                }
+                if (cuerpoSin)    cuerpoSin.style.display    = 'none';
+                if (cuerpoCon)    cuerpoCon.style.display    = '';
+                if (btnConfirmar) btnConfirmar.style.display = '';
+                if (select) select.innerHTML = proyectos.map(p =>
+                    `<option value="${p.id}">${p.nombre} (${p.cantidad} items)</option>`
+                ).join('');
             }
         } catch (e) {
             if (select) select.innerHTML = '<option>Error al cargar</option>';
@@ -326,15 +408,13 @@
         if (parseInt(inp.value) < 999) inp.value = parseInt(inp.value) + 1;
     });
 
-    // Botón principal
+    // Botón "Agregar a Proyecto"
     document.querySelector('.btn-agregar-proyecto')?.addEventListener('click', function () {
         const cantidad = parseInt(document.getElementById('input-cantidad')?.value || 1);
-
         if (RKL.proyectoActivo) {
             agregarArticulo(RKL.proyectoActivo.id, cantidad, this);
             return;
         }
-
         cargarProyectosEnModal();
         new bootstrap.Modal(document.getElementById('modalAgregarProyecto')).show();
     });
@@ -344,7 +424,6 @@
         const proyectoId = document.getElementById('select-proyecto')?.value;
         const cantidad   = parseInt(document.getElementById('input-cantidad')?.value || 1);
         if (!proyectoId) return;
-
         this.disabled    = true;
         this.textContent = 'Agregando…';
         bootstrap.Modal.getInstance(document.getElementById('modalAgregarProyecto')).hide();

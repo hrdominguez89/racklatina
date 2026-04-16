@@ -136,7 +136,7 @@
             padding-top: 0 !important;
         }
         .page-content {
-            padding-top: 1.5rem !important;
+            padding-top: calc(70px + 1.5rem) !important;
         }
 
         /* Cards */
@@ -190,77 +190,8 @@
                     </nav>
                 </div>
 
-                <!-- Derecha: proyecto activo + empresa + usuario -->
+                <!-- Derecha: empresa + usuario -->
                 <div class="d-flex align-items-center gap-2">
-
-                    {# Proyecto activo #}
-                    {% if app.user is not null %}
-                        {% set _proyectoActivo = proyecto_activo(app.user) %}
-                        {% set _todosProyectos = proyectos_del_usuario(app.user) %}
-
-                        {% if _proyectoActivo is not null %}
-                        {# Hay proyecto activo: dropdown para cambiar o ver #}
-                        <div class="dropdown d-none d-md-block">
-                            <button type="button"
-                                    class="btn btn-sm btn-warning d-flex align-items-center gap-1 position-relative"
-                                    data-bs-toggle="dropdown" aria-expanded="false"
-                                    title="Proyecto activo">
-                                <i class="ri-folder-open-line"></i>
-                                <span class="d-none d-lg-inline fw-semibold" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                                    {{ _proyectoActivo.nombre }}
-                                </span>
-                                <span class="badge bg-dark text-white ms-1" style="font-size:.65rem;">
-                                    {{ _proyectoActivo.cantidadProductos }}
-                                </span>
-                                <i class="ri-arrow-down-s-line"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" style="min-width:240px;">
-                                <li>
-                                    <a class="dropdown-item small fw-semibold" href="{{ path('app_proyectos_show', {id: _proyectoActivo.id}) }}">
-                                        <i class="ri-eye-line me-1"></i> Ver proyecto actual
-                                    </a>
-                                </li>
-                                {% if _todosProyectos|length > 1 %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><span class="dropdown-item-text text-muted small">Cambiar proyecto activo:</span></li>
-                                {% for p in _todosProyectos %}
-                                    {% if p.id != _proyectoActivo.id %}
-                                    <li>
-                                        <button type="button"
-                                                class="dropdown-item small btn-set-proyecto-activo"
-                                                data-proyecto-id="{{ p.id }}"
-                                                data-proyecto-nombre="{{ p.nombre|e('html_attr') }}">
-                                            <i class="ri-folder-line me-1 text-muted"></i>
-                                            {{ p.nombre }}
-                                            <span class="text-muted">({{ p.cantidadProductos }})</span>
-                                        </button>
-                                    </li>
-                                    {% endif %}
-                                {% endfor %}
-                                {% endif %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item small" href="{{ path('app_proyectos_index') }}">
-                                        <i class="ri-list-unordered me-1"></i> Todos mis proyectos
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                        {% else %}
-                        {# Sin proyecto activo: botón simple #}
-                        <a href="{{ path('app_proyectos_index') }}"
-                           class="btn btn-sm btn-outline-secondary d-none d-md-inline-flex align-items-center gap-1"
-                           title="Mis Proyectos">
-                            <i class="ri-folder-line"></i>
-                            <span class="d-none d-lg-inline">Proyectos</span>
-                            {% if _todosProyectos|length > 0 %}
-                            <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem;">
-                                {{ _todosProyectos|length }}
-                            </span>
-                            {% endif %}
-                        </a>
-                        {% endif %}
-                    {% endif %}
 
                     {# Empresa dropdown: muestra la activa, permite cambiar si hay más #}
                     {% if app.user is not null and app.user.userCustomers is not empty %}
@@ -270,8 +201,7 @@
                             <button type="button"
                                     class="header-empresa-btn"
                                     {% if ucList|length > 1 %}data-bs-toggle="dropdown" aria-expanded="false"{% endif %}>
-                                <i class="ri-building-line me-1"></i>
-                                {{ cliente_razon_social(activoCodigo) }} ({{ activoCodigo }})
+                                {{ cliente_razon_social(activoCodigo) }}
                                 {% if ucList|length > 1 %}
                                     <i class="ri-arrow-down-s-line ms-1"></i>
                                 {% endif %}
@@ -311,12 +241,17 @@
                                 <div class="header-user-avatar">
                                     {{- app.user.firstName|first|upper -}}{{- app.user.lastName|first|upper -}}
                                 </div>
-                                <div class="d-none d-xl-block text-start">
+                                <div class="d-none d-md-block text-start">
                                     <div class="header-user-name">
                                         {{ app.user.firstName }} {{ app.user.lastName }}
                                     </div>
                                     <div class="header-user-meta">
-                                        {{ app.user.email }}
+                                        {{ app.user.email }} /
+                                        {% if is_granted('ROLE_SUPER_ADMIN') %}Super Admin
+                                        {% elseif is_granted('ROLE_ADMIN') %}Admin
+                                        {% elseif is_granted('ROLE_ADMINISTRACION') %}Administración
+                                        {% elseif is_granted('ROLE_COMPRADOR') %}Comprador
+                                        {% else %}Usuario{% endif %}
                                     </div>
                                 </div>
                             </button>
@@ -451,5 +386,137 @@ document.addEventListener('click', function(e) {
 </style>
 
 {% block extra_js %}{% endblock %}
+
+{# ── Modal: Crear nuevo proyecto ── #}
+{% if app.user is not null %}
+<div class="modal fade" id="modalCrearProyecto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+        <div class="modal-content border-0" style="border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.18);">
+
+            <div class="modal-header border-0 pb-1 pt-4 px-4">
+                <div class="flex-grow-1">
+                    <h5 class="modal-title fw-bold mb-1" style="font-size:1.15rem;color:#1a1a1a;">Nuevo Proyecto</h5>
+                    <p class="text-muted mb-0" style="font-size:.8rem;line-height:1.5;">
+                        Ingresá tu cuenta de Racklatina para conocer los precios, la cantidad de stock y los tiempos de espera de los productos.
+                    </p>
+                </div>
+                <button type="button" class="btn-close ms-3 mt-1 flex-shrink-0" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body px-4 pt-3 pb-4">
+                <div id="crear-proyecto-error" class="alert alert-danger py-2 small d-none"></div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small mb-1" style="color:#444;">Nombre del proyecto</label>
+                    <input type="text" id="cp-nombre" class="form-control" placeholder="Proyecto 1"
+                           style="border-radius:6px;font-size:.9rem;">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small mb-1" style="color:#444;">Rubro</label>
+                    <select id="cp-rubro" class="form-select" style="border-radius:6px;font-size:.9rem;color:#666;">
+                        <option value="">Seleccioná un rubro</option>
+                        <option value="Automatización Industrial">Automatización Industrial</option>
+                        <option value="Energía y Potencia">Energía y Potencia</option>
+                        <option value="Seguridad Industrial">Seguridad Industrial</option>
+                        <option value="Redes e Infraestructura">Redes e Infraestructura</option>
+                        <option value="Control de Motores">Control de Motores</option>
+                        <option value="Instrumentación">Instrumentación</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold small mb-1" style="color:#444;">Notas</label>
+                    <textarea id="cp-notas" class="form-control" rows="4"
+                              style="border-radius:6px;font-size:.9rem;resize:none;"></textarea>
+                </div>
+
+                <button type="button" id="cp-btn-crear" class="btn fw-semibold w-100 py-2"
+                        style="background:#2C3E50;color:#fff;border-radius:6px;font-size:.95rem;">
+                    Creá el proyecto
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const modal      = document.getElementById('modalCrearProyecto');
+    if (!modal) return;
+
+    const bsModal    = bootstrap.Modal.getOrCreateInstance(modal);
+    const btnCrear   = document.getElementById('cp-btn-crear');
+    const inputNombre = document.getElementById('cp-nombre');
+    const errorBox   = document.getElementById('crear-proyecto-error');
+
+    // Limpiar al abrir
+    modal.addEventListener('show.bs.modal', function () {
+        inputNombre.value = '';
+        document.getElementById('cp-rubro').value = '';
+        document.getElementById('cp-notas').value = '';
+        errorBox.classList.add('d-none');
+        errorBox.textContent = '';
+        btnCrear.disabled = false;
+        btnCrear.textContent = 'Creá el proyecto';
+    });
+
+    // Focus en nombre al abrir
+    modal.addEventListener('shown.bs.modal', function () {
+        inputNombre.focus();
+    });
+
+    btnCrear.addEventListener('click', async function () {
+        const nombre = inputNombre.value.trim();
+        if (!nombre) {
+            errorBox.textContent = 'El nombre del proyecto es obligatorio.';
+            errorBox.classList.remove('d-none');
+            inputNombre.focus();
+            return;
+        }
+
+        btnCrear.disabled = true;
+        btnCrear.textContent = 'Creando…';
+        errorBox.classList.add('d-none');
+
+        const fd = new FormData();
+        fd.append('nombre', nombre);
+        fd.append('rubro',  document.getElementById('cp-rubro').value);
+        fd.append('notas',  document.getElementById('cp-notas').value.trim());
+
+        try {
+            const res  = await fetch('/secure/proyectos/crear-ajax', { method: 'POST', body: fd });
+            const data = await res.json();
+
+            if (data.success) {
+                RKL.proyectoActivo = { id: data.proyecto.id, nombre: data.proyecto.nombre };
+                bsModal.hide();
+                RKL.toast(`Proyecto <strong>${data.proyecto.nombre}</strong> creado y activado.`, 'success');
+                // Disparar evento para que otras partes de la página puedan reaccionar
+                document.dispatchEvent(new CustomEvent('rkl:proyecto-creado', { detail: data.proyecto }));
+            } else {
+                errorBox.textContent = data.error || 'Error al crear el proyecto.';
+                errorBox.classList.remove('d-none');
+                btnCrear.disabled = false;
+                btnCrear.textContent = 'Creá el proyecto';
+            }
+        } catch (e) {
+            errorBox.textContent = 'Error de conexión. Intentá de nuevo.';
+            errorBox.classList.remove('d-none');
+            btnCrear.disabled = false;
+            btnCrear.textContent = 'Creá el proyecto';
+        }
+    });
+
+    // Enter en nombre = submit
+    inputNombre.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') btnCrear.click();
+    });
+})();
+</script>
+{% endif %}
+
 </body>
 </html>

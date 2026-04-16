@@ -40,6 +40,15 @@ class CatalogoController extends AbstractController
         }
 
         $user->setActiveCliente($codigo);
+
+        // Limpiar proyecto activo si no pertenece al nuevo cliente
+        if ($user->getActiveProyectoId() !== null) {
+            $proyecto = $this->proyectoRepo->find($user->getActiveProyectoId());
+            if ($proyecto === null || $proyecto->getClienteCodigo() !== $codigo) {
+                $user->setActiveProyectoId(null);
+            }
+        }
+
         $this->em->flush();
 
         $referer = $request->headers->get('referer');
@@ -64,9 +73,8 @@ class CatalogoController extends AbstractController
         $q = $request->query->get('q');
         $categoria = $request->query->get('categoria');
         $subcategoria = $request->query->get('subcategoria');
-        $bu = $request->query->get('bu');
-        $proveedor = $request->query->get('proveedor');
         $marca = $request->query->get('marca');
+        $ordenar = in_array($request->query->get('ordenar'), ['az', 'za']) ? $request->query->get('ordenar') : 'az';
         $pagina = max(1, (int)$request->query->get('pagina', 1));
         $porPagina = in_array((int)$request->query->get('por_pagina', 24), [24, 48, 72])
             ? (int)$request->query->get('por_pagina', 24)
@@ -74,7 +82,7 @@ class CatalogoController extends AbstractController
         $vista = $request->query->get('vista', 'grid');
 
         $resultado = $this->articuloRepo->buscarConFiltros(
-            $q, $categoria, $subcategoria, $bu, $proveedor, $marca, $pagina, $porPagina
+            $q, $categoria, $subcategoria, $marca, $pagina, $porPagina, $ordenar
         );
 
         $totalPaginas = (int)ceil($resultado['total'] / $porPagina);
@@ -96,15 +104,12 @@ class CatalogoController extends AbstractController
                 'q' => $q,
                 'categoria' => $categoria,
                 'subcategoria' => $subcategoria,
-                'bu' => $bu,
-                'proveedor' => $proveedor,
                 'marca' => $marca,
+                'ordenar' => $ordenar,
             ],
             'opcionesFiltros' => [
                 'categorias' => $this->articuloRepo->getCategorias(),
                 'subcategorias' => $this->articuloRepo->getSubcategorias($categoria),
-                'bus' => $this->articuloRepo->getBus(),
-                'proveedores' => $this->articuloRepo->getProveedores(),
                 'marcas' => $this->articuloRepo->getMarcas(),
             ],
             'proyectos' => $proyectos,
@@ -125,7 +130,7 @@ class CatalogoController extends AbstractController
             : [];
 
         $relacionados = array_values(array_filter(
-            $this->articuloRepo->buscarConFiltros(null, $articulo->getCategoriaAdvisor(), null, null, null, null, 1, 5)['items'],
+            $this->articuloRepo->buscarConFiltros(null, $articulo->getCategoriaAdvisor(), null, null, 1, 5)['items'],
             fn($a) => $a->getCodigoCalipso() !== $articulo->getCodigoCalipso()
         ));
 

@@ -12,17 +12,24 @@
 
     <h3 class="fw-semibold mb-4">Productos/Ordenes</h3>
 
-    {# Barra de búsqueda #}
+    {# Barra de búsqueda + Filtros #}
     <div class="mb-4">
         <form action="{{ path('app_catalogo_lista') }}" method="GET">
-            <div class="position-relative">
-                <i class="ri-search-line position-absolute text-muted"
-                   style="left:14px;top:50%;transform:translateY(-50%);font-size:1.1rem;"></i>
-                <input type="text" name="q"
-                       class="form-control rounded ps-5"
-                       style="height:44px;"
-                       placeholder="Buscá un producto"
-                       value="{{ app.request.query.get('q') ?? '' }}">
+            <div class="d-flex gap-2">
+                <div class="position-relative flex-grow-1">
+                    <i class="ri-search-line position-absolute text-muted"
+                       style="left:14px;top:50%;transform:translateY(-50%);font-size:1.1rem;"></i>
+                    <input type="text" name="q"
+                           class="form-control rounded ps-5"
+                           style="height:44px;"
+                           placeholder="Buscá un producto"
+                           value="{{ app.request.query.get('q') ?? '' }}">
+                </div>
+                <button type="submit" name="panel_filtros" value="1"
+                        class="btn fw-semibold px-3 d-flex align-items-center gap-1 flex-shrink-0"
+                        style="height:44px;background-color:var(--rkl-primary);color:#fff;border:none;">
+                    <i class="ri-equalizer-line"></i> + Filtros
+                </button>
             </div>
         </form>
     </div>
@@ -39,8 +46,8 @@
             <div class="col-6 col-md-3">
                 <a href="{{ path('app_catalogo_lista', {categoria: categoria}) }}" class="text-decoration-none">
                     <div class="rounded d-flex align-items-center justify-content-center text-center p-3"
-                         style="background-color: var(--rkl-primary); min-height: 200px;">
-                        <h5 class="fw-semibold mb-0 text-white">{{ categoria }}</h5>
+                         style="background-color: var(--rkl-primary); min-height: 280px;">
+                        <h5 class="fw-semibold mb-0" style="color:#1a1a1a;">{{ categoria }}</h5>
                     </div>
                 </a>
             </div>
