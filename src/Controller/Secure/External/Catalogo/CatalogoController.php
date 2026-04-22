@@ -6,6 +6,7 @@ use App\Repository\ArticuloEcommerceRepository;
 use App\Repository\ProyectoRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -114,6 +115,29 @@ class CatalogoController extends AbstractController
             ],
             'proyectos' => $proyectos,
         ]);
+    }
+
+    #[Route('/productos/{codigo}/similares', name: 'app_catalogo_similares', methods: ['GET'])]
+    public function similares(string $codigo): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+
+        $articulo = $this->articuloRepo->find($codigo);
+        if (!$articulo || !$articulo->getCategoriaAdvisor()) {
+            return $this->json([]);
+        }
+
+        $items = array_values(array_filter(
+            $this->articuloRepo->buscarConFiltros(null, $articulo->getCategoriaAdvisor(), null, null, 1, 6)['items'],
+            fn($a) => $a->getCodigoCalipso() !== $codigo
+        ));
+
+        return $this->json(array_map(fn($a) => [
+            'codigo'      => $a->getCodigoCalipso(),
+            'nombre'      => $a->getNombreDisplay(),
+            'imagen'      => $a->getImagen(),
+            'descripcion' => $a->getDescripcion(),
+        ], array_slice($items, 0, 4)));
     }
 
     #[Route('/productos/{codigo}', name: 'app_catalogo_detalle')]

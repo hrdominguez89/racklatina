@@ -29,6 +29,9 @@ class ProyectoItem
     #[ORM\Column(name: 'cantidad', type: 'integer', options: ['default' => 1])]
     private int $cantidad = 1;
 
+    #[ORM\Column(name: 'comment', type: 'text', nullable: true)]
+    private ?string $comment = null;
+
     public function getId(): ?int { return $this->id; }
 
     public function getProyecto(): Proyecto { return $this->proyecto; }
@@ -39,4 +42,7 @@ class ProyectoItem
 
     public function getCantidad(): int { return $this->cantidad; }
     public function setCantidad(int $cantidad): static { $this->cantidad = max(1, $cantidad); return $this; }
+
+    public function getComment(): ?string { return $this->comment; }
+    public function setComment(?string $comment): static { $this->comment = $comment ?: null; return $this; }
 }

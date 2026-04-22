@@ -271,6 +271,22 @@ class ProyectoController extends AbstractController
         return $this->json(['success' => true, 'cantidad' => $item->getCantidad()]);
     }
 
+    #[Route('/item/{itemId}/comment', name: 'app_proyectos_update_comment', requirements: ['itemId' => '\d+'], methods: ['POST'])]
+    public function updateComment(int $itemId, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+
+        $item = $this->itemRepo->find($itemId);
+        if (!$item || $item->getProyecto()->getUser()->getId() !== $this->getUser()->getId()) {
+            return $this->json(['error' => 'No autorizado'], 403);
+        }
+
+        $item->setComment($request->request->get('comment'));
+        $this->em->flush();
+
+        return $this->json(['success' => true]);
+    }
+
     #[Route('/item/{itemId}/quitar', name: 'app_proyectos_quitar_articulo', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function quitarArticulo(int $itemId, Request $request): JsonResponse
     {

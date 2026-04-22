@@ -62,6 +62,12 @@
             color: var(--rkl-primary) !important;
         }
 
+        /* En sidebar colapsado (sm) evitar que el label desborde y se pueda seleccionar */
+        [data-sidebar-size=sm] .navbar-menu .navbar-nav .nav-item:hover > a.menu-link span,
+        [data-sidebar-size=sm] .navbar-menu .navbar-nav .nav-item:hover .nav-link span {
+            display: none !important;
+        }
+
         /* Forzar topbar blanco independientemente del tema */
         #page-topbar {
             background-color: #ffffff !important;
