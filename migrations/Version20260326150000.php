@@ -17,7 +17,7 @@ final class Version20260326150000 extends AbstractMigration
     public function up(Schema $schema): void
     {
         $this->addSql(<<<'SQL'
-            CREATE TABLE articulos_ecommerce (
+            CREATE TABLE IF NOT EXISTS articulos_ecommerce (
                 id INT AUTO_INCREMENT NOT NULL,
                 esquema VARCHAR(30) DEFAULT NULL,
                 codigo_calipso VARCHAR(50) NOT NULL,
