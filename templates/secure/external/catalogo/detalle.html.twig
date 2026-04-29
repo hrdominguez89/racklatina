@@ -20,42 +20,61 @@
 <style>
 /* ── Imagen ── */
 .det-img-wrap {
-    background: #f0f0f0;
+    background: #fff;
+    border: 1px solid #ebebeb;
     border-radius: 8px;
-    min-height: 380px;
+    min-height: 420px;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
 }
 .det-img-wrap img {
-    max-height: 340px;
+    max-height: 380px;
     max-width: 100%;
     object-fit: contain;
-    padding: 2rem;
+    padding: 1.5rem;
 }
 .det-img-placeholder {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #bbb;
-    min-height: 340px;
+    color: #ccc;
+    min-height: 380px;
 }
 
-/* ── Badge En Stock ── */
+/* ── Category tags ── */
+.det-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    margin-bottom: .85rem;
+}
+.det-tag {
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--rkl-primary);
+    background: #f5f5e0;
+    border: 1px solid #e0dc9a;
+    border-radius: 20px;
+    padding: .2em .75em;
+    letter-spacing: .2px;
+}
+
+/* ── En Stock badge ── */
 .badge-stock {
     display: inline-block;
-    background: #444;
+    background: var(--rkl-primary);
     color: #fff;
     font-size: .72rem;
-    font-weight: 500;
-    padding: .3em .75em;
-    border-radius: 4px;
+    font-weight: 600;
+    padding: .3em .9em;
+    border-radius: 20px;
     letter-spacing: .3px;
 }
 
-/* ── Selector de cantidad ── */
+/* ── Cantidad ── */
 .qty-ctrl {
     display: inline-flex;
     align-items: stretch;
@@ -92,52 +111,157 @@
 .qty-ctrl input::-webkit-outer-spin-button,
 .qty-ctrl input::-webkit-inner-spin-button { -webkit-appearance: none; }
 
-/* ── Acordeón ── */
-#acordeonDetalle {
-    margin-top: 2rem;
-    border-top: 1px solid #e0e0e0;
+/* ── Botones acción ── */
+.det-actions {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
 }
-#acordeonDetalle .accordion-item {
-    background: transparent;
+.btn-agregar-det {
+    width: 100%;
+    background: var(--rkl-primary);
+    color: #fff;
     border: none;
-    border-bottom: 1px solid #e0e0e0;
-    border-radius: 0 !important;
+    border-radius: 5px;
+    padding: .45rem .9rem;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .7px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .15s;
+    white-space: nowrap;
 }
-#acordeonDetalle .accordion-button {
-    background: transparent !important;
-    color: #1a1a1a !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    font-size: .875rem;
+.btn-agregar-det:hover { background: var(--rkl-primary-dark); }
+.btn-cotizacion-det {
+    background: #fff;
+    color: var(--rkl-primary);
+    border: 1.5px solid var(--rkl-primary);
+    border-radius: 5px;
+    padding: .45rem .9rem;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .7px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    white-space: nowrap;
+}
+.btn-cotizacion-det:hover { background: var(--rkl-primary); color: #fff; }
+
+/* ── Dropdown proyectos ── */
+.proyectos-dropdown-wrap {
+    position: relative;
+}
+.proyectos-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 220px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.1);
+    z-index: 200;
+    overflow: hidden;
+}
+.proyectos-dropdown.open { display: block; }
+.proy-drop-item {
+    display: block;
+    width: 100%;
+    padding: .6rem .9rem;
+    font-size: .85rem;
+    color: #333;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: background .1s;
+}
+.proy-drop-item:hover { background: #f5f5f5; }
+.proy-drop-item.loading { color: #aaa; cursor: default; }
+.proy-drop-divider { height: 1px; background: #f0f0f0; margin: .25rem 0; }
+.proy-drop-create {
+    display: block;
+    padding: .6rem .9rem;
+    font-size: .82rem;
     font-weight: 600;
-    padding: .85rem 0;
+    color: var(--rkl-primary);
+    text-decoration: none;
+    transition: background .1s;
+}
+.proy-drop-create:hover { background: #f5f5f5; color: var(--rkl-primary-dark); }
+
+/* ── Tabs ── */
+.det-tabs-section {
+    margin-top: 2.5rem;
+    border-top: 1px solid #ebebeb;
+    padding-top: 1.5rem;
+}
+.det-tab-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    border-bottom: 2px solid #e8e8e8;
+    margin-bottom: 1.25rem;
+}
+.det-tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    padding: .55rem 1.1rem;
+    font-size: .85rem;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+    white-space: nowrap;
+}
+.det-tab-btn:hover { color: #444; }
+.det-tab-btn.active {
+    color: var(--rkl-primary);
+    border-bottom-color: var(--rkl-primary);
+}
+.det-tab-panel {
+    display: none;
+    font-size: .875rem;
+    color: #555;
+    line-height: 1.8;
+}
+.det-tab-panel.active { display: block; }
+
+/* ── Relacionados ── */
+.rel-section {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #ebebeb;
+}
+.rel-section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 1rem;
 }
-#acordeonDetalle .accordion-button::after {
-    display: none; /* ocultar chevron Bootstrap */
+.rel-section-header span {
+    font-size: .95rem;
+    font-weight: 700;
+    color: #1a1a1a;
 }
-#acordeonDetalle .accordion-button .acc-icon {
-    font-size: 1.3rem;
-    color: #333;
-    flex-shrink: 0;
-    transition: transform .18s;
+.rel-section-header a {
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--rkl-primary);
+    text-decoration: none;
 }
-#acordeonDetalle .accordion-button:not(.collapsed) .acc-icon {
-    transform: rotate(45deg); /* + → × cuando está abierto */
-}
-#acordeonDetalle .accordion-body {
-    padding: 0 0 1rem 0;
-    font-size: .85rem;
-    color: #555;
-    line-height: 1.75;
-}
+.rel-section-header a:hover { text-decoration: underline; }
 </style>
 {% endblock %}
 
 {% block body %}
-<h3 class="fw-semibold mb-4">Productos/Ordenes</h3>
+<h3 class="fw-semibold mb-4" style="color:#1a1a1a;">Productos</h3>
 
 <div class="row g-4 g-lg-5">
 
@@ -147,10 +271,10 @@
             {% if articulo.imagen %}
                 <img src="{{ articulo.imagen }}"
                      alt="{{ articulo.nombreDisplay }}"
-                     onerror="this.closest('.det-img-wrap').innerHTML='<div class=\'det-img-placeholder\'><i class=\'ri-image-line\' style=\'font-size:2.5rem;\'></i></div>'">
+                     onerror="this.closest('.det-img-wrap').innerHTML='<div class=\'det-img-placeholder\'><i class=\'ri-image-line\' style=\'font-size:3rem;\'></i></div>'">
             {% else %}
                 <div class="det-img-placeholder">
-                    <i class="ri-image-line" style="font-size:2.5rem;"></i>
+                    <i class="ri-image-line" style="font-size:3rem;"></i>
                 </div>
             {% endif %}
         </div>
@@ -159,150 +283,143 @@
     {# ── Columna info ── #}
     <div class="col-12 col-md-7">
 
+        {# Tags de categoría #}
+        {% if articulo.categoriaAdvisor or articulo.subcategoriaAdvisor %}
+        <div class="det-tags">
+            {% if articulo.categoriaAdvisor %}
+            <span class="det-tag">{{ articulo.categoriaAdvisor }}</span>
+            {% endif %}
+            {% if articulo.subcategoriaAdvisor %}
+            <span class="det-tag">{{ articulo.subcategoriaAdvisor }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {# Nombre #}
+        <h4 class="fw-bold mb-2" style="color:#1a1a1a;line-height:1.3;font-size:1.3rem;">{{ articulo.nombreDisplay }}</h4>
+
+        {# Descripción corta #}
+        {% if articulo.descripcion %}
+        <p class="mb-3" style="font-size:.85rem;color:#666;line-height:1.65;">{{ articulo.descripcion }}</p>
+        {% endif %}
+
         {# Badge En Stock #}
-        <div class="mb-2">
+        <div class="mb-3">
             <span class="badge-stock">En Stock</span>
         </div>
 
-        {# Nombre #}
-        <h4 class="fw-bold mb-1" style="color:#1a1a1a;line-height:1.3;">{{ articulo.nombreDisplay }}</h4>
-
-        {# Descripción #}
-        {% if articulo.descripcion %}
-        <p class="mb-2" style="font-size:.875rem;color:#555;line-height:1.65;">{{ articulo.descripcion }}</p>
-        {% endif %}
-
-        {# Meta inline #}
-        <div class="mb-3" style="font-size:.8rem;color:#888;">
-            {% if articulo.codigoRockwell %}
-            <span class="me-3">Cód: <strong class="text-dark">{{ articulo.codigoRockwell }}</strong></span>
-            {% endif %}
-            {% if articulo.marca %}
-            <span class="me-3">{{ articulo.marca }}</span>
-            {% endif %}
-            {% if articulo.subcategoriaAdvisor %}
-            <span>{{ articulo.subcategoriaAdvisor }}</span>
-            {% endif %}
-        </div>
-
-        <hr style="border-color:#e8e8e8;margin:.75rem 0 1rem;">
-
         {# Cantidad #}
-        <p class="mb-2 fw-semibold" style="font-size:.8rem;color:#666;text-transform:uppercase;letter-spacing:.4px;">Cantidad</p>
-        <div class="qty-ctrl mb-4">
+        <p class="mb-2" style="font-size:.78rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;">Cantidad</p>
+        <div class="qty-ctrl mb-0">
             <button type="button" id="btn-menos">−</button>
             <input type="number" id="input-cantidad" value="1" min="1" max="999">
             <button type="button" id="btn-mas">+</button>
         </div>
 
-        {# Botones #}
-        <div class="d-flex gap-2 flex-wrap align-items-center">
-            {% if app.user %}
-                <button type="button"
-                        class="btn fw-semibold px-4 btn-agregar-proyecto"
-                        style="background:#2C3E50;color:#fff;border-radius:4px;border:1px solid #2C3E50;"
-                        data-articulo-codigo="{{ articulo.codigoCalipso }}"
-                        data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}">
+        {# Botones de acción #}
+        {% if app.user %}
+        <div class="det-actions">
+            {# AGREGAR A PROYECTO con dropdown inline #}
+            <div class="proyectos-dropdown-wrap">
+                <button type="button" class="btn-agregar-det" id="btn-agregar-det">
                     Agregar a Proyecto
                 </button>
-                <button type="button"
-                        class="btn fw-semibold px-4"
-                        style="background:#fff;color:#555;border-radius:4px;border:1px solid #ccc;cursor:default;"
-                        tabindex="-1">
-                    Pedir cotización
-                </button>
-            {% else %}
-                <a href="{{ path('app_login') }}" class="btn fw-semibold px-4"
-                   style="background:var(--rkl-primary);color:#fff;border-radius:4px;">
-                    Iniciá sesión para agregar
-                </a>
-            {% endif %}
+                <div class="proyectos-dropdown" id="proy-dropdown">
+                    <div id="proy-drop-list">
+                        <button class="proy-drop-item loading" disabled>Cargando…</button>
+                    </div>
+                    <div class="proy-drop-divider"></div>
+                    <a href="{{ path('app_proyectos_index') }}" class="proy-drop-create"
+                       data-bs-toggle="modal" data-bs-target="#modalCrearProyecto">
+                        + Crear Nuevo Proyecto
+                    </a>
+                </div>
+            </div>
+
+            <button type="button" class="btn-cotizacion-det" disabled>
+                Solicitar Cotización
+            </button>
         </div>
 
-        {% if app.user and proyectos is empty %}
+        {% if proyectos is empty %}
         <p class="mt-2 mb-0" style="font-size:.8rem;color:#999;">
             <a href="{{ path('app_proyectos_index') }}" class="fw-semibold" style="color:var(--rkl-primary);">Creá un proyecto</a>
             para poder agregar productos.
         </p>
         {% endif %}
 
-        {# ── Acordeón ── #}
-        <div class="accordion mt-4" id="acordeonDetalle">
+        {% else %}
+        <div class="det-actions">
+            <a href="{{ path('app_login') }}" class="btn-agregar-det text-center text-decoration-none">
+                Iniciá sesión para agregar
+            </a>
+        </div>
+        {% endif %}
 
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button {% if not articulo.descripcionTecnica %}collapsed{% endif %}"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#acc-caract"
-                            aria-expanded="{{ articulo.descripcionTecnica ? 'true' : 'false' }}">
-                        Características
-                        <i class="ri-add-line acc-icon"></i>
-                    </button>
-                </h2>
-                <div id="acc-caract"
-                     class="accordion-collapse collapse {% if articulo.descripcionTecnica %}show{% endif %}"
-                     data-bs-parent="#acordeonDetalle">
-                    <div class="accordion-body">
-                        {% if articulo.descripcionTecnica %}
-                            {{ articulo.descripcionTecnica|nl2br }}
-                        {% else %}
-                            <span class="text-muted">Sin información técnica disponible.</span>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#acc-seleccion"
-                            aria-expanded="false">
-                        Selección de productos
-                        <i class="ri-add-line acc-icon"></i>
-                    </button>
-                </h2>
-                <div id="acc-seleccion" class="accordion-collapse collapse" data-bs-parent="#acordeonDetalle">
-                    <div class="accordion-body">
-                        Agregá este producto a uno de tus proyectos para gestionarlo junto con otros artículos.
-                        {% if app.user %}
-                        <a href="{{ path('app_proyectos_index') }}" class="fw-semibold ms-1"
-                           style="color:var(--rkl-primary);">Ver mis proyectos →</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#acc-envios"
-                            aria-expanded="false">
-                        Envíos
-                        <i class="ri-add-line acc-icon"></i>
-                    </button>
-                </h2>
-                <div id="acc-envios" class="accordion-collapse collapse" data-bs-parent="#acordeonDetalle">
-                    <div class="accordion-body">
-                        Para información sobre envíos y tiempos de entrega, contactate con tu representante comercial.
-                    </div>
-                </div>
-            </div>
-
-        </div>{# /acordeonDetalle #}
+        {# Meta (código, marca) #}
+        {% if articulo.codigoRockwell or articulo.marca %}
+        <div class="mt-3" style="font-size:.78rem;color:#aaa;">
+            {% if articulo.codigoRockwell %}
+            <span class="me-3">Cód: <strong style="color:#888;">{{ articulo.codigoRockwell }}</strong></span>
+            {% endif %}
+            {% if articulo.marca %}
+            <span>{{ articulo.marca }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
 
     </div>{# /col-md-7 #}
 </div>{# /row #}
 
+{# ── Tabs de información ── #}
+<div class="det-tabs-section">
+    <div class="det-tab-nav">
+        <button class="det-tab-btn active" data-tab="descripcion">Descripción</button>
+        <button class="det-tab-btn" data-tab="caracteristicas">Características</button>
+        <button class="det-tab-btn" data-tab="seleccion">Selección de productos</button>
+        <button class="det-tab-btn" data-tab="envios">Envíos</button>
+    </div>
+
+    <div class="det-tab-panel active" id="tab-descripcion">
+        {% if articulo.descripcion %}
+            <p>{{ articulo.descripcion }}</p>
+        {% endif %}
+        {% if articulo.soluciones %}
+            <p>{{ articulo.soluciones }}</p>
+        {% else %}
+            <p class="text-muted">Sin descripción disponible.</p>
+        {% endif %}
+    </div>
+
+    <div class="det-tab-panel" id="tab-caracteristicas">
+        {% if articulo.descripcionTecnica %}
+            {{ articulo.descripcionTecnica|nl2br }}
+        {% else %}
+            <p class="text-muted">Sin información técnica disponible.</p>
+        {% endif %}
+    </div>
+
+    <div class="det-tab-panel" id="tab-seleccion">
+        <p>Agregá este producto a uno de tus proyectos para gestionarlo junto con otros artículos.</p>
+        {% if app.user %}
+        <a href="{{ path('app_proyectos_index') }}" class="fw-semibold" style="color:var(--rkl-primary);">
+            Ver mis proyectos →
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="det-tab-panel" id="tab-envios">
+        <p>Para información sobre envíos y tiempos de entrega, contactate con tu representante comercial.</p>
+    </div>
+</div>
+
 {# ── Relacionados ── #}
 {% if relacionados is not empty %}
-<div class="mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <span class="fw-semibold" style="font-size:.95rem;color:#1a1a1a;">Productos más recomendados</span>
+<div class="rel-section">
+    <div class="rel-section-header">
+        <span>Productos más recomendados</span>
         {% if articulo.categoriaAdvisor %}
-        <a href="{{ path('app_catalogo_lista', {categoria: articulo.categoriaAdvisor}) }}"
-           class="fw-semibold text-decoration-none small"
-           style="color:var(--rkl-primary);">VER MÁS →</a>
+        <a href="{{ path('app_catalogo_lista', {categoria: articulo.categoriaAdvisor}) }}">ver más →</a>
         {% endif %}
     </div>
     <div class="row g-3">
@@ -315,41 +432,6 @@
 </div>
 {% endif %}
 
-{# ── Modal agregar a proyecto ── #}
-<div class="modal fade" id="modalAgregarProyecto" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:12px;overflow:hidden;">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold">Agregar a Proyecto</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-muted small mb-3"><strong>{{ articulo.nombreDisplay }}</strong></p>
-
-                <div id="modal-sin-proyectos" style="display:none;" class="text-center py-3">
-                    <i class="ri-folder-line fs-1 text-muted d-block mb-2"></i>
-                    <p class="text-muted mb-3">No tenés proyectos para esta empresa.</p>
-                    <a href="{{ path('app_proyectos_index') }}" class="btn fw-semibold px-4"
-                       style="background:#2C3E50;color:#fff;border-radius:4px;">Ir a Proyectos</a>
-                </div>
-
-                <div id="modal-con-proyectos">
-                    <label class="form-label fw-semibold small">Proyecto:</label>
-                    <select class="form-select" id="select-proyecto">
-                        <option>Cargando…</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light fw-semibold px-4" data-bs-dismiss="modal"
-                        style="border-radius:4px;">Cancelar</button>
-                <button type="button" class="btn fw-semibold px-4" id="btn-confirmar-agregar"
-                        style="background:#2C3E50;color:#fff;border-radius:4px;">Agregar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 {% endblock %}
 
 {% block extra_js %}
@@ -357,48 +439,10 @@
 (function() {
     const articuloCodigo = '{{ articulo.codigoCalipso|e('js') }}';
 
-    async function agregarArticulo(proyectoId, cantidad, btnOrigen) {
-        if (btnOrigen) btnOrigen.disabled = true;
-        const fd = new FormData();
-        fd.append('articulo_codigo', articuloCodigo);
-        fd.append('cantidad', cantidad || 1);
-        try {
-            const res  = await fetch(`/secure/proyectos/${proyectoId}/agregar-articulo`, { method: 'POST', body: fd });
-            const data = await res.json();
-            RKL.toast(data.success ? data.mensaje : (data.error || 'Error al agregar'), data.success ? 'success' : 'danger');
-        } catch (e) {
-            RKL.toast('Error: ' + e.message, 'danger');
-        } finally {
-            if (btnOrigen) btnOrigen.disabled = false;
-        }
-    }
+    RKL.clarity('event', 'producto_visto');
+    RKL.clarity('set', 'producto_visto', articuloCodigo);
 
-    async function cargarProyectosEnModal() {
-        const select       = document.getElementById('select-proyecto');
-        const cuerpoSin    = document.getElementById('modal-sin-proyectos');
-        const cuerpoCon    = document.getElementById('modal-con-proyectos');
-        const btnConfirmar = document.getElementById('btn-confirmar-agregar');
-        if (select) select.innerHTML = '<option>Cargando…</option>';
-        try {
-            const proyectos = await fetch('/secure/proyectos/mis-proyectos-json').then(r => r.json());
-            if (proyectos.length === 0) {
-                if (cuerpoSin)    cuerpoSin.style.display    = '';
-                if (cuerpoCon)    cuerpoCon.style.display    = 'none';
-                if (btnConfirmar) btnConfirmar.style.display = 'none';
-            } else {
-                if (cuerpoSin)    cuerpoSin.style.display    = 'none';
-                if (cuerpoCon)    cuerpoCon.style.display    = '';
-                if (btnConfirmar) btnConfirmar.style.display = '';
-                if (select) select.innerHTML = proyectos.map(p =>
-                    `<option value="${p.id}">${p.nombre} (${p.cantidad} items)</option>`
-                ).join('');
-            }
-        } catch (e) {
-            if (select) select.innerHTML = '<option>Error al cargar</option>';
-        }
-    }
-
-    // Cantidad +/-
+    // ── Cantidad +/- ──
     document.getElementById('btn-menos')?.addEventListener('click', () => {
         const inp = document.getElementById('input-cantidad');
         if (parseInt(inp.value) > 1) inp.value = parseInt(inp.value) - 1;
@@ -408,29 +452,92 @@
         if (parseInt(inp.value) < 999) inp.value = parseInt(inp.value) + 1;
     });
 
-    // Botón "Agregar a Proyecto"
-    document.querySelector('.btn-agregar-proyecto')?.addEventListener('click', function () {
-        const cantidad = parseInt(document.getElementById('input-cantidad')?.value || 1);
+    // ── Agregar artículo a un proyecto ──
+    async function agregarArticulo(proyectoId, cantidad, btnOrigen) {
+        if (btnOrigen) btnOrigen.disabled = true;
+        const fd = new FormData();
+        fd.append('articulo_codigo', articuloCodigo);
+        fd.append('cantidad', cantidad || 1);
+        try {
+            const res  = await fetch(`/secure/proyectos/${proyectoId}/agregar-articulo`, { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                RKL.clarity('event', 'producto_agregado');
+                RKL.clarity('set', 'producto_agregado', articuloCodigo);
+            }
+            RKL.toast(data.success ? data.mensaje : (data.error || 'Error al agregar'), data.success ? 'success' : 'danger');
+        } catch (e) {
+            RKL.toast('Error: ' + e.message, 'danger');
+        } finally {
+            if (btnOrigen) btnOrigen.disabled = false;
+        }
+    }
+
+    // ── Dropdown inline de proyectos ──
+    const btnAgregar  = document.getElementById('btn-agregar-det');
+    const dropdown    = document.getElementById('proy-dropdown');
+    const dropList    = document.getElementById('proy-drop-list');
+    let dropLoaded    = false;
+
+    async function cargarDropdown() {
+        if (dropLoaded) return;
+        dropList.innerHTML = '<button class="proy-drop-item loading" disabled>Cargando…</button>';
+        try {
+            const proyectos = await fetch('/secure/proyectos/mis-proyectos-json').then(r => r.json());
+            dropLoaded = true;
+            if (proyectos.length === 0) {
+                dropList.innerHTML = '<span class="proy-drop-item loading">Sin proyectos</span>';
+            } else {
+                dropList.innerHTML = proyectos.map(p =>
+                    `<button class="proy-drop-item" data-id="${p.id}">${p.nombre}</button>`
+                ).join('');
+                dropList.querySelectorAll('.proy-drop-item').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const cantidad = parseInt(document.getElementById('input-cantidad')?.value || 1);
+                        dropdown.classList.remove('open');
+                        agregarArticulo(this.dataset.id, cantidad, btnAgregar);
+                    });
+                });
+            }
+        } catch {
+            dropList.innerHTML = '<span class="proy-drop-item loading">Error al cargar</span>';
+        }
+    }
+
+    btnAgregar?.addEventListener('click', async function(e) {
+        e.stopPropagation();
+        const isOpen = dropdown.classList.contains('open');
+        if (isOpen) {
+            dropdown.classList.remove('open');
+            return;
+        }
+        // Si hay proyecto activo, agregar directo sin abrir dropdown
         if (RKL.proyectoActivo) {
+            const cantidad = parseInt(document.getElementById('input-cantidad')?.value || 1);
             agregarArticulo(RKL.proyectoActivo.id, cantidad, this);
             return;
         }
-        cargarProyectosEnModal();
-        new bootstrap.Modal(document.getElementById('modalAgregarProyecto')).show();
+        await cargarDropdown();
+        dropdown.classList.add('open');
     });
 
-    // Confirmar desde modal
-    document.getElementById('btn-confirmar-agregar')?.addEventListener('click', async function () {
-        const proyectoId = document.getElementById('select-proyecto')?.value;
-        const cantidad   = parseInt(document.getElementById('input-cantidad')?.value || 1);
-        if (!proyectoId) return;
-        this.disabled    = true;
-        this.textContent = 'Agregando…';
-        bootstrap.Modal.getInstance(document.getElementById('modalAgregarProyecto')).hide();
-        await agregarArticulo(proyectoId, cantidad);
-        this.disabled    = false;
-        this.textContent = 'Agregar';
+    // Cerrar dropdown al hacer click afuera
+    document.addEventListener('click', function(e) {
+        if (dropdown && !dropdown.closest('.proyectos-dropdown-wrap').contains(e.target)) {
+            dropdown.classList.remove('open');
+        }
     });
+
+    // ── Tabs ──
+    document.querySelectorAll('.det-tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.det-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.det-tab-panel').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+        });
+    });
+
 })();
 </script>
 {% endblock extra_js %}

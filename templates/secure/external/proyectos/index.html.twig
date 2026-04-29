@@ -11,111 +11,242 @@
 </ol>
 {% endblock %}
 
+{% block stylesheets %}
+<style>
+/* ── Search bar ── */
+.proyectos-search {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: .55rem 1rem;
+    max-width: 340px;
+    margin-bottom: 1.75rem;
+}
+.proyectos-search input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: .9rem;
+    color: #333;
+    background: transparent;
+}
+.proyectos-search input::placeholder { color: #aaa; }
+.proyectos-search .search-icon { color: #aaa; font-size: 1rem; flex-shrink: 0; }
+
+/* ── Project card ── */
+.proy-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.25rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.proy-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: .85rem;
+    gap: .5rem;
+}
+.proy-card-title {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    flex: 1;
+    min-width: 0;
+}
+.proy-card-title i {
+    color: var(--rkl-primary);
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+.proy-card-title span {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--rkl-primary);
+    line-height: 1.3;
+    word-break: break-word;
+}
+.proy-menu-btn {
+    background: none;
+    border: none;
+    padding: .2rem .35rem;
+    cursor: pointer;
+    color: #888;
+    font-size: 1.1rem;
+    border-radius: 4px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.proy-menu-btn:hover { background: #f0f0f0; color: #333; }
+
+.proy-card-desc {
+    font-size: .85rem;
+    color: #555;
+    margin-bottom: .8rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.55;
+    flex: 1;
+}
+.proy-card-desc.empty { color: #ccc; font-style: italic; }
+
+.proy-card-meta {
+    font-size: .78rem;
+    color: #999;
+    margin-bottom: .25rem;
+}
+
+/* ── Card actions ── */
+.proy-card-actions {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .55rem;
+}
+.btn-solicitar-cotizacion {
+    background: var(--rkl-primary);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: .65rem 1rem;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    transition: background .15s;
+}
+.btn-solicitar-cotizacion:not(:disabled):hover { background: var(--rkl-primary-dark); }
+.btn-solicitar-cotizacion:disabled { opacity: .65; cursor: default; }
+
+.proy-card-link {
+    font-size: .85rem;
+    color: #333;
+    text-decoration: underline;
+    text-align: center;
+    display: block;
+    padding: .15rem 0;
+}
+.proy-card-link:hover { color: #000; }
+
+/* ── Create card ── */
+.proy-card-create {
+    background: #FAFAE8;
+    border: 1px solid #E8E6C0;
+    border-radius: 8px;
+    min-height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    height: 100%;
+    transition: background .15s;
+}
+.proy-card-create:hover { background: #F5F5D8; }
+.proy-card-create a {
+    font-size: .95rem;
+    font-weight: 600;
+    color: #555;
+    text-decoration: underline;
+    pointer-events: none;
+}
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container-fluid">
 
-    {# Header: título + botón crear #}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold mb-0">Proyectos</h4>
-        <button type="button"
-                class="btn btn-warning fw-semibold"
-                data-bs-toggle="modal"
-                data-bs-target="#modalCrearProyecto">
-            <i class="ri-add-line me-1"></i> Crear nuevo Proyecto
-        </button>
-    </div>
+<h4 class="fw-bold mb-3" style="color:#1a1a1a;">Proyectos</h4>
 
-    {# Grid de proyectos #}
-    {% if proyectos is empty %}
-    <div class="text-center py-5">
-        <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle"
-             style="width:64px;height:64px;background:#2C3E50;">
-            <i class="ri-folder-2-line text-white fs-3"></i>
-        </div>
-        <h5 class="text-muted mt-3">No tenés proyectos todavía</h5>
-        <p class="text-muted small">Creá un proyecto para empezar a agregar productos del catálogo.</p>
-        <button type="button"
-                class="btn btn-warning fw-semibold mt-2"
-                data-bs-toggle="modal"
-                data-bs-target="#modalCrearProyecto">
-            <i class="ri-add-line me-1"></i> Crear mi primer proyecto
-        </button>
-    </div>
-    {% else %}
-    <div class="row g-3">
-        {% for proyecto in proyectos %}
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4 d-flex flex-column">
+{# Search bar #}
+<div class="proyectos-search">
+    <i class="ri-search-line search-icon"></i>
+    <input type="text" id="input-buscar-proyecto" placeholder="Buscá un producto" autocomplete="off">
+</div>
 
-                    {# Cabecera: icono + nombre + menú #}
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                                 style="width:40px;height:40px;background:#2C3E50;">
-                                <i class="ri-folder-2-line text-white" style="font-size:1.1rem;"></i>
-                            </div>
-                            <h6 class="fw-semibold mb-0 line-clamp-2">{{ proyecto.nombre }}</h6>
-                        </div>
-                        <div class="dropdown ms-1 flex-shrink-0">
-                            <button class="btn btn-sm btn-light border-0 px-2" data-bs-toggle="dropdown">
-                                <i class="ri-more-2-fill"></i>
+<div class="row g-3" id="grid-proyectos">
+
+    {% for proyecto in proyectos %}
+    <div class="col-12 col-md-6 col-xl-3 proy-col" data-nombre="{{ proyecto.nombre|lower }}">
+        <div class="proy-card">
+
+            {# Cabecera: icono + nombre + menú #}
+            <div class="proy-card-header">
+                <div class="proy-card-title">
+                    <i class="ri-file-list-3-line"></i>
+                    <span>{{ proyecto.nombre }}</span>
+                </div>
+                <div class="dropdown">
+                    <button class="proy-menu-btn" data-bs-toggle="dropdown" aria-expanded="false"
+                            title="Opciones">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" style="font-size:.85rem;">
+                        <li>
+                            <a class="dropdown-item" href="{{ path('app_proyectos_show', {id: proyecto.id}) }}">
+                                <i class="ri-eye-line me-2"></i> Ver detalle
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ path('app_proyectos_editar', {id: proyecto.id}) }}">
+                                <i class="ri-edit-line me-2"></i> Editar
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <button class="dropdown-item text-danger btn-eliminar-proyecto"
+                                    data-proyecto-id="{{ proyecto.id }}"
+                                    data-proyecto-nombre="{{ proyecto.nombre|e('html_attr') }}">
+                                <i class="ri-delete-bin-line me-2"></i> Eliminar
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item" href="{{ path('app_proyectos_show', {id: proyecto.id}) }}">
-                                        <i class="ri-eye-line me-2"></i> Ver detalle
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ path('app_proyectos_editar', {id: proyecto.id}) }}">
-                                        <i class="ri-edit-line me-2"></i> Editar
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <button class="dropdown-item text-danger btn-eliminar-proyecto"
-                                            data-proyecto-id="{{ proyecto.id }}"
-                                            data-proyecto-nombre="{{ proyecto.nombre|e('html_attr') }}">
-                                        <i class="ri-delete-bin-line me-2"></i> Eliminar
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    {# Descripción #}
-                    {% if proyecto.descripcion %}
-                    <p class="text-muted small mb-2 line-clamp-2">{{ proyecto.descripcion }}</p>
-                    {% endif %}
-
-                    {# Meta info #}
-                    <p class="text-muted small mb-1">
-                        Fecha de creación del proyecto: {{ proyecto.createdAt|date('d/m/Y') }}
-                    </p>
-                    <p class="text-muted small mb-3">
-                        Cantidad de productos agregados: {{ proyecto.cantidadProductos }}
-                    </p>
-
-                    {# Acciones apiladas #}
-                    <div class="mt-auto d-flex flex-column gap-2">
-                        <button type="button" class="btn btn-sm fw-semibold w-100" disabled
-                                style="background:var(--rkl-primary);color:#fff;border:none;">
-                            Solicitar cotización
-                        </button>
-                        <a href="{{ path('app_proyectos_show', {id: proyecto.id}) }}"
-                           class="btn btn-sm w-100"
-                           style="border:1px solid var(--rkl-primary);color:var(--rkl-primary);background:transparent;">
-                            Ver Proyecto
-                        </a>
-                    </div>
-
+                        </li>
+                    </ul>
                 </div>
             </div>
+
+            {# Descripción #}
+            {% if proyecto.descripcion %}
+            <p class="proy-card-desc">{{ proyecto.descripcion }}</p>
+            {% else %}
+            <p class="proy-card-desc empty">Sin descripción</p>
+            {% endif %}
+
+            {# Meta info #}
+            <p class="proy-card-meta">Fecha de creación: {{ proyecto.createdAt|date('d/m/Y') }}</p>
+            <p class="proy-card-meta mb-0">Cantidad de productos agregados: {{ proyecto.cantidadProductos }}</p>
+
+            {# Acciones #}
+            <div class="proy-card-actions">
+                <button type="button" class="btn-solicitar-cotizacion" disabled>
+                    Solicitar Cotización
+                </button>
+                <a href="{{ path('app_proyectos_show', {id: proyecto.id}) }}" class="proy-card-link">
+                    Ver proyecto
+                </a>
+            </div>
+
         </div>
-        {% endfor %}
     </div>
-    {% endif %}
+    {% endfor %}
+
+    {# Tarjeta "Crear Proyecto" #}
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="proy-card-create"
+             data-bs-toggle="modal"
+             data-bs-target="#modalCrearProyecto">
+            <a href="#" onclick="return false;">Crear Proyecto</a>
+        </div>
+    </div>
 
 </div>
 
@@ -163,6 +294,14 @@ document.querySelectorAll('.btn-eliminar-proyecto').forEach(btn => {
 // Recargar al crear proyecto desde el modal del base
 document.addEventListener('rkl:proyecto-creado', function () {
     setTimeout(() => location.reload(), 800);
+});
+
+// Filtro por nombre de proyecto
+document.getElementById('input-buscar-proyecto').addEventListener('input', function () {
+    const q = this.value.toLowerCase().trim();
+    document.querySelectorAll('.proy-col').forEach(col => {
+        col.style.display = col.dataset.nombre.includes(q) ? '' : 'none';
+    });
 });
 </script>
 {% endblock %}
