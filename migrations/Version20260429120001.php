@@ -19,7 +19,6 @@ final class Version20260429120001 extends AbstractMigration
         $this->addSql(<<<'SQL'
             ALTER TABLE proyecto_items
                 ADD articulo_codigo VARCHAR(50) DEFAULT NULL,
-                ADD comment LONGTEXT DEFAULT NULL
         SQL);
     }
 
@@ -28,7 +27,6 @@ final class Version20260429120001 extends AbstractMigration
         $this->addSql(<<<'SQL'
             ALTER TABLE proyecto_items
                 DROP COLUMN articulo_codigo,
-                DROP COLUMN comment
         SQL);
     }
 }
