@@ -17,12 +17,12 @@
 .proyectos-search {
     display: flex;
     align-items: center;
-    gap: .6rem;
+    gap: .65rem;
     background: #fff;
     border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: .55rem 1rem;
-    max-width: 340px;
+    border-radius: 50px;
+    padding: .6rem 1.2rem;
+    width: 100%;
     margin-bottom: 1.75rem;
 }
 .proyectos-search input {
@@ -41,11 +41,45 @@
     background: #fff;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
-    padding: 1.25rem;
+    overflow: hidden;
     height: 100%;
     display: flex;
     flex-direction: column;
 }
+
+/* ── Status strip ── */
+.proy-status-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .45rem .9rem .45rem .75rem;
+    font-size: .78rem;
+    font-weight: 600;
+    gap: .4rem;
+}
+.proy-status-strip.status-finished {
+    background: #F5F3D0;
+    color: #6b6200;
+}
+.proy-status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.status-finished .proy-status-dot { background: var(--rkl-primary); }
+.proy-status-label { flex: 1; }
+
+/* When there's a status strip, the menu lives inside it */
+.proy-card-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Header when no status strip */
 .proy-card-header {
     display: flex;
     align-items: flex-start;
@@ -171,75 +205,12 @@
 {# Search bar #}
 <div class="proyectos-search">
     <i class="ri-search-line search-icon"></i>
-    <input type="text" id="input-buscar-proyecto" placeholder="Buscá un producto" autocomplete="off">
+    <input type="text" id="input-buscar-proyecto" placeholder="Buscá un proyecto" autocomplete="off">
 </div>
 
 <div class="row g-3" id="grid-proyectos">
 
-    {% for proyecto in proyectos %}
-    <div class="col-12 col-md-6 col-xl-3 proy-col" data-nombre="{{ proyecto.nombre|lower }}">
-        <div class="proy-card">
-
-            {# Cabecera: icono + nombre + menú #}
-            <div class="proy-card-header">
-                <div class="proy-card-title">
-                    <i class="ri-file-list-3-line"></i>
-                    <span>{{ proyecto.nombre }}</span>
-                </div>
-                <div class="dropdown">
-                    <button class="proy-menu-btn" data-bs-toggle="dropdown" aria-expanded="false"
-                            title="Opciones">
-                        <i class="ri-more-2-fill"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" style="font-size:.85rem;">
-                        <li>
-                            <a class="dropdown-item" href="{{ path('app_proyectos_show', {id: proyecto.id}) }}">
-                                <i class="ri-eye-line me-2"></i> Ver detalle
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{{ path('app_proyectos_editar', {id: proyecto.id}) }}">
-                                <i class="ri-edit-line me-2"></i> Editar
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <button class="dropdown-item text-danger btn-eliminar-proyecto"
-                                    data-proyecto-id="{{ proyecto.id }}"
-                                    data-proyecto-nombre="{{ proyecto.nombre|e('html_attr') }}">
-                                <i class="ri-delete-bin-line me-2"></i> Eliminar
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            {# Descripción #}
-            {% if proyecto.descripcion %}
-            <p class="proy-card-desc">{{ proyecto.descripcion }}</p>
-            {% else %}
-            <p class="proy-card-desc empty">Sin descripción</p>
-            {% endif %}
-
-            {# Meta info #}
-            <p class="proy-card-meta">Fecha de creación: {{ proyecto.createdAt|date('d/m/Y') }}</p>
-            <p class="proy-card-meta mb-0">Cantidad de productos agregados: {{ proyecto.cantidadProductos }}</p>
-
-            {# Acciones #}
-            <div class="proy-card-actions">
-                <button type="button" class="btn-solicitar-cotizacion" disabled>
-                    Solicitar Cotización
-                </button>
-                <a href="{{ path('app_proyectos_show', {id: proyecto.id}) }}" class="proy-card-link">
-                    Ver proyecto
-                </a>
-            </div>
-
-        </div>
-    </div>
-    {% endfor %}
-
-    {# Tarjeta "Crear Proyecto" #}
+    {# Tarjeta "Crear Proyecto" — siempre primera #}
     <div class="col-12 col-md-6 col-xl-3">
         <div class="proy-card-create"
              data-bs-toggle="modal"
@@ -248,7 +219,97 @@
         </div>
     </div>
 
+    {% for proyecto in proyectos %}
+    <div class="col-12 col-md-6 col-xl-3 proy-col" data-nombre="{{ proyecto.nombre|lower }}">
+        <div class="proy-card">
+
+            {# Status strip — solo si NO es in_progress #}
+            {% if proyecto.status.value != 'in_progress' %}
+            <div class="proy-status-strip status-{{ proyecto.status.value|replace({'_': '-'}) }}">
+                <span class="proy-status-dot"></span>
+                <span class="proy-status-label">
+                    {% if proyecto.status.value == 'finished' %}Orden de compra generado{% endif %}
+                </span>
+                <div class="dropdown">
+                    <button class="proy-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Opciones">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    {{ _self.dropdown_menu(proyecto, true) }}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="proy-card-body">
+
+                {# Header: icono + nombre + menú (solo cuando no hay strip) #}
+                <div class="proy-card-header">
+                    <div class="proy-card-title">
+                        <i class="ri-file-list-3-line"></i>
+                        <span>{{ proyecto.nombre }}</span>
+                    </div>
+                    {% if proyecto.status.value == 'in_progress' %}
+                    <div class="dropdown">
+                        <button class="proy-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Opciones">
+                            <i class="ri-more-2-fill"></i>
+                        </button>
+                        {{ _self.dropdown_menu(proyecto) }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                {# Descripción #}
+                {% if proyecto.descripcion %}
+                <p class="proy-card-desc">{{ proyecto.descripcion }}</p>
+                {% else %}
+                <p class="proy-card-desc empty">Sin descripción</p>
+                {% endif %}
+
+                {# Meta info #}
+                <p class="proy-card-meta">Fecha de creación: {{ proyecto.createdAt|date('d/m/Y') }}</p>
+                <p class="proy-card-meta mb-0">Cantidad de productos agregados: {{ proyecto.cantidadProductos }}</p>
+
+                {# Acciones #}
+                <div class="proy-card-actions">
+                    <button type="button" class="btn-solicitar-cotizacion" disabled>
+                        Solicitar Cotización
+                    </button>
+                    <a href="{{ path('app_proyectos_show', {id: proyecto.id}) }}" class="proy-card-link">
+                        Ver proyecto
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
 </div>
+
+{# Macro para el dropdown de opciones (evita duplicar el HTML) #}
+{% macro dropdown_menu(proyecto, readonly) %}
+<ul class="dropdown-menu dropdown-menu-end" style="font-size:.85rem;">
+    <li>
+        <a class="dropdown-item" href="{{ path('app_proyectos_show', {id: proyecto.id}) }}">
+            <i class="ri-eye-line me-2"></i> Ver detalle
+        </a>
+    </li>
+    {% if not readonly %}
+    <li>
+        <a class="dropdown-item" href="{{ path('app_proyectos_editar', {id: proyecto.id}) }}">
+            <i class="ri-edit-line me-2"></i> Editar
+        </a>
+    </li>
+    <li><hr class="dropdown-divider"></li>
+    <li>
+        <button class="dropdown-item text-danger btn-eliminar-proyecto"
+                data-proyecto-id="{{ proyecto.id }}"
+                data-proyecto-nombre="{{ proyecto.nombre|e('html_attr') }}">
+            <i class="ri-delete-bin-line me-2"></i> Eliminar
+        </button>
+    </li>
+    {% endif %}
+</ul>
+{% endmacro %}
 
 {# Modal: Confirmar Eliminar #}
 <div class="modal fade" id="modalEliminarProyecto" tabindex="-1" aria-hidden="true">

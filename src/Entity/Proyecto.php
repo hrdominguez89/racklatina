@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\ProyectoStatus;
 use App\Repository\ProyectoRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -39,6 +40,9 @@ class Proyecto
     #[ORM\Column(name: 'rubro', length: 100, nullable: true)]
     private ?string $rubro = null;
 
+    #[ORM\Column(name: 'status', type: 'string', enumType: ProyectoStatus::class, length: 20)]
+    private ProyectoStatus $status = ProyectoStatus::IN_PROGRESS;
+
     #[ORM\OneToMany(targetEntity: ProyectoItem::class, mappedBy: 'proyecto', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $items;
 
@@ -63,6 +67,9 @@ class Proyecto
 
     public function getRubro(): ?string { return $this->rubro; }
     public function setRubro(?string $rubro): static { $this->rubro = $rubro; return $this; }
+
+    public function getStatus(): ProyectoStatus { return $this->status; }
+    public function setStatus(ProyectoStatus $status): static { $this->status = $status; return $this; }
 
     public function getItems(): Collection { return $this->items; }
 

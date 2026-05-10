@@ -7,6 +7,7 @@ use App\Entity\ProyectoItem;
 use App\Repository\ArticuloEcommerceRepository;
 use App\Repository\ProyectoItemRepository;
 use App\Repository\ProyectoRepository;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -239,6 +240,25 @@ class ProyectoController extends AbstractController
             $this->em->flush();
 
             // Refrescar count
+            $this->em->refresh($proyecto);
+
+            return $this->json([
+                'success' => true,
+                'mensaje' => "Artículo agregado al proyecto \"{$proyecto->getNombre()}\"",
+                'cantidadItems' => $proyecto->getCantidadProductos(),
+                'proyectoNombre' => $proyecto->getNombre(),
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            // Condición de carrera: doble submit. El ítem ya fue insertado por otra request.
+            // Reiniciamos el EM y actualizamos la cantidad.
+            $this->em->clear();
+            $proyecto = $this->proyectoRepo->find($id);
+            $articulo = $this->articuloRepo->find($articuloCodigo);
+            $item = $this->itemRepo->findOneBy(['proyecto' => $proyecto, 'articulo' => $articulo]);
+            if ($item) {
+                $item->setCantidad($item->getCantidad() + $cantidad);
+                $this->em->flush();
+            }
             $this->em->refresh($proyecto);
 
             return $this->json([
