@@ -1,5 +1,7 @@
 {% extends 'base_catalogo.html.twig' %}
 
+{% set isFinished = proyecto.status.value == 'finished' %}
+
 {% block title %}{{ proyecto.nombre }}{% endblock %}
 
 {% block breadcrumb %}
@@ -370,6 +372,14 @@
 {# Cabecera #}
 <h4 class="fw-bold mb-4" style="color:#1a1a1a;">{{ proyecto.nombre }}</h4>
 
+{% if isFinished %}
+<div class="alert d-flex align-items-center gap-2 mb-4"
+     style="background:#f0f0f0;border:1px solid #ddd;border-radius:8px;font-size:.88rem;color:#555;padding:.75rem 1rem;">
+    <i class="ri-lock-line" style="font-size:1.1rem;flex-shrink:0;"></i>
+    <span>Este proyecto está <strong>finalizado</strong>. Solo podés consultar su contenido.</span>
+</div>
+{% endif %}
+
 {% if proyecto.items is empty %}
 
 <div class="text-center py-5">
@@ -428,22 +438,27 @@
                     {# Cantidad #}
                     <td>
                         <div class="qty-ctrl">
-                            <button type="button" class="btn-item-menos" data-item="{{ item.id }}">−</button>
+                            <button type="button" class="btn-item-menos" data-item="{{ item.id }}"
+                                    {% if isFinished %}disabled{% endif %}>−</button>
                             <input type="number" class="input-item-cantidad"
                                    value="{{ item.cantidad }}" min="1" max="999"
-                                   data-item="{{ item.id }}">
-                            <button type="button" class="btn-item-mas" data-item="{{ item.id }}">+</button>
+                                   data-item="{{ item.id }}"
+                                   {% if isFinished %}disabled{% endif %}>
+                            <button type="button" class="btn-item-mas" data-item="{{ item.id }}"
+                                    {% if isFinished %}disabled{% endif %}>+</button>
                         </div>
                     </td>
 
                     {# Sugerir remplazo por precio #}
                     <td>
-                        <input type="checkbox" class="check-reemplazo input-item-auth" data-item="{{ item.id }}" data-type="precio">
+                        <input type="checkbox" class="check-reemplazo input-item-auth" data-item="{{ item.id }}" data-type="precio"
+                               {% if isFinished %}disabled{% endif %}>
                     </td>
 
                     {# Sugerir remplazo por plazo #}
                     <td>
-                        <input type="checkbox" class="check-reemplazo input-item-auth-plazo" data-item="{{ item.id }}" data-type="plazo">
+                        <input type="checkbox" class="check-reemplazo input-item-auth-plazo" data-item="{{ item.id }}" data-type="plazo"
+                               {% if isFinished %}disabled{% endif %}>
                     </td>
 
                     {# Comentario #}
@@ -451,17 +466,20 @@
                         <textarea rows="2"
                                   class="textarea-comentario input-item-comment"
                                   placeholder="Escribí tu comentario..."
-                                  data-item="{{ item.id }}">{{ item.comment }}</textarea>
+                                  data-item="{{ item.id }}"
+                                  {% if isFinished %}disabled{% endif %}>{{ item.comment }}</textarea>
                         <div class="comment-status" data-item="{{ item.id }}"></div>
                     </td>
 
                     {# Quitar #}
                     <td>
+                        {% if not isFinished %}
                         <button class="btn-quitar-item" data-item="{{ item.id }}"
                                 data-nombre="{{ item.articulo.nombreDisplay|e('html_attr') }}"
                                 title="Quitar del proyecto">
                             <i class="ri-delete-bin-line"></i>
                         </button>
+                        {% endif %}
                     </td>
 
                 </tr>
@@ -503,6 +521,11 @@
                 <span class="sidebar-items-count" id="sidebar-items-count">{{ proyecto.cantidadProductos }}</span>
             </div>
 
+            {% if isFinished %}
+            <div class="text-center py-2" style="font-size:.82rem;color:#888;">
+                <i class="ri-lock-line me-1"></i> Proyecto finalizado
+            </div>
+            {% else %}
             <button type="button" class="btn-solicitar-sidebar"
                     id="btn-solicitar-pedido"
                     onclick="RKL.clarity('event','solicitar_pedido');RKL.clarity('set','proyecto_cotizado','{{ proyecto.id }}');"
@@ -513,6 +536,7 @@
             <a href="{{ path('app_catalogo_lista') }}" class="sidebar-link">
                 Seguir sumando productos
             </a>
+            {% endif %}
         </div>
     </div>
 
@@ -554,12 +578,16 @@
 <script>
 (function () {
 
+    const isFinished = {{ isFinished ? 'true' : 'false' }};
+
     // ── Actualizar cantidad vía AJAX ──
     async function actualizarCantidad(itemId, cantidad) {
         const fd = new FormData();
         fd.append('cantidad', cantidad);
         await fetch(`/secure/proyectos/item/${itemId}/cantidad`, { method: 'POST', body: fd });
     }
+
+    if (isFinished) return;
 
     // ── Modal eliminar item ──
     let pendingDeleteId = null;
