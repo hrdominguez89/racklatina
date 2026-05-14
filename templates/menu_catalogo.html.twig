@@ -1,5 +1,18 @@
 {% set current_route = app.request.get('_route') %}
 
+{% if app.user is not null %}
+<li class="nav-item">
+    <a href="{{ path('app_home') }}"
+       class="nav-link menu-link"
+       data-key="t-portal">
+        <i class="ri-layout-grid-line"></i>
+        <span>Ir al Portal</span>
+    </a>
+</li>
+
+<li class="menu-title mt-2"><span>Catálogo</span></li>
+{% endif %}
+
 <li class="nav-item">
     <a href="{{ path('app_catalogo_index') }}"
        class="nav-link menu-link {% if current_route starts with 'app_catalogo' %}active{% endif %}"
