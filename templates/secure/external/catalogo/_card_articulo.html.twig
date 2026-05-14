@@ -14,7 +14,7 @@
                      style="width:80px;height:80px;overflow:hidden;">
                     {% if articulo.imagen %}
                     <img src="{{ articulo.imagen }}" alt="{{ articulo.nombreDisplay }}"
-                         class="img-fluid p-1" style="max-height:80px;object-fit:contain;"
+                         class="img-fluid p-1" style="max-height:80px;object-fit:contain;mix-blend-mode:multiply;"
                          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                     <div style="display:none" class="w-100 h-100 align-items-center justify-content-center">
                         <i class="ri-image-line fs-2 text-muted"></i>
@@ -64,7 +64,7 @@
              style="height:180px;overflow:hidden;">
             {% if articulo.imagen %}
             <img src="{{ articulo.imagen }}" alt="{{ articulo.nombreDisplay }}"
-                 class="img-fluid p-3" style="max-height:100%;object-fit:contain;"
+                 class="img-fluid p-3" style="max-height:100%;object-fit:contain;mix-blend-mode:multiply;"
                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
             <div style="display:none" class="w-100 h-100 align-items-center justify-content-center">
                 <i class="ri-image-line fs-1 text-muted"></i>

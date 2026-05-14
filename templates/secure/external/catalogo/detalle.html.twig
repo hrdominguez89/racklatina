@@ -230,8 +230,79 @@
     font-size: .875rem;
     color: #555;
     line-height: 1.8;
+    padding: 0 9rem;
 }
 .det-tab-panel.active { display: block; }
+@media (max-width: 767px) {
+    .det-tab-panel { padding: 0; }
+}
+
+/* ── Modal Cotización ── */
+#modalCotizacion .modal-dialog {
+    max-width: 580px;
+}
+#modalCotizacion .modal-content {
+    border: none;
+    border-radius: 12px;
+    padding: 2rem 2.25rem 2.25rem;
+}
+#modalCotizacion .modal-title-cot {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--rkl-primary);
+    line-height: 1.3;
+    margin-bottom: .75rem;
+}
+#modalCotizacion .modal-subtitle-cot {
+    font-size: .9rem;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+}
+#modalCotizacion .btn-cot-crear {
+    display: block;
+    width: 100%;
+    background: var(--rkl-primary);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: .85rem 1rem;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .15s;
+    margin-bottom: 1.25rem;
+}
+#modalCotizacion .btn-cot-crear:hover { background: var(--rkl-primary-dark); }
+#modalCotizacion .btn-cot-solo {
+    display: block;
+    text-align: center;
+    font-size: .875rem;
+    font-weight: 500;
+    color: #333;
+    text-decoration: underline;
+    cursor: pointer;
+    background: none;
+    border: none;
+    width: 100%;
+    padding: 0;
+}
+#modalCotizacion .btn-cot-solo:hover { color: var(--rkl-primary); }
+#modalCotizacion .btn-close-cot {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.25rem;
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: #666;
+    cursor: pointer;
+    line-height: 1;
+    padding: .25rem;
+}
+#modalCotizacion .btn-close-cot:hover { color: #111; }
 
 /* ── Relacionados ── */
 .rel-section {
@@ -271,6 +342,7 @@
             {% if articulo.imagen %}
                 <img src="{{ articulo.imagen }}"
                      alt="{{ articulo.nombreDisplay }}"
+                     style="mix-blend-mode: multiply;"
                      onerror="this.closest('.det-img-wrap').innerHTML='<div class=\'det-img-placeholder\'><i class=\'ri-image-line\' style=\'font-size:3rem;\'></i></div>'">
             {% else %}
                 <div class="det-img-placeholder">
@@ -336,7 +408,8 @@
                 </div>
             </div>
 
-            <button type="button" class="btn-cotizacion-det" disabled>
+            <button type="button" class="btn-cotizacion-det"
+                    data-bs-toggle="modal" data-bs-target="#modalCotizacion">
                 Solicitar Cotización
             </button>
         </div>
@@ -431,6 +504,30 @@
     </div>
 </div>
 {% endif %}
+
+{# ── Modal: Solicitar Cotización ── #}
+<div class="modal fade" id="modalCotizacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content position-relative">
+            <button type="button" class="btn-close-cot" data-bs-dismiss="modal" aria-label="Cerrar">
+                &#x2715;
+            </button>
+
+            <p class="modal-title-cot">¿Querés cotizar solo este producto?</p>
+            <p class="modal-subtitle-cot">
+                Si agregás este producto a un proyecto, vas a poder cotizar todo junto en un solo documento.
+            </p>
+
+            <button type="button" class="btn-cot-crear" id="btn-cot-crear-proyecto" data-bs-dismiss="modal">
+                Crear Proyecto
+            </button>
+
+            <button type="button" class="btn-cot-solo" id="btn-cot-solo" data-bs-dismiss="modal">
+                Cotizar solo este producto
+            </button>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
 
@@ -536,6 +633,20 @@
             this.classList.add('active');
             document.getElementById('tab-' + this.dataset.tab).classList.add('active');
         });
+    });
+
+    // ── Modal Cotización ──
+    document.getElementById('btn-cot-crear-proyecto')?.addEventListener('click', function() {
+        // Abre modal de crear proyecto (Bootstrap)
+        const modalCrear = new bootstrap.Modal(document.getElementById('modalCrearProyecto'));
+        modalCrear.show();
+    });
+
+    document.getElementById('btn-cot-solo')?.addEventListener('click', function() {
+        // Cotizar solo este producto: agrega al carrito de cotización y redirige
+        const cantidad = parseInt(document.getElementById('input-cantidad')?.value || 1);
+        const params = new URLSearchParams({ articulo: articuloCodigo, cantidad });
+        window.location.href = `/secure/cotizacion/nueva?${params}`;
     });
 
 })();

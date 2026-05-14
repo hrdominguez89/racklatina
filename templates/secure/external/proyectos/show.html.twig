@@ -13,7 +13,7 @@
 
 {% block stylesheets %}
 <style>
-/* ── Layout ── */
+/* ── Layout principal ── */
 .proyecto-layout {
     display: grid;
     grid-template-columns: 1fr 300px;
@@ -25,26 +25,58 @@
     .proyecto-sidebar { order: -1; }
 }
 
-/* ── Item card ── */
-.proy-item-card {
+/* ── Tabla de productos ── */
+.tabla-productos {
+    width: 100%;
+    border-collapse: collapse;
     background: #fff;
-    border: 1px solid #e9ecef;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
-    padding: 1rem 1.25rem 0;
-    display: flex;
-    flex-direction: column;
-    margin-bottom: .85rem;
+    overflow: hidden;
 }
-.proy-item-main {
-    display: flex;
-    gap: 1.1rem;
-    align-items: stretch;
-    padding-bottom: .85rem;
+.tabla-productos thead tr {
+    background: #f0f0f0;
+}
+.tabla-productos thead th {
+    padding: .75rem 1rem;
+    font-size: .82rem;
+    font-weight: 600;
+    color: #555;
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+    white-space: nowrap;
+}
+.tabla-productos thead th.col-producto {
+    text-align: left;
+    padding-left: 1.25rem;
 }
 
-.proy-item-img {
-    width: 110px;
-    min-height: 110px;
+/* ── Filas de producto ── */
+.tr-producto {
+    border-bottom: 1px solid #efefef;
+}
+.tr-producto:last-of-type {
+    border-bottom: none;
+}
+.tr-producto td {
+    padding: .9rem 1rem;
+    vertical-align: middle;
+    text-align: center;
+}
+.tr-producto td.td-producto {
+    text-align: left;
+    padding-left: 1.25rem;
+}
+
+/* ── Celda producto ── */
+.td-producto-inner {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+}
+.td-producto-img {
+    width: 60px;
+    height: 60px;
     flex-shrink: 0;
     background: #f5f5f5;
     border-radius: 6px;
@@ -52,158 +84,33 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    align-self: center;
 }
-.proy-item-img img {
+.td-producto-img img {
     max-width: 100%;
-    max-height: 110px;
+    max-height: 60px;
     object-fit: contain;
-    padding: .5rem;
+    padding: .3rem;
+    mix-blend-mode: multiply;
 }
-
-.proy-item-body {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: .2rem;
-}
-.proy-item-name {
-    font-size: .95rem;
+.td-producto-info { min-width: 0; }
+.td-producto-nombre {
+    font-size: .9rem;
     font-weight: 700;
     color: #1a1a1a;
     text-decoration: none;
+    display: block;
     line-height: 1.35;
 }
-.proy-item-name:hover { color: #1a1a1a; text-decoration: underline; }
-.proy-item-category {
-    font-size: .85rem;
-    color: #444;
-}
-.proy-item-time {
-    font-size: .8rem;
-    color: #aaa;
-}
-.proy-item-auth {
-    display: flex;
-    align-items: flex-start;
-    gap: .4rem;
-    margin-top: .5rem;
-}
-.proy-item-auth input[type="checkbox"] {
-    margin-top: .15rem;
-    accent-color: var(--rkl-primary);
-    flex-shrink: 0;
-    cursor: pointer;
-}
-.proy-item-auth label {
+.td-producto-nombre:hover { color: #1a1a1a; text-decoration: underline; }
+.td-ver-producto {
     font-size: .78rem;
     color: var(--rkl-primary);
+    text-decoration: underline;
     cursor: pointer;
-    line-height: 1.4;
 }
+.td-ver-producto:hover { color: var(--rkl-primary-dark); }
 
-/* ── Comment ── */
-.proy-item-comment-wrap {
-    margin-top: .5rem;
-}
-.proy-item-comment-wrap textarea {
-    width: 100%;
-    font-size: .8rem;
-    color: #444;
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
-    padding: .4rem .6rem;
-    resize: none;
-    outline: none;
-    line-height: 1.5;
-    background: #fff;
-    transition: border-color .15s;
-}
-.proy-item-comment-wrap textarea:focus { border-color: #bbb; }
-.proy-item-comment-wrap textarea::placeholder { color: #bbb; }
-.comment-status {
-    font-size: .72rem;
-    color: #aaa;
-    text-align: right;
-    min-height: 1.1em;
-    margin-top: .15rem;
-}
-
-/* ── Similares toggle ── */
-.proy-item-footer {
-    display: flex;
-    align-items: center;
-    padding: .55rem 0;
-    border-top: 1px solid #f0f0f0;
-    margin-top: auto;
-}
-.btn-similares-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: .35rem;
-    background: none;
-    border: 1px solid #d8d8d8;
-    border-radius: 5px;
-    padding: .3rem .75rem;
-    font-size: .78rem;
-    font-weight: 600;
-    color: #555;
-    cursor: pointer;
-    transition: background .12s, border-color .12s, color .12s;
-}
-.btn-similares-toggle:hover { background: #f5f5f5; border-color: #bbb; }
-.btn-similares-toggle.active {
-    background: var(--rkl-primary);
-    border-color: var(--rkl-primary);
-    color: #fff;
-}
-
-/* ── Right panel ── */
-.proy-item-right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: .75rem;
-    flex-shrink: 0;
-}
-.proy-item-top-actions {
-    display: flex;
-    align-items: center;
-    gap: .45rem;
-}
-
-/* ── Badge estado ── */
-.badge-enstock {
-    background: #1a1a1a;
-    color: #fff;
-    font-size: .72rem;
-    font-weight: 500;
-    padding: .3em .8em;
-    border-radius: 3px;
-    white-space: nowrap;
-}
-
-/* ── Btn quitar ── */
-.btn-quitar-item {
-    background: none;
-    border: none;
-    padding: .3rem .35rem;
-    color: #888;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 1.1rem;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: color .15s, background .15s;
-}
-.btn-quitar-item:hover { color: #dc3545; background: #fde8e8; }
-
-/* ── Qty control ── */
+/* ── Qty stepper ── */
 .qty-ctrl {
     display: inline-flex;
     align-items: stretch;
@@ -215,8 +122,8 @@
 .qty-ctrl button {
     background: #f5f5f5;
     border: none;
-    width: 34px;
-    font-size: 1.1rem;
+    width: 30px;
+    font-size: 1rem;
     font-weight: 600;
     color: #555;
     cursor: pointer;
@@ -231,10 +138,10 @@
     border: none;
     border-left: 1px solid #d0d0d0;
     border-right: 1px solid #d0d0d0;
-    width: 40px;
+    width: 44px;
     text-align: center;
     font-weight: 600;
-    font-size: .9rem;
+    font-size: .88rem;
     background: #fff;
     outline: none;
     box-shadow: none;
@@ -243,82 +150,89 @@
 .qty-ctrl input::-webkit-outer-spin-button,
 .qty-ctrl input::-webkit-inner-spin-button { -webkit-appearance: none; }
 
-/* ── Sidebar ── */
-.proyecto-sidebar .sidebar-card {
-    background: #FAFAE8;
-    border: 1px solid #E8E6C0;
-    border-radius: 8px;
-    padding: 1.25rem;
-    position: sticky;
-    top: 80px;
-}
-.sidebar-title {
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: #1a1a1a;
-    margin-bottom: 1rem;
-}
-.sidebar-items-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: .3rem;
-}
-.sidebar-items-label {
-    font-size: .85rem;
-    font-weight: 600;
-    color: #1a1a1a;
-}
-.sidebar-items-count {
-    font-size: .95rem;
-    font-weight: 700;
-    color: #1a1a1a;
-}
-.sidebar-time {
-    font-size: .8rem;
-    color: #888;
-    margin-bottom: 1.1rem;
-}
-.btn-solicitar-sidebar {
-    background: var(--rkl-primary);
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    padding: .7rem 1rem;
-    font-size: .75rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+/* ── Checkbox reemplazo ── */
+.check-reemplazo {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--rkl-primary);
     cursor: pointer;
-    width: 100%;
-    text-align: center;
-    transition: background .15s;
+    margin: 0 auto;
     display: block;
-    margin-bottom: .75rem;
+    border: 1px solid #ccc;
 }
-.btn-solicitar-sidebar:not(:disabled):hover { background: var(--rkl-primary-dark); }
-.btn-solicitar-sidebar:disabled { opacity: .65; cursor: default; }
-.sidebar-link {
-    font-size: .85rem;
-    color: #333;
-    text-decoration: underline;
-    text-align: center;
-    display: block;
-}
-.sidebar-link:hover { color: #000; }
 
-/* ── Similares panel ── */
-.similares-panel {
-    display: none;
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-top: none;
-    border-radius: 0 0 8px 8px;
-    padding: 1rem 1.25rem 1.25rem;
-    margin-top: -4px;
-    margin-bottom: .85rem;
+/* ── Textarea comentario ── */
+.textarea-comentario {
+    width: 100%;
+    min-width: 160px;
+    font-size: .8rem;
+    color: #444;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    padding: .45rem .6rem;
+    resize: none;
+    outline: none;
+    line-height: 1.5;
+    background: #fff;
+    transition: border-color .15s;
 }
-.similares-panel.open { display: block; }
+.textarea-comentario:focus { border-color: #bbb; }
+.textarea-comentario::placeholder { color: #bbb; }
+.comment-status {
+    font-size: .7rem;
+    color: #aaa;
+    text-align: right;
+    min-height: 1em;
+    margin-top: .1rem;
+}
+
+/* ── Btn quitar ── */
+.btn-quitar-item {
+    background: none;
+    border: none;
+    padding: .3rem .4rem;
+    color: #ACA300;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 1.15rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color .15s, background .15s;
+}
+.btn-quitar-item:hover { color: #dc3545; background: #fde8e8; }
+
+/* ── Fila "Ver items similares" ── */
+.tr-similares-toggle {
+    background: #fafafa;
+    border-bottom: 1px solid #efefef;
+}
+.tr-similares-toggle td {
+    padding: .45rem 1.25rem;
+    text-align: center;
+}
+.btn-ver-similares {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: .8rem;
+    color: var(--rkl-primary);
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: 500;
+    transition: color .12s;
+}
+.btn-ver-similares:hover { color: var(--rkl-primary-dark); }
+
+/* ── Panel similares (expandible) ── */
+.tr-similares-panel { display: none; }
+.tr-similares-panel.open { display: table-row; }
+.similares-panel-inner {
+    padding: 1rem 1.25rem 1.25rem;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
 .similares-panel-title {
     font-size: .78rem;
     font-weight: 700;
@@ -338,8 +252,8 @@
     height: 100%;
 }
 .sim-card-img {
-    width: 56px;
-    height: 56px;
+    width: 52px;
+    height: 52px;
     flex-shrink: 0;
     background: #f0f0f0;
     border-radius: 4px;
@@ -385,13 +299,76 @@
     transition: background .12s;
 }
 .btn-sim-agregar:hover { background: #3d5166; }
+
+/* ── Sidebar Solicitud ── */
+.proyecto-sidebar .sidebar-card {
+    background: #FAFAE8;
+    border: 1px solid #E8E6C0;
+    border-radius: 8px;
+    padding: 1.25rem;
+    position: sticky;
+    top: 80px;
+}
+.sidebar-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+}
+.sidebar-items-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.sidebar-items-label {
+    font-size: .85rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+.sidebar-items-count {
+    font-size: .95rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+.btn-solicitar-sidebar {
+    background: var(--rkl-primary);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: .7rem 1rem;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    transition: background .15s;
+    display: block;
+    margin-bottom: .75rem;
+}
+.btn-solicitar-sidebar:not(:disabled):hover { background: var(--rkl-primary-dark); }
+.btn-solicitar-sidebar:disabled { opacity: .65; cursor: default; }
+.sidebar-link {
+    font-size: .85rem;
+    color: #333;
+    text-decoration: underline;
+    text-align: center;
+    display: block;
+}
+.sidebar-link:hover { color: #000; }
+
+/* ── Filas pares (al final para ganar en cascada) ── */
+.tr-producto.fila-par td { background: #e8e8e8 !important; }
+.tr-similares-toggle.fila-par td { background: #e2e2e2 !important; }
 </style>
 {% endblock %}
 
 {% block body %}
 
 {# Cabecera #}
-<h4 class="fw-bold mb-1" style="color:#1a1a1a;">{{ proyecto.nombre }}</h4>
+<h4 class="fw-bold mb-4" style="color:#1a1a1a;">{{ proyecto.nombre }}</h4>
 
 {% if proyecto.items is empty %}
 
@@ -406,101 +383,114 @@
 
 {% else %}
 
-<p class="text-muted mb-3" style="font-size:.9rem;">Listado de productos</p>
-
 <div class="proyecto-layout">
 
-    {# ── Lista de items ── #}
-    <div class="proyecto-items" id="lista-items">
-        {% for item in proyecto.items %}
+    {# ── Tabla de productos ── #}
+    <div class="proyecto-items">
+        <p class="mb-2" style="font-size:.95rem;font-weight:600;color:#333;">Listado de productos</p>
 
-        <div class="proy-item-card" data-item-id="{{ item.id }}">
+        <table class="tabla-productos">
+            <thead>
+                <tr>
+                    <th class="col-producto">Producto</th>
+                    <th>Cantidad</th>
+                    <th>Sugerir remplazo<br>por precio</th>
+                    <th>Sugerir remplazo<br>por plazo</th>
+                    <th>Dejá un<br>comentario</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="lista-items">
+            {% for item in proyecto.items %}
 
-            {# Fila principal: imagen | contenido | panel derecho #}
-            <div class="proy-item-main">
+                {# Fila principal del producto #}
+                <tr class="tr-producto{% if loop.index is even %} fila-par{% endif %}" data-item-id="{{ item.id }}">
 
-                {# Imagen #}
-                <div class="proy-item-img">
-                    {% if item.articulo.imagen %}
-                    <img src="{{ item.articulo.imagen }}" alt="{{ item.articulo.nombreDisplay }}"
-                         onerror="this.style.display='none';this.closest('.proy-item-img').innerHTML='<i class=\'ri-image-line\' style=\'color:#ccc;font-size:2rem;\'></i>'">
-                    {% else %}
-                    <i class="ri-image-line" style="color:#ccc;font-size:2rem;"></i>
-                    {% endif %}
-                </div>
+                    {# Producto #}
+                    <td class="td-producto">
+                        <div class="td-producto-inner">
+                            <div class="td-producto-img">
+                                {% if item.articulo.imagen %}
+                                <img src="{{ item.articulo.imagen }}" alt="{{ item.articulo.nombreDisplay }}"
+                                     onerror="this.style.display='none';this.closest('.td-producto-img').innerHTML='<i class=\'ri-image-line\' style=\'color:#ccc;font-size:1.4rem;\'></i>'">
+                                {% else %}
+                                <i class="ri-image-line" style="color:#ccc;font-size:1.4rem;"></i>
+                                {% endif %}
+                            </div>
+                            <div class="td-producto-info">
+                                <span class="td-producto-nombre">{{ item.articulo.nombreDisplay }}</span>
+                                <a href="{{ path('app_catalogo_detalle', {codigo: item.articulo.codigoCalipso}) }}"
+                                   class="td-ver-producto">Ver producto</a>
+                            </div>
+                        </div>
+                    </td>
 
-                {# Contenido principal #}
-                <div class="proy-item-body">
-                    <a href="{{ path('app_catalogo_detalle', {codigo: item.articulo.codigoCalipso}) }}"
-                       class="proy-item-name">{{ item.articulo.nombreDisplay }}</a>
+                    {# Cantidad #}
+                    <td>
+                        <div class="qty-ctrl">
+                            <button type="button" class="btn-item-menos" data-item="{{ item.id }}">−</button>
+                            <input type="number" class="input-item-cantidad"
+                                   value="{{ item.cantidad }}" min="1" max="999"
+                                   data-item="{{ item.id }}">
+                            <button type="button" class="btn-item-mas" data-item="{{ item.id }}">+</button>
+                        </div>
+                    </td>
 
-                    {% if item.articulo.descripcion %}
-                    <span class="proy-item-category">{{ item.articulo.descripcion|slice(0,60) }}{% if item.articulo.descripcion|length > 60 %}…{% endif %}</span>
-                    {% endif %}
+                    {# Sugerir remplazo por precio #}
+                    <td>
+                        <input type="checkbox" class="check-reemplazo input-item-auth" data-item="{{ item.id }}" data-type="precio">
+                    </td>
 
-                    {% if item.articulo.bu %}
-                    <span class="proy-item-time">{{ item.articulo.bu }}</span>
-                    {% endif %}
+                    {# Sugerir remplazo por plazo #}
+                    <td>
+                        <input type="checkbox" class="check-reemplazo input-item-auth-plazo" data-item="{{ item.id }}" data-type="plazo">
+                    </td>
 
                     {# Comentario #}
-                    <div class="proy-item-comment-wrap">
+                    <td>
                         <textarea rows="2"
-                                  class="input-item-comment"
-                                  placeholder="Comentario (opcional)…"
+                                  class="textarea-comentario input-item-comment"
+                                  placeholder="Escribí tu comentario..."
                                   data-item="{{ item.id }}">{{ item.comment }}</textarea>
                         <div class="comment-status" data-item="{{ item.id }}"></div>
-                    </div>
+                    </td>
 
-                    {# Autorización de reemplazo #}
-                    <div class="proy-item-auth">
-                        <input type="checkbox" id="auth-{{ item.id }}" class="input-item-auth" data-item="{{ item.id }}">
-                        <label for="auth-{{ item.id }}">
-                            Autorizo el reemplazo por un producto similar en caso de falta de stock.
-                        </label>
-                    </div>
-                </div>
-
-                {# Panel derecho: badge + quitar | qty #}
-                <div class="proy-item-right">
-                    <div class="proy-item-top-actions">
-                        <span class="badge-enstock">En Stock</span>
+                    {# Quitar #}
+                    <td>
                         <button class="btn-quitar-item" data-item="{{ item.id }}"
                                 data-nombre="{{ item.articulo.nombreDisplay|e('html_attr') }}"
                                 title="Quitar del proyecto">
                             <i class="ri-delete-bin-line"></i>
                         </button>
-                    </div>
-                    <div class="qty-ctrl">
-                        <button type="button" class="btn-item-menos" data-item="{{ item.id }}">−</button>
-                        <input type="number" class="input-item-cantidad"
-                               value="{{ item.cantidad }}" min="1" max="999"
-                               data-item="{{ item.id }}">
-                        <button type="button" class="btn-item-mas" data-item="{{ item.id }}">+</button>
-                    </div>
-                </div>
+                    </td>
 
-            </div>{# /.proy-item-main #}
+                </tr>
 
-            {# Footer: botón productos similares #}
-            <div class="proy-item-footer">
-                <button type="button"
-                        class="btn-similares-toggle"
-                        data-codigo="{{ item.articulo.codigoCalipso }}"
-                        data-panel="similares-{{ item.id }}">
-                    <i class="ri-stack-line btn-sim-icon"></i>
-                    <span class="btn-sim-text">Productos similares</span>
-                </button>
-            </div>
+                {# Fila "Ver items similares" #}
+                <tr class="tr-similares-toggle{% if loop.index is even %} fila-par{% endif %}">
+                    <td colspan="6">
+                        <button type="button"
+                                class="btn-ver-similares"
+                                data-codigo="{{ item.articulo.codigoCalipso }}"
+                                data-panel="similares-{{ item.id }}">
+                            Ver items similares
+                        </button>
+                    </td>
+                </tr>
 
-        </div>{# /.proy-item-card #}
+                {# Fila panel similares (oculta por defecto) #}
+                <tr class="tr-similares-panel" id="similares-{{ item.id }}" data-loaded="false">
+                    <td colspan="6">
+                        <div class="similares-panel-inner">
+                            <div class="similares-panel-title">Productos similares</div>
+                            <div class="similares-grid row g-2"></div>
+                        </div>
+                    </td>
+                </tr>
 
-        {# Panel similares (se abre bajo la card) #}
-        <div class="similares-panel" id="similares-{{ item.id }}" data-loaded="false">
-            <div class="similares-panel-title">Productos similares</div>
-            <div class="similares-grid row g-2"></div>
-        </div>
-
-        {% endfor %}
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
 
     {# ── Sidebar Solicitud ── #}
@@ -512,7 +502,6 @@
                 <span class="sidebar-items-label">Cantidad de items a cotizar</span>
                 <span class="sidebar-items-count" id="sidebar-items-count">{{ proyecto.cantidadProductos }}</span>
             </div>
-            <div class="sidebar-time">Tiempo de espera: a confirmar</div>
 
             <button type="button" class="btn-solicitar-sidebar"
                     id="btn-solicitar-pedido"
@@ -578,8 +567,8 @@
     const _bsModal = bootstrap.Modal.getOrCreateInstance(_modalEl);
 
     function abrirModalEliminar(id) {
-        const card   = document.querySelector(`.proy-item-card[data-item-id="${id}"]`);
-        const btn    = card ? card.querySelector('.btn-quitar-item') : null;
+        const row    = document.querySelector(`.tr-producto[data-item-id="${id}"]`);
+        const btn    = row ? row.querySelector('.btn-quitar-item') : null;
         const nombre = btn ? btn.dataset.nombre : 'Este producto';
         pendingDeleteId = id;
         document.getElementById('modal-item-nombre').textContent = nombre;
@@ -595,16 +584,19 @@
         const res = await fetch(`/secure/proyectos/item/${id}/quitar`, { method: 'POST', body: fd });
         const data = await res.json();
         if (data.success) {
-            const card  = document.querySelector(`.proy-item-card[data-item-id="${id}"]`);
-            if (card) card.remove();
-            const simPanel = document.getElementById(`similares-${id}`);
-            if (simPanel) simPanel.remove();
+            // Eliminar las 3 filas del item (producto + toggle similares + panel similares)
+            const rowProducto  = document.querySelector(`.tr-producto[data-item-id="${id}"]`);
+            const rowToggle    = rowProducto ? rowProducto.nextElementSibling : null;
+            const rowPanel     = rowToggle   ? rowToggle.nextElementSibling   : null;
+            if (rowPanel)   rowPanel.remove();
+            if (rowToggle)  rowToggle.remove();
+            if (rowProducto) rowProducto.remove();
             actualizarSidebar();
-            if (!document.querySelector('.proy-item-card')) location.reload();
+            if (!document.querySelector('.tr-producto')) location.reload();
         }
     });
 
-    // ── Botones − ──
+    // ── Botón − (decrementar) ──
     document.querySelectorAll('.btn-item-menos').forEach(btn => {
         btn.addEventListener('click', function () {
             const id    = this.dataset.item;
@@ -619,7 +611,7 @@
         });
     });
 
-    // ── Botones + ──
+    // ── Botón + (incrementar) ──
     document.querySelectorAll('.btn-item-mas').forEach(btn => {
         btn.addEventListener('click', function () {
             const id    = this.dataset.item;
@@ -650,7 +642,7 @@
 
     // ── Actualizar sidebar (contador) ──
     function actualizarSidebar() {
-        const n = document.querySelectorAll('.proy-item-card').length;
+        const n = document.querySelectorAll('.tr-producto').length;
         const countEl = document.getElementById('sidebar-items-count');
         if (countEl) countEl.textContent = n;
         const btnPedido = document.getElementById('btn-solicitar-pedido');
@@ -686,39 +678,33 @@
         `).join('');
     }
 
-    document.querySelectorAll('.btn-similares-toggle').forEach(btn => {
+    document.querySelectorAll('.btn-ver-similares').forEach(btn => {
         btn.addEventListener('click', async function () {
             const panelId = this.dataset.panel;
             const codigo  = this.dataset.codigo;
-            const panel   = document.getElementById(panelId);
-            const grid    = panel.querySelector('.similares-grid');
-            const isOpen  = panel.classList.contains('open');
-            const iconEl  = this.querySelector('.btn-sim-icon');
-            const textEl  = this.querySelector('.btn-sim-text');
+            const panelRow = document.getElementById(panelId);
+            const grid    = panelRow.querySelector('.similares-grid');
+            const isOpen  = panelRow.classList.contains('open');
 
             if (isOpen) {
-                panel.classList.remove('open');
-                this.classList.remove('active');
-                if (iconEl) iconEl.className = 'ri-stack-line btn-sim-icon';
-                if (textEl) textEl.textContent = 'Productos similares';
+                panelRow.classList.remove('open');
+                this.textContent = 'Ver items similares';
                 return;
             }
 
-            panel.classList.add('open');
-            this.classList.add('active');
-            if (iconEl) iconEl.className = 'ri-close-line btn-sim-icon';
-            if (textEl) textEl.textContent = 'Cerrar similares';
+            panelRow.classList.add('open');
+            this.textContent = 'Ocultar similares';
             RKL.clarity('event', 'similares_abierto');
             RKL.clarity('set', 'similares_de', codigo);
 
-            if (panel.dataset.loaded === 'true') return;
+            if (panelRow.dataset.loaded === 'true') return;
 
             grid.innerHTML = '<div class="text-muted small py-2"><i class="ri-loader-4-line me-1"></i> Cargando…</div>';
 
             try {
                 const res  = await fetch(`/catalogo/productos/${encodeURIComponent(codigo)}/similares`);
                 const data = await res.json();
-                panel.dataset.loaded = 'true';
+                panelRow.dataset.loaded = 'true';
                 renderSimilares(grid, data);
             } catch {
                 grid.innerHTML = '<p class="text-muted small mb-0">Error al cargar productos similares.</p>';

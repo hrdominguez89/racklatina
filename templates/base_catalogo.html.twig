@@ -210,83 +210,30 @@
                     </nav>
                 </div>
 
-                <!-- Derecha: empresa + usuario -->
+                <!-- Derecha: usuario + empresa -->
                 <div class="d-flex align-items-center gap-2">
 
-                    {# Empresa dropdown: muestra la activa, permite cambiar si hay más #}
-                    {% if app.user is not null and app.user.userCustomers is not empty %}
-                        {% set ucList = app.user.userCustomers %}
-                        {% set activoCodigo = app.user.activeClienteCodigo %}
-                        <div class="dropdown d-none d-md-block">
-                            <button type="button"
-                                    class="header-empresa-btn"
-                                    {% if ucList|length > 1 %}data-bs-toggle="dropdown" aria-expanded="false"{% endif %}>
-                                {{ cliente_razon_social(activoCodigo) }}
-                                {% if ucList|length > 1 %}
-                                    <i class="ri-arrow-down-s-line ms-1"></i>
-                                {% endif %}
-                            </button>
-                            {% if ucList|length > 1 %}
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                {% for uc in ucList %}
-                                <li>
-                                    <form method="POST" action="{{ path('app_catalogo_switch_empresa') }}">
-                                        <input type="hidden" name="cliente_codigo" value="{{ uc.clienteCodigo }}">
-                                        <button type="submit"
-                                                class="dropdown-item small {% if uc.clienteCodigo == activoCodigo %}fw-semibold{% endif %}">
-                                            <i class="ri-building-line me-1 text-muted"></i>
-                                            {{ cliente_razon_social(uc.clienteCodigo) }}
-                                            <span class="text-muted ms-1">({{ uc.clienteCodigo }})</span>
-                                            {% if uc.clienteCodigo == activoCodigo %}
-                                                <i class="ri-check-line ms-1 text-success"></i>
-                                            {% endif %}
-                                        </button>
-                                    </form>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                            {% endif %}
-                        </div>
-                    {% endif %}
-
-                    {# Usuario dropdown #}
                     {% if app.user is not null %}
-                        <div class="dropdown">
-                            <button type="button"
-                                    class="header-user-btn d-flex align-items-center gap-2"
-                                    id="header-user-dropdown"
-                                    data-bs-toggle="dropdown"
-                                    aria-haspopup="true"
-                                    aria-expanded="false">
-                                <div class="header-user-avatar">
-                                    {{- app.user.firstName|first|upper -}}{{- app.user.lastName|first|upper -}}
-                                </div>
-                                <div class="d-none d-md-block text-start">
-                                    <div class="header-user-name">
-                                        {{ app.user.firstName }} {{ app.user.lastName }}
-                                    </div>
-                                    <div class="header-user-meta">
-                                        {{ app.user.email }} /
-                                        {% if is_granted('ROLE_SUPER_ADMIN') %}Super Admin
-                                        {% elseif is_granted('ROLE_ADMIN') %}Admin
-                                        {% elseif is_granted('ROLE_ADMINISTRACION') %}Administración
-                                        {% elseif is_granted('ROLE_COMPRADOR') %}Comprador
-                                        {% else %}Usuario{% endif %}
-                                    </div>
-                                </div>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end">
-                                <a class="dropdown-item" href="{{ path('app_mi_perfil_controllador_edicion') }}">
-                                    <i class="mdi mdi-account-circle fs-16 align-middle me-1"></i>
-                                    Perfil
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="{{ path('app_logout') }}">
-                                    <i class="mdi mdi-logout fs-16 align-middle me-1"></i>
-                                    Cerrar sesión
-                                </a>
+                        {# Bloque usuario: avatar + nombre + empresa → abre modal switch empresa #}
+                        {% set activoCodigo = app.user.activeClienteCodigo %}
+                        <button type="button"
+                                class="header-user-btn d-flex align-items-center gap-2"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalSwitchEmpresa">
+                            <div class="header-user-avatar">
+                                {{- app.user.firstName|first|upper -}}{{- app.user.lastName|first|upper -}}
                             </div>
-                        </div>
+                            <div class="d-none d-md-block text-start">
+                                <div class="header-user-name">
+                                    {{ app.user.firstName }} {{ app.user.lastName }}
+                                </div>
+                                {% if activoCodigo %}
+                                <div class="header-user-meta">
+                                    {{ cliente_razon_social(activoCodigo) }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </button>
                     {% else %}
                         <a href="{{ path('app_login') }}" class="btn btn-sm btn-warning fw-semibold">
                             Iniciar sesión
@@ -406,6 +353,81 @@ document.addEventListener('click', function(e) {
 </style>
 
 {% block extra_js %}{% endblock %}
+
+{# ── Modal: Switch empresa ── #}
+{% if app.user is not null and app.user.userCustomers is not empty %}
+{% set ucList = app.user.userCustomers %}
+{% set activoCodigo = app.user.activeClienteCodigo %}
+<div class="modal fade" id="modalSwitchEmpresa" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+        <div class="modal-content border-0" style="border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.18);">
+
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-semibold" style="font-size:1rem;color:#1a1a1a;line-height:1.4;">
+                    Seleccioná la empresa con la que deseas ingresar:
+                </h5>
+                <button type="button" class="btn-close ms-3 flex-shrink-0" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form method="POST" action="{{ path('app_catalogo_switch_empresa') }}">
+                <div class="modal-body px-4 pt-3 pb-2">
+                    <label class="form-label fw-semibold small mb-1" style="color:#444;">Empresa</label>
+                    <select name="cliente_codigo" class="form-select" style="border-radius:6px;font-size:.9rem;">
+                        {% for uc in ucList %}
+                        <option value="{{ uc.clienteCodigo }}"
+                                {% if uc.clienteCodigo == activoCodigo %}selected{% endif %}>
+                            {{ cliente_razon_social(uc.clienteCodigo) }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="modal-footer border-0 px-4 pt-2 pb-4 flex-column align-items-stretch gap-2">
+                    <button type="submit" class="btn fw-semibold w-100 py-2"
+                            style="background:var(--rkl-primary);color:#fff;border:none;border-radius:6px;letter-spacing:.5px;">
+                        GUARDAR CAMBIOS
+                    </button>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <a href="{{ path('app_mi_perfil_controllador_edicion') }}"
+                           class="small text-muted text-decoration-none">
+                            <i class="mdi mdi-account-circle me-1"></i>Mi perfil
+                        </a>
+                        <a href="{{ path('app_logout') }}"
+                           class="small text-muted text-decoration-none">
+                            <i class="mdi mdi-logout me-1"></i>Cerrar sesión
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% elseif app.user is not null %}
+{# Usuario sin empresas asociadas: modal mínimo solo con perfil/logout #}
+<div class="modal fade" id="modalSwitchEmpresa" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:320px;">
+        <div class="modal-content border-0" style="border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.18);">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-semibold" style="font-size:1rem;color:#1a1a1a;">
+                    {{ app.user.firstName }} {{ app.user.lastName }}
+                </h5>
+                <button type="button" class="btn-close ms-3 flex-shrink-0" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pt-2 pb-4">
+                <a href="{{ path('app_mi_perfil_controllador_edicion') }}"
+                   class="d-block py-2 small text-decoration-none text-dark border-bottom">
+                    <i class="mdi mdi-account-circle me-2 text-muted"></i>Mi perfil
+                </a>
+                <a href="{{ path('app_logout') }}"
+                   class="d-block py-2 small text-decoration-none text-dark">
+                    <i class="mdi mdi-logout me-2 text-muted"></i>Cerrar sesión
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 {# ── Modal: Crear nuevo proyecto ── #}
 {% if app.user is not null %}
