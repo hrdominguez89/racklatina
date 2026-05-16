@@ -355,8 +355,7 @@ document.addEventListener('click', function(e) {
 {% block extra_js %}{% endblock %}
 
 {# ── Modal: Switch empresa ── #}
-{% if app.user is not null and app.user.userCustomers is not empty %}
-{% set ucList = app.user.userCustomers %}
+{% if app.user is not null %}
 {% set activoCodigo = app.user.activeClienteCodigo %}
 <div class="modal fade" id="modalSwitchEmpresa" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
@@ -364,16 +363,57 @@ document.addEventListener('click', function(e) {
 
             <div class="modal-header border-0 pb-0 pt-4 px-4">
                 <h5 class="modal-title fw-semibold" style="font-size:1rem;color:#1a1a1a;line-height:1.4;">
-                    Seleccioná la empresa con la que deseas ingresar:
+                    {% if is_granted('ROLE_ADMIN') %}
+                        Ver catálogo como empresa:
+                    {% else %}
+                        Seleccioná la empresa con la que deseas ingresar:
+                    {% endif %}
                 </h5>
                 <button type="button" class="btn-close ms-3 flex-shrink-0" data-bs-dismiss="modal"></button>
             </div>
 
+            {% if is_granted('ROLE_ADMIN') %}
+            {# Admins: buscador de cualquier empresa en Calypso #}
+            <form method="POST" action="{{ path('app_catalogo_switch_empresa') }}" id="form-switch-empresa-admin">
+                <div class="modal-body px-4 pt-3 pb-2">
+                    <label class="form-label fw-semibold small mb-1" style="color:#444;">Buscar empresa</label>
+                    <input type="text" id="admin-empresa-search" class="form-control mb-2"
+                           placeholder="Escribí el nombre de la empresa…"
+                           autocomplete="off"
+                           value="{{ activoCodigo ? cliente_razon_social(activoCodigo) : '' }}"
+                           style="border-radius:6px;font-size:.9rem;">
+                    <div id="admin-empresa-results" class="list-group mb-1" style="max-height:220px;overflow-y:auto;display:none;"></div>
+                    <input type="hidden" name="cliente_codigo" id="admin-empresa-codigo" value="{{ activoCodigo ?: '' }}">
+                    <div id="admin-empresa-seleccionada" class="small text-muted mt-1">
+                        {{ activoCodigo ? 'Código: ' ~ activoCodigo : '' }}
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pt-2 pb-4 flex-column align-items-stretch gap-2">
+                    <button type="submit" id="admin-empresa-submit" class="btn fw-semibold w-100 py-2"
+                            {{ activoCodigo ? '' : 'disabled' }}
+                            style="background:var(--rkl-primary);color:#fff;border:none;border-radius:6px;letter-spacing:.5px;">
+                        GUARDAR CAMBIOS
+                    </button>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <a href="{{ path('app_mi_perfil_controllador_edicion') }}"
+                           class="small text-muted text-decoration-none">
+                            <i class="mdi mdi-account-circle me-1"></i>Mi perfil
+                        </a>
+                        <a href="{{ path('app_logout') }}"
+                           class="small text-muted text-decoration-none">
+                            <i class="mdi mdi-logout me-1"></i>Cerrar sesión
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            {% elseif app.user.userCustomers is not empty %}
+            {# Externos con empresas vinculadas: lista fija #}
             <form method="POST" action="{{ path('app_catalogo_switch_empresa') }}">
                 <div class="modal-body px-4 pt-3 pb-2">
                     <label class="form-label fw-semibold small mb-1" style="color:#444;">Empresa</label>
                     <select name="cliente_codigo" class="form-select" style="border-radius:6px;font-size:.9rem;">
-                        {% for uc in ucList %}
+                        {% for uc in app.user.userCustomers %}
                         <option value="{{ uc.clienteCodigo }}"
                                 {% if uc.clienteCodigo == activoCodigo %}selected{% endif %}>
                             {{ cliente_razon_social(uc.clienteCodigo) }}
@@ -381,7 +421,6 @@ document.addEventListener('click', function(e) {
                         {% endfor %}
                     </select>
                 </div>
-
                 <div class="modal-footer border-0 px-4 pt-2 pb-4 flex-column align-items-stretch gap-2">
                     <button type="submit" class="btn fw-semibold w-100 py-2"
                             style="background:var(--rkl-primary);color:#fff;border:none;border-radius:6px;letter-spacing:.5px;">
@@ -400,20 +439,8 @@ document.addEventListener('click', function(e) {
                 </div>
             </form>
 
-        </div>
-    </div>
-</div>
-{% elseif app.user is not null %}
-{# Usuario sin empresas asociadas: modal mínimo solo con perfil/logout #}
-<div class="modal fade" id="modalSwitchEmpresa" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:320px;">
-        <div class="modal-content border-0" style="border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.18);">
-            <div class="modal-header border-0 pb-0 pt-4 px-4">
-                <h5 class="modal-title fw-semibold" style="font-size:1rem;color:#1a1a1a;">
-                    {{ app.user.firstName }} {{ app.user.lastName }}
-                </h5>
-                <button type="button" class="btn-close ms-3 flex-shrink-0" data-bs-dismiss="modal"></button>
-            </div>
+            {% else %}
+            {# Sin empresas: solo perfil/logout #}
             <div class="modal-body px-4 pt-2 pb-4">
                 <a href="{{ path('app_mi_perfil_controllador_edicion') }}"
                    class="d-block py-2 small text-decoration-none text-dark border-bottom">
@@ -424,9 +451,70 @@ document.addEventListener('click', function(e) {
                     <i class="mdi mdi-logout me-2 text-muted"></i>Cerrar sesión
                 </a>
             </div>
+            {% endif %}
+
         </div>
     </div>
 </div>
+
+{% if is_granted('ROLE_ADMIN') %}
+<script>
+(function () {
+    const searchInput = document.getElementById('admin-empresa-search');
+    const results     = document.getElementById('admin-empresa-results');
+    const codigoInput = document.getElementById('admin-empresa-codigo');
+    const selLabel    = document.getElementById('admin-empresa-seleccionada');
+    const submitBtn   = document.getElementById('admin-empresa-submit');
+    let debounceTimer;
+
+    searchInput.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        const q = this.value.trim();
+        if (q.length < 2) { results.style.display = 'none'; results.innerHTML = ''; return; }
+        debounceTimer = setTimeout(() => {
+            fetch(`{{ path('app_catalogo_buscar_empresa') }}?q=` + encodeURIComponent(q))
+                .then(r => r.json())
+                .then(data => {
+                    results.innerHTML = '';
+                    if (!data.length) {
+                        results.innerHTML = '<div class="list-group-item text-muted small">Sin resultados</div>';
+                        results.style.display = 'block';
+                        return;
+                    }
+                    data.forEach(item => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'list-group-item list-group-item-action small py-2';
+                        btn.textContent = item.nombre;
+                        btn.addEventListener('click', function () {
+                            codigoInput.value  = item.codigo;
+                            searchInput.value  = item.nombre;
+                            selLabel.textContent = 'Código: ' + item.codigo;
+                            submitBtn.disabled = false;
+                            results.style.display = 'none';
+                        });
+                        results.appendChild(btn);
+                    });
+                    results.style.display = 'block';
+                });
+        }, 280);
+    });
+
+    // Al cerrar el modal, volver al estado de la empresa activa actual
+    const initialCodigo = codigoInput.value;
+    const initialNombre = searchInput.value;
+    document.getElementById('modalSwitchEmpresa').addEventListener('hidden.bs.modal', function () {
+        searchInput.value = initialNombre;
+        results.innerHTML = '';
+        results.style.display = 'none';
+        codigoInput.value = initialCodigo;
+        selLabel.textContent = initialCodigo ? 'Código: ' + initialCodigo : '';
+        submitBtn.disabled = !initialCodigo;
+    });
+})();
+</script>
+{% endif %}
+
 {% endif %}
 
 {# ── Modal: Crear nuevo proyecto ── #}

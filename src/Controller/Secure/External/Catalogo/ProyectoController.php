@@ -18,7 +18,12 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/secure/proyectos')]
 class ProyectoController extends AbstractController
 {
-    private const ROLES = ['ROLE_COMPRADOR', 'ROLE_ADMINISTRACION'];
+    private function denyUnlessProyectosAccess(): void
+    {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+            throw $this->createAccessDeniedException();
+        }
+    }
 
     public function __construct(
         private ProyectoRepository $proyectoRepo,
@@ -30,7 +35,7 @@ class ProyectoController extends AbstractController
     #[Route('', name: 'app_proyectos_index')]
     public function index(): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+        $this->denyUnlessProyectosAccess();
 
         $user = $this->getUser();
         $proyectos = $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo());
@@ -43,7 +48,7 @@ class ProyectoController extends AbstractController
     #[Route('/nuevo', name: 'app_proyectos_nuevo', methods: ['POST'])]
     public function nuevo(Request $request): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+        $this->denyUnlessProyectosAccess();
 
         if (!$this->isCsrfTokenValid('proyecto_nuevo', $request->request->get('_token'))) {
             $this->addFlash('error', 'Token inválido.');
@@ -77,7 +82,7 @@ class ProyectoController extends AbstractController
     #[Route('/{id}', name: 'app_proyectos_show', requirements: ['id' => '\d+'])]
     public function show(int $id): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+        $this->denyUnlessProyectosAccess();
         $proyecto = $this->getProyectoDelUsuario($id);
 
         return $this->render('secure/external/proyectos/show.html.twig', [
@@ -88,7 +93,7 @@ class ProyectoController extends AbstractController
     #[Route('/{id}/editar', name: 'app_proyectos_editar', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function editar(int $id, Request $request): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+        $this->denyUnlessProyectosAccess();
         $proyecto = $this->getProyectoDelUsuario($id);
 
         if ($request->isMethod('POST')) {
@@ -116,7 +121,7 @@ class ProyectoController extends AbstractController
     #[Route('/{id}/eliminar', name: 'app_proyectos_eliminar', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function eliminar(int $id, Request $request): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+        $this->denyUnlessProyectosAccess();
         $proyecto = $this->getProyectoDelUsuario($id);
 
         if (!$this->isCsrfTokenValid('proyecto_eliminar_' . $id, $request->request->get('_token'))) {
@@ -144,7 +149,7 @@ class ProyectoController extends AbstractController
     #[Route('/crear-ajax', name: 'app_proyectos_crear_ajax', methods: ['POST'])]
     public function crearAjax(Request $request): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+        $this->denyUnlessProyectosAccess();
 
         $nombre = trim($request->request->get('nombre', ''));
         if (empty($nombre)) {
@@ -174,7 +179,7 @@ class ProyectoController extends AbstractController
     #[Route('/mis-proyectos-json', name: 'app_proyectos_json', methods: ['GET'])]
     public function misProyectosJson(): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+        $this->denyUnlessProyectosAccess();
         $user = $this->getUser();
         $proyectos = $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo());
 
@@ -190,7 +195,7 @@ class ProyectoController extends AbstractController
     #[Route('/{id}/set-activo', name: 'app_proyectos_set_activo', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function setActivo(int $id): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+        $this->denyUnlessProyectosAccess();
         $proyecto = $this->getProyectoDelUsuario($id);
 
         $user = $this->getUser();
@@ -209,7 +214,7 @@ class ProyectoController extends AbstractController
     #[Route('/{id}/agregar-articulo', name: 'app_proyectos_agregar_articulo', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function agregarArticulo(int $id, Request $request): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+        $this->denyUnlessProyectosAccess();
 
         try {
             $proyecto = $this->getProyectoDelUsuario($id);
@@ -277,7 +282,7 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/cantidad', name: 'app_proyectos_update_cantidad', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function updateCantidad(int $itemId, Request $request): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+        $this->denyUnlessProyectosAccess();
 
         $item = $this->itemRepo->find($itemId);
         if (!$item || $item->getProyecto()->getUser()->getId() !== $this->getUser()->getId()) {
@@ -294,7 +299,7 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/comment', name: 'app_proyectos_update_comment', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function updateComment(int $itemId, Request $request): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+        $this->denyUnlessProyectosAccess();
 
         $item = $this->itemRepo->find($itemId);
         if (!$item || $item->getProyecto()->getUser()->getId() !== $this->getUser()->getId()) {
@@ -310,7 +315,7 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/quitar', name: 'app_proyectos_quitar_articulo', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function quitarArticulo(int $itemId, Request $request): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+        $this->denyUnlessProyectosAccess();
 
         $item = $this->itemRepo->find($itemId);
         if (!$item || $item->getProyecto()->getUser()->getId() !== $this->getUser()->getId()) {
@@ -326,7 +331,11 @@ class ProyectoController extends AbstractController
     private function getProyectoDelUsuario(int $id): Proyecto
     {
         $proyecto = $this->proyectoRepo->find($id);
-        if (!$proyecto || $proyecto->getUser()->getId() !== $this->getUser()->getId()) {
+        if (!$proyecto) {
+            throw $this->createNotFoundException('Proyecto no encontrado');
+        }
+        // Admin puede ver cualquier proyecto; comprador solo el propio
+        if (!$this->isGranted('ROLE_ADMIN') && $proyecto->getUser()->getId() !== $this->getUser()->getId()) {
             throw $this->createNotFoundException('Proyecto no encontrado');
         }
         return $proyecto;

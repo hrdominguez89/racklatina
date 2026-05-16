@@ -3,6 +3,7 @@
 namespace App\Controller\Secure\External\Catalogo;
 
 use App\Repository\ArticuloEcommerceRepository;
+use App\Repository\ClientesRepository;
 use App\Repository\ProyectoRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,6 +17,7 @@ class CatalogoController extends AbstractController
 {
     public function __construct(
         private ArticuloEcommerceRepository $articuloRepo,
+        private ClientesRepository $clientesRepo,
         private ProyectoRepository $proyectoRepo,
         private EntityManagerInterface $em,
     ) {}
@@ -23,21 +25,28 @@ class CatalogoController extends AbstractController
     #[Route('/switch-empresa', name: 'app_catalogo_switch_empresa', methods: ['POST'])]
     public function switchEmpresa(Request $request): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
         $codigo = $request->request->get('cliente_codigo', '');
         $user = $this->getUser();
 
-        $valido = false;
-        foreach ($user->getUserCustomers() as $uc) {
-            if ($uc->getClienteCodigo() === $codigo) {
-                $valido = true;
-                break;
+        if ($this->isGranted('ROLE_ADMIN')) {
+            // Admins pueden switchear a cualquier empresa existente en Calypso
+            if (!$this->clientesRepo->find($codigo)) {
+                throw $this->createNotFoundException('Empresa no encontrada.');
             }
-        }
-
-        if (!$valido) {
-            throw $this->createAccessDeniedException('Empresa no asociada al usuario.');
+        } else {
+            // Externos: solo empresas vinculadas a su usuario
+            $valido = false;
+            foreach ($user->getUserCustomers() as $uc) {
+                if ($uc->getClienteCodigo() === $codigo) {
+                    $valido = true;
+                    break;
+                }
+            }
+            if (!$valido) {
+                throw $this->createAccessDeniedException('Empresa no asociada al usuario.');
+            }
         }
 
         $user->setActiveCliente($codigo);
@@ -66,6 +75,29 @@ class CatalogoController extends AbstractController
             'categorias' => $categorias,
             'recomendados' => $recomendados,
         ]);
+    }
+
+    #[Route('/buscar-empresa', name: 'app_catalogo_buscar_empresa', methods: ['GET'])]
+    public function buscarEmpresa(Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $q = trim($request->query->get('q', ''));
+        if (strlen($q) < 2) {
+            return $this->json([]);
+        }
+
+        $resultados = $this->clientesRepo->createQueryBuilder('c')
+            ->where('c.razonSocial LIKE :q')
+            ->setParameter('q', '%' . $q . '%')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult();
+
+        return $this->json(array_map(fn($c) => [
+            'codigo' => $c->getCodigoCalipso(),
+            'nombre' => $c->getRazonSocial(),
+        ], $resultados));
     }
 
     #[Route('/productos', name: 'app_catalogo_lista')]
@@ -120,8 +152,6 @@ class CatalogoController extends AbstractController
     #[Route('/productos/{codigo}/similares', name: 'app_catalogo_similares', methods: ['GET'])]
     public function similares(string $codigo): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_COMPRADOR');
-
         $articulo = $this->articuloRepo->find($codigo);
         if (!$articulo || !$articulo->getCategoriaAdvisor()) {
             return $this->json([]);
