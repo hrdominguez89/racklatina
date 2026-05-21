@@ -20,6 +20,9 @@
 					</div>
 					<div class="p-2 mt-4">
 						<form method="post">
+							{% if app.request.query.get('redirect') %}
+								<input type="hidden" name="_target_path" value="{{ app.request.query.get('redirect') }}">
+							{% endif %}
 
 							<div class="mb-3">
 								<label for="username" class="form-label">Email</label>

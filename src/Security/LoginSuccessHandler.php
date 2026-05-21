@@ -20,6 +20,11 @@ class LoginSuccessHandler implements AuthenticationSuccessHandlerInterface
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token): RedirectResponse
     {
+        $targetPath = $request->request->get('_target_path');
+        if ($targetPath && str_starts_with($targetPath, '/')) {
+            return new RedirectResponse($targetPath);
+        }
+
         /** @var User $user */
         $user = $token->getUser();
 

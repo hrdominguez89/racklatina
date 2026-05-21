@@ -423,7 +423,7 @@
 
         {% else %}
         <div class="det-actions">
-            <a href="{{ path('app_login') }}" class="btn-agregar-det text-center text-decoration-none">
+            <a href="{{ path('app_login', {redirect: app.request.requestUri}) }}" class="btn-agregar-det text-center text-decoration-none">
                 Iniciá sesión para agregar
             </a>
         </div>

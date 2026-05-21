@@ -235,7 +235,7 @@
                             </div>
                         </button>
                     {% else %}
-                        <a href="{{ path('app_login') }}" class="btn btn-sm btn-warning fw-semibold">
+                        <a href="{{ path('app_login', {redirect: app.request.requestUri}) }}" class="btn btn-sm btn-warning fw-semibold">
                             Iniciar sesión
                         </a>
                     {% endif %}

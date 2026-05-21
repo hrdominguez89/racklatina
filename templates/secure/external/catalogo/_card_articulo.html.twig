@@ -47,7 +47,7 @@
                         Pedir cotización
                     </button>
                 {% else %}
-                    <a href="{{ path('app_login') }}" class="btn btn-outline-warning btn-sm">
+                    <a href="{{ path('app_login', {redirect: app.request.requestUri}) }}" class="btn btn-outline-warning btn-sm">
                         Iniciá sesión para agregar
                     </a>
                 {% endif %}
@@ -100,7 +100,7 @@
                     Agregar a Proyecto
                 </button>
             {% else %}
-                <a href="{{ path('app_login') }}" class="btn w-100"
+                <a href="{{ path('app_login', {redirect: app.request.requestUri}) }}" class="btn w-100"
                    style="border:1.5px solid var(--rkl-primary);color:var(--rkl-primary);background:#fff;border-radius:5px;font-size:.73rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:.5rem .75rem;">
                     Iniciá sesión
                 </a>

@@ -512,7 +512,7 @@
                                 Agregar a Proyecto
                             </button>
                             {% else %}
-                            <a href="{{ path('app_login') }}" class="rkl-btn-agregar" style="display:block;text-align:center;">
+                            <a href="{{ path('app_login', {redirect: app.request.requestUri}) }}" class="rkl-btn-agregar" style="display:block;text-align:center;">
                                 Iniciá sesión
                             </a>
                             {% endif %}
