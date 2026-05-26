@@ -28,8 +28,12 @@ class ArticuloEcommerceRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('a');
 
         if ($q) {
-            $qb->andWhere('a.descripcion LIKE :q OR a.descripcionIdeaconector LIKE :q OR a.codigoCalipso LIKE :q OR a.codigoRockwell LIKE :q')
-               ->setParameter('q', '%' . $q . '%');
+            $palabras = array_filter(array_map('trim', preg_split('/\s+/', $q)));
+            foreach ($palabras as $i => $palabra) {
+                $param = 'q' . $i;
+                $qb->andWhere("a.descripcion LIKE :$param OR a.descripcionIdeaconector LIKE :$param OR a.codigoCalipso LIKE :$param OR a.codigoRockwell LIKE :$param")
+                   ->setParameter($param, '%' . $palabra . '%');
+            }
         }
         if ($categoria) {
             $qb->andWhere('a.categoriaAdvisor = :cat')->setParameter('cat', $categoria);

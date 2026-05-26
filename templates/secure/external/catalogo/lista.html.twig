@@ -397,13 +397,14 @@
             {% if filtros.categoria %}<input type="hidden" name="categoria" value="{{ filtros.categoria }}">{% endif %}
             {% if filtros.subcategoria %}<input type="hidden" name="subcategoria" value="{{ filtros.subcategoria }}">{% endif %}
             {% if filtros.marca %}<input type="hidden" name="marca" value="{{ filtros.marca }}">{% endif %}
-            <div class="d-flex gap-2 align-items-center mb-3">
+            <input type="hidden" name="q" id="q-hidden" value="{{ filtros.q ?? '' }}">
+            <div class="d-flex gap-2 align-items-center mb-2">
                 <div class="rkl-search-wrap flex-grow-1">
                     <i class="ri-search-line rkl-search-icon"></i>
-                    <input type="text" name="q"
+                    <input type="text" id="q-visible"
                            class="form-control rkl-search-input"
-                           placeholder="Buscá un producto"
-                           value="{{ filtros.q ?? '' }}">
+                           placeholder="Buscá un producto y presioná Enter"
+                           autocomplete="off">
                 </div>
                 <div class="dropdown flex-shrink-0">
                     <button type="button" class="btn rkl-ordenar-btn" data-bs-toggle="dropdown">
@@ -421,17 +422,14 @@
                     </ul>
                 </div>
             </div>
+            {# Chips de palabras buscadas #}
+            <div id="q-chips" class="d-flex flex-wrap gap-1 mb-2" style="min-height:0"></div>
         </form>
 
         {# Filter tags activos #}
         {% if filtros.q or filtros.categoria or filtros.subcategoria or filtros.marca %}
         <div class="d-flex flex-wrap gap-2 mb-3">
-            {% if filtros.q %}
-            <span class="rkl-tag">
-                <a href="{{ path('app_catalogo_lista', filtros|merge({q: null, pagina: 1})) }}">×</a>
-                {{ filtros.q }}
-            </span>
-            {% endif %}
+            {# Los chips de búsqueda los renderiza el JS en #q-chips #}
             {% if filtros.categoria %}
             <span class="rkl-tag">
                 <a href="{{ path('app_catalogo_lista', filtros|merge({categoria: null, subcategoria: null, pagina: 1})) }}">×</a>
@@ -567,103 +565,84 @@
 {% block extra_js %}
 <script>
 (function() {
-    let articuloCodigoActual = null;
-    let articuloNombreActual = null;
-
-    async function agregarArticulo(proyectoId, articuloCodigo, cantidad, btnOrigen) {
-        if (btnOrigen) btnOrigen.disabled = true;
-        const fd = new FormData();
-        fd.append('articulo_codigo', articuloCodigo);
-        fd.append('cantidad', cantidad || 1);
-        try {
-            const res  = await fetch(`/secure/proyectos/${proyectoId}/agregar-articulo`, { method: 'POST', body: fd });
-            const data = await res.json();
-            if (data.success) {
-                RKL.clarity('event', 'producto_agregado');
-                RKL.clarity('set', 'producto_agregado', articuloCodigo);
-                RKL.toast(data.mensaje, 'success');
-            } else {
-                RKL.toast(data.error || 'Error al agregar', 'danger');
+    // Auto-submit filtros
+    document.querySelectorAll('.filtro-check').forEach(el => {
+        el.addEventListener('change', function () {
+            // Si cambia la categoría, limpiar subcategoría
+            if (this.name === 'categoria') {
+                document.querySelectorAll('input[name="subcategoria"]').forEach(s => s.checked = false);
             }
-        } catch (e) {
-            RKL.toast('Error de red: ' + e.message, 'danger');
-        } finally {
-            if (btnOrigen) btnOrigen.disabled = false;
-        }
-    }
-
-    async function cargarProyectosEnModal() {
-        const select             = document.getElementById('select-proyecto');
-        const cuerpoSinProyectos = document.getElementById('modal-sin-proyectos');
-        const cuerpoConProyectos = document.getElementById('modal-con-proyectos');
-        const btnConfirmar       = document.getElementById('btn-confirmar-agregar');
-        if (select) select.innerHTML = '<option>Cargando…</option>';
-        try {
-            const proyectos = await fetch('/secure/proyectos/mis-proyectos-json').then(r => r.json());
-            if (proyectos.length === 0) {
-                if (cuerpoSinProyectos) cuerpoSinProyectos.style.display = '';
-                if (cuerpoConProyectos) cuerpoConProyectos.style.display = 'none';
-                if (btnConfirmar)       btnConfirmar.style.display       = 'none';
-            } else {
-                if (cuerpoSinProyectos) cuerpoSinProyectos.style.display = 'none';
-                if (cuerpoConProyectos) cuerpoConProyectos.style.display = '';
-                if (btnConfirmar)       btnConfirmar.style.display       = '';
-                if (select) select.innerHTML = proyectos.map(p =>
-                    `<option value="${p.id}">${p.nombre} (${p.cantidad} items)</option>`
-                ).join('');
-            }
-        } catch (e) {
-            if (select) select.innerHTML = '<option>Error al cargar</option>';
-        }
-    }
-
-    document.querySelectorAll('.btn-agregar-proyecto').forEach(btn => {
-        btn.addEventListener('click', function () {
-            articuloCodigoActual = this.dataset.articuloCodigo;
-            articuloNombreActual = this.dataset.articuloNombre;
-            if (RKL.proyectoActivo) {
-                agregarArticulo(RKL.proyectoActivo.id, articuloCodigoActual, 1, this);
-                return;
-            }
-            const el = document.getElementById('modal-articulo-nombre');
-            if (el) el.textContent = articuloNombreActual;
-            cargarProyectosEnModal();
-            new bootstrap.Modal(document.getElementById('modalAgregarProyecto')).show();
+            document.getElementById('form-filtros').submit();
         });
     });
 
-    document.getElementById('btn-confirmar-agregar')?.addEventListener('click', async function () {
-        const proyectoId = document.getElementById('select-proyecto')?.value;
-        const cantidad   = document.getElementById('input-cantidad')?.value || 1;
-        if (!proyectoId || !articuloCodigoActual) return;
-        this.disabled    = true;
-        this.textContent = 'Agregando…';
-        bootstrap.Modal.getInstance(document.getElementById('modalAgregarProyecto')).hide();
-        await agregarArticulo(proyectoId, articuloCodigoActual, cantidad);
-        this.disabled    = false;
-        this.textContent = 'Agregar';
-    });
+    // Búsqueda multi-palabra con chips
+    (function () {
+        const hiddenInput = document.getElementById('q-hidden');
+        const visibleInput = document.getElementById('q-visible');
+        const chipsContainer = document.getElementById('q-chips');
 
-    document.getElementById('btn-menos')?.addEventListener('click', () => {
-        const inp = document.getElementById('input-cantidad');
-        if (inp && parseInt(inp.value) > 1) inp.value = parseInt(inp.value) - 1;
-    });
-    document.getElementById('btn-mas')?.addEventListener('click', () => {
-        const inp = document.getElementById('input-cantidad');
-        if (inp && parseInt(inp.value) < 999) inp.value = parseInt(inp.value) + 1;
-    });
+        // Estado: array de palabras activas
+        let palabras = hiddenInput.value
+            ? hiddenInput.value.split(/\s+/).filter(Boolean)
+            : [];
 
-    // Auto-submit filtros
-    document.querySelectorAll('.filtro-check').forEach(el => {
-        el.addEventListener('change', () => document.getElementById('form-filtros').submit());
-    });
+        function renderChips() {
+            chipsContainer.innerHTML = '';
+            palabras.forEach(function (p, i) {
+                const chip = document.createElement('span');
+                chip.className = 'rkl-tag';
+                chip.innerHTML =
+                    '<a href="#" data-idx="' + i + '" style="margin-left:.3rem;">×</a> ' +
+                    document.createTextNode(p).nodeValue;
+                chip.prepend(document.createTextNode(p + ' '));
+                // Rearmamos con createElement para evitar XSS
+                chip.textContent = '';
+                const txt = document.createTextNode(p);
+                const btn = document.createElement('a');
+                btn.href = '#';
+                btn.dataset.idx = i;
+                btn.textContent = '×';
+                btn.style.cssText = 'color:#6b6200;text-decoration:none;margin-left:.3rem;opacity:.7;';
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    palabras.splice(parseInt(this.dataset.idx), 1);
+                    submit();
+                });
+                chip.appendChild(txt);
+                chip.appendChild(btn);
+                chipsContainer.appendChild(chip);
+            });
+            hiddenInput.value = palabras.join(' ');
+        }
 
-    // Auto-submit búsqueda con debounce
-    let searchTimer;
-    document.querySelector('#form-busqueda input[name=q]')?.addEventListener('input', function () {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(() => document.getElementById('form-busqueda').submit(), 500);
-    });
+        function submit() {
+            hiddenInput.value = palabras.join(' ');
+            document.getElementById('form-busqueda').submit();
+        }
+
+        // Renderizar chips iniciales (si venían de la URL)
+        renderChips();
+
+        visibleInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const word = visibleInput.value.trim();
+                if (!word) return;
+                // Agregar cada palabra del input (por si pegaron varias)
+                word.split(/\s+/).filter(Boolean).forEach(function (w) {
+                    if (!palabras.includes(w)) palabras.push(w);
+                });
+                visibleInput.value = '';
+                submit();
+            }
+            // Backspace en input vacío elimina el último chip
+            if (e.key === 'Backspace' && visibleInput.value === '' && palabras.length > 0) {
+                palabras.pop();
+                submit();
+            }
+        });
+    })();
 
     // Rotar flecha de collapse
     document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(trigger => {
@@ -680,44 +659,4 @@
     });
 })();
 </script>
-
-{# ── Modal Agregar a Proyecto ──────────────────────────── #}
-<div class="modal fade" id="modalAgregarProyecto" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:12px;overflow:hidden;">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold">Agregar a Proyecto</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-muted small mb-3" id="modal-articulo-nombre"></p>
-                <div id="modal-sin-proyectos" style="display:none;" class="text-center py-3">
-                    <i class="ri-folder-line fs-1 text-muted d-block mb-2"></i>
-                    <p class="text-muted mb-3">No tenés proyectos para esta empresa.</p>
-                    <a href="{{ path('app_proyectos_index') }}" class="btn fw-semibold px-4"
-                       style="background-color:var(--rkl-primary);color:#1a1a1a;border:none;">
-                        Ir a Proyectos
-                    </a>
-                </div>
-                <div id="modal-con-proyectos">
-                    <label class="form-label fw-semibold">Proyecto:</label>
-                    <select class="form-select mb-3" id="select-proyecto"><option>Cargando…</option></select>
-                    <label class="form-label fw-semibold">Cantidad:</label>
-                    <div class="input-group" style="max-width:140px;">
-                        <button class="btn btn-outline-secondary" type="button" id="btn-menos">−</button>
-                        <input type="number" class="form-control text-center" id="input-cantidad" value="1" min="1" max="999">
-                        <button class="btn btn-outline-secondary" type="button" id="btn-mas">+</button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light fw-semibold" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn fw-semibold px-4" id="btn-confirmar-agregar"
-                        style="background-color:var(--rkl-primary);color:#1a1a1a;border:none;">
-                    Agregar
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock extra_js %}

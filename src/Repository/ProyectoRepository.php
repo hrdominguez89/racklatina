@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Proyecto;
 use App\Entity\User;
+use App\Enum\ProyectoStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -17,7 +18,7 @@ class ProyectoRepository extends ServiceEntityRepository
         parent::__construct($registry, Proyecto::class);
     }
 
-    public function findByUser(User $user, ?string $clienteCodigo = null): array
+    public function findByUser(User $user, ?string $clienteCodigo = null, ?ProyectoStatus $status = null): array
     {
         $qb = $this->createQueryBuilder('p')
             ->leftJoin('p.items', 'i')
@@ -29,6 +30,11 @@ class ProyectoRepository extends ServiceEntityRepository
         if ($clienteCodigo !== null) {
             $qb->andWhere('p.clienteCodigo = :cliente OR p.clienteCodigo IS NULL')
                ->setParameter('cliente', $clienteCodigo);
+        }
+
+        if ($status !== null) {
+            $qb->andWhere('p.status = :status')
+               ->setParameter('status', $status);
         }
 
         return $qb->getQuery()->getResult();

@@ -517,6 +517,149 @@ document.addEventListener('click', function(e) {
 
 {% endif %}
 
+{# ── Modal: Agregar a Proyecto (global, disponible en todas las vistas) ── #}
+{% if app.user is not null and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN')) %}
+<div class="modal fade" id="modalAgregarProyecto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:12px;overflow:hidden;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Agregar a Proyecto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3" id="modal-articulo-nombre"></p>
+                <div id="modal-sin-proyectos" style="display:none;" class="text-center py-3">
+                    <i class="ri-folder-line fs-1 text-muted d-block mb-2"></i>
+                    <p class="text-muted mb-3">No tenés proyectos para esta empresa.</p>
+                    <a href="{{ path('app_proyectos_index') }}" class="btn fw-semibold px-4"
+                       style="background-color:var(--rkl-primary);color:#1a1a1a;border:none;">
+                        Ir a Proyectos
+                    </a>
+                </div>
+                <div id="modal-con-proyectos">
+                    <label class="form-label fw-semibold">Proyecto:</label>
+                    <select class="form-select mb-3" id="select-proyecto"><option>Cargando…</option></select>
+                    <label class="form-label fw-semibold">Cantidad:</label>
+                    <div class="input-group" style="max-width:140px;">
+                        <button class="btn btn-outline-secondary" type="button" id="rkl-btn-menos">−</button>
+                        <input type="number" class="form-control text-center" id="rkl-input-cantidad" value="1" min="1" max="999">
+                        <button class="btn btn-outline-secondary" type="button" id="rkl-btn-mas">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light fw-semibold" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn fw-semibold px-4" id="btn-confirmar-agregar"
+                        style="background-color:var(--rkl-primary);color:#1a1a1a;border:none;">
+                    Agregar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    let _articuloCodigo = null;
+    let _articuloNombre = null;
+
+    async function rklAgregarArticulo(proyectoId, articuloCodigo, cantidad, btnOrigen) {
+        if (btnOrigen) btnOrigen.disabled = true;
+        const fd = new FormData();
+        fd.append('articulo_codigo', articuloCodigo);
+        fd.append('cantidad', cantidad || 1);
+        try {
+            const res  = await fetch(`/secure/proyectos/${proyectoId}/agregar-articulo`, { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                RKL.clarity('event', 'producto_agregado');
+                RKL.clarity('set', 'producto_agregado', articuloCodigo);
+                RKL.toast(data.mensaje, 'success');
+            } else {
+                RKL.toast(data.error || 'Error al agregar', 'danger');
+            }
+        } catch (e) {
+            RKL.toast('Error de red: ' + e.message, 'danger');
+        } finally {
+            if (btnOrigen) btnOrigen.disabled = false;
+        }
+    }
+
+    async function rklCargarProyectosEnModal() {
+        const select             = document.getElementById('select-proyecto');
+        const cuerpoSinProyectos = document.getElementById('modal-sin-proyectos');
+        const cuerpoConProyectos = document.getElementById('modal-con-proyectos');
+        const btnConfirmar       = document.getElementById('btn-confirmar-agregar');
+        if (select) select.innerHTML = '<option>Cargando…</option>';
+        try {
+            const proyectos = await fetch('/secure/proyectos/mis-proyectos-json').then(r => r.json());
+            if (proyectos.length === 0) {
+                if (cuerpoSinProyectos) cuerpoSinProyectos.style.display = '';
+                if (cuerpoConProyectos) cuerpoConProyectos.style.display = 'none';
+                if (btnConfirmar)       btnConfirmar.style.display       = 'none';
+            } else {
+                if (cuerpoSinProyectos) cuerpoSinProyectos.style.display = 'none';
+                if (cuerpoConProyectos) cuerpoConProyectos.style.display = '';
+                if (btnConfirmar)       btnConfirmar.style.display       = '';
+                if (select) select.innerHTML = proyectos.map(p =>
+                    `<option value="${p.id}">${p.nombre} (${p.cantidad} items)</option>`
+                ).join('');
+            }
+        } catch {
+            if (select) select.innerHTML = '<option>Error al cargar</option>';
+        }
+    }
+
+    // Delegación de eventos: funciona para cualquier btn-agregar-proyecto en toda la página
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-agregar-proyecto');
+        if (!btn) return;
+
+        _articuloCodigo = btn.dataset.articuloCodigo;
+        _articuloNombre = btn.dataset.articuloNombre;
+
+        if (RKL.proyectoActivo) {
+            rklAgregarArticulo(RKL.proyectoActivo.id, _articuloCodigo, 1, btn);
+            return;
+        }
+
+        const el = document.getElementById('modal-articulo-nombre');
+        if (el) el.textContent = _articuloNombre;
+        const cantInput = document.getElementById('rkl-input-cantidad');
+        if (cantInput) cantInput.value = 1;
+        rklCargarProyectosEnModal();
+        new bootstrap.Modal(document.getElementById('modalAgregarProyecto')).show();
+    });
+
+    document.getElementById('btn-confirmar-agregar')?.addEventListener('click', async function () {
+        const proyectoId = document.getElementById('select-proyecto')?.value;
+        const cantidad   = parseInt(document.getElementById('rkl-input-cantidad')?.value || 1);
+        if (!proyectoId || !_articuloCodigo) return;
+        this.disabled    = true;
+        this.textContent = 'Agregando…';
+        bootstrap.Modal.getInstance(document.getElementById('modalAgregarProyecto')).hide();
+        await rklAgregarArticulo(proyectoId, _articuloCodigo, cantidad);
+        this.disabled    = false;
+        this.textContent = 'Agregar';
+    });
+
+    document.getElementById('rkl-btn-menos')?.addEventListener('click', () => {
+        const inp = document.getElementById('rkl-input-cantidad');
+        if (inp && parseInt(inp.value) > 1) inp.value = parseInt(inp.value) - 1;
+    });
+    document.getElementById('rkl-btn-mas')?.addEventListener('click', () => {
+        const inp = document.getElementById('rkl-input-cantidad');
+        if (inp && parseInt(inp.value) < 999) inp.value = parseInt(inp.value) + 1;
+    });
+
+    // Cuando se crea un proyecto desde el modal global, reabrir el modal de agregar
+    document.addEventListener('rkl:proyecto-creado', function (e) {
+        _articuloCodigo && rklAgregarArticulo(e.detail.id, _articuloCodigo, 1);
+    });
+})();
+</script>
+{% endif %}
+
 {# ── Modal: Crear nuevo proyecto ── #}
 {% if app.user is not null %}
 <div class="modal fade" id="modalCrearProyecto" tabindex="-1" aria-hidden="true">

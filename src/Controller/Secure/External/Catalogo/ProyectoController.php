@@ -4,6 +4,7 @@ namespace App\Controller\Secure\External\Catalogo;
 
 use App\Entity\Proyecto;
 use App\Entity\ProyectoItem;
+use App\Enum\ProyectoStatus;
 use App\Repository\ArticuloEcommerceRepository;
 use App\Repository\ProyectoItemRepository;
 use App\Repository\ProyectoRepository;
@@ -181,7 +182,7 @@ class ProyectoController extends AbstractController
     {
         $this->denyUnlessProyectosAccess();
         $user = $this->getUser();
-        $proyectos = $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo());
+        $proyectos = $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo(), ProyectoStatus::IN_PROGRESS);
 
         return $this->json(array_map(fn($p) => [
             'id'       => $p->getId(),
