@@ -104,13 +104,21 @@
     line-height: 1.35;
 }
 .td-producto-nombre:hover { color: #1a1a1a; text-decoration: underline; }
-.td-ver-producto {
+.td-ver-producto,
+.btn-ver-similares {
     font-size: .78rem;
     color: var(--rkl-primary);
     text-decoration: underline;
     cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    font-weight: 400;
+    transition: color .12s;
+    display: inline;
 }
-.td-ver-producto:hover { color: var(--rkl-primary-dark); }
+.td-ver-producto:hover,
+.btn-ver-similares:hover { color: var(--rkl-primary-dark); }
 
 /* ── Qty stepper ── */
 .qty-ctrl {
@@ -214,18 +222,6 @@
     padding: .45rem 1.25rem;
     text-align: center;
 }
-.btn-ver-similares {
-    background: none;
-    border: none;
-    padding: 0;
-    font-size: .8rem;
-    color: var(--rkl-primary);
-    text-decoration: underline;
-    cursor: pointer;
-    font-weight: 500;
-    transition: color .12s;
-}
-.btn-ver-similares:hover { color: var(--rkl-primary-dark); }
 
 /* ── Panel similares (expandible) ── */
 .tr-similares-panel { display: none; }
@@ -406,7 +402,7 @@
                     <th>Cantidad</th>
                     <th>Sugerir remplazo<br>por precio</th>
                     <th>Sugerir remplazo<br>por plazo</th>
-                    <th>Dejá un<br>comentario</th>
+                    {# <th>Dejá un<br>comentario</th> #}
                     <th></th>
                 </tr>
             </thead>
@@ -431,6 +427,14 @@
                                 <span class="td-producto-nombre">{{ item.articulo.nombreDisplay }}</span>
                                 <a href="{{ path('app_catalogo_detalle', {codigo: item.articulo.codigoCalipso}) }}"
                                    class="td-ver-producto">Ver producto</a>
+                                <div>
+                                    <button type="button"
+                                            class="btn-ver-similares"
+                                            data-codigo="{{ item.articulo.codigoCalipso }}"
+                                            data-panel="similares-{{ item.id }}">
+                                        Ver items similares
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </td>
@@ -462,14 +466,14 @@
                     </td>
 
                     {# Comentario #}
-                    <td>
+                    {# <td>
                         <textarea rows="2"
                                   class="textarea-comentario input-item-comment"
                                   placeholder="Escribí tu comentario..."
                                   data-item="{{ item.id }}"
                                   {% if isFinished %}disabled{% endif %}>{{ item.comment }}</textarea>
                         <div class="comment-status" data-item="{{ item.id }}"></div>
-                    </td>
+                    </td> #}
 
                     {# Quitar #}
                     <td>
@@ -484,21 +488,9 @@
 
                 </tr>
 
-                {# Fila "Ver items similares" #}
-                <tr class="tr-similares-toggle{% if loop.index is even %} fila-par{% endif %}">
-                    <td colspan="6">
-                        <button type="button"
-                                class="btn-ver-similares"
-                                data-codigo="{{ item.articulo.codigoCalipso }}"
-                                data-panel="similares-{{ item.id }}">
-                            Ver items similares
-                        </button>
-                    </td>
-                </tr>
-
                 {# Fila panel similares (oculta por defecto) #}
                 <tr class="tr-similares-panel" id="similares-{{ item.id }}" data-loaded="false">
-                    <td colspan="6">
+                    <td colspan="5">
                         <div class="similares-panel-inner">
                             <div class="similares-panel-title">Productos similares</div>
                             <div class="similares-grid row g-2"></div>
@@ -695,7 +687,7 @@
                         <a href="/catalogo/productos/${encodeURIComponent(a.codigo)}" class="sim-card-name"
                            onclick="RKL.clarity('event','similar_click');RKL.clarity('set','similar_clickeado',${JSON.stringify(a.codigo)});">${a.nombre}</a>
                         ${a.descripcion ? `<div class="sim-card-desc">${a.descripcion}</div>` : ''}
-                        <button type="button" class="btn-sim-agregar btn-agregar-proyecto"
+                        <button type="button" class="btn-sim-agregar"
                                 data-articulo-codigo="${a.codigo}"
                                 data-articulo-nombre="${a.nombre.replace(/"/g, '&quot;')}">
                             + Agregar
@@ -761,6 +753,36 @@
                 }
             }, 700);
         });
+    });
+
+    // ── Agregar similar al proyecto actual ──
+    const PROYECTO_ID = {{ proyecto.id }};
+    document.addEventListener('click', async function (e) {
+        const btn = e.target.closest('.btn-sim-agregar');
+        if (!btn) return;
+        const codigo = btn.dataset.articuloCodigo;
+        if (!codigo) return;
+        btn.disabled = true;
+        btn.textContent = 'Agregando…';
+        try {
+            const fd = new FormData();
+            fd.append('articulo_codigo', codigo);
+            fd.append('cantidad', 1);
+            const res  = await fetch(`/secure/proyectos/${PROYECTO_ID}/agregar-articulo`, { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                RKL.toast(data.mensaje, 'success');
+                setTimeout(() => location.reload(), 800);
+            } else {
+                RKL.toast(data.error || 'Error al agregar', 'danger');
+                btn.disabled = false;
+                btn.textContent = '+ Agregar';
+            }
+        } catch {
+            RKL.toast('Error de red', 'danger');
+            btn.disabled = false;
+            btn.textContent = '+ Agregar';
+        }
     });
 
 })();
