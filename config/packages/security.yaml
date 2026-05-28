@@ -47,7 +47,7 @@ security:
         - { path: ^/secure/servicios-externos/*, roles: [ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
         - { path: ^/secure/servicios-internos/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN] }
         - { path: ^/secure/carousel/*, roles: [ROLE_SUPER_ADMIN] }
-        - { path: ^/secure/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN] }
+        - { path: ^/secure/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
         # - { path: ^/profile, roles: ROLE_USER }
 
 when@test:
