@@ -19,6 +19,7 @@ security:
             lazy: true
             user_checker: App\Security\UserChecker
             provider: app_user_provider
+            access_denied_handler: App\Security\AccessDeniedHandler
             form_login:
                 login_path: app_login
                 check_path: app_login
