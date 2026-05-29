@@ -31,7 +31,7 @@
 								{% if is_granted('ROLE_ADMIN') %}
 									{% include 'menu_admin.html.twig' %}
 								{% endif %}
-								{% if is_granted('ROLE_COMPRADOR') %}
+								{% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMINISTRACION') %}
 									{% include 'menu_comprador.html.twig' %}
 								{% endif %}
 							</ul>
