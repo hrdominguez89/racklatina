@@ -1,6 +1,6 @@
 {% extends 'base_catalogo.html.twig' %}
 
-{% block title %}Mis Proyectos{% endblock %}
+{% block title %}{{ isAdmin ? 'Todos los Proyectos' : 'Mis Proyectos' }}{% endblock %}
 
 {% block breadcrumb %}
 <ol class="breadcrumb mb-0">
@@ -13,6 +13,86 @@
 
 {% block stylesheets %}
 <style>
+/* ── Admin filter bar ── */
+.proy-filters {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+.proy-filters .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    align-items: flex-end;
+}
+.proy-filters .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    flex: 1;
+    min-width: 180px;
+}
+.proy-filters label {
+    font-size: .75rem;
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+.proy-filters select {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: .45rem .75rem;
+    font-size: .85rem;
+    color: #333;
+    background: #fafafa;
+    cursor: pointer;
+}
+.proy-filters select:focus { outline: none; border-color: var(--rkl-primary); }
+.proy-filters .filter-actions {
+    display: flex;
+    gap: .5rem;
+    align-items: flex-end;
+    flex-shrink: 0;
+}
+.btn-filter-apply {
+    background: var(--rkl-primary);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: .47rem 1.1rem;
+    font-size: .82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+}
+.btn-filter-apply:hover { background: var(--rkl-primary-dark); }
+.btn-filter-clear {
+    background: none;
+    color: #888;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: .47rem .9rem;
+    font-size: .82rem;
+    cursor: pointer;
+    transition: border-color .15s, color .15s;
+    text-decoration: none;
+}
+.btn-filter-clear:hover { border-color: #aaa; color: #333; }
+
+/* ── Admin card extras ── */
+.proy-card-owner {
+    font-size: .78rem;
+    color: #777;
+    margin-top: .3rem;
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+}
+.proy-card-owner strong { color: #444; }
+
 /* ── Search bar ── */
 .proyectos-search {
     display: flex;
@@ -200,7 +280,69 @@
 
 {% block body %}
 
-<h4 class="fw-bold mb-3" style="color:#1a1a1a;">Proyectos</h4>
+<h4 class="fw-bold mb-3" style="color:#1a1a1a;">{{ isAdmin ? 'Todos los Proyectos' : 'Proyectos' }}</h4>
+
+{% if isAdmin %}
+{# ── Panel de filtros (solo admin) ── #}
+<div class="proy-filters">
+    <form method="get" action="{{ path('app_proyectos_index') }}" id="form-filtros">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label for="f-empresa">Empresa</label>
+                <select name="empresa" id="f-empresa" onchange="this.form.submit()">
+                    <option value="">Todas las empresas</option>
+                    {% for empresa in empresasOptions %}
+                    <option value="{{ empresa.codigoCalipso }}"
+                        {% if filtroEmpresa == empresa.codigoCalipso %}selected{% endif %}>
+                        {{ empresa.razonSocial ?? empresa.codigoCalipso }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="f-usuario">Usuario</label>
+                <select name="usuario" id="f-usuario" onchange="this.form.submit()">
+                    <option value="">Todos los usuarios</option>
+                    {% for u in usuariosOptions %}
+                    <option value="{{ u.id }}"
+                        {% if filtroUsuario == u.id %}selected{% endif %}>
+                        {{ u.firstName }} {{ u.lastName }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="f-estado">Estado</label>
+                <select name="estado" id="f-estado" onchange="this.form.submit()">
+                    <option value="">Todos los estados</option>
+                    <option value="in_progress" {% if filtroStatus == 'in_progress' %}selected{% endif %}>En progreso</option>
+                    <option value="finished"    {% if filtroStatus == 'finished' %}selected{% endif %}>Orden generada</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="f-orden">Ordenar por</label>
+                <select name="orden" id="f-orden" onchange="this.form.submit()">
+                    <option value="fecha_desc"  {% if orden == 'fecha_desc'  %}selected{% endif %}>Más reciente</option>
+                    <option value="fecha_asc"   {% if orden == 'fecha_asc'   %}selected{% endif %}>Más antiguo</option>
+                    <option value="nombre_asc"  {% if orden == 'nombre_asc'  %}selected{% endif %}>Nombre A-Z</option>
+                    <option value="nombre_desc" {% if orden == 'nombre_desc' %}selected{% endif %}>Nombre Z-A</option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                {% if filtroEmpresa or filtroUsuario or filtroStatus or (orden is defined and orden != 'fecha_desc') %}
+                <a href="{{ path('app_proyectos_index') }}" class="btn-filter-clear">
+                    <i class="ri-close-line me-1"></i>Limpiar
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+    {% set totalProyectos = proyectos|length %}
+    <div class="mt-2" style="font-size:.8rem; color:#888;">
+        {{ totalProyectos }} proyecto{{ totalProyectos != 1 ? 's' : '' }} encontrado{{ totalProyectos != 1 ? 's' : '' }}
+    </div>
+</div>
+{% endif %}
 
 {# Search bar #}
 <div class="proyectos-search">
@@ -267,6 +409,15 @@
                 {# Meta info #}
                 <p class="proy-card-meta">Fecha de creación: {{ proyecto.createdAt|date('d/m/Y') }}</p>
                 <p class="proy-card-meta mb-0">Cantidad de productos agregados: {{ proyecto.cantidadProductos }}</p>
+
+                {% if isAdmin %}
+                <div class="proy-card-owner">
+                    <span><strong>Usuario:</strong> {{ proyecto.user.firstName }} {{ proyecto.user.lastName }}</span>
+                    {% if proyecto.clienteCodigo %}
+                    <span><strong>Empresa:</strong> {{ clienteNames[proyecto.clienteCodigo] ?? proyecto.clienteCodigo }}</span>
+                    {% endif %}
+                </div>
+                {% endif %}
 
                 {# Acciones #}
                 <div class="proy-card-actions">

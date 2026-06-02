@@ -6,6 +6,7 @@ use App\Entity\Proyecto;
 use App\Entity\ProyectoItem;
 use App\Enum\ProyectoStatus;
 use App\Repository\ArticuloEcommerceRepository;
+use App\Repository\ClientesRepository;
 use App\Repository\ProyectoItemRepository;
 use App\Repository\ProyectoRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -34,15 +35,58 @@ class ProyectoController extends AbstractController
     ) {}
 
     #[Route('', name: 'app_proyectos_index')]
-    public function index(): Response
+    public function index(Request $request, ClientesRepository $clientesRepo): Response
     {
         $this->denyUnlessProyectosAccess();
 
         $user = $this->getUser();
+
+        if ($this->isGranted('ROLE_ADMIN')) {
+            $filtroEmpresa = $request->query->get('empresa') ?: null;
+            $filtroUsuario = ($v = $request->query->get('usuario')) && ctype_digit($v) ? (int) $v : null;
+            $filtroStatus  = ProyectoStatus::tryFrom($request->query->get('estado', ''));
+            $orden         = in_array($request->query->get('orden'), ['fecha_desc', 'fecha_asc', 'nombre_asc', 'nombre_desc'], true)
+                ? $request->query->get('orden')
+                : 'fecha_desc';
+
+            $proyectos = $this->proyectoRepo->findAllWithFilters(
+                $filtroEmpresa,
+                $filtroUsuario,
+                $filtroStatus,
+                $orden,
+            );
+
+            // Opciones de filtro: solo empresas/usuarios que tienen proyectos
+            $codigos         = $this->proyectoRepo->findDistinctClientesCodigos();
+            $empresasOptions = $clientesRepo->findBy(['codigoCalipso' => $codigos], ['razonSocial' => 'ASC']);
+            $usuariosOptions = $this->proyectoRepo->findUsersWithProyectos($filtroEmpresa);
+
+            // Mapa clienteCodigo → razonSocial para mostrar en las cards
+            $allCodigos  = array_unique(array_filter(array_map(fn($p) => $p->getClienteCodigo(), $proyectos)));
+            $clientes    = $clientesRepo->findBy(['codigoCalipso' => $allCodigos]);
+            $clienteNames = [];
+            foreach ($clientes as $c) {
+                $clienteNames[$c->getCodigoCalipso()] = $c->getRazonSocial();
+            }
+
+            return $this->render('secure/external/proyectos/index.html.twig', [
+                'proyectos'       => $proyectos,
+                'isAdmin'         => true,
+                'empresasOptions' => $empresasOptions,
+                'usuariosOptions' => $usuariosOptions,
+                'clienteNames'    => $clienteNames,
+                'filtroEmpresa'   => $filtroEmpresa,
+                'filtroUsuario'   => $filtroUsuario,
+                'filtroStatus'    => $filtroStatus?->value,
+                'orden'           => $orden,
+            ]);
+        }
+
         $proyectos = $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo());
 
         return $this->render('secure/external/proyectos/index.html.twig', [
             'proyectos' => $proyectos,
+            'isAdmin'   => false,
         ]);
     }
 
@@ -286,7 +330,7 @@ class ProyectoController extends AbstractController
         $this->denyUnlessProyectosAccess();
 
         $item = $this->itemRepo->find($itemId);
-        if (!$item || $item->getProyecto()->getUser()->getId() !== $this->getUser()->getId()) {
+        if (!$item || (!$this->isGranted('ROLE_ADMIN') && $item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
             return $this->json(['error' => 'No autorizado'], 403);
         }
 
@@ -303,7 +347,7 @@ class ProyectoController extends AbstractController
         $this->denyUnlessProyectosAccess();
 
         $item = $this->itemRepo->find($itemId);
-        if (!$item || $item->getProyecto()->getUser()->getId() !== $this->getUser()->getId()) {
+        if (!$item || (!$this->isGranted('ROLE_ADMIN') && $item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
             return $this->json(['error' => 'No autorizado'], 403);
         }
 
@@ -319,7 +363,7 @@ class ProyectoController extends AbstractController
         $this->denyUnlessProyectosAccess();
 
         $item = $this->itemRepo->find($itemId);
-        if (!$item || $item->getProyecto()->getUser()->getId() !== $this->getUser()->getId()) {
+        if (!$item || (!$this->isGranted('ROLE_ADMIN') && $item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
             return $this->json(['error' => 'No autorizado'], 403);
         }
 
