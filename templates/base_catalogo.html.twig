@@ -65,9 +65,18 @@
             color: var(--rkl-primary) !important;
         }
 
-        /* En sidebar colapsado (sm) evitar que el label desborde y se pueda seleccionar */
+        /* En sidebar colapsado (sm) bloquear completamente el hover-expand del framework */
+        [data-sidebar-size=sm] .navbar-menu .navbar-nav .nav-item:hover > a.menu-link {
+            width: auto !important;
+            position: static !important;
+            background: inherit !important;
+            transition: none !important;
+        }
         [data-sidebar-size=sm] .navbar-menu .navbar-nav .nav-item:hover > a.menu-link span,
         [data-sidebar-size=sm] .navbar-menu .navbar-nav .nav-item:hover .nav-link span {
+            display: none !important;
+        }
+        [data-sidebar-size=sm] .navbar-menu .navbar-nav .nav-item:hover > .menu-dropdown {
             display: none !important;
         }
 
