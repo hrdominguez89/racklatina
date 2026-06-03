@@ -446,7 +446,7 @@
                                     {% if isFinished %}disabled{% endif %}>−</button>
                             <input type="number" class="input-item-cantidad"
                                    value="{{ item.cantidad }}" min="1" max="999"
-                                   data-item="{{ item.id }}"
+                                   data-item="{{ item.id }}" data-prev="{{ item.cantidad }}"
                                    {% if isFinished %}disabled{% endif %}>
                             <button type="button" class="btn-item-mas" data-item="{{ item.id }}"
                                     {% if isFinished %}disabled{% endif %}>+</button>
@@ -573,10 +573,17 @@
     const isFinished = {{ isFinished ? 'true' : 'false' }};
 
     // ── Actualizar cantidad vía AJAX ──
-    async function actualizarCantidad(itemId, cantidad) {
+    async function actualizarCantidad(itemId, cantidad, inputEl) {
+        const prevValue = inputEl ? inputEl.dataset.prev : null;
         const fd = new FormData();
         fd.append('cantidad', cantidad);
-        await fetch(`/secure/proyectos/item/${itemId}/cantidad`, { method: 'POST', body: fd });
+        const res = await fetch(`/secure/proyectos/item/${itemId}/cantidad`, { method: 'POST', body: fd });
+        if (!res.ok) {
+            if (inputEl && prevValue !== null) inputEl.value = prevValue;
+            if (res.status === 403) RKL.toast('No tenés permiso para modificar este proyecto.', 'danger');
+        } else {
+            if (inputEl) inputEl.dataset.prev = cantidad;
+        }
     }
 
     if (isFinished) return;
@@ -624,7 +631,7 @@
             const val   = parseInt(input.value);
             if (val > 1) {
                 input.value = val - 1;
-                actualizarCantidad(id, input.value);
+                actualizarCantidad(id, input.value, input);
             } else {
                 abrirModalEliminar(id);
             }
@@ -639,7 +646,7 @@
             const val   = parseInt(input.value);
             if (val < 999) {
                 input.value = val + 1;
-                actualizarCantidad(id, input.value);
+                actualizarCantidad(id, input.value, input);
             }
         });
     });
@@ -649,7 +656,7 @@
         input.addEventListener('change', function () {
             const v = Math.max(1, Math.min(999, parseInt(this.value) || 1));
             this.value = v;
-            actualizarCantidad(this.dataset.item, v);
+            actualizarCantidad(this.dataset.item, v, this);
         });
     });
 

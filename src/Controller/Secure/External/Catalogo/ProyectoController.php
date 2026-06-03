@@ -139,7 +139,7 @@ class ProyectoController extends AbstractController
     public function editar(int $id, Request $request): Response
     {
         $this->denyUnlessProyectosAccess();
-        $proyecto = $this->getProyectoDelUsuario($id);
+        $proyecto = $this->getProyectoParaModificar($id);
 
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('proyecto_editar_' . $id, $request->request->get('_token'))) {
@@ -167,7 +167,7 @@ class ProyectoController extends AbstractController
     public function eliminar(int $id, Request $request): Response
     {
         $this->denyUnlessProyectosAccess();
-        $proyecto = $this->getProyectoDelUsuario($id);
+        $proyecto = $this->getProyectoParaModificar($id);
 
         if (!$this->isCsrfTokenValid('proyecto_eliminar_' . $id, $request->request->get('_token'))) {
             $this->addFlash('error', 'Token inválido.');
@@ -241,7 +241,7 @@ class ProyectoController extends AbstractController
     public function setActivo(int $id): JsonResponse
     {
         $this->denyUnlessProyectosAccess();
-        $proyecto = $this->getProyectoDelUsuario($id);
+        $proyecto = $this->getProyectoParaModificar($id);
 
         $user = $this->getUser();
         $user->setActiveProyectoId($proyecto->getId());
@@ -262,7 +262,7 @@ class ProyectoController extends AbstractController
         $this->denyUnlessProyectosAccess();
 
         try {
-            $proyecto = $this->getProyectoDelUsuario($id);
+            $proyecto = $this->getProyectoParaModificar($id);
 
             $articuloCodigo = trim($request->request->get('articulo_codigo', ''));
             $cantidad = max(1, (int)$request->request->get('cantidad', 1));
@@ -330,7 +330,7 @@ class ProyectoController extends AbstractController
         $this->denyUnlessProyectosAccess();
 
         $item = $this->itemRepo->find($itemId);
-        if (!$item || (!$this->isGranted('ROLE_ADMIN') && $item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
+        if (!$item || ($item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
             return $this->json(['error' => 'No autorizado'], 403);
         }
 
@@ -347,7 +347,7 @@ class ProyectoController extends AbstractController
         $this->denyUnlessProyectosAccess();
 
         $item = $this->itemRepo->find($itemId);
-        if (!$item || (!$this->isGranted('ROLE_ADMIN') && $item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
+        if (!$item || ($item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
             return $this->json(['error' => 'No autorizado'], 403);
         }
 
@@ -363,7 +363,7 @@ class ProyectoController extends AbstractController
         $this->denyUnlessProyectosAccess();
 
         $item = $this->itemRepo->find($itemId);
-        if (!$item || (!$this->isGranted('ROLE_ADMIN') && $item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
+        if (!$item || ($item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
             return $this->json(['error' => 'No autorizado'], 403);
         }
 
@@ -382,6 +382,18 @@ class ProyectoController extends AbstractController
         // Admin puede ver cualquier proyecto; comprador solo el propio
         if (!$this->isGranted('ROLE_ADMIN') && $proyecto->getUser()->getId() !== $this->getUser()->getId()) {
             throw $this->createNotFoundException('Proyecto no encontrado');
+        }
+        return $proyecto;
+    }
+
+    private function getProyectoParaModificar(int $id): Proyecto
+    {
+        $proyecto = $this->proyectoRepo->find($id);
+        if (!$proyecto) {
+            throw $this->createNotFoundException('Proyecto no encontrado');
+        }
+        if ($proyecto->getUser()->getId() !== $this->getUser()->getId()) {
+            throw $this->createAccessDeniedException('No tenés permiso para modificar este proyecto.');
         }
         return $proyecto;
     }
