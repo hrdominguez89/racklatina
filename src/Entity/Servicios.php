@@ -103,6 +103,9 @@ class Servicios
     #[ORM\Column(name: "serviceStatus", nullable: true, options: ["default" => NULL])]
     private ?int $servicestatus = NULL;
 
+    #[ORM\Column(name: "serviceMotivo", length: 50, nullable: true)]
+    private ?string $servicemotivo = null;
+
     #[ORM\OneToMany(targetEntity: ServiciosAdjuntos::class, mappedBy: "servicio", cascade: ["persist", "remove"], orphanRemoval: true)]
     private Collection $adjuntos;
 
@@ -467,6 +470,18 @@ class Servicios
     public function setServicestatus(?int $servicestatus): static
     {
         $this->servicestatus = $servicestatus;
+
+        return $this;
+    }
+
+    public function getServicemotivo(): ?string
+    {
+        return $this->servicemotivo;
+    }
+
+    public function setServicemotivo(?string $servicemotivo): static
+    {
+        $this->servicemotivo = $servicemotivo;
 
         return $this;
     }
