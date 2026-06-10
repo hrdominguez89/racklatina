@@ -186,6 +186,20 @@ class ServicesFormType extends AbstractType
                 'required' => false,
                 'attr' => ['class' => 'form-control', 'placeholder' => 'Ingrese el número de serie']
             ])
+            ->add('servicemotivo', ChoiceType::class, [
+                'label' => 'Motivo',
+                'placeholder' => 'Seleccione un motivo',
+                'required' => true,
+                'choices' => [
+                    'Garantía A' => 'Garantía A',
+                    'Garantía B' => 'Garantía B',
+                    'Centro de reparación' => 'Centro de reparación',
+                ],
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'El motivo es obligatorio.']),
+                ],
+                'attr' => ['class' => 'form-select']
+            ])
             ->add('servicefalla', TextareaType::class, [
                 'label' => 'Descripción de la Falla',
                 'required' => true,
