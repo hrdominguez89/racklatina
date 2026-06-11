@@ -16,11 +16,12 @@ use App\Services\EstadoCuentaService;
 #[Route('secure/clientes/home')]
 final class HomeController extends AbstractController
 {
-        
+
     public function __construct(
         private CustomerRequestRepository $repository,
         private EstadoCuentaService $estadoCuentaService,
-        private CarouselRepository $carouselRepository
+        private CarouselRepository $carouselRepository,
+        private UserCustomerRepository $userCustomerRepository,
     ) {
         $this->repository = $repository;
     }
@@ -30,13 +31,13 @@ final class HomeController extends AbstractController
     {
         $data['user'] = $this->getUser();
         $user_id = $data["user"]->getId();
-        $requests = $customerRequestRepository->findOneBy(["userRequest" => $user_id]);
         $this->estadoCuentaService->verificarYNotificarEstadoCuenta($user_id);
 
         // Obtener imágenes del carousel (filtradas por fechas de programación)
         $data['carousel_images'] = $this->carouselRepository->findActiveBySchedule();
 
-        if(!empty($requests))
+        $userCustomers = $this->userCustomerRepository->findBy(["user" => $user_id]);
+        if(!empty($userCustomers))
         {
             $this->auxiliar();
             return $this->render('secure/external/home/index.html.twig',$data);

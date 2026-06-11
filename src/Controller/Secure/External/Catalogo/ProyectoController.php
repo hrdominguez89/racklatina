@@ -22,8 +22,15 @@ class ProyectoController extends AbstractController
 {
     private function denyUnlessProyectosAccess(): void
     {
-        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_ADMINISTRACION')) {
             throw $this->createAccessDeniedException();
+        }
+    }
+
+    private function denyUnlessProyectosWrite(): void
+    {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+            throw $this->createAccessDeniedException('El perfil Administración solo puede visualizar proyectos.');
         }
     }
 
@@ -93,7 +100,7 @@ class ProyectoController extends AbstractController
     #[Route('/nuevo', name: 'app_proyectos_nuevo', methods: ['POST'])]
     public function nuevo(Request $request): Response
     {
-        $this->denyUnlessProyectosAccess();
+        $this->denyUnlessProyectosWrite();
 
         if (!$this->isCsrfTokenValid('proyecto_nuevo', $request->request->get('_token'))) {
             $this->addFlash('error', 'Token inválido.');
@@ -138,7 +145,7 @@ class ProyectoController extends AbstractController
     #[Route('/{id}/editar', name: 'app_proyectos_editar', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function editar(int $id, Request $request): Response
     {
-        $this->denyUnlessProyectosAccess();
+        $this->denyUnlessProyectosWrite();
         $proyecto = $this->getProyectoParaModificar($id);
 
         if ($request->isMethod('POST')) {
@@ -166,7 +173,7 @@ class ProyectoController extends AbstractController
     #[Route('/{id}/eliminar', name: 'app_proyectos_eliminar', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function eliminar(int $id, Request $request): Response
     {
-        $this->denyUnlessProyectosAccess();
+        $this->denyUnlessProyectosWrite();
         $proyecto = $this->getProyectoParaModificar($id);
 
         if (!$this->isCsrfTokenValid('proyecto_eliminar_' . $id, $request->request->get('_token'))) {
@@ -194,7 +201,7 @@ class ProyectoController extends AbstractController
     #[Route('/crear-ajax', name: 'app_proyectos_crear_ajax', methods: ['POST'])]
     public function crearAjax(Request $request): JsonResponse
     {
-        $this->denyUnlessProyectosAccess();
+        $this->denyUnlessProyectosWrite();
 
         $nombre = trim($request->request->get('nombre', ''));
         if (empty($nombre)) {
@@ -224,7 +231,7 @@ class ProyectoController extends AbstractController
     #[Route('/mis-proyectos-json', name: 'app_proyectos_json', methods: ['GET'])]
     public function misProyectosJson(): JsonResponse
     {
-        $this->denyUnlessProyectosAccess();
+        $this->denyUnlessProyectosWrite();
         $user = $this->getUser();
         $proyectos = $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo(), ProyectoStatus::IN_PROGRESS);
 
@@ -240,7 +247,7 @@ class ProyectoController extends AbstractController
     #[Route('/{id}/set-activo', name: 'app_proyectos_set_activo', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function setActivo(int $id): JsonResponse
     {
-        $this->denyUnlessProyectosAccess();
+        $this->denyUnlessProyectosWrite();
         $proyecto = $this->getProyectoParaModificar($id);
 
         $user = $this->getUser();
@@ -259,7 +266,7 @@ class ProyectoController extends AbstractController
     #[Route('/{id}/agregar-articulo', name: 'app_proyectos_agregar_articulo', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function agregarArticulo(int $id, Request $request): JsonResponse
     {
-        $this->denyUnlessProyectosAccess();
+        $this->denyUnlessProyectosWrite();
 
         try {
             $proyecto = $this->getProyectoParaModificar($id);
@@ -327,7 +334,7 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/cantidad', name: 'app_proyectos_update_cantidad', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function updateCantidad(int $itemId, Request $request): JsonResponse
     {
-        $this->denyUnlessProyectosAccess();
+        $this->denyUnlessProyectosWrite();
 
         $item = $this->itemRepo->find($itemId);
         if (!$item || ($item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
@@ -344,7 +351,7 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/comment', name: 'app_proyectos_update_comment', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function updateComment(int $itemId, Request $request): JsonResponse
     {
-        $this->denyUnlessProyectosAccess();
+        $this->denyUnlessProyectosWrite();
 
         $item = $this->itemRepo->find($itemId);
         if (!$item || ($item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
@@ -360,7 +367,7 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/quitar', name: 'app_proyectos_quitar_articulo', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function quitarArticulo(int $itemId, Request $request): JsonResponse
     {
-        $this->denyUnlessProyectosAccess();
+        $this->denyUnlessProyectosWrite();
 
         $item = $this->itemRepo->find($itemId);
         if (!$item || ($item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
