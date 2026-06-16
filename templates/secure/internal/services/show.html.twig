@@ -171,6 +171,11 @@
                                     </div>
 
                                     <div class="info-field">
+                                        <label>Motivo:</label>
+                                        <p>{{ service.servicemotivo ?? '-' }}</p>
+                                    </div>
+
+                                    <div class="info-field">
                                         <label>Meses de antigüedad:</label>
                                         <p>{{ service.servicemeses ?? '-' }}</p>
                                     </div>
@@ -180,11 +185,6 @@
                                     <div class="info-field">
                                         <label>Descripción de la Falla:</label>
                                         <p class="falla-text">{{ service.servicefalla ?? '-' }}</p>
-                                    </div>
-
-                                    <div class="info-field">
-                                        <label>Motivo:</label>
-                                        <p>{{ service.servicemotivo ?? '-' }}</p>
                                     </div>
                                 </div>
                             </div>
