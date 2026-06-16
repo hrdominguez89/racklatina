@@ -134,6 +134,12 @@
                                         {{ form_widget(form.servicenroserie) }}
                                         {{ form_errors(form.servicenroserie) }}
                                     </div>
+
+                                    <div class="mb-3">
+                                        {{ form_label(form.servicemotivo, 'Motivo') }}
+                                        {{ form_widget(form.servicemotivo) }}
+                                        {{ form_errors(form.servicemotivo) }}
+                                    </div>
                                 </div>
 
                                 {# Columna derecha #}
@@ -158,16 +164,6 @@
                                         <label class="form-label">Factura de compra (PDF)</label>
                                         <small class="d-block text-muted mb-1">Suba la factura de compra del equipo en formato PDF (máximo 5MB)</small>
                                         <input type="file" class="form-control" id="factura-compra" name="factura_compra" accept=".pdf">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row mt-2">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        {{ form_label(form.servicemotivo, 'Motivo') }}
-                                        {{ form_widget(form.servicemotivo) }}
-                                        {{ form_errors(form.servicemotivo) }}
                                     </div>
                                 </div>
                             </div>

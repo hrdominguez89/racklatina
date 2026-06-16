@@ -141,6 +141,12 @@
                                         {{ form_errors(form.servicenroserie) }}
                                     </div>
 
+                                    <div class="mb-3">
+                                        {{ form_label(form.servicemotivo, 'Motivo') }}
+                                        {{ form_widget(form.servicemotivo) }}
+                                        {{ form_errors(form.servicemotivo) }}
+                                    </div>
+
                                     {# <div class="mb-3">
                                         {{ form_label(form.servicemeses, 'Meses') }}
                                         {{ form_widget(form.servicemeses) }}
@@ -177,16 +183,6 @@
                                         {{ form_widget(form.serviceobservaciones, {'attr': {'rows': 5}}) }}
                                         {{ form_errors(form.serviceobservaciones) }}
                                     </div> #}
-                                </div>
-                            </div>
-
-                            <div class="row mt-2">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        {{ form_label(form.servicemotivo, 'Motivo') }}
-                                        {{ form_widget(form.servicemotivo) }}
-                                        {{ form_errors(form.servicemotivo) }}
-                                    </div>
                                 </div>
                             </div>
                         </div>
