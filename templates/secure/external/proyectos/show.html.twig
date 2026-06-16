@@ -520,7 +520,8 @@
             {% else %}
             <button type="button" class="btn-solicitar-sidebar"
                     id="btn-solicitar-pedido"
-                    onclick="RKL.clarity('event','solicitar_pedido');RKL.clarity('set','proyecto_cotizado','{{ proyecto.id }}');"
+                    data-proyecto-id="{{ proyecto.id }}"
+                    data-csrf="{{ csrf_token('solicitar_cotizacion_' ~ proyecto.id) }}"
                     {% if proyecto.cantidadProductos == 0 %}disabled{% endif %}>
                 Solicitar Cotización
             </button>
@@ -535,6 +536,35 @@
 </div>
 
 {% endif %}
+
+{# ── Modal: confirmar solicitud de cotización ── #}
+<div class="modal fade" id="modalSolicitarCotizacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
+        <div class="modal-content" style="border-radius:12px;border:none;box-shadow:0 8px 32px rgba(0,0,0,.15);">
+            <div class="modal-body p-4 text-center">
+                <div style="width:60px;height:60px;background:#e8f0fe;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.1rem;">
+                    <i class="ri-mail-send-line" style="font-size:1.6rem;color:#2C3E50;"></i>
+                </div>
+                <h5 class="fw-bold mb-2" style="font-size:1.05rem;">¿Solicitar cotización?</h5>
+                <p class="mb-1" style="font-size:.9rem;color:#444;">
+                    Se enviará un mail a Racklatina con el detalle de todos los productos del proyecto.
+                </p>
+                <p class="text-muted mb-0" style="font-size:.82rem;">
+                    El proyecto quedará marcado como finalizado y no podrá modificarse.
+                </p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 justify-content-center">
+                <button type="button" class="btn btn-outline-secondary px-4 fw-semibold" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+                <button type="button" class="btn px-4 fw-semibold" id="btn-confirmar-cotizacion"
+                        style="background:#2C3E50;color:#fff;">
+                    <i class="ri-mail-send-line me-1"></i> Enviar solicitud
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {# ── Modal: confirmar eliminación de item ── #}
 <div class="modal fade" id="modalEliminarItem" tabindex="-1" aria-labelledby="modalEliminarItemLabel" aria-hidden="true">
@@ -571,6 +601,51 @@
 (function () {
 
     const isFinished = {{ isFinished ? 'true' : 'false' }};
+
+    // ── Solicitar cotización ──
+    (function () {
+        const btnSolicitar = document.getElementById('btn-solicitar-pedido');
+        if (!btnSolicitar) return;
+
+        const modalEl = document.getElementById('modalSolicitarCotizacion');
+        const bsModal  = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        btnSolicitar.addEventListener('click', function () {
+            RKL.clarity('event', 'solicitar_pedido');
+            RKL.clarity('set', 'proyecto_cotizado', this.dataset.proyectoId);
+            bsModal.show();
+        });
+
+        document.getElementById('btn-confirmar-cotizacion').addEventListener('click', async function () {
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ri-loader-4-line me-1"></i> Enviando…';
+
+            const proyectoId = btnSolicitar.dataset.proyectoId;
+            const csrf       = btnSolicitar.dataset.csrf;
+            const fd = new FormData();
+            fd.append('_token', csrf);
+
+            try {
+                const res  = await fetch(`/secure/proyectos/${proyectoId}/solicitar-cotizacion`, { method: 'POST', body: fd });
+                const data = await res.json();
+                bsModal.hide();
+                if (data.success) {
+                    RKL.toast('Solicitud enviada correctamente. Nos comunicaremos a la brevedad.', 'success');
+                    setTimeout(() => location.reload(), 1800);
+                } else {
+                    RKL.toast(data.error || 'Error al enviar la solicitud.', 'danger');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="ri-mail-send-line me-1"></i> Enviar solicitud';
+                }
+            } catch {
+                bsModal.hide();
+                RKL.toast('Error de red. Por favor intentá nuevamente.', 'danger');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ri-mail-send-line me-1"></i> Enviar solicitud';
+            }
+        });
+    })();
 
     // ── Actualizar cantidad vía AJAX ──
     async function actualizarCantidad(itemId, cantidad, inputEl) {

@@ -2,6 +2,7 @@
 
 namespace App\Controller\Secure\External\Catalogo;
 
+use App\Email\ContactoEmailWithAttachments;
 use App\Entity\Proyecto;
 use App\Entity\ProyectoItem;
 use App\Enum\ProyectoStatus;
@@ -15,6 +16,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/secure/proyectos')]
@@ -39,6 +41,8 @@ class ProyectoController extends AbstractController
         private ProyectoItemRepository $itemRepo,
         private ArticuloEcommerceRepository $articuloRepo,
         private EntityManagerInterface $em,
+        private MailerInterface $mailer,
+        private ClientesRepository $clientesRepo,
     ) {}
 
     #[Route('', name: 'app_proyectos_index')]
@@ -375,6 +379,89 @@ class ProyectoController extends AbstractController
         }
 
         $this->em->remove($item);
+        $this->em->flush();
+
+        return $this->json(['success' => true]);
+    }
+
+    #[Route('/{id}/cotizacion-preview', name: 'app_proyectos_cotizacion_preview', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function cotizacionPreview(int $id): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $proyecto = $this->proyectoRepo->find($id);
+        if (!$proyecto) {
+            throw $this->createNotFoundException();
+        }
+
+        $user = $proyecto->getUser();
+        $usuarioNombre = trim($user->getFirstName() . ' ' . $user->getLastName());
+
+        $empresaNombre = null;
+        $clienteCodigo = $proyecto->getClienteCodigo();
+        if ($clienteCodigo) {
+            $cliente = $this->clientesRepo->findOneBy(['codigoCalipso' => $clienteCodigo]);
+            if ($cliente) {
+                $empresaNombre = $cliente->getRazonSocial();
+            }
+        }
+
+        return $this->render('emails/solicitud_cotizacion_proyecto.html.twig', [
+            'proyecto_nombre'      => $proyecto->getNombre(),
+            'proyecto_descripcion' => $proyecto->getDescripcion(),
+            'usuario_nombre'       => $usuarioNombre,
+            'usuario_email'        => $user->getEmail(),
+            'empresa_nombre'       => $empresaNombre,
+            'items'                => $proyecto->getItems(),
+            'fecha'                => new \DateTime(),
+        ]);
+    }
+
+    #[Route('/{id}/solicitar-cotizacion', name: 'app_proyectos_solicitar_cotizacion', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function solicitarCotizacion(int $id, Request $request): JsonResponse
+    {
+        $this->denyUnlessProyectosWrite();
+
+        if (!$this->isCsrfTokenValid('solicitar_cotizacion_' . $id, $request->request->get('_token'))) {
+            return $this->json(['success' => false, 'error' => 'Token inválido.'], 403);
+        }
+
+        $proyecto = $this->getProyectoDelUsuario($id);
+
+        if ($proyecto->getItems()->isEmpty()) {
+            return $this->json(['success' => false, 'error' => 'El proyecto no tiene productos.'], 400);
+        }
+
+        $user = $this->getUser();
+        $usuarioNombre = trim($user->getFirstName() . ' ' . $user->getLastName());
+        $usuarioEmail  = $user->getEmail();
+
+        $empresaNombre = null;
+        $clienteCodigo = $proyecto->getClienteCodigo();
+        if ($clienteCodigo) {
+            $cliente = $this->clientesRepo->findOneBy(['codigoCalipso' => $clienteCodigo]);
+            if ($cliente) {
+                $empresaNombre = $cliente->getRazonSocial();
+            }
+        }
+
+        $email = (new ContactoEmailWithAttachments())
+            ->from($_ENV['MAIL_FROM'])
+            ->to($_ENV['MAIL_CENTRO_RAC'])
+            ->replyTo($usuarioEmail)
+            ->subject('Solicitud de Cotización – ' . $proyecto->getNombre() . ' (' . $usuarioNombre . ')')
+            ->html($this->renderView('emails/solicitud_cotizacion_proyecto.html.twig', [
+                'proyecto_nombre'      => $proyecto->getNombre(),
+                'proyecto_descripcion' => $proyecto->getDescripcion(),
+                'usuario_nombre'       => $usuarioNombre,
+                'usuario_email'        => $usuarioEmail,
+                'empresa_nombre'       => $empresaNombre,
+                'items'                => $proyecto->getItems(),
+                'fecha'                => new \DateTime(),
+            ]));
+
+        $this->mailer->send($email);
+
+        $proyecto->setStatus(ProyectoStatus::FINISHED);
         $this->em->flush();
 
         return $this->json(['success' => true]);

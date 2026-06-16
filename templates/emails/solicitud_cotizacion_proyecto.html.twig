@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Cotización – {{ proyecto_nombre }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f4f4f0;
+        }
+        .wrapper {
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+            border-top: 4px solid #ACA300;
+        }
+        /* ── Header ── */
+        .header {
+            background: #ACA300;
+            padding: 22px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .header-text h2 {
+            margin: 0 0 2px;
+            font-size: 19px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        .header-text p {
+            margin: 0;
+            font-size: 12px;
+            color: #1a1a1a;
+            opacity: .75;
+        }
+        .header img {
+            height: 34px;
+            flex-shrink: 0;
+        }
+        /* ── Content ── */
+        .content {
+            padding: 28px;
+        }
+        .intro {
+            font-size: 14px;
+            color: #444;
+            margin-bottom: 24px;
+            background: #FAFAE8;
+            border-left: 4px solid #ACA300;
+            padding: 14px 16px;
+            border-radius: 0 6px 6px 0;
+        }
+        /* ── Section title ── */
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #8a9b00;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            margin: 0 0 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #E8E6C0;
+        }
+        /* ── Meta table ── */
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 26px;
+            font-size: 13px;
+        }
+        .meta-table td {
+            padding: 7px 10px;
+            border-bottom: 1px solid #f5f5f0;
+        }
+        .meta-table td:first-child {
+            font-weight: 700;
+            color: #666;
+            width: 150px;
+            white-space: nowrap;
+        }
+        /* ── Items table ── */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-bottom: 6px;
+            border: 1px solid #E8E6C0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .items-table thead tr {
+            background: #ACA300;
+        }
+        .items-table thead th {
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: .4px;
+            color: #1a1a1a;
+            text-transform: uppercase;
+        }
+        .items-table thead th.center { text-align: center; }
+        .items-table tbody tr:nth-child(odd)  { background: #FAFAE8; }
+        .items-table tbody tr:nth-child(even) { background: #ffffff; }
+        .items-table tbody td {
+            padding: 9px 12px;
+            vertical-align: top;
+            border-bottom: 1px solid #E8E6C0;
+        }
+        .items-table tbody tr:last-child td { border-bottom: none; }
+        .items-table tbody td.center { text-align: center; }
+        .td-num { color: #bbb; font-size: 11px; width: 28px; }
+        .codigo {
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+            white-space: nowrap;
+            background: #f0f0e8;
+            padding: 1px 5px;
+            border-radius: 3px;
+        }
+        .nombre { font-weight: 700; color: #1a1a1a; line-height: 1.35; }
+        .comentario { font-size: 12px; color: #888; margin-top: 3px; font-style: italic; }
+        .badge-qty {
+            display: inline-block;
+            background: #ACA300;
+            color: #1a1a1a;
+            border-radius: 12px;
+            padding: 2px 11px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        /* ── Footer ── */
+        .footer {
+            background: #FAFAE8;
+            border-top: 1px solid #E8E6C0;
+            padding: 14px 28px;
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+
+    <div class="header">
+        <div class="header-text">
+            <h2>Solicitud de Cotización</h2>
+            <p>Portal de Clientes – Racklatina</p>
+        </div>
+        <img src="https://racklatina.com/wp-content/uploads/2020/08/logo-racklatina-light.png" alt="Racklatina">
+    </div>
+
+    <div class="content">
+
+        <div class="intro">
+            El usuario <strong>{{ usuario_nombre }}</strong> ha solicitado una cotización a través del Portal de Clientes.
+            A continuación encontrará el detalle del proyecto con los productos de interés.
+            Por favor, tome contacto con el cliente a la brevedad.
+        </div>
+
+        <p class="section-title">Datos del solicitante</p>
+        <table class="meta-table">
+            <tr>
+                <td>Usuario:</td>
+                <td>{{ usuario_nombre }}</td>
+            </tr>
+            <tr>
+                <td>Email:</td>
+                <td>{{ usuario_email }}</td>
+            </tr>
+            {% if empresa_nombre %}
+            <tr>
+                <td>Empresa:</td>
+                <td>{{ empresa_nombre }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td>Proyecto:</td>
+                <td>{{ proyecto_nombre }}</td>
+            </tr>
+            {% if proyecto_descripcion %}
+            <tr>
+                <td>Descripción:</td>
+                <td>{{ proyecto_descripcion }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td>Fecha:</td>
+                <td>{{ fecha|date('d/m/Y H:i') }}</td>
+            </tr>
+        </table>
+
+        <p class="section-title">Productos a cotizar &nbsp;({{ items|length }} ítem{% if items|length != 1 %}s{% endif %})</p>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th class="td-num">#</th>
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th class="center">Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in items %}
+                <tr>
+                    <td class="td-num center">{{ loop.index }}</td>
+                    <td><span class="codigo">{{ item.articulo.codigoCalipso }}</span></td>
+                    <td>
+                        <div class="nombre">{{ item.articulo.nombreDisplay }}</div>
+                        {% if item.comment %}
+                        <div class="comentario">Nota: {{ item.comment }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="center"><span class="badge-qty">{{ item.cantidad }}</span></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+    <div class="footer">
+        <p>Mensaje generado automáticamente desde el Portal de Clientes de Racklatina.</p>
+        <p>Fecha de solicitud: {{ fecha|date('d/m/Y H:i:s') }}</p>
+    </div>
+
+</div>
+</body>
+</html>
