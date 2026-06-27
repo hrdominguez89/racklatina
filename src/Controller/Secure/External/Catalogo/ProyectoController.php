@@ -385,13 +385,10 @@ class ProyectoController extends AbstractController
     }
 
     #[Route('/{id}/cotizacion-preview', name: 'app_proyectos_cotizacion_preview', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function cotizacionPreview(int $id): Response
+    public function cotizacionPreview(int $id, Request $request): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
-        $proyecto = $this->proyectoRepo->find($id);
-        if (!$proyecto) {
-            throw $this->createNotFoundException();
-        }
+        $this->denyUnlessProyectosAccess();
+        $proyecto = $this->getProyectoDelUsuario($id);
 
         $user = $proyecto->getUser();
         $usuarioNombre = trim($user->getFirstName() . ' ' . $user->getLastName());
@@ -405,15 +402,22 @@ class ProyectoController extends AbstractController
             }
         }
 
-        return $this->render('emails/solicitud_cotizacion_proyecto.html.twig', [
-            'proyecto_nombre'      => $proyecto->getNombre(),
-            'proyecto_descripcion' => $proyecto->getDescripcion(),
-            'usuario_nombre'       => $usuarioNombre,
-            'usuario_email'        => $user->getEmail(),
-            'empresa_nombre'       => $empresaNombre,
-            'items'                => $proyecto->getItems(),
-            'fecha'                => new \DateTime(),
-        ]);
+        $context = [
+            'proyecto_id'     => $proyecto->getId(),
+            'proyecto_nombre' => $proyecto->getNombre(),
+            'usuario_nombre'  => $usuarioNombre,
+            'usuario_email'   => $user->getEmail(),
+            'empresa_nombre'  => $empresaNombre,
+            'items'           => $proyecto->getItems(),
+            'fecha'           => new \DateTime(),
+        ];
+
+        $tipo = $request->query->get('tipo', 'interno');
+        $template = $tipo === 'confirmacion'
+            ? 'emails/solicitud_cotizacion_confirmacion.html.twig'
+            : 'emails/solicitud_cotizacion_proyecto.html.twig';
+
+        return $this->render($template, $context);
     }
 
     #[Route('/{id}/solicitar-cotizacion', name: 'app_proyectos_solicitar_cotizacion', requirements: ['id' => '\d+'], methods: ['POST'])]
@@ -444,22 +448,36 @@ class ProyectoController extends AbstractController
             }
         }
 
-        $email = (new ContactoEmailWithAttachments())
+        $fecha = new \DateTime();
+        $items = $proyecto->getItems();
+        $templateContext = [
+            'proyecto_id'          => $proyecto->getId(),
+            'proyecto_nombre'      => $proyecto->getNombre(),
+            'usuario_nombre'       => $usuarioNombre,
+            'usuario_email'        => $usuarioEmail,
+            'empresa_nombre'       => $empresaNombre,
+            'items'                => $items,
+            'fecha'                => $fecha,
+        ];
+
+        // Email interno a Racklatina
+        $emailInterno = (new ContactoEmailWithAttachments())
             ->from($_ENV['MAIL_FROM'])
             ->to($_ENV['MAIL_CENTRO_RAC'])
             ->replyTo($usuarioEmail)
-            ->subject('Solicitud de Cotización – ' . $proyecto->getNombre() . ' (' . $usuarioNombre . ')')
-            ->html($this->renderView('emails/solicitud_cotizacion_proyecto.html.twig', [
-                'proyecto_nombre'      => $proyecto->getNombre(),
-                'proyecto_descripcion' => $proyecto->getDescripcion(),
-                'usuario_nombre'       => $usuarioNombre,
-                'usuario_email'        => $usuarioEmail,
-                'empresa_nombre'       => $empresaNombre,
-                'items'                => $proyecto->getItems(),
-                'fecha'                => new \DateTime(),
-            ]));
+            ->subject('Solicitud de Cotización – ' . $proyecto->getNombre() . ' (' . ($empresaNombre ?? $usuarioNombre) . ')')
+            ->html($this->renderView('emails/solicitud_cotizacion_proyecto.html.twig', $templateContext));
 
-        $this->mailer->send($email);
+        $this->mailer->send($emailInterno);
+
+        // Email de confirmación al comprador
+        $emailConfirmacion = (new ContactoEmailWithAttachments())
+            ->from($_ENV['MAIL_FROM'])
+            ->to($usuarioEmail)
+            ->subject('Tu solicitud de presupuesto fue enviada con éxito')
+            ->html($this->renderView('emails/solicitud_cotizacion_confirmacion.html.twig', $templateContext));
+
+        $this->mailer->send($emailConfirmacion);
 
         $proyecto->setStatus(ProyectoStatus::FINISHED);
         $this->em->flush();

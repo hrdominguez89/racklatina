@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu solicitud de presupuesto fue enviada</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #ebebeb;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #1a1a1a;
+        }
+        .outer {
+            background: #ebebeb;
+            padding: 40px 20px;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            max-width: 620px;
+            margin: 0 auto;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,.07);
+        }
+        .card-body {
+            padding: 48px 48px 36px;
+        }
+        .logo-wrap {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .logo-wrap img {
+            height: 44px;
+        }
+        .headline {
+            font-size: 22px;
+            font-weight: 400;
+            line-height: 1.4;
+            margin: 0 0 6px;
+            color: #1a1a1a;
+        }
+        .headline strong {
+            font-weight: 700;
+        }
+        .subline {
+            font-size: 13px;
+            color: #444;
+            margin: 0 0 28px;
+        }
+        .subline strong {
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        .section-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ACA300;
+            margin: 0 0 12px;
+        }
+        /* ── Tabla ── */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .items-table thead tr {
+            background: #e8e8e8;
+        }
+        .items-table thead th {
+            padding: 12px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            color: #666;
+            text-align: center;
+        }
+        .items-table thead th.col-producto {
+            text-align: left;
+        }
+        .items-table tbody td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e8e8e8;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+        .items-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .items-table tbody td.col-producto {
+            font-weight: 600;
+            color: #1a1a1a;
+            border-right: 1px solid #e8e8e8;
+        }
+        .items-table tbody td.col-cantidad {
+            text-align: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: #1a1a1a;
+            border-right: 1px solid #e8e8e8;
+        }
+        .items-table tbody td.col-notas {
+            color: #aaa;
+            font-size: 13px;
+        }
+        .table-wrap {
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 28px;
+        }
+        .status-highlight {
+            font-size: 15px;
+            font-weight: 700;
+            color: #ACA300;
+            margin: 0 0 12px;
+        }
+        .status-body {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+            margin: 0 0 10px;
+        }
+        .status-body strong {
+            font-weight: 700;
+        }
+        .cierre {
+            font-size: 14px;
+            color: #333;
+            margin: 0;
+        }
+        /* ── Footer ── */
+        .footer {
+            background: #ACA300;
+            padding: 22px 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .footer-social {
+            display: flex;
+            gap: 10px;
+        }
+        .footer-social a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+        .footer-social a img {
+            width: 20px;
+            height: 20px;
+        }
+        .footer-logo img {
+            height: 28px;
+        }
+    </style>
+</head>
+<body>
+<div class="outer">
+<div class="card">
+
+    <div class="card-body">
+
+        <div class="logo-wrap">
+            <img src="https://racklatina.com/wp-content/uploads/2020/08/logo-racklatina.png"
+                 alt="Racklatina"
+                 onerror="this.src='https://racklatina.com/wp-content/uploads/2020/08/logo-racklatina-light.png'">
+        </div>
+
+        <p class="headline">
+            <strong>{{ usuario_nombre }}</strong> tu solicitud de presupuesto fue enviada con éxito.
+        </p>
+        <p class="subline">
+            Número de pedido <strong>#{{ proyecto_id }}</strong> registrado el día
+            <strong>{{ fecha|date('d/m/Y') }}</strong> a las <strong>{{ fecha|date('H:i') }}</strong> hs.
+        </p>
+
+        <p class="section-label">Detalle de tus pedidos</p>
+
+        <div class="table-wrap">
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th class="col-producto">Producto</th>
+                        <th>Cantidad</th>
+                        <th>Notas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td class="col-producto">{{ item.articulo.nombreDisplay }}</td>
+                        <td class="col-cantidad">{{ item.cantidad }}</td>
+                        <td class="col-notas">{{ item.comment ?? '' }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="status-highlight">Actualmente su pedido se encuentra en proceso de revisión.</p>
+        <p class="status-body">
+            Actualmente su pedido se encuentra en proceso de revisión.<br>
+            En un plazo de <strong>[X días hábiles]</strong> recibirá una respuesta formal a su solicitud.
+        </p>
+        <p class="cierre">Quedamos a su disposición ante cualquier consulta o requerimiento adicional.</p>
+
+    </div>
+
+    <div class="footer">
+        <div class="footer-social">
+            <a href="https://www.facebook.com/racklatina" target="_blank">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook">
+            </a>
+            <a href="https://www.instagram.com/racklatina" target="_blank">
+                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram">
+            </a>
+        </div>
+        <div class="footer-logo">
+            <img src="https://racklatina.com/wp-content/uploads/2020/08/logo-racklatina-light.png" alt="Racklatina">
+        </div>
+    </div>
+
+</div>
+</div>
+</body>
+</html>

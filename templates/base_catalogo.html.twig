@@ -770,6 +770,17 @@ document.addEventListener('click', function(e) {
 
         try {
             const res  = await fetch('/secure/proyectos/crear-ajax', { method: 'POST', body: fd });
+
+            if (!res.ok) {
+                errorBox.textContent = res.status === 403
+                    ? 'No tenés permiso para crear proyectos.'
+                    : 'Error del servidor. Intentá de nuevo.';
+                errorBox.classList.remove('d-none');
+                btnCrear.disabled = false;
+                btnCrear.textContent = 'Creá el proyecto';
+                return;
+            }
+
             const data = await res.json();
 
             if (data.success) {
