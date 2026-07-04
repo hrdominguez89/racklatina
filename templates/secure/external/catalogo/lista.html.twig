@@ -386,8 +386,42 @@
             </div>
             {% endif %}
 
+            {# Tags #}
+            {% if opcionesFiltros.tags is not empty %}
+            <div class="rkl-filter-section">
+                <div class="rkl-filter-header"
+                     data-bs-toggle="collapse" data-bs-target="#fc-tags">
+                    <span class="rkl-filter-header-label">Etiquetas</span>
+                    <i class="ri-arrow-down-s-line"></i>
+                </div>
+                <div class="collapse rkl-filter-body" id="fc-tags">
+                    {% for t in opcionesFiltros.tags %}
+                    <div class="rkl-filter-item {{ t in filtros.tags ? 'active' : '' }}">
+                        <input type="checkbox" name="tag[]"
+                               id="tag-{{ loop.index }}"
+                               value="{{ t }}"
+                               class="filtro-check"
+                               {{ t in filtros.tags ? 'checked' : '' }}>
+                        <label for="tag-{{ loop.index }}">{{ t }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
         </form>
     </aside>
+
+    {# Params base para generación de URLs (tag como array, sin la key 'tags' que rompe path()) #}
+    {% set baseParams = {
+        q: filtros.q,
+        categoria: filtros.categoria,
+        subcategoria: filtros.subcategoria,
+        marca: filtros.marca,
+        tag: filtros.tags,
+        ordenar: filtros.ordenar,
+        por_pagina: porPagina
+    } %}
 
     {# ── Content ─────────────────────────────────────── #}
     <div class="rkl-content">
@@ -397,6 +431,7 @@
             {% if filtros.categoria %}<input type="hidden" name="categoria" value="{{ filtros.categoria }}">{% endif %}
             {% if filtros.subcategoria %}<input type="hidden" name="subcategoria" value="{{ filtros.subcategoria }}">{% endif %}
             {% if filtros.marca %}<input type="hidden" name="marca" value="{{ filtros.marca }}">{% endif %}
+            {% for t in filtros.tags %}<input type="hidden" name="tag[]" value="{{ t }}">{% endfor %}
             <input type="hidden" name="q" id="q-hidden" value="{{ filtros.q ?? '' }}">
             <div class="d-flex gap-2 align-items-center mb-2">
                 <div class="rkl-search-wrap flex-grow-1">
@@ -413,11 +448,11 @@
                     <ul class="dropdown-menu dropdown-menu-end" style="font-size:.82rem;min-width:130px;">
                         <li>
                             <a class="dropdown-item {{ filtros.ordenar != 'za' ? 'fw-semibold' : '' }}"
-                               href="{{ path('app_catalogo_lista', filtros|merge({ordenar: 'az', pagina: 1})) }}">A – Z</a>
+                               href="{{ path('app_catalogo_lista', baseParams|merge({ordenar: 'az', pagina: 1})) }}">A – Z</a>
                         </li>
                         <li>
                             <a class="dropdown-item {{ filtros.ordenar == 'za' ? 'fw-semibold' : '' }}"
-                               href="{{ path('app_catalogo_lista', filtros|merge({ordenar: 'za', pagina: 1})) }}">Z – A</a>
+                               href="{{ path('app_catalogo_lista', baseParams|merge({ordenar: 'za', pagina: 1})) }}">Z – A</a>
                         </li>
                     </ul>
                 </div>
@@ -427,27 +462,42 @@
         </form>
 
         {# Filter tags activos #}
-        {% if filtros.q or filtros.categoria or filtros.subcategoria or filtros.marca %}
+        {% if filtros.q or filtros.categoria or filtros.subcategoria or filtros.marca or filtros.tags is not empty %}
         <div class="d-flex flex-wrap gap-2 mb-3">
             {# Los chips de búsqueda los renderiza el JS en #q-chips #}
             {% if filtros.categoria %}
             <span class="rkl-tag">
-                <a href="{{ path('app_catalogo_lista', filtros|merge({categoria: null, subcategoria: null, pagina: 1})) }}">×</a>
+                <a href="{{ path('app_catalogo_lista', {q: filtros.q, categoria: null, subcategoria: null, marca: filtros.marca, tag: filtros.tags, ordenar: filtros.ordenar, pagina: 1}) }}">×</a>
                 {{ filtros.categoria }}
             </span>
             {% endif %}
             {% if filtros.subcategoria %}
             <span class="rkl-tag">
-                <a href="{{ path('app_catalogo_lista', filtros|merge({subcategoria: null, pagina: 1})) }}">×</a>
+                <a href="{{ path('app_catalogo_lista', {q: filtros.q, categoria: filtros.categoria, subcategoria: null, marca: filtros.marca, tag: filtros.tags, ordenar: filtros.ordenar, pagina: 1}) }}">×</a>
                 {{ filtros.subcategoria }}
             </span>
             {% endif %}
             {% if filtros.marca %}
             <span class="rkl-tag">
-                <a href="{{ path('app_catalogo_lista', filtros|merge({marca: null, pagina: 1})) }}">×</a>
+                <a href="{{ path('app_catalogo_lista', {q: filtros.q, categoria: filtros.categoria, subcategoria: filtros.subcategoria, marca: null, tag: filtros.tags, ordenar: filtros.ordenar, pagina: 1}) }}">×</a>
                 {{ filtros.marca }}
             </span>
             {% endif %}
+            {% for t in filtros.tags %}
+            {% set tagsRestantes = filtros.tags|filter(v => v != t) %}
+            <span class="rkl-tag">
+                <a href="{{ path('app_catalogo_lista', {
+                    q: filtros.q,
+                    categoria: filtros.categoria,
+                    subcategoria: filtros.subcategoria,
+                    marca: filtros.marca,
+                    tag: tagsRestantes,
+                    ordenar: filtros.ordenar,
+                    pagina: 1
+                }) }}">×</a>
+                {{ t }}
+            </span>
+            {% endfor %}
         </div>
         {% endif %}
 
@@ -528,28 +578,28 @@
             <div class="d-flex align-items-center gap-2">
                 <span class="small text-muted">Mostrar:</span>
                 {% for n in [24, 48, 72] %}
-                <a href="{{ path('app_catalogo_lista', filtros|merge({por_pagina: n, pagina: 1})) }}"
+                <a href="{{ path('app_catalogo_lista', baseParams|merge({por_pagina: n, pagina: 1})) }}"
                    class="btn btn-sm {{ porPagina == n ? 'btn-warning' : 'btn-outline-secondary' }}"
                    style="border-radius:4px;font-size:.78rem;">{{ n }}</a>
                 {% endfor %}
             </div>
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item {{ pagina == 1 ? 'disabled' : '' }}">
-                    <a class="page-link" href="{{ path('app_catalogo_lista', filtros|merge({pagina: pagina - 1, por_pagina: porPagina})) }}">
+                    <a class="page-link" href="{{ path('app_catalogo_lista', baseParams|merge({pagina: pagina - 1})) }}">
                         <i class="ri-arrow-left-s-line"></i>
                     </a>
                 </li>
                 {% for p in 1..totalPaginas %}
                 {% if p == 1 or p == totalPaginas or (p >= pagina - 2 and p <= pagina + 2) %}
                 <li class="page-item {{ pagina == p ? 'active' : '' }}">
-                    <a class="page-link" href="{{ path('app_catalogo_lista', filtros|merge({pagina: p, por_pagina: porPagina})) }}">{{ p }}</a>
+                    <a class="page-link" href="{{ path('app_catalogo_lista', baseParams|merge({pagina: p})) }}">{{ p }}</a>
                 </li>
                 {% elseif p == pagina - 3 or p == pagina + 3 %}
                 <li class="page-item disabled"><span class="page-link">…</span></li>
                 {% endif %}
                 {% endfor %}
                 <li class="page-item {{ pagina == totalPaginas ? 'disabled' : '' }}">
-                    <a class="page-link" href="{{ path('app_catalogo_lista', filtros|merge({pagina: pagina + 1, por_pagina: porPagina})) }}">
+                    <a class="page-link" href="{{ path('app_catalogo_lista', baseParams|merge({pagina: pagina + 1})) }}">
                         <i class="ri-arrow-right-s-line"></i>
                     </a>
                 </li>

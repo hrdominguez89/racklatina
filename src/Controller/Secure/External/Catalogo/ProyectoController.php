@@ -10,6 +10,7 @@ use App\Repository\ArticuloEcommerceRepository;
 use App\Repository\ClientesRepository;
 use App\Repository\ProyectoItemRepository;
 use App\Repository\ProyectoRepository;
+use App\Services\StockAdvisorService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -43,6 +44,7 @@ class ProyectoController extends AbstractController
         private EntityManagerInterface $em,
         private MailerInterface $mailer,
         private ClientesRepository $clientesRepo,
+        private StockAdvisorService $stockService,
     ) {}
 
     #[Route('', name: 'app_proyectos_index')]
@@ -141,8 +143,12 @@ class ProyectoController extends AbstractController
         $this->denyUnlessProyectosAccess();
         $proyecto = $this->getProyectoDelUsuario($id);
 
+        $codigos  = $proyecto->getItems()->map(fn($i) => $i->getArticulo()->getCodigoCalipso())->toArray();
+        $stockMap = array_map(fn($s) => (int)floor($s), $this->stockService->getStockMap($codigos));
+
         return $this->render('secure/external/proyectos/show.html.twig', [
             'proyecto' => $proyecto,
+            'stockMap' => $stockMap,
         ]);
     }
 
@@ -288,6 +294,13 @@ class ProyectoController extends AbstractController
             }
 
             $item = $this->itemRepo->findOneBy(['proyecto' => $proyecto, 'articulo' => $articulo]);
+            $cantidadActual = $item ? $item->getCantidad() : 0;
+
+            $stockResult = $this->stockService->validarStock($articuloCodigo, $cantidad, $cantidadActual);
+            if (!$stockResult->valido) {
+                return $this->json(['error' => $stockResult->getMensaje()], 422);
+            }
+
             if ($item) {
                 $item->setCantidad($item->getCantidad() + $cantidad);
             } else {
@@ -346,6 +359,12 @@ class ProyectoController extends AbstractController
         }
 
         $cantidad = max(1, (int)$request->request->get('cantidad', 1));
+
+        $stockResult = $this->stockService->validarCantidadUpdate($item->getArticulo()->getCodigoCalipso(), $cantidad);
+        if (!$stockResult->valido) {
+            return $this->json(['error' => $stockResult->getMensaje(), 'stockDisponible' => $stockResult->stockTotal], 422);
+        }
+
         $item->setCantidad($cantidad);
         $this->em->flush();
 

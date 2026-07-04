@@ -5,6 +5,7 @@ namespace App\Controller\Secure\External\Catalogo;
 use App\Repository\ArticuloEcommerceRepository;
 use App\Repository\ClientesRepository;
 use App\Repository\ProyectoRepository;
+use App\Repository\StockAdvisorRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,6 +21,7 @@ class CatalogoController extends AbstractController
         private ClientesRepository $clientesRepo,
         private ProyectoRepository $proyectoRepo,
         private EntityManagerInterface $em,
+        private StockAdvisorRepository $stockAdvisorRepo,
     ) {}
 
     #[Route('/switch-empresa', name: 'app_catalogo_switch_empresa', methods: ['POST'])]
@@ -107,6 +109,8 @@ class CatalogoController extends AbstractController
         $categoria = $request->query->get('categoria');
         $subcategoria = $request->query->get('subcategoria');
         $marca = $request->query->get('marca');
+        $rawTags = $request->query->all('tag');
+        $tags = array_values(array_filter(is_array($rawTags) ? $rawTags : []));
         $ordenar = in_array($request->query->get('ordenar'), ['az', 'za']) ? $request->query->get('ordenar') : 'az';
         $pagina = max(1, (int)$request->query->get('pagina', 1));
         $porPagina = in_array((int)$request->query->get('por_pagina', 24), [24, 48, 72])
@@ -115,7 +119,7 @@ class CatalogoController extends AbstractController
         $vista = $request->query->get('vista', 'grid');
 
         $resultado = $this->articuloRepo->buscarConFiltros(
-            $q, $categoria, $subcategoria, $marca, $pagina, $porPagina, $ordenar
+            $q, $categoria, $subcategoria, $marca, $pagina, $porPagina, $ordenar, $tags
         );
 
         $totalPaginas = (int)ceil($resultado['total'] / $porPagina);
@@ -138,12 +142,14 @@ class CatalogoController extends AbstractController
                 'categoria' => $categoria,
                 'subcategoria' => $subcategoria,
                 'marca' => $marca,
+                'tags' => $tags,
                 'ordenar' => $ordenar,
             ],
             'opcionesFiltros' => [
                 'categorias' => $this->articuloRepo->getCategorias(),
                 'subcategorias' => $this->articuloRepo->getSubcategorias($categoria),
                 'marcas' => $this->articuloRepo->getMarcas(),
+                'tags' => $this->stockAdvisorRepo->getTagsDisponibles(),
             ],
             'proyectos' => $proyectos,
         ]);

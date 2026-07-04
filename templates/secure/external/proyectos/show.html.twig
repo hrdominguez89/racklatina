@@ -440,17 +440,23 @@
                     </td>
 
                     {# Cantidad #}
+                    {% set maxStock = stockMap[item.articulo.codigoCalipso] is defined ? stockMap[item.articulo.codigoCalipso] : 0 %}
+                    {% set sinStock = maxStock == 0 %}
                     <td>
                         <div class="qty-ctrl">
                             <button type="button" class="btn-item-menos" data-item="{{ item.id }}"
-                                    {% if isFinished %}disabled{% endif %}>−</button>
+                                    {% if isFinished or sinStock %}disabled{% endif %}>−</button>
                             <input type="number" class="input-item-cantidad"
-                                   value="{{ item.cantidad }}" min="1" max="999"
+                                   value="{{ item.cantidad }}" min="1" max="{{ maxStock > 0 ? maxStock : 1 }}"
                                    data-item="{{ item.id }}" data-prev="{{ item.cantidad }}"
-                                   {% if isFinished %}disabled{% endif %}>
+                                   data-stock-max="{{ maxStock }}"
+                                   {% if isFinished or sinStock %}disabled{% endif %}>
                             <button type="button" class="btn-item-mas" data-item="{{ item.id }}"
-                                    {% if isFinished %}disabled{% endif %}>+</button>
+                                    {% if isFinished or sinStock or item.cantidad >= maxStock %}disabled{% endif %}>+</button>
                         </div>
+                        {% if sinStock %}
+                        <div style="font-size:.7rem;color:#dc3545;margin-top:.25rem;white-space:nowrap;">Sin stock</div>
+                        {% endif %}
                     </td>
 
                     {# Sugerir remplazo por precio #}
@@ -649,15 +655,37 @@
 
     // ── Actualizar cantidad vía AJAX ──
     async function actualizarCantidad(itemId, cantidad, inputEl) {
-        const prevValue = inputEl ? inputEl.dataset.prev : null;
+        const prevValue = inputEl ? parseInt(inputEl.dataset.prev) : null;
         const fd = new FormData();
         fd.append('cantidad', cantidad);
         const res = await fetch(`/secure/proyectos/item/${itemId}/cantidad`, { method: 'POST', body: fd });
         if (!res.ok) {
-            if (inputEl && prevValue !== null) inputEl.value = prevValue;
-            if (res.status === 403) RKL.toast('No tenés permiso para modificar este proyecto.', 'danger');
+            const data = await res.json().catch(() => ({}));
+            if (inputEl && prevValue !== null) {
+                inputEl.value = prevValue;
+                sincronizarBotonesMas(inputEl);
+            }
+            if (res.status === 422) {
+                RKL.toast(data.error || 'Stock insuficiente.', 'danger');
+            } else if (res.status === 403) {
+                RKL.toast('No tenés permiso para modificar este proyecto.', 'danger');
+            }
         } else {
-            if (inputEl) inputEl.dataset.prev = cantidad;
+            if (inputEl) {
+                inputEl.dataset.prev = cantidad;
+                sincronizarBotonesMas(inputEl);
+            }
+        }
+    }
+
+    // ── Habilita/deshabilita el botón + según stock ──
+    function sincronizarBotonesMas(inputEl) {
+        const itemId  = inputEl.dataset.item;
+        const max     = parseInt(inputEl.dataset.stockMax);
+        const actual  = parseInt(inputEl.value);
+        const btnMas  = document.querySelector(`.btn-item-mas[data-item="${itemId}"]`);
+        if (btnMas && max > 0) {
+            btnMas.disabled = actual >= max;
         }
     }
 
@@ -718,19 +746,28 @@
         btn.addEventListener('click', function () {
             const id    = this.dataset.item;
             const input = document.querySelector(`.input-item-cantidad[data-item="${id}"]`);
+            const max   = parseInt(input.dataset.stockMax);
             const val   = parseInt(input.value);
-            if (val < 999) {
+            const tope  = max > 0 ? max : 999;
+            if (val < tope) {
                 input.value = val + 1;
                 actualizarCantidad(id, input.value, input);
             }
+            if (parseInt(input.value) >= tope) this.disabled = true;
         });
     });
 
     // ── Cambio manual de input ──
     document.querySelectorAll('.input-item-cantidad').forEach(input => {
         input.addEventListener('change', function () {
-            const v = Math.max(1, Math.min(999, parseInt(this.value) || 1));
+            const max = parseInt(this.dataset.stockMax);
+            const tope = max > 0 ? max : 999;
+            const v = Math.max(1, Math.min(tope, parseInt(this.value) || 1));
+            if (parseInt(this.value) > tope) {
+                RKL.toast(`Stock disponible: ${tope} unidad${tope !== 1 ? 'es' : ''}.`, 'danger');
+            }
             this.value = v;
+            sincronizarBotonesMas(this);
             actualizarCantidad(this.dataset.item, v, this);
         });
     });

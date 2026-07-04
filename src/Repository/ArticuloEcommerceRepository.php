@@ -23,9 +23,12 @@ class ArticuloEcommerceRepository extends ServiceEntityRepository
         ?string $marca,
         int $pagina = 1,
         int $porPagina = 24,
-        string $ordenar = 'az'
+        string $ordenar = 'az',
+        array $tags = [],
     ): array {
-        $qb = $this->createQueryBuilder('a');
+        // JOIN con stock_advisor siempre: necesario para ordenar por stock y filtrar por tag
+        $qb = $this->createQueryBuilder('a')
+            ->leftJoin(\App\Entity\StockAdvisor::class, 's', 'WITH', 's.codigoCalipso = a.codigoCalipso');
 
         if ($q) {
             $palabras = array_filter(array_map('trim', preg_split('/\s+/', $q)));
@@ -44,12 +47,24 @@ class ArticuloEcommerceRepository extends ServiceEntityRepository
         if ($marca) {
             $qb->andWhere('a.marca = :marca')->setParameter('marca', $marca);
         }
+        if (!empty($tags)) {
+            $orX = $qb->expr()->orX();
+            foreach ($tags as $i => $tag) {
+                $param = 'tag' . $i;
+                $orX->add("s.tags LIKE :$param");
+                $qb->setParameter($param, '%' . $tag . '%');
+            }
+            $qb->andWhere($orX);
+        }
 
         $total = (clone $qb)->select('COUNT(a.codigoCalipso)')->getQuery()->getSingleScalarResult();
 
         $direction = $ordenar === 'za' ? 'DESC' : 'ASC';
+
         $items = $qb->select('a')
-            ->orderBy('a.descripcionIdeaconector', $direction)
+            ->addSelect('CASE WHEN s.codigoCalipso IS NOT NULL AND s.stock > 0 THEN 0 ELSE 1 END AS HIDDEN tiene_stock_orden')
+            ->orderBy('tiene_stock_orden', 'ASC')
+            ->addOrderBy('a.descripcionIdeaconector', $direction)
             ->setFirstResult(($pagina - 1) * $porPagina)
             ->setMaxResults($porPagina)
             ->getQuery()
