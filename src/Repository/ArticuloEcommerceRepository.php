@@ -112,7 +112,7 @@ class ArticuloEcommerceRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()->getConnection();
         $codigos = $conn->fetchFirstColumn(
             'SELECT ae.Codigo_Calipso FROM articulos_ecommerce ae
-             INNER JOIN Stock_Advisor sa ON sa.Codigo_Calipso = ae.Codigo_Calipso
+             INNER JOIN Stock_Advisor sa ON sa.Codigo_Calipso COLLATE utf8mb4_unicode_ci = ae.Codigo_Calipso
              WHERE ae.Imagen IS NOT NULL AND sa.Stock > 0
              ORDER BY RAND() LIMIT :limit',
             ['limit' => $limit],
