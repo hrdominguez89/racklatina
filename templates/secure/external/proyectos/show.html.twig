@@ -710,19 +710,22 @@
         const id = pendingDeleteId;
         pendingDeleteId = null;
         _bsModal.hide();
-        const fd  = new FormData();
-        const res = await fetch(`/secure/proyectos/item/${id}/quitar`, { method: 'POST', body: fd });
-        const data = await res.json();
-        if (data.success) {
-            // Eliminar las 3 filas del item (producto + toggle similares + panel similares)
-            const rowProducto  = document.querySelector(`.tr-producto[data-item-id="${id}"]`);
-            const rowToggle    = rowProducto ? rowProducto.nextElementSibling : null;
-            const rowPanel     = rowToggle   ? rowToggle.nextElementSibling   : null;
-            if (rowPanel)   rowPanel.remove();
-            if (rowToggle)  rowToggle.remove();
-            if (rowProducto) rowProducto.remove();
-            actualizarSidebar();
-            if (!document.querySelector('.tr-producto')) location.reload();
+        try {
+            const fd   = new FormData();
+            const res  = await fetch(`/secure/proyectos/item/${id}/quitar`, { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                const rowProducto  = document.querySelector(`.tr-producto[data-item-id="${id}"]`);
+                const rowSimilares = document.getElementById(`similares-${id}`);
+                rowSimilares?.remove();
+                rowProducto?.remove();
+                actualizarSidebar();
+                if (!document.querySelector('.tr-producto')) location.reload();
+            } else {
+                RKL.toast(data.error || 'Error al eliminar el producto.', 'danger');
+            }
+        } catch {
+            RKL.toast('Error de red al eliminar el producto.', 'danger');
         }
     });
 

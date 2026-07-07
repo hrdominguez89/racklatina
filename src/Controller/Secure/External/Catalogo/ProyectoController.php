@@ -395,7 +395,11 @@ class ProyectoController extends AbstractController
         $this->denyUnlessProyectosWrite();
 
         $item = $this->itemRepo->find($itemId);
-        if (!$item || ($item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
+        if (!$item) {
+            return $this->json(['error' => 'Item no encontrado'], 404);
+        }
+        $esPropio = $item->getProyecto()->getUser()->getId() === $this->getUser()->getId();
+        if (!$esPropio && !$this->isGranted('ROLE_ADMIN')) {
             return $this->json(['error' => 'No autorizado'], 403);
         }
 
