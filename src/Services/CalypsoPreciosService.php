@@ -19,11 +19,11 @@ class CalypsoPreciosService
      * @param string $codigoArticulo Código del artículo (ej: "01802TW30L")
      * @param int    $cantidad       Cantidad solicitada
      *
-     * @return array{articulo: string, precio: float, precioTotal: float}
+     * @return array{articulo: string, precio: float, precioTotal: float}|null  null si el artículo no tiene precio para ese cliente
      *
      * @throws \RuntimeException si Calypso devuelve un error o la respuesta es inválida
      */
-    public function consultarPrecio(string $codigoCliente, string $codigoArticulo, int $cantidad = 1): array
+    public function consultarPrecio(string $codigoCliente, string $codigoArticulo, int $cantidad = 1): ?array
     {
         $token = $_ENV['TOKEN_PRECIOS'] ?? $_ENV['TOKEN'];
         $url   = $_ENV['CALIPSO_URL'] . '/appserver/api/?action=CONSULTAPRECIO&token=' . $token;
@@ -55,7 +55,14 @@ class CalypsoPreciosService
             'body'   => $raw,
         ]);
 
-        $data = json_decode($raw, true);
+        if (trim($raw) === '') {
+            $this->logger->info('[CalypsoPreciosService] Sin precio para este artículo/cliente');
+            return null;
+        }
+
+        // Calypso devuelve valores sin comillas en algunos campos (ej: "acuerdo":M1000002527)
+        $fixed = preg_replace('/:([A-Za-z][A-Za-z0-9]*)([,\}])/', ':"$1"$2', $raw);
+        $data  = json_decode($fixed, true);
 
         if ($data === null) {
             $this->logger->error('[CalypsoPreciosService] Respuesta no es JSON válido', ['body' => substr($raw, 0, 500)]);
