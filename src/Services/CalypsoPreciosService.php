@@ -2,12 +2,14 @@
 
 namespace App\Services;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class CalypsoPreciosService
 {
     public function __construct(
         private HttpClientInterface $httpClient,
+        private LoggerInterface $logger,
     ) {}
 
     /**
@@ -26,31 +28,49 @@ class CalypsoPreciosService
         $token = $_ENV['TOKEN_PRECIOS'] ?? $_ENV['TOKEN'];
         $url   = $_ENV['CALIPSO_URL'] . '/appserver/api/?action=CONSULTAPRECIO&token=' . $token;
 
+        $body = json_encode([
+            'cliente'  => $codigoCliente,
+            'articulo' => $codigoArticulo,
+            'cantidad' => (string) $cantidad,
+        ]);
+
+        $this->logger->info('[CalypsoPreciosService] Request CONSULTAPRECIO', [
+            'cliente'  => $codigoCliente,
+            'articulo' => $codigoArticulo,
+            'cantidad' => $cantidad,
+        ]);
+
         $response = $this->httpClient->request('GET', $url, [
-            'body'    => json_encode([
-                'cliente'  => $codigoCliente,
-                'articulo' => $codigoArticulo,
-                'cantidad' => (string) $cantidad,
-            ]),
+            'body'    => $body,
             'headers' => ['Content-Type' => 'application/json'],
             'verify_peer' => false,
             'verify_host' => false,
         ]);
 
-        $raw  = $response->getContent(throw: false);
+        $statusCode = $response->getStatusCode();
+        $raw        = $response->getContent(throw: false);
+
+        $this->logger->info('[CalypsoPreciosService] Response CONSULTAPRECIO', [
+            'status' => $statusCode,
+            'body'   => $raw,
+        ]);
+
         $data = json_decode($raw, true);
 
         if ($data === null) {
+            $this->logger->error('[CalypsoPreciosService] Respuesta no es JSON válido', ['body' => substr($raw, 0, 500)]);
             throw new \RuntimeException('Calypso CONSULTAPRECIO: respuesta no es JSON válido. Body: ' . substr($raw, 0, 200));
         }
 
         if (isset($data['resultado']) && $data['resultado'] === 'ERROR') {
+            $this->logger->error('[CalypsoPreciosService] Calypso devolvió ERROR', ['detalle' => $data['detalle'] ?? 'sin detalle']);
             throw new \RuntimeException(
                 'Calypso CONSULTAPRECIO error: ' . ($data['detalle'] ?? 'sin detalle')
             );
         }
 
         if (!isset($data['precio'])) {
+            $this->logger->error('[CalypsoPreciosService] Campo precio ausente', ['data' => $data]);
             throw new \RuntimeException('Respuesta inesperada de Calypso: campo precio ausente.');
         }
 
