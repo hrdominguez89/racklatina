@@ -73,9 +73,13 @@ class CatalogoController extends AbstractController
         $categorias = $this->articuloRepo->getCategorias();
         $recomendados = $this->articuloRepo->getRecomendados(8);
 
+        $codigos = array_map(fn($a) => $a->getCodigoCalipso(), $recomendados);
+        $stockMap = $this->stockAdvisorRepo->getStockMap($codigos);
+
         return $this->render('secure/external/catalogo/index.html.twig', [
             'categorias' => $categorias,
             'recomendados' => $recomendados,
+            'stockMap' => $stockMap,
         ]);
     }
 
@@ -130,6 +134,9 @@ class CatalogoController extends AbstractController
             ? $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo())
             : [];
 
+        $codigos = array_map(fn($a) => $a->getCodigoCalipso(), $resultado['items']);
+        $stockMap = $this->stockAdvisorRepo->getStockMap($codigos);
+
         return $this->render('secure/external/catalogo/lista.html.twig', [
             'articulos' => $resultado['items'],
             'total' => $resultado['total'],
@@ -137,6 +144,7 @@ class CatalogoController extends AbstractController
             'totalPaginas' => $totalPaginas,
             'porPagina' => $porPagina,
             'vista' => $vista,
+            'stockMap' => $stockMap,
             'filtros' => [
                 'q' => $q,
                 'categoria' => $categoria,
