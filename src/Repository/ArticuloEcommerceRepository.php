@@ -111,7 +111,10 @@ class ArticuloEcommerceRepository extends ServiceEntityRepository
     {
         $conn = $this->getEntityManager()->getConnection();
         $codigos = $conn->fetchFirstColumn(
-            'SELECT Codigo_Calipso FROM articulos_ecommerce WHERE Imagen IS NOT NULL ORDER BY RAND() LIMIT :limit',
+            'SELECT ae.Codigo_Calipso FROM articulos_ecommerce ae
+             INNER JOIN stock_advisor sa ON sa.Codigo_Calipso = ae.Codigo_Calipso
+             WHERE ae.Imagen IS NOT NULL AND sa.Stock > 0
+             ORDER BY RAND() LIMIT :limit',
             ['limit' => $limit],
             ['limit' => \Doctrine\DBAL\ParameterType::INTEGER]
         );
