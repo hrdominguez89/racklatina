@@ -10,6 +10,7 @@ use App\Repository\ArticuloEcommerceRepository;
 use App\Repository\ClientesRepository;
 use App\Repository\ProyectoItemRepository;
 use App\Repository\ProyectoRepository;
+use App\Services\ProyectoExcelExporter;
 use App\Services\StockAdvisorService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -45,6 +46,7 @@ class ProyectoController extends AbstractController
         private MailerInterface $mailer,
         private ClientesRepository $clientesRepo,
         private StockAdvisorService $stockService,
+        private ProyectoExcelExporter $excelExporter,
     ) {}
 
     #[Route('', name: 'app_proyectos_index')]
@@ -439,6 +441,29 @@ class ProyectoController extends AbstractController
         return $this->render($template, $context);
     }
 
+    #[Route('/{id}/excel-preview', name: 'app_proyectos_excel_preview', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function excelPreview(int $id): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $proyecto = $this->getProyectoDelUsuario($id);
+
+        $content  = $this->excelExporter->export($proyecto);
+        $filename = 'Solicitud_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $proyecto->getNombre()) . '.xlsx';
+
+        // Guardar copia local en var/excel_test/
+        $dir = $this->getParameter('kernel.project_dir') . '/var/excel_test';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0775, true);
+        }
+        file_put_contents($dir . '/' . $filename, $content);
+
+        // También devolver para descarga directa en el browser
+        return new Response($content, 200, [
+            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
     #[Route('/{id}/solicitar-cotizacion', name: 'app_proyectos_solicitar_cotizacion', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function solicitarCotizacion(int $id, Request $request): JsonResponse
     {
@@ -479,6 +504,10 @@ class ProyectoController extends AbstractController
             'fecha'                => $fecha,
         ];
 
+        // Generar Excel adjunto
+        $excelContent  = $this->excelExporter->export($proyecto);
+        $excelFilename = 'Solicitud_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $proyecto->getNombre()) . '.xlsx';
+
         // Email interno a Racklatina
         $emailInterno = (new ContactoEmailWithAttachments())
             ->from($_ENV['MAIL_FROM'])
@@ -486,6 +515,12 @@ class ProyectoController extends AbstractController
             ->replyTo($usuarioEmail)
             ->subject('Solicitud de Cotización – ' . $proyecto->getNombre() . ' (' . ($empresaNombre ?? $usuarioNombre) . ')')
             ->html($this->renderView('emails/solicitud_cotizacion_proyecto.html.twig', $templateContext));
+
+        $emailInterno->addAttachmentData(
+            $excelContent,
+            $excelFilename,
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
 
         $this->mailer->send($emailInterno);
 
