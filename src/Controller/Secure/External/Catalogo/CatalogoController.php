@@ -6,6 +6,7 @@ use App\Repository\ArticuloEcommerceRepository;
 use App\Repository\ClientesRepository;
 use App\Repository\ProyectoRepository;
 use App\Repository\StockAdvisorRepository;
+use App\Services\CalypsoPreciosService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,6 +23,7 @@ class CatalogoController extends AbstractController
         private ProyectoRepository $proyectoRepo,
         private EntityManagerInterface $em,
         private StockAdvisorRepository $stockAdvisorRepo,
+        private CalypsoPreciosService $preciosService,
     ) {}
 
     #[Route('/switch-empresa', name: 'app_catalogo_switch_empresa', methods: ['POST'])]
@@ -202,10 +204,23 @@ class CatalogoController extends AbstractController
             fn($a) => $a->getCodigoCalipso() !== $articulo->getCodigoCalipso()
         ));
 
+        $precio = null;
+        if ($user && $user->getActiveClienteCodigo()) {
+            try {
+                $precio = $this->preciosService->consultarPrecio(
+                    $user->getActiveClienteCodigo(),
+                    $articulo->getCodigoCalipso()
+                );
+            } catch (\RuntimeException) {
+                // Sin precio disponible: se muestra sin precio
+            }
+        }
+
         return $this->render('secure/external/catalogo/detalle.html.twig', [
             'articulo' => $articulo,
             'proyectos' => $proyectos,
             'relacionados' => array_slice($relacionados, 0, 4),
+            'precio' => $precio,
         ]);
     }
 }

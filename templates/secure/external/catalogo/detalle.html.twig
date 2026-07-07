@@ -380,6 +380,16 @@
             <span class="badge-stock">En Stock</span>
         </div>
 
+        {# Precio #}
+        {% if precio is not null %}
+        <div class="mb-3">
+            <p class="mb-0" style="font-size:.72rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;">Precio unitario</p>
+            <p class="mb-0 fw-bold" style="font-size:1.5rem;color:#1a1a1a;">
+                $ {{ precio.precio|number_format(2, ',', '.') }}
+            </p>
+        </div>
+        {% endif %}
+
         {# Cantidad #}
         <p class="mb-2" style="font-size:.78rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;">Cantidad</p>
         <div class="qty-ctrl mb-0">
