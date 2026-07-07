@@ -483,9 +483,10 @@
 
                     {# Quitar #}
                     <td>
-                        {% if not isFinished %}
+                        {% if not isFinished and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN')) %}
                         <button class="btn-quitar-item" data-item="{{ item.id }}"
                                 data-nombre="{{ item.articulo.nombreDisplay|e('html_attr') }}"
+                data-url="{{ path('app_proyectos_quitar_articulo', {itemId: item.id}) }}"
                                 title="Quitar del proyecto">
                             <i class="ri-delete-bin-line"></i>
                         </button>
@@ -707,14 +708,20 @@
 
     document.getElementById('btn-confirmar-eliminar-item').addEventListener('click', async function () {
         if (!pendingDeleteId) return;
-        const id = pendingDeleteId;
+        const id  = pendingDeleteId;
         pendingDeleteId = null;
         _bsModal.hide();
+        const row = document.querySelector(`.tr-producto[data-item-id="${id}"]`);
+        const url = row?.querySelector('.btn-quitar-item')?.dataset.url;
+        if (!url) { RKL.toast('Error: URL no encontrada.', 'danger'); return; }
         try {
             const fd   = new FormData();
-            const res  = await fetch(`/secure/proyectos/item/${id}/quitar`, { method: 'POST', body: fd });
-            const data = await res.json();
-            if (data.success) {
+            const res  = await fetch(url, { method: 'POST', body: fd });
+            const text = await res.text();
+            console.log('[quitar-item] status:', res.status, 'body:', text);
+            let data;
+            try { data = JSON.parse(text); } catch { data = null; }
+            if (data?.success) {
                 const rowProducto  = document.querySelector(`.tr-producto[data-item-id="${id}"]`);
                 const rowSimilares = document.getElementById(`similares-${id}`);
                 rowSimilares?.remove();
@@ -722,9 +729,10 @@
                 actualizarSidebar();
                 if (!document.querySelector('.tr-producto')) location.reload();
             } else {
-                RKL.toast(data.error || 'Error al eliminar el producto.', 'danger');
+                RKL.toast(data?.error || `Error ${res.status} al eliminar.`, 'danger');
             }
-        } catch {
+        } catch (e) {
+            console.error('[quitar-item] excepción:', e);
             RKL.toast('Error de red al eliminar el producto.', 'danger');
         }
     });
