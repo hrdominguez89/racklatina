@@ -26,9 +26,15 @@ class ArticuloEcommerceRepository extends ServiceEntityRepository
         string $ordenar = 'az',
         array $tags = [],
     ): array {
-        // JOIN con stock_advisor siempre: necesario para ordenar por stock y filtrar por tag
-        $qb = $this->createQueryBuilder('a')
-            ->leftJoin(\App\Entity\StockAdvisor::class, 's', 'WITH', 's.codigoCalipso = a.codigoCalipso');
+        $conn = $this->getEntityManager()->getConnection();
+
+        // Stock_Advisor tiene collation distinta a articulos_ecommerce; usamos SQL nativo con COLLATE explícito
+        // para evitar "Illegal mix of collations" en el JOIN de DQL.
+        $codigosConStock = $conn->fetchFirstColumn(
+            'SELECT sa.Codigo_Calipso COLLATE utf8mb4_unicode_ci FROM Stock_Advisor sa WHERE sa.Stock > 0'
+        );
+
+        $qb = $this->createQueryBuilder('a');
 
         if ($q) {
             $palabras = array_filter(array_map('trim', preg_split('/\s+/', $q)));
@@ -48,21 +54,37 @@ class ArticuloEcommerceRepository extends ServiceEntityRepository
             $qb->andWhere('a.marca = :marca')->setParameter('marca', $marca);
         }
         if (!empty($tags)) {
-            $orX = $qb->expr()->orX();
+            // Tags viven en Stock_Advisor; obtener códigos matching via SQL nativo
+            $orParts = [];
+            $tagParams = [];
             foreach ($tags as $i => $tag) {
-                $param = 'tag' . $i;
-                $orX->add("s.tags LIKE :$param");
-                $qb->setParameter($param, '%' . $tag . '%');
+                $orParts[] = "sa.tags LIKE :tag$i";
+                $tagParams["tag$i"] = '%' . $tag . '%';
             }
-            $qb->andWhere($orX);
+            $codigosConTag = $conn->fetchFirstColumn(
+                'SELECT sa.Codigo_Calipso COLLATE utf8mb4_unicode_ci FROM Stock_Advisor sa WHERE ' . implode(' OR ', $orParts),
+                $tagParams
+            );
+            if (!empty($codigosConTag)) {
+                $qb->andWhere('a.codigoCalipso IN (:tagCodigos)')->setParameter('tagCodigos', $codigosConTag);
+            } else {
+                $qb->andWhere('1 = 0');
+            }
         }
 
         $total = (clone $qb)->select('COUNT(a.codigoCalipso)')->getQuery()->getSingleScalarResult();
 
         $direction = $ordenar === 'za' ? 'DESC' : 'ASC';
 
-        $items = $qb->select('a')
-            ->addSelect('CASE WHEN s.codigoCalipso IS NOT NULL AND s.stock > 0 THEN 0 ELSE 1 END AS HIDDEN tiene_stock_orden')
+        $qb->select('a');
+        if (!empty($codigosConStock)) {
+            $qb->addSelect('CASE WHEN a.codigoCalipso IN (:codigosConStock) THEN 0 ELSE 1 END AS HIDDEN tiene_stock_orden')
+               ->setParameter('codigosConStock', $codigosConStock);
+        } else {
+            $qb->addSelect('0 AS HIDDEN tiene_stock_orden');
+        }
+
+        $items = $qb
             ->orderBy('tiene_stock_orden', 'ASC')
             ->addOrderBy('a.descripcionIdeaconector', $direction)
             ->setFirstResult(($pagina - 1) * $porPagina)
