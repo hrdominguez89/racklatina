@@ -6,7 +6,7 @@ use App\Repository\StockAdvisorRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StockAdvisorRepository::class, readOnly: true)]
-#[ORM\Table(name: 'stock_advisor')]
+#[ORM\Table(name: 'Stock_Advisor')]
 class StockAdvisor
 {
     #[ORM\Id]
