@@ -353,7 +353,9 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/cantidad', name: 'app_proyectos_update_cantidad', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function updateCantidad(int $itemId, Request $request): JsonResponse
     {
-        $this->denyUnlessProyectosWrite();
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+            return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
+        }
 
         $item = $this->itemRepo->find($itemId);
         if (!$item || ($item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
@@ -376,7 +378,9 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/comment', name: 'app_proyectos_update_comment', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function updateComment(int $itemId, Request $request): JsonResponse
     {
-        $this->denyUnlessProyectosWrite();
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+            return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
+        }
 
         $item = $this->itemRepo->find($itemId);
         if (!$item || ($item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
@@ -392,7 +396,9 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/quitar', name: 'app_proyectos_quitar_articulo', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function quitarArticulo(int $itemId, Request $request): JsonResponse
     {
-        $this->denyUnlessProyectosWrite();
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+            return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
+        }
 
         $item = $this->itemRepo->find($itemId);
         if (!$item) {
@@ -448,7 +454,7 @@ class ProyectoController extends AbstractController
     #[Route('/{id}/excel-preview', name: 'app_proyectos_excel_preview', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function excelPreview(int $id): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyUnlessProyectosAccess();
         $proyecto = $this->getProyectoDelUsuario($id);
 
         $content  = $this->excelExporter->export($proyecto);

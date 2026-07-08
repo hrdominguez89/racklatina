@@ -521,8 +521,25 @@
             </div>
 
             {% if isFinished %}
-            <div class="text-center py-2" style="font-size:.82rem;color:#888;">
+            <div class="mb-3" style="font-size:.82rem;color:#888;text-align:center;">
                 <i class="ri-lock-line me-1"></i> Proyecto finalizado
+            </div>
+            <div class="d-flex flex-column gap-2">
+                <a href="{{ path('app_proyectos_cotizacion_preview', {id: proyecto.id}) }}"
+                   target="_blank"
+                   class="btn btn-outline-secondary btn-sm fw-semibold">
+                    <i class="ri-mail-line me-1"></i> Ver mail a Racklatina
+                </a>
+                <a href="{{ path('app_proyectos_cotizacion_preview', {id: proyecto.id, tipo: 'confirmacion'}) }}"
+                   target="_blank"
+                   class="btn btn-outline-secondary btn-sm fw-semibold">
+                    <i class="ri-mail-check-line me-1"></i> Ver mail de confirmación
+                </a>
+                <a href="{{ path('app_proyectos_excel_preview', {id: proyecto.id}) }}"
+                   target="_blank"
+                   class="btn btn-outline-secondary btn-sm fw-semibold">
+                    <i class="ri-file-excel-line me-1"></i> Descargar Excel
+                </a>
             </div>
             {% else %}
             <button type="button" class="btn-solicitar-sidebar"
