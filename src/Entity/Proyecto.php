@@ -43,6 +43,10 @@ class Proyecto
     #[ORM\Column(name: 'status', type: 'string', enumType: ProyectoStatus::class, length: 20)]
     private ProyectoStatus $status = ProyectoStatus::IN_PROGRESS;
 
+    /** Precio total en USD (suma de items) capturado al momento de finalizar el proyecto. */
+    #[ORM\Column(name: 'precio_total_usd', type: 'decimal', precision: 14, scale: 2, nullable: true)]
+    private ?string $precioTotalUsd = null;
+
     #[ORM\OneToMany(targetEntity: ProyectoItem::class, mappedBy: 'proyecto', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $items;
 
@@ -70,6 +74,9 @@ class Proyecto
 
     public function getStatus(): ProyectoStatus { return $this->status; }
     public function setStatus(ProyectoStatus $status): static { $this->status = $status; return $this; }
+
+    public function getPrecioTotalUsd(): ?float { return $this->precioTotalUsd !== null ? (float) $this->precioTotalUsd : null; }
+    public function setPrecioTotalUsd(?float $total): static { $this->precioTotalUsd = $total !== null ? (string) $total : null; return $this; }
 
     public function getItems(): Collection { return $this->items; }
 

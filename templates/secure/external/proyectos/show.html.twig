@@ -400,8 +400,12 @@
                 <tr>
                     <th class="col-producto">Producto</th>
                     <th>Cantidad</th>
+                    <th>Precio unit.<br><span style="font-weight:400;font-size:.75em;">(USD)</span></th>
+                    <th>Total<br><span style="font-weight:400;font-size:.75em;">(USD)</span></th>
+                    {% if not isFinished %}
                     <th>Sugerir remplazo<br>por precio</th>
                     <th>Sugerir remplazo<br>por plazo</th>
+                    {% endif %}
                     {# <th>Dejá un<br>comentario</th> #}
                     <th></th>
                 </tr>
@@ -410,7 +414,15 @@
             {% for item in proyecto.items %}
 
                 {# Fila principal del producto #}
-                <tr class="tr-producto{% if loop.index is even %} fila-par{% endif %}" data-item-id="{{ item.id }}">
+                {% if isFinished %}
+                    {% set _precioUnitRow = item.precioUnitarioUsd %}
+                {% else %}
+                    {% set _precioEntryRow = preciosMap[item.articulo.codigoCalipso] ?? null %}
+                    {% set _precioUnitRow  = _precioEntryRow ? _precioEntryRow.precio : null %}
+                {% endif %}
+                <tr class="tr-producto{% if loop.index is even %} fila-par{% endif %}"
+                    data-item-id="{{ item.id }}"
+                    data-precio-unit="{{ _precioUnitRow is not null ? _precioUnitRow : '' }}">
 
                     {# Producto #}
                     <td class="td-producto">
@@ -459,17 +471,39 @@
                         {% endif %}
                     </td>
 
+                    {# Precio unitario: snapshot si está finalizado, tiempo real (caché) si en curso #}
+                    {% if isFinished %}
+                        {% set precioUnit  = item.precioUnitarioUsd %}
+                        {% set precioTotal = item.precioTotalUsd %}
+                    {% else %}
+                        {% set precioEntry = preciosMap[item.articulo.codigoCalipso] ?? null %}
+                        {% set precioUnit  = precioEntry ? precioEntry.precio : null %}
+                        {% set precioTotal = precioEntry ? precioEntry.precioTotal : null %}
+                    {% endif %}
+                    <td style="text-align:right;white-space:nowrap;font-size:.88rem;">
+                        {% if precioUnit is not null %}
+                            U$S {{ precioUnit|number_format(2, ',', '.') }}
+                        {% else %}
+                            <span style="color:#bbb;font-size:.8rem;">N/D</span>
+                        {% endif %}
+                    </td>
+                    <td class="td-precio-total" style="text-align:right;white-space:nowrap;font-size:.88rem;font-weight:700;">
+                        {% if precioTotal is not null %}
+                            U$S {{ precioTotal|number_format(2, ',', '.') }}
+                        {% else %}
+                            <span style="color:#bbb;font-size:.8rem;">N/D</span>
+                        {% endif %}
+                    </td>
+                    {% if not isFinished %}
                     {# Sugerir remplazo por precio #}
                     <td>
-                        <input type="checkbox" class="check-reemplazo input-item-auth" data-item="{{ item.id }}" data-type="precio"
-                               {% if isFinished %}disabled{% endif %}>
+                        <input type="checkbox" class="check-reemplazo input-item-auth" data-item="{{ item.id }}" data-type="precio">
                     </td>
-
                     {# Sugerir remplazo por plazo #}
                     <td>
-                        <input type="checkbox" class="check-reemplazo input-item-auth-plazo" data-item="{{ item.id }}" data-type="plazo"
-                               {% if isFinished %}disabled{% endif %}>
+                        <input type="checkbox" class="check-reemplazo input-item-auth-plazo" data-item="{{ item.id }}" data-type="plazo">
                     </td>
+                    {% endif %}
 
                     {# Comentario #}
                     {# <td>
@@ -497,7 +531,7 @@
 
                 {# Fila panel similares (oculta por defecto) #}
                 <tr class="tr-similares-panel" id="similares-{{ item.id }}" data-loaded="false">
-                    <td colspan="5">
+                    <td colspan="{{ isFinished ? '5' : '7' }}">
                         <div class="similares-panel-inner">
                             <div class="similares-panel-title">Productos similares</div>
                             <div class="similares-grid row g-2"></div>
@@ -518,6 +552,14 @@
             <div class="sidebar-items-row">
                 <span class="sidebar-items-label">Cantidad de items a cotizar</span>
                 <span class="sidebar-items-count" id="sidebar-items-count">{{ proyecto.cantidadProductos }}</span>
+            </div>
+
+            {% set totalMostrar = isFinished ? proyecto.precioTotalUsd : precioTotalCalculado %}
+            <div class="mb-3" id="sidebar-total-wrap" style="background:#f5f5f5;border-radius:6px;padding:.75rem 1rem;{% if totalMostrar is null %}display:none{% endif %}">
+                <div style="font-size:.72rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:.2rem;">Total estimado</div>
+                <div style="font-size:1.2rem;font-weight:700;color:#1a1a1a;" id="sidebar-total-usd">
+                    {% if totalMostrar is not null %}U$S {{ totalMostrar|number_format(2, ',', '.') }}{% endif %}
+                </div>
             </div>
 
             {% if isFinished %}
@@ -671,6 +713,44 @@
         });
     })();
 
+    // ── Formato numérico argentino (2 decimales, . miles, , decimal) ──
+    function fmtUSD(n) {
+        return 'U$S ' + n.toFixed(2)
+            .replace('.', ',')
+            .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    // ── Recalcula totales por fila y el total del sidebar ──
+    function recalcularTotales() {
+        let totalGlobal = 0;
+        let hayAlgunPrecio = false;
+
+        document.querySelectorAll('.tr-producto').forEach(row => {
+            const precioUnit = parseFloat(row.dataset.precioUnit);
+            if (isNaN(precioUnit) || precioUnit <= 0) return;
+
+            const input    = row.querySelector('.input-item-cantidad');
+            const cantidad = input ? Math.max(1, parseInt(input.value) || 1) : 1;
+            const rowTotal = precioUnit * cantidad;
+            const totalCell = row.querySelector('.td-precio-total');
+
+            if (totalCell) totalCell.textContent = fmtUSD(rowTotal);
+            totalGlobal += rowTotal;
+            hayAlgunPrecio = true;
+        });
+
+        const wrap    = document.getElementById('sidebar-total-wrap');
+        const display = document.getElementById('sidebar-total-usd');
+        if (wrap && display) {
+            if (hayAlgunPrecio) {
+                display.textContent = fmtUSD(totalGlobal);
+                wrap.style.display = '';
+            } else {
+                wrap.style.display = 'none';
+            }
+        }
+    }
+
     // ── Actualizar cantidad vía AJAX ──
     async function actualizarCantidad(itemId, cantidad, inputEl) {
         const prevValue = inputEl ? parseInt(inputEl.dataset.prev) : null;
@@ -682,6 +762,7 @@
             if (inputEl && prevValue !== null) {
                 inputEl.value = prevValue;
                 sincronizarBotonesMas(inputEl);
+                recalcularTotales();
             }
             if (res.status === 422) {
                 RKL.toast(data.error || 'Stock insuficiente.', 'danger');
@@ -744,6 +825,7 @@
                 rowSimilares?.remove();
                 rowProducto?.remove();
                 actualizarSidebar();
+                recalcularTotales();
                 if (!document.querySelector('.tr-producto')) location.reload();
             } else {
                 RKL.toast(data?.error || `Error ${res.status} al eliminar.`, 'danger');
@@ -762,6 +844,7 @@
             const val   = parseInt(input.value);
             if (val > 1) {
                 input.value = val - 1;
+                recalcularTotales();
                 actualizarCantidad(id, input.value, input);
             } else {
                 abrirModalEliminar(id);
@@ -779,6 +862,7 @@
             const tope  = max > 0 ? max : 999;
             if (val < tope) {
                 input.value = val + 1;
+                recalcularTotales();
                 actualizarCantidad(id, input.value, input);
             }
             if (parseInt(input.value) >= tope) this.disabled = true;
@@ -796,6 +880,7 @@
             }
             this.value = v;
             sincronizarBotonesMas(this);
+            recalcularTotales();
             actualizarCantidad(this.dataset.item, v, this);
         });
     });

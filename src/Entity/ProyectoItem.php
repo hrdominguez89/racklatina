@@ -32,6 +32,10 @@ class ProyectoItem
     #[ORM\Column(name: 'comment', type: 'text', nullable: true)]
     private ?string $comment = null;
 
+    /** Precio unitario en USD capturado al momento de finalizar el proyecto. Null si no había precio disponible. */
+    #[ORM\Column(name: 'precio_unitario_usd', type: 'decimal', precision: 12, scale: 2, nullable: true)]
+    private ?string $precioUnitarioUsd = null;
+
     public function getId(): ?int { return $this->id; }
 
     public function getProyecto(): Proyecto { return $this->proyecto; }
@@ -45,4 +49,12 @@ class ProyectoItem
 
     public function getComment(): ?string { return $this->comment; }
     public function setComment(?string $comment): static { $this->comment = $comment ?: null; return $this; }
+
+    public function getPrecioUnitarioUsd(): ?float { return $this->precioUnitarioUsd !== null ? (float) $this->precioUnitarioUsd : null; }
+    public function setPrecioUnitarioUsd(?float $precio): static { $this->precioUnitarioUsd = $precio !== null ? (string) $precio : null; return $this; }
+
+    public function getPrecioTotalUsd(): ?float
+    {
+        return $this->precioUnitarioUsd !== null ? round((float) $this->precioUnitarioUsd * $this->cantidad, 2) : null;
+    }
 }

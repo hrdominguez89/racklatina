@@ -10,6 +10,7 @@ use App\Repository\ArticuloEcommerceRepository;
 use App\Repository\ClientesRepository;
 use App\Repository\ProyectoItemRepository;
 use App\Repository\ProyectoRepository;
+use App\Services\CalypsoPreciosService;
 use App\Services\ProyectoExcelExporter;
 use App\Services\StockAdvisorService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -47,6 +48,7 @@ class ProyectoController extends AbstractController
         private ClientesRepository $clientesRepo,
         private StockAdvisorService $stockService,
         private ProyectoExcelExporter $excelExporter,
+        private CalypsoPreciosService $preciosService,
     ) {}
 
     #[Route('', name: 'app_proyectos_index')]
@@ -148,9 +150,44 @@ class ProyectoController extends AbstractController
         $codigos  = $proyecto->getItems()->map(fn($i) => $i->getArticulo()->getCodigoCalipso())->toArray();
         $stockMap = array_map(fn($s) => (int)floor($s), $this->stockService->getStockMap($codigos));
 
+        // Precios en tiempo real (con caché de sesión) para proyectos en curso.
+        // Para proyectos finalizados se usan los snapshots guardados en BD.
+        $preciosMap           = [];
+        $precioTotalCalculado = null;
+
+        if ($proyecto->getStatus() !== ProyectoStatus::FINISHED) {
+            $user          = $this->getUser();
+            $clienteCodigo = $user?->getActiveClienteCodigo() ?? $proyecto->getClienteCodigo();
+
+            if ($clienteCodigo) {
+                $total     = 0.0;
+                $hayPrecios = false;
+
+                foreach ($proyecto->getItems() as $item) {
+                    $codigo = $item->getArticulo()->getCodigoCalipso();
+                    try {
+                        $resultado = $this->preciosService->consultarPrecio($clienteCodigo, $codigo, $item->getCantidad());
+                        if ($resultado !== null) {
+                            $preciosMap[$codigo] = $resultado;
+                            $total += $resultado['precioTotal'];
+                            $hayPrecios = true;
+                        }
+                    } catch (\RuntimeException) {
+                        // Sin precio disponible para este ítem
+                    }
+                }
+
+                if ($hayPrecios) {
+                    $precioTotalCalculado = round($total, 2);
+                }
+            }
+        }
+
         return $this->render('secure/external/proyectos/show.html.twig', [
-            'proyecto' => $proyecto,
-            'stockMap' => $stockMap,
+            'proyecto'             => $proyecto,
+            'stockMap'             => $stockMap,
+            'preciosMap'           => $preciosMap,
+            'precioTotalCalculado' => $precioTotalCalculado,
         ]);
     }
 
@@ -434,13 +471,14 @@ class ProyectoController extends AbstractController
         }
 
         $context = [
-            'proyecto_id'     => $proyecto->getId(),
-            'proyecto_nombre' => $proyecto->getNombre(),
-            'usuario_nombre'  => $usuarioNombre,
-            'usuario_email'   => $user->getEmail(),
-            'empresa_nombre'  => $empresaNombre,
-            'items'           => $proyecto->getItems(),
-            'fecha'           => new \DateTime(),
+            'proyecto_id'      => $proyecto->getId(),
+            'proyecto_nombre'  => $proyecto->getNombre(),
+            'usuario_nombre'   => $usuarioNombre,
+            'usuario_email'    => $user->getEmail(),
+            'empresa_nombre'   => $empresaNombre,
+            'items'            => $proyecto->getItems(),
+            'fecha'            => new \DateTime(),
+            'precio_total_usd' => $proyecto->getPrecioTotalUsd(),
         ];
 
         $tipo = $request->query->get('tipo', 'interno');
@@ -502,16 +540,20 @@ class ProyectoController extends AbstractController
             }
         }
 
+        // Snapshot de precios primero: los items quedan con precio antes de renderizar emails/excel
+        $this->snapshotPrecios($proyecto, $clienteCodigo);
+
         $fecha = new \DateTime();
         $items = $proyecto->getItems();
         $templateContext = [
-            'proyecto_id'          => $proyecto->getId(),
-            'proyecto_nombre'      => $proyecto->getNombre(),
-            'usuario_nombre'       => $usuarioNombre,
-            'usuario_email'        => $usuarioEmail,
-            'empresa_nombre'       => $empresaNombre,
-            'items'                => $items,
-            'fecha'                => $fecha,
+            'proyecto_id'     => $proyecto->getId(),
+            'proyecto_nombre' => $proyecto->getNombre(),
+            'usuario_nombre'  => $usuarioNombre,
+            'usuario_email'   => $usuarioEmail,
+            'empresa_nombre'  => $empresaNombre,
+            'items'           => $items,
+            'fecha'           => $fecha,
+            'precio_total_usd' => $proyecto->getPrecioTotalUsd(),
         ];
 
         // Generar Excel adjunto
@@ -547,6 +589,42 @@ class ProyectoController extends AbstractController
         $this->em->flush();
 
         return $this->json(['success' => true]);
+    }
+
+    /**
+     * Consulta precios en Calypso para cada ítem y los guarda en la entidad.
+     * Si un ítem no tiene precio disponible, se deja en null.
+     * El total del proyecto se actualiza solo si al menos un ítem tiene precio.
+     */
+    private function snapshotPrecios(Proyecto $proyecto, ?string $clienteCodigo): void
+    {
+        if (!$clienteCodigo) {
+            return;
+        }
+
+        $totalUsd = 0.0;
+        $hayPrecios = false;
+
+        foreach ($proyecto->getItems() as $item) {
+            try {
+                $resultado = $this->preciosService->consultarPrecio(
+                    $clienteCodigo,
+                    $item->getArticulo()->getCodigoCalipso(),
+                    $item->getCantidad()
+                );
+                if ($resultado !== null) {
+                    $item->setPrecioUnitarioUsd($resultado['precio']);
+                    $totalUsd += $resultado['precioTotal'];
+                    $hayPrecios = true;
+                }
+            } catch (\RuntimeException) {
+                // Sin precio para este ítem: se deja en null
+            }
+        }
+
+        if ($hayPrecios) {
+            $proyecto->setPrecioTotalUsd(round($totalUsd, 2));
+        }
     }
 
     private function getProyectoDelUsuario(int $id): Proyecto

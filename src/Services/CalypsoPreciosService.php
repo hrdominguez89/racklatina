@@ -3,28 +3,54 @@
 namespace App\Services;
 
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class CalypsoPreciosService
 {
+    /** Segundos que el precio permanece en sesión antes de re-consultarse */
+    private const CACHE_TTL = 600;
+
     public function __construct(
         private HttpClientInterface $httpClient,
         private LoggerInterface $logger,
+        private RequestStack $requestStack,
+        #[Autowire(env: 'APP_ENV')] private string $appEnv,
     ) {}
 
     /**
      * Consulta el precio unitario de un artículo para un cliente dado.
      *
-     * @param string $codigoCliente  Código Calypso del cliente (ej: "01000053")
-     * @param string $codigoArticulo Código del artículo (ej: "01802TW30L")
-     * @param int    $cantidad       Cantidad solicitada
+     * En entorno local devuelve un precio simulado sin llamar a Calypso.
+     * En producción cachea el precio unitario en sesión (TTL 10 min).
      *
-     * @return array{articulo: string, precio: float, precioTotal: float}|null  null si el artículo no tiene precio para ese cliente
-     *
+     * @return array{articulo: string, precio: float, precioTotal: float}|null
      * @throws \RuntimeException si Calypso devuelve un error o la respuesta es inválida
      */
     public function consultarPrecio(string $codigoCliente, string $codigoArticulo, int $cantidad = 1): ?array
     {
+        if ($this->appEnv === 'local') {
+            return $this->precioSimulado($codigoArticulo, $cantidad);
+        }
+
+        // Verificar cache en sesión
+        $cacheKey = "precio_{$codigoCliente}_{$codigoArticulo}";
+        $session  = $this->requestStack->getSession();
+        $cached   = $session->get($cacheKey);
+
+        if (is_array($cached) && isset($cached['precio'], $cached['ts']) && (time() - $cached['ts']) < self::CACHE_TTL) {
+            $this->logger->debug('[CalypsoPreciosService] Cache HIT', ['key' => $cacheKey]);
+            $precioUnitario = (float) $cached['precio'];
+
+            return [
+                'articulo'    => $codigoArticulo,
+                'precio'      => $precioUnitario,
+                'precioTotal' => round($precioUnitario * $cantidad, 2),
+            ];
+        }
+
+        // Llamada real a Calypso
         $token = $_ENV['TOKEN_PRECIOS'] ?? $_ENV['TOKEN'];
         $url   = $_ENV['CALIPSO_URL'] . '/appserver/api/?action=CONSULTAPRECIO&token=' . $token;
 
@@ -40,9 +66,9 @@ class CalypsoPreciosService
             'cantidad' => $cantidad,
         ]);
 
-        $response = $this->httpClient->request('GET', $url, [
-            'body'    => $body,
-            'headers' => ['Content-Type' => 'application/json'],
+        $response   = $this->httpClient->request('GET', $url, [
+            'body'        => $body,
+            'headers'     => ['Content-Type' => 'application/json'],
             'verify_peer' => false,
             'verify_host' => false,
         ]);
@@ -71,9 +97,7 @@ class CalypsoPreciosService
 
         if (isset($data['resultado']) && $data['resultado'] === 'ERROR') {
             $this->logger->error('[CalypsoPreciosService] Calypso devolvió ERROR', ['detalle' => $data['detalle'] ?? 'sin detalle']);
-            throw new \RuntimeException(
-                'Calypso CONSULTAPRECIO error: ' . ($data['detalle'] ?? 'sin detalle')
-            );
+            throw new \RuntimeException('Calypso CONSULTAPRECIO error: ' . ($data['detalle'] ?? 'sin detalle'));
         }
 
         if (!isset($data['precio'])) {
@@ -83,10 +107,28 @@ class CalypsoPreciosService
 
         $precioUnitario = (float) $data['precio'];
 
+        // Guardar en sesión (solo el precio unitario, independiente de la cantidad)
+        $session->set($cacheKey, ['precio' => $precioUnitario, 'ts' => time()]);
+
         return [
             'articulo'    => $data['articulo'] ?? $codigoArticulo,
             'precio'      => $precioUnitario,
-            'precioTotal' => $precioUnitario * $cantidad,
+            'precioTotal' => round($precioUnitario * $cantidad, 2),
+        ];
+    }
+
+    /**
+     * Precio determinístico simulado para entorno local.
+     * El mismo código siempre produce el mismo precio (entre U$S 50 y U$S 545).
+     */
+    private function precioSimulado(string $codigoArticulo, int $cantidad): array
+    {
+        $precio = round(50 + (abs(crc32($codigoArticulo)) % 49500) / 100, 2);
+
+        return [
+            'articulo'    => $codigoArticulo,
+            'precio'      => $precio,
+            'precioTotal' => round($precio * $cantidad, 2),
         ];
     }
 }

@@ -410,7 +410,12 @@
 
                 {# Meta info #}
                 <p class="proy-card-meta">Fecha de creación: {{ proyecto.createdAt|date('d/m/Y') }}</p>
-                <p class="proy-card-meta mb-0">Cantidad de productos agregados: {{ proyecto.cantidadProductos }}</p>
+                <p class="proy-card-meta {% if proyecto.precioTotalUsd is null %}mb-0{% endif %}">Cantidad de productos: {{ proyecto.cantidadProductos }}</p>
+                {% if proyecto.precioTotalUsd is not null %}
+                <p class="proy-card-meta mb-0" style="font-weight:700;color:#1a1a1a;">
+                    Total: U$S {{ proyecto.precioTotalUsd|number_format(2, ',', '.') }}
+                </p>
+                {% endif %}
 
                 {% if isAdmin %}
                 <div class="proy-card-owner">
