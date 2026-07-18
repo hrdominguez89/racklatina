@@ -73,6 +73,33 @@ class StockAdvisorRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retorna un mapa [codigoCalipso => tags_string|null] para múltiples artículos en una sola query.
+     *
+     * @param string[] $codigos
+     * @return array<string, string|null>
+     */
+    public function getTagsMap(array $codigos): array
+    {
+        if (empty($codigos)) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('s')
+            ->select('s.codigoCalipso', 's.tags')
+            ->where('s.codigoCalipso IN (:codigos)')
+            ->setParameter('codigos', $codigos)
+            ->getQuery()
+            ->getArrayResult();
+
+        $map = [];
+        foreach ($rows as $row) {
+            $map[$row['codigoCalipso']] = $row['tags'] ?: null;
+        }
+
+        return $map;
+    }
+
+    /**
      * Retorna un mapa [codigoCalipso => stock] para múltiples artículos en una sola query.
      *
      * @param string[] $codigos

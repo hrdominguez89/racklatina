@@ -375,10 +375,17 @@
         <p class="mb-3" style="font-size:.85rem;color:#666;line-height:1.65;">{{ articulo.descripcion }}</p>
         {% endif %}
 
-        {# Badge En Stock #}
-        <div class="mb-3">
-            <span class="badge-stock">En Stock</span>
+        {# Badges de tags (StockAdvisor) #}
+        {% if stockAdvisor and stockAdvisor.tags %}
+        {% set _detTags = stockAdvisor.tags|split(',')|map(t => t|trim)|filter(t => t != '') %}
+        {% if _detTags|length > 0 %}
+        <div class="mb-3 d-flex flex-wrap gap-2">
+            {% for tag in _detTags %}
+            <span class="badge-stock">{{ tag }}</span>
+            {% endfor %}
         </div>
+        {% endif %}
+        {% endif %}
 
         {# Precio #}
         {% if precio is not null %}

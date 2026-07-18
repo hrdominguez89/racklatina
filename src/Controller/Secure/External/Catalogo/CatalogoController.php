@@ -77,11 +77,13 @@ class CatalogoController extends AbstractController
 
         $codigos = array_map(fn($a) => $a->getCodigoCalipso(), $recomendados);
         $stockMap = $this->stockAdvisorRepo->getStockMap($codigos);
+        $tagsMap = $this->stockAdvisorRepo->getTagsMap($codigos);
 
         return $this->render('secure/external/catalogo/index.html.twig', [
             'categorias' => $categorias,
             'recomendados' => $recomendados,
             'stockMap' => $stockMap,
+            'tagsMap' => $tagsMap,
         ]);
     }
 
@@ -138,6 +140,7 @@ class CatalogoController extends AbstractController
 
         $codigos = array_map(fn($a) => $a->getCodigoCalipso(), $resultado['items']);
         $stockMap = $this->stockAdvisorRepo->getStockMap($codigos);
+        $tagsMap = $this->stockAdvisorRepo->getTagsMap($codigos);
 
         return $this->render('secure/external/catalogo/lista.html.twig', [
             'articulos' => $resultado['items'],
@@ -147,6 +150,7 @@ class CatalogoController extends AbstractController
             'porPagina' => $porPagina,
             'vista' => $vista,
             'stockMap' => $stockMap,
+            'tagsMap' => $tagsMap,
             'filtros' => [
                 'q' => $q,
                 'categoria' => $categoria,
@@ -216,11 +220,14 @@ class CatalogoController extends AbstractController
             }
         }
 
+        $stockAdvisor = $this->stockAdvisorRepo->findByCodigo($codigo);
+
         return $this->render('secure/external/catalogo/detalle.html.twig', [
             'articulo' => $articulo,
             'proyectos' => $proyectos,
             'relacionados' => array_slice($relacionados, 0, 4),
             'precio' => $precio,
+            'stockAdvisor' => $stockAdvisor,
         ]);
     }
 }

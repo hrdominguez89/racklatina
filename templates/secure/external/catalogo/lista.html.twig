@@ -187,6 +187,7 @@
 
 /* ── Product card ───────────────────────────────────────── */
 .rkl-prod-card {
+    position: relative;
     background: #fff;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
@@ -535,11 +536,21 @@
                         {% else %}
                         <i class="ri-image-line fs-1 text-muted"></i>
                         {% endif %}
+                        {% set _rawTags = tagsMap is defined and tagsMap[articulo.codigoCalipso] is defined ? tagsMap[articulo.codigoCalipso] : null %}
+                        {% set _artTags = _rawTags ? _rawTags|split(',')|map(t => t|trim)|filter(t => t != '') : [] %}
+                        {% if _artTags|length > 0 %}
+                        <div style="position:absolute;top:0;right:0;display:flex;flex-direction:column;gap:2px;">
+                            {% for tag in _artTags %}
+                            <span class="rkl-prod-badge">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% elseif stockMap is defined and stockMap[articulo.codigoCalipso] is defined and stockMap[articulo.codigoCalipso] > 0 %}
                         <span class="rkl-prod-badge">En Stock</span>
+                        {% endif %}
                     </div>
                     <div class="rkl-prod-body">
                         <a href="{{ path('app_catalogo_detalle', {codigo: articulo.codigoCalipso}) }}"
-                           class="text-decoration-none"
+                           class="text-decoration-none stretched-link"
                            onclick="RKL.clarity('event','producto_click');RKL.clarity('set','producto_clickeado','{{ articulo.codigoCalipso|e('html_attr') }}');">
                             <p class="rkl-prod-name">{{ articulo.nombreDisplay }}</p>
                         </a>
@@ -551,7 +562,7 @@
                         {% if articulo.marca %}
                         <p class="rkl-prod-meta">{{ articulo.marca }}</p>
                         {% endif %}
-                        <div class="mt-auto">
+                        <div class="mt-auto position-relative">
                             {% if app.user %}
                             <button type="button"
                                     class="rkl-btn-agregar btn-agregar-proyecto"
