@@ -5,206 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tu solicitud de presupuesto fue enviada</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: #ebebeb;
-            font-family: Arial, Helvetica, sans-serif;
-            color: #1a1a1a;
-        }
-        .outer {
-            background: #ebebeb;
-            padding: 40px 20px;
-        }
-        .card {
-            background: #ffffff;
-            border-radius: 12px;
-            max-width: 620px;
-            margin: 0 auto;
-            overflow: hidden;
-            box-shadow: 0 2px 12px rgba(0,0,0,.07);
-        }
-        .card-body {
-            padding: 48px 48px 36px;
-        }
-        .logo-wrap {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        .logo-wrap img {
-            height: 44px;
-        }
-        .headline {
-            font-size: 22px;
-            font-weight: 400;
-            line-height: 1.4;
-            margin: 0 0 6px;
-            color: #1a1a1a;
-        }
-        .headline strong {
-            font-weight: 700;
-        }
-        .subline {
-            font-size: 13px;
-            color: #444;
-            margin: 0 0 28px;
-        }
-        .subline strong {
-            font-weight: 700;
-            color: #1a1a1a;
-        }
-        .section-label {
-            font-size: 14px;
-            font-weight: 700;
-            color: #ACA300;
-            margin: 0 0 12px;
-        }
-        /* ── Tabla ── */
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .items-table thead tr {
-            background: #e8e8e8;
-        }
-        .items-table thead th {
-            padding: 12px 16px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: .8px;
-            text-transform: uppercase;
-            color: #666;
-            text-align: center;
-        }
-        .items-table thead th.col-producto {
-            text-align: left;
-        }
-        .items-table tbody td {
-            padding: 14px 16px;
-            border-bottom: 1px solid #e8e8e8;
-            font-size: 14px;
-            vertical-align: middle;
-        }
-        .items-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-        .items-table tbody td.col-producto {
-            font-weight: 600;
-            color: #1a1a1a;
-            border-right: 1px solid #e8e8e8;
-        }
-        .items-table tbody td.col-cantidad {
-            text-align: center;
-            font-weight: 700;
-            font-size: 16px;
-            color: #1a1a1a;
-            border-right: 1px solid #e8e8e8;
-        }
-        .items-table tbody td.col-notas {
-            color: #aaa;
-            font-size: 13px;
-            border-right: 1px solid #e8e8e8;
-        }
-        .items-table tbody td.col-precio {
-            text-align: right;
-            white-space: nowrap;
-            border-right: 1px solid #e8e8e8;
-        }
-        .items-table tbody td.col-total {
-            text-align: right;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-        .items-table tfoot td {
-            padding: 14px 16px;
-            font-size: 14px;
-            border-top: 2px solid #1a1a1a;
-        }
-        .items-table tfoot td.col-total-label {
-            text-align: right;
-            font-weight: 700;
-            color: #444;
-        }
-        .items-table tfoot td.col-total-value {
-            text-align: right;
-            font-weight: 700;
-            font-size: 16px;
-            color: #1a1a1a;
-            white-space: nowrap;
-        }
-        .precio-nd {
-            color: #bbb;
-            font-size: 12px;
-        }
-        .table-wrap {
-            border: 1px solid #e8e8e8;
-            border-radius: 6px;
-            overflow: hidden;
-            margin-bottom: 28px;
-        }
-        .status-highlight {
-            font-size: 15px;
-            font-weight: 700;
-            color: #ACA300;
-            margin: 0 0 12px;
-        }
-        .status-body {
-            font-size: 14px;
-            color: #333;
-            line-height: 1.6;
-            margin: 0 0 10px;
-        }
-        .status-body strong {
-            font-weight: 700;
-        }
-        .cierre {
-            font-size: 14px;
-            color: #333;
-            margin: 0;
-        }
-        /* ── Footer ── */
-        .footer {
-            background: #ACA300;
-            padding: 22px 48px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .footer-social {
-            display: flex;
-            gap: 10px;
-        }
-        .footer-social a {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 38px;
-            height: 38px;
-            background: #f0f0f0;
-            border-radius: 8px;
-            text-decoration: none;
-        }
-        .footer-social a svg {
-            width: 20px;
-            height: 20px;
-            fill: #555;
-            display: block;
-        }
-        .footer-logo-img {
-            height: 40px;
-            width: auto;
-        }
-        .notas-tag {
-            display: block;
-            font-size: 9px;
-            font-weight: 700;
-            padding: 2px 5px;
-            border-radius: 3px;
-            margin-top: 3px;
-            white-space: nowrap;
-        }
-        .tag-precio { background: #e8f4e8; color: #2d7a2d; }
-        .tag-plazo  { background: #e8f0fe; color: #1a56c4; }
+        body { margin:0; padding:0; background:#ebebeb; font-family:Arial,Helvetica,sans-serif; color:#1a1a1a; }
+        .outer { background:#ebebeb; padding:40px 20px; }
+        .card { background:#ffffff; border-radius:12px; max-width:620px; margin:0 auto; overflow:hidden; }
+        .card-body { padding:48px 48px 36px; }
+        .logo-wrap { text-align:center; margin-bottom:40px; }
+        .headline { font-size:22px; font-weight:400; line-height:1.4; margin:0 0 6px; color:#1a1a1a; }
+        .headline strong { font-weight:700; }
+        .subline { font-size:13px; color:#444; margin:0 0 28px; }
+        .subline strong { font-weight:700; color:#1a1a1a; }
+        .section-label { font-size:14px; font-weight:700; color:#ACA300; margin:0 0 12px; }
+        .items-table { width:100%; border-collapse:collapse; }
+        .items-table thead tr { background:#e8e8e8; }
+        .items-table thead th { padding:12px 16px; font-size:11px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:#666; text-align:center; }
+        .items-table thead th.col-producto { text-align:left; }
+        .items-table tbody td { padding:14px 16px; border-bottom:1px solid #e8e8e8; font-size:14px; vertical-align:middle; }
+        .items-table tbody tr:last-child td { border-bottom:none; }
+        .items-table tbody td.col-producto { font-weight:600; color:#1a1a1a; border-right:1px solid #e8e8e8; }
+        .items-table tbody td.col-cantidad { text-align:center; font-weight:700; font-size:16px; color:#1a1a1a; border-right:1px solid #e8e8e8; }
+        .items-table tbody td.col-notas { color:#555; font-size:12px; border-right:1px solid #e8e8e8; }
+        .items-table tbody td.col-precio { text-align:right; white-space:nowrap; border-right:1px solid #e8e8e8; }
+        .items-table tbody td.col-total { text-align:right; font-weight:700; white-space:nowrap; }
+        .items-table tfoot td { padding:14px 16px; font-size:14px; border-top:2px solid #1a1a1a; }
+        .items-table tfoot td.col-total-label { text-align:right; font-weight:700; color:#444; }
+        .items-table tfoot td.col-total-value { text-align:right; font-weight:700; font-size:16px; color:#1a1a1a; white-space:nowrap; }
+        .precio-nd { color:#bbb; font-size:12px; }
+        .table-wrap { border:1px solid #e8e8e8; border-radius:6px; overflow:hidden; margin-bottom:28px; }
+        .status-highlight { font-size:15px; font-weight:700; color:#ACA300; margin:0 0 12px; }
+        .status-body { font-size:14px; color:#333; line-height:1.6; margin:0 0 10px; }
+        .cierre { font-size:14px; color:#333; margin:0; }
     </style>
 </head>
 <body>
@@ -214,9 +43,7 @@
     <div class="card-body">
 
         <div class="logo-wrap">
-            <img src="https://racklatina.com/wp-content/uploads/2020/08/logo-racklatina.png"
-                 alt="Racklatina"
-                 onerror="this.src='https://racklatina.com/wp-content/uploads/2020/08/logo-racklatina-light.png'">
+            <img src="{{ absolute_url(asset('logo-racklatina-light.png')) }}" alt="Racklatina" height="44" style="height:44px;display:block;margin:0 auto;">
         </div>
 
         <p class="headline">
@@ -227,7 +54,7 @@
             <strong>{{ fecha|date('d/m/Y') }}</strong> a las <strong>{{ fecha|date('H:i') }}</strong> hs.
         </p>
 
-        <p class="section-label">Detalle</p>
+        <p class="section-label">Detalle de tus pedidos</p>
 
         <div class="table-wrap">
             <table class="items-table">
@@ -246,15 +73,17 @@
                         <td class="col-producto">{{ item.articulo.nombreDisplay }}</td>
                         <td class="col-cantidad">{{ item.cantidad }}</td>
                         <td class="col-notas">
-                            {{ item.comment ?? '' }}
+                            {% if item.comment %}
+                                <span style="display:block;color:#555;font-size:12px;margin-bottom:2px;">{{ item.comment }}</span>
+                            {% endif %}
                             {% if item.reemplazoPrecio %}
-                                <span class="notas-tag tag-precio">↔ Reemplazo<br>por precio</span>
+                                <span style="display:inline-block;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;margin-top:2px;margin-right:3px;background:#e8f4e8;color:#2d7a2d;white-space:nowrap;">&#8596; Reemplazo por precio</span>
                             {% endif %}
                             {% if item.reemplazoPlazo %}
-                                <span class="notas-tag tag-plazo">↔ Reemplazo<br>por plazo</span>
+                                <span style="display:inline-block;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;margin-top:2px;background:#e8f0fe;color:#1a56c4;white-space:nowrap;">&#8596; Reemplazo por plazo</span>
                             {% endif %}
                             {% if not item.comment and not item.reemplazoPrecio and not item.reemplazoPlazo %}
-                                <span style="color:#ccc;">—</span>
+                                <span style="color:#ccc;">&#8212;</span>
                             {% endif %}
                         </td>
                         <td class="col-precio">
@@ -293,23 +122,31 @@
 
     </div>
 
-    <div class="footer">
-        <div class="footer-social">
-            <a href="https://www.facebook.com/racklatina" target="_blank" title="Facebook">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987H7.898v-2.89h2.54V9.845c0-2.505 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/>
-                </svg>
-            </a>
-            <a href="https://www.instagram.com/racklatina" target="_blank" title="Instagram">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                </svg>
-            </a>
-        </div>
-        <div class="footer-logo">
-            <img class="footer-logo-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAa10lEQVR4nO2dfZAc1Xmvn3e0WpaVEGIthCyEkIQQQjvGGCtiRxcECHkbIQhOnGs7FHHlw+XE+biplCtFuVIU5XKlbjmufPrmJnHixCmnEm7sYLAD0iwgZCyYLUFAxrNrIYQAWRaKkIQQYiWtVvPeP7p7ZvZjZnv6nFntrt6HKvan2Z0+b58+H78+fc5pMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMAzDMIwq5FwHAJDNBQAtQAYApRLZeLr6J1NQT4orMG0pAUPFQr7mH5zT7M/mghWq/LwItwAdQAtoRpEoMGV8HdFIpZmM2mgGQ6p6QkR2qPKNvt783pF/MOHZ35kLMgJrQR9UZD2QcSk/qIJI+BOmnBaRqFMIq7TpZmkGQf4K5cFib36AiAmtANlc91yQLwOfBdq8HnwytOJp9WSxY9Nea0mFhwT5lWIhX4LYc08A2VzQAfJ94HcVbdNy3Qz/S6vLVFflKabV9ARpyQhyL+jHiZjBBJDNBXNQHkW4OfxEqDh4Nz0dLFB4OtFdjemma1RmXXbF8n87tP81Wmgy2VyAwhcF1sWfeW1ApaoyCFNPA6KVz01PgIa5Grqf0kRYoCXA51TcrI5ZINPedLkyTMA9gMLHBTrAn+2p1qphNVDVKamj06hUZtNN1wr7i73hTXDTLRDojcDhpjWgkuSPvCWWAVpAWhRtE8jE3Wv5jxrVJOiyp7sWGQSOCwygcgxhQGAQrcquis6i0uGULjwRX4GmVwBRfk+FlkYebTWiw5/Edbx5WkGEFoVW0HYR6QBdgsiHFdYJej0ilfxsoIKFZeB803oc5HGEp1XZKcI+VA8Xe3uGqEG2q7sV5EcIHY4x9MTHrL4chgPZXLBQlftAfweRxfYgbLSO/v8cyl8jPFws5E81lMdd3derSAG0LX0MvFws5D8cH3MCLND5QbGQPwD8SWdX9zcFHkTkc5Tz1yyQwD6QPwK+U+xtrODHKKwTpc0pHmFL9TEn7EHY+UJfb88hlN8H7i9/mMACTXP9JHBzsZD/l0Zb/WpEZKNLPAglrfL/1b8ymkC2q/tvVOS3zlcLFHmOR4BPFQv5Qae8zAXtwBGFttSxKQcF7Sz29hyNj2s9QDMR+bLAAUEQCW/fR2oIu2bR6adBnwN+zbXwR9wKtDnFBjsQOVp9UKsATSS6L3jkPLVAx0F+p1jIH8MPG11jQ8iPXBtgFaDZqD52Pj4IU+XrCDvTZls12a6gXcMeIH08MKjKkyOPbaNATUaRXQIlJG5spKoXqHTT8efTRA+p8LV6K7EaZIkoKx1j60fYN/LA1gM0GYEB4ET1ByP1JLArvvUzfYX8qMLmwHokbKwdYntmrBEoqwDNRkDlfLNAfD9tdo2JcLeH2B4b69DeLVBnLlgkyj8hxMNglZ80QVf/pCn6gKKf7+vtKS+jawxtE2ivOW2bc25XPGs9hcgz6fJqNNmuYL6qXi8OsSkMqLB9rOP7vwdQ7UZkA1EMSjzWHZYm31rigjWGtfCj9WFRSf3wBmQh1flcwwJNjvk5HrTIfqC/RmY0jrBaVOa55BUi2/sK+TEbMK8WKJsLEGFTeNcd/teMKdATOR0aJB9PnU2DwvXn1SiQsrXP4WnvSFTZpELGJTapY8n89gBKByJrytOOVMutXNMa6KauCKOEVmYOpkHgxrppka5bn6wawdvQTzYXhI5CJX1scArGtj/g+yZYWAW6qFLqK5Yl7hF866q0m6BlT7E3/0b9k65NNhe0oawdLy2dPvqYKL34QnU5IstdYgP2gda0ZJ5HgXSTUimkU90CocNnDqYgq7D4PLJALyIcSp9dIxC50zU2VX2yWOipORXDmwXK5oIMsEHKtkemugUqIcNnDqZgvQitaJ20cLMck0w/USzkay5oaYRsLsigBE7xhNS1ZP56ANVlwIqwQMalfkpboKPAC/VPelyCJGlNAuviRStu90vDUDoQVjvGcxRkR71k/FUAkbWKzqm2P1PZAgEvFgv5g2mzozMXzFHVm8ZLKzqNc21dnDXoQcHP3J+INYrOd4pN9AUZx5J5HAXSjeEc8OlhgRR1sj+ibECkddy0cLIck0eL9MTbDXpB2CjqHNsT48XkpQcI/X/88EuolPqpaoG0JIyeOdgQEtmfBOmea+viqsO2Tn0Of7YQzv9xii2JJfNSATTsruaNtD9T1gIhu0H2pM2PbC6YDdx6vuwLpHBMkOfS5tdIFFYpusTNkrFf4OXx0vJigQS6K1FMAwuk+pxWz+BsnOWoLpMkseHUxSMoCy89wY0fOjA8cxKQEUUyWvP3Z89m+K/+Bew7cPF48exSRk81TovArai0x/9IZ8m0p1gY/57cuQJkc90twO2Vkl51FeL5OlTN4fGsy72B31r1RJ/bXPYNjewRFFroxrWgrP3Ifu657VVmXXgm3rso/BtH/d77rTy0ZRU/PThn3DgRnuzz6f8hSJsnQPjgGEl0AZ0rgKosRLiBaj9exXDrMvpTV63xlUu4D894WpQhJP1wXjbXjapuqoRYP914d+hyZU6o58w6zac39nPdikPDKpVS+WcarSV48ScL+M4TK3nv/QvKJqdOPCVgc9r8GklnuPh9fZo8KWvlKEIiS+ZcAURYi+rsqOWc+hZIeKFYyA9bON0IiiwS4bphJateujTWxYso1y47wqeCn3Bpx0BUaqsO66Dfe7+Vh5+8hv/qX8DZs5lE8SB4nf0pyjokXPyeNE9GaaEf2J8kPfceAIKK16WqQIZ6ylkgx4c5oqxBmNtIukm7+BkzStx9yx5u+7k3mTmz1NB3x9P9ez/Av+ev5e13Zg23Q+N9V9mB4GvhO4huBHE9r3xSC+tUAbJd3e0Ktw4bjhzBFLNAQ4Lr9AfdqEgmabpJLdDl89/j3k19LL38XVTdrU6sB0618L2nr+bZlxZxVqO8TRBPWYs85mvtb2dYntY3HMNwXaKBOVyuPUBWYGElR2VqWyDlIOi4Q2e1iOav3CGNpEv9bj0zQ+m67mfcc9tuZl94pvItR9ujwJ59l/Dtnmv52aGLoOqyNWA5Sur6vGQYsliUFQ3GMFLvFdHdSVN0qwAi64HWkbanWqewQPsEvgnyKjCgKKLxE9Ux2rGq8l9JN51W0cN9hZ7jCc68FtcjLGo4XRizK5/VPsgnNrzCmg8dSPT3SfXZkvD4M8t5+vkrGTwzw+WY/X2FfCKvnQQRwvLkcI6q2isiia+hUwVQ2FRr9CcmhQX6tWIhv9UlrnOG8qlwDooktl61LNC1S4/wyxv7+cAlJ8POyZPt2ffWHB7avIp9By+OrlzKkZawK3ncb/7p3eHsh3TxpLFkqStAZy6YK+iaMOWxbE+1bqhBXJw2pnNJNhfMRrkr0cOvOhaobeYQt3e9wcdyr9PaUvI2wnNmKMPTO66k57mlnDw1M421GKlLON8vVeVfVzAfuEHimNPFNoTQUOOZeiqEKLdCZE1GzP+p1o3P8+E3srluv+8QnhjWIaws/6tBC4TApZe8z29+8iXuvPk1WmeWyp9X/00afeiddv723z/Co0+vYCAq/K7HRDikIi+OkQ8p0RuAeY6x7SwW8g0tyEnVA2RzARAufh+PFBboJlW5F/jHNLGdCzq7ghZU/0DjBqVBCzQjo6zufItP3tFPW+vZYZXExfacLQnbX1zE97ZdzcnTLZWO2cH2lO/plB19vemfl4xEYRNCxs2S0bAlS2uBZqOslbq2J7UFAngw2xVsKfbmD6SMb0IRoRtknVSXvpFWp4a+qP00H1+/m5/LvsWMGZHR92B7jhy7kP948hp+/Op8tFQZ3vQ2Bdrj099sLkBVux3jGVL0qUbTTlsBlgArhtsextSpHoSJLAa+CPxeyvgmjGwuaFflT0VobbSWL110jF+5+8fM7xjw8jAr1s8XF/Ddrdfw7ntt3o45Qg8ibKuTLY2yTERWNPQAboQGDopKwwtyUlUAhTsQTfTiu/gblQKeTIP8djYX/HOxkHddltg0srmgFfgbEVY2Yk9mtpxlQ9frBP9jLzNbhtvIOm3JuPrdExfwyFMreL5vobdj1tD9wBt4QuEucYxNYXtfb77hIeyGK0BnLkAggOhxtVbecjKWLj9XV4264cQ6A3w1m+veVCyk3ZaweWRzQZsqfwx6X1isK31ZLS2izLvkJPfe2cfVVx4lwzCXmNrvlxSKey7lP55YyeF32stpSlX6XrXwDIqXza+yXUFGVT9WOZ90sYkkm/05koYrgMB84PrK4oOKdRlTSxRiVF0b0QLrVPk0k+yGOJsL5gN/J8LPo2RU4lmISi2NKB9ddZBPbNjFnIsGw3OstA1EjwMa1idPt/D9bcv54YtXUDobfYhQvTuHb61Kvq/X0wIwoQNkDeAS2ykg1X6kjVsgpYvoPa1JxnVoxPuP1hngS5257i19hZ5zfkPcmeteCNwH/CEwL/SgcRtUW8+6cIhPfGwXa7IHyFQNPMddeNquf9frHfy/Las4dHRW9Avqf8GPHhB0G/5YHTWqLrG9TMLZnyNJcQ+gAUqmnu3xZIFivQh4oLMr+Ly3VicB2a4gg9BOeHHWqOomQe5QmBftGcp4tkcErlp0jE/f0c/C+SfC81G3oU0FTp1uoaewlKd3XMngmUz0uybbnvI5yfZi6p2yx0DDVx85WrKtad9D1nAFUJHu6svdTAsUa+CzInwD9316AMjmgnXAcoUhgRLh/JNWYI7CB1DmIywGFiksEWiNz7l8gz+O7RGUj619nWDtXi6oGtvXqtKcxgL99OBFPLR5FW8emBvlT/Oszph6nI2mGrwOLWi8+N0ltvQxNVQBsrnuFcDy+N8TYIHiI7Yo+ufZXBAUa2xz3SCDin5NkPYxW1qp6PHszVj6AxcP8Mt39nPtsiOjEh6rB0/S258ZyvD081fy2A+Wc7Y0ho+aAK0ip4TGphrUR1epyLJyCuliOw7JVn+NRYM9gHQnsT2eLVDcbK5V0fuAr6c92Sp2CPIPqvyvJKM3jeiLZp3hNz/5EpdfesLLCA/AkXfb+Jf/zLL7zY7IQsU90QTZnkoV34ewq/HsroWsE9V2XGITSW1/oIG5QOHePxoQ2ZryeP04OrYyKuKkETKCPJDtChakPdmYaLOkLyF6MG61EcWHvu7qQyy89ERYMaIupJ6Wqs9q6Ye2rGL3Gx3lX0j5GBOux3zPVlpUq7aOTBsbbvsRJa4ACh2KrElie0ZbII2DddWLFL6cNOZ6FAv5o4J8ARgKMzN6q7ijbrtgKPTtUmnB6+nqn7W0qjTd3iTTY79nKw2duaBdhPWOluwEyDaXOBJXAAmnqs5XiOxJdNHH0eX5GqpetMCvZruCLpeTruI7Ck+Gm1WFMbvq/r3zGDjVElqVqDN01es+uo8ZmWhqdJTORGtVPaZQd6PZRhC4CdV2l9hE2Quk3sAMGpsOHSS1Pc2wQBVNC8JXOj1MmS4W8oMCXwQ54csCvXV4Fj94YbFXC9S5/DDZq98+V7Yn6rJkp+Bx73/Y6BobsNV1O/ZEFSCbC1oU7Zaou485BxYIARRdJ8ivJz3Jcdgpwp/5skCC8GRhCQfenu3NAs3IKL9w+yvMunAw2ReaoEXIe9z7vw10vXts7pYsaQ+wQpQllTennDsLVNF8MZsLFrlmQLGQR5WvKuzxYYFUw+kJjzy1glIJLxZIFebNPUn32tfPmQUC57flVLMEZKVbPHoQD9uxJ60ANyEyO5Tn2gKV9SLgAbfTD+nrzZ9A9X4Jt0VxskCx7t87j527LvNigeJG75bVb7LwshPnwgIdJMFGs4lRLW+m4GDJXgR1XpCTtAJsBJgsFqjcNMJns7nutQnPoT4ijyj6sLcRIYTvbr2G4ydanS1QrGe2KJ/s/kl5U6yGvuykdYvXvf+R4VtHptObi4Ue55jGrQDZXNCqynqIuniYJBZIQDWDyley4X6STvQV8iVUHgAOu1qgWB85diFbnl2GerBAsV6++J1wm5QJskCoogk3mk1CNhfMA1Y7xRbi5XVMSXqALkErWwRPHgsUaW4inKHpjAi7ga/6GhFClMKPFvH6zy52tkDV+s6bX2PunFMTYoEUjomqt+FPYDXx4ve0scFeIPHmV/UYtwIobCpPTJtkFigqRwBfyuYC5+1Uov1k/gxlp7MFivTpMzP4ds+14Vx93CxQzNyLTnPPbbvTfblBLSK7ENmLN3QjUlXu0sX2uK/tGOtWgGwuaBW4NbQck9ICxfZgAcqD0W4VThQL+SER+QJwytcDsn1vzWH7S4vKVsaHHVrd+RYrrjzSdAuk0OOrsGVzAQrdTpYMSqi/Ganj9QALQbNRZx19NLksEKJhXRA+A/h6QrxN4CEfFkgi/7J5+1UcPd7mxQIpkMnAL9z+SmUblWZYoLAv91bYVFkiyEqX2PDz+toydSuAwnqQ9sltgSSuni0Kf+njhjga8fgjhf2+HpC99/4FPLp1BaruFijWiz/4Hrfd+Ga6LyfRwhuqHvf+F73LOTZ4sdib/vW1I6lbAQQCLVuOyWyByt3kasDLE2KFAyLyJY1HQjzYoZ2vXEb/a/O8WKBYr1/zJgvmnWiOBUJ3CH72/g93zpbAgyXzuiywZgXIdnXPBqIx9sltgaosR0ZVvTwhjl6w8E1BnvM1InT2bIaHn7qGoejtKy4WKNbtbWf4+PrdzbFAKpuL/pahhm9+d4uthNft2Ov1AOF7vxZIVYGbzBYothyILFTlj5NnQW2KhfwQwu8resLHiJAC/31kNvlnl4ZWyNECxfpDV7/NDde+5dsClfA01h5xA7DAKTZll4RDoN6oXQFUbgdappIFirUI92a7gnWe8ugFQb7uc8r0tuev5MDbs71YoFjffeurzG4/7dMCFQF/O3EoG11jU/Q53F5fO4o69wB6xzDbMzUsUDTqoi2AlyfE0RDgV0Rkr68HZAOnW3h064rwlUSOFijW8ztO0p173acF2uLL/mS7ghZgg2tsgmz2NSQbM2YFyOaC+SqyGkLbM5UsUKwRuoDPJc+K2kRbbn/B14iQEE6We6H4QeJwY1z0zR/9KUsvf8f9QCJDeBxrR1iJsMwhHgj3I/Xq/6F2D7BBNNyqeipaoFgren82FyzxklPK91T1cR8WSBVKJXh029W8f7LFiwVShdaWEr+44RUymZKTBUI5jKjzVONy1qmuQ7XdyQJBb7HQ+N6f4zGqAkRPU4NRtmcKWaCyRhYAD/rIqGJvvgTcL8gxVwsU63ePX8DmH17lxQLFetmid8l9+GdOFgjYUSz0eNv7X0TcF7+r2+L3WozVA8wBbqq2PVPRApU1/GpnLlifLDvq09fbU0T4qq8RIUTY/tIVvHHg4nIaPuzQXbfsoWPuqeRfGKl97v3fFbQBGxxPbBAR7/YHxqgAqroCdEm17ZmqFijWAn+azQVzPeXZ/1Vlp6sFivWZMxkefXoFZ4YyzhYo1he1D3LXLa8iog1bDlUdpMH3bNVFWIfj4neUA4SjUt4ZVQFEpFsj/z/lLVCkFb0e5Xd9ZFixkD+GcL+/KdPCnn2XsOPHH/Q2IiQCN1x7kJVLj6SwHOxS2OcjryIC11EphGeKvV52BBzFsAoQ+n/dONL2TGkLFGvh/s6uYE2D+TMmfYV8D8q/+rBAAKrCd5+6hiPvtnkbEZrZovzP7p8ws+Vsg1+WrX2eNr/KdnX7WfyOv/2IRjK8B1AWg6wCmE4WKNKzQb+R7fJjhUTkAYGDrhYo/nny1EweenwVpwdnOFugWF/WMcCGrjeiD6vTrK3Fcae1EZkUlqcUtqeiOQ70eotpBMMqgMIaoEPLuTk9LFCVzqrw9+G2HG4UC/m9wP/2YYHi7r5/7zw2b18W5rYnO7T+xjdYMO/9pJbjFEiqF03UwH3xu+jLqMcn0iMYVgFE2Ag6yvZMCwtU1vySot/q9HNT/A+IbHe1QFX2g6d6l5J/LlxH7MMOtbcN8YsbXgl3lhvvC6rbPO2+HeO8+F1Vnij2+tmPaCzKFaCzK8igdMct/TS0QFVafgnVJzpzwfXZXHfql4VHheUPFYZcLVDc9Z8twWM/uIr//MFyBs9kvNihlUuPcMOqg+NaDhWve//PQx0Xv4eNgM/9iEZRtTaTlYouApjGFijSIOGreX6Iyl9nu4JVaTOwWMj3iuo/+rBAsS5phi3PLuNvv/0R9h+a7WyHMqLcc9tu2tqGaloORE6JX/tzg6Lz09mesj6M4vFt9KMp9znZXHCfot+K2v+axZ/yZ1q2OvV0JRGJfudXj4zPQb+s8IzAj4B9CgMCQ8AwO1JDzwe+RfgQseEY6qOsWhbuDfrBS09wwcyzo/6ipHGJr0/hR5fz7M4raqSiBwX5lCqDoRsKP0+tRT8vyGcSnWINFP2LvkLPH7gcYzwqL8hQMoKUr4qEJxFeZKSsEeFcvCCjlg7/VV3VUuvrQK+reHMtgZQ0Pg/CnrGWruRlY+mGKsrj8mfDdf9r8+h7bR4i4T6hI9EEhR9AkTDuMdISWIDwVHjqlXNLrZVMpTEc+7zqaZCDIvK1ZGeWnkoFEPbHmaNa3cJW26GRVofxddSdlW+kvesok1VJ8rrSRDo8ZgbV+A10UUWurdOmFTcocZ9f//1cwtlSVaNSTj+5FsY+PsMqsQcaOa/RekhVv9BX6PG6+GUsqm8An0FkD0z3UaDJpan+aRrgFPB5EflXJoAZsTi0/7XSZVdc9QrIPcAFviyQRN9ptgUKmXq63OGTzipMM71XRH4d5SGPa5HrIiM/yOa671D4O1EWI1V2KNJI3OrGF3A8XXF1cYJ+dbW1YMrp8l1jSkszTfRx0P8D8rViwd+WJ0kYVQEAsrmgXZXPiLAJWIDSpkJGlOjiJS+gYybgkeoyBFNPx/lTnVfTXgtDoAMgewmnXn+vGYtdklC3fEaLY1qBFpfS3MzMnPIVoNktxOSkhDLUzCe8hmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhpGK/w8tWgqCRJSPZwAAAABJRU5ErkJggg==" alt="Racklatina">
-        </div>
-    </div>
+    {# Footer: tabla email-safe (sin flex, sin SVG, sin base64) #}
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ACA300;">
+        <tr>
+            <td style="padding:20px 48px;">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td style="vertical-align:middle;">
+                            <a href="https://www.facebook.com/racklatina" target="_blank"
+                               style="display:inline-block;background:rgba(255,255,255,.15);color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;text-decoration:none;padding:6px 14px;border-radius:5px;margin-right:8px;">
+                                f &nbsp;Facebook
+                            </a>
+                            <a href="https://www.instagram.com/racklatina" target="_blank"
+                               style="display:inline-block;background:rgba(255,255,255,.15);color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;text-decoration:none;padding:6px 14px;border-radius:5px;">
+                                &#9679; &nbsp;Instagram
+                            </a>
+                        </td>
+                        <td style="text-align:right;vertical-align:middle;">
+                            <img src="{{ absolute_url(asset('logo-sm.png')) }}" alt="Racklatina" height="40"
+                                 style="display:block;height:40px;width:auto;margin-left:auto;">
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 
 </div>
 </div>
