@@ -430,6 +430,34 @@ class ProyectoController extends AbstractController
         return $this->json(['success' => true]);
     }
 
+    #[Route('/item/{itemId}/reemplazo', name: 'app_proyectos_update_reemplazo', requirements: ['itemId' => '\d+'], methods: ['POST'])]
+    public function updateReemplazo(int $itemId, Request $request): JsonResponse
+    {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+            return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
+        }
+
+        $item = $this->itemRepo->find($itemId);
+        if (!$item || ($item->getProyecto()->getUser()->getId() !== $this->getUser()->getId())) {
+            return $this->json(['error' => 'No autorizado'], 403);
+        }
+
+        $tipo = $request->request->get('tipo');
+        $valor = filter_var($request->request->get('valor'), FILTER_VALIDATE_BOOLEAN);
+
+        if ($tipo === 'precio') {
+            $item->setReemplazoPrecio($valor);
+        } elseif ($tipo === 'plazo') {
+            $item->setReemplazoPlazo($valor);
+        } else {
+            return $this->json(['error' => 'Tipo inválido'], 400);
+        }
+
+        $this->em->flush();
+
+        return $this->json(['success' => true]);
+    }
+
     #[Route('/item/{itemId}/quitar', name: 'app_proyectos_quitar_articulo', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function quitarArticulo(int $itemId, Request $request): JsonResponse
     {

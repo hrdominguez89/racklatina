@@ -63,7 +63,17 @@ class ProyectoExcelExporter
             $sheet->setCellValue('B' . $row, $articulo->getCodigoCalipso());
             $sheet->setCellValue('C' . $row, $articulo->getNombreDisplay());
             $sheet->setCellValue('D' . $row, $item->getCantidad());
-            $sheet->setCellValue('E' . $row, $item->getComment() ?? '');
+            $notas = [];
+            if ($item->getComment()) {
+                $notas[] = $item->getComment();
+            }
+            if ($item->isReemplazoPrecio()) {
+                $notas[] = '↔ Reemplazo por precio';
+            }
+            if ($item->isReemplazoPlazo()) {
+                $notas[] = '↔ Reemplazo por plazo';
+            }
+            $sheet->setCellValue('E' . $row, implode("\n", $notas));
 
             if ($hayPrecios) {
                 $precioUnit = $item->getPrecioUnitarioUsd();
@@ -131,10 +141,11 @@ class ProyectoExcelExporter
                 'bottom' => ['borderStyle' => Border::BORDER_HAIR],
             ],
         ]);
-        // Cantidad centrada
+        // Cantidad centrada; Notas con wrap
         $col = explode(':', $range);
         $rowNum = preg_replace('/[^0-9]/', '', $col[0]);
         $sheet->getStyle('D' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('E' . $rowNum)->getAlignment()->setWrapText(true);
         // Precios alineados a la derecha
         $sheet->getStyle('F' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
         $sheet->getStyle('G' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);

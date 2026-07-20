@@ -36,6 +36,12 @@ class ProyectoItem
     #[ORM\Column(name: 'precio_unitario_usd', type: 'decimal', precision: 12, scale: 2, nullable: true)]
     private ?string $precioUnitarioUsd = null;
 
+    #[ORM\Column(name: 'reemplazo_precio', type: 'boolean', options: ['default' => false])]
+    private bool $reemplazoPrecio = false;
+
+    #[ORM\Column(name: 'reemplazo_plazo', type: 'boolean', options: ['default' => false])]
+    private bool $reemplazoPlazo = false;
+
     public function getId(): ?int { return $this->id; }
 
     public function getProyecto(): Proyecto { return $this->proyecto; }
@@ -52,6 +58,12 @@ class ProyectoItem
 
     public function getPrecioUnitarioUsd(): ?float { return $this->precioUnitarioUsd !== null ? (float) $this->precioUnitarioUsd : null; }
     public function setPrecioUnitarioUsd(?float $precio): static { $this->precioUnitarioUsd = $precio !== null ? (string) $precio : null; return $this; }
+
+    public function isReemplazoPrecio(): bool { return $this->reemplazoPrecio; }
+    public function setReemplazoPrecio(bool $v): static { $this->reemplazoPrecio = $v; return $this; }
+
+    public function isReemplazoPlazo(): bool { return $this->reemplazoPlazo; }
+    public function setReemplazoPlazo(bool $v): static { $this->reemplazoPlazo = $v; return $this; }
 
     public function getPrecioTotalUsd(): ?float
     {

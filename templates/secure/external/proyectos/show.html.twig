@@ -497,11 +497,13 @@
                     {% if not isFinished %}
                     {# Sugerir remplazo por precio #}
                     <td>
-                        <input type="checkbox" class="check-reemplazo input-item-auth" data-item="{{ item.id }}" data-type="precio">
+                        <input type="checkbox" class="check-reemplazo input-item-reemplazo" data-item="{{ item.id }}" data-type="precio"
+                               {% if item.reemplazoPrecio %}checked{% endif %}>
                     </td>
                     {# Sugerir remplazo por plazo #}
                     <td>
-                        <input type="checkbox" class="check-reemplazo input-item-auth-plazo" data-item="{{ item.id }}" data-type="plazo">
+                        <input type="checkbox" class="check-reemplazo input-item-reemplazo" data-item="{{ item.id }}" data-type="plazo"
+                               {% if item.reemplazoPlazo %}checked{% endif %}>
                     </td>
                     {% endif %}
 
@@ -789,6 +791,20 @@
     }
 
     if (isFinished) return;
+
+    // ── Guardar reemplazo (precio / plazo) vía AJAX ──
+    document.querySelectorAll('.input-item-reemplazo').forEach(chk => {
+        chk.addEventListener('change', async function () {
+            const fd = new FormData();
+            fd.append('tipo', this.dataset.type);
+            fd.append('valor', this.checked ? '1' : '0');
+            try {
+                await fetch(`/secure/proyectos/item/${this.dataset.item}/reemplazo`, { method: 'POST', body: fd });
+            } catch {
+                RKL.toast('Error al guardar la opción de reemplazo.', 'danger');
+            }
+        });
+    });
 
     // ── Modal eliminar item ──
     let pendingDeleteId = null;

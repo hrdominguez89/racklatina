@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+namespace DoctrineMigrations;
+
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Migrations\AbstractMigration;
+
+/**
+ * Auto-generated Migration: Please modify to your needs!
+ */
+final class Version20260720160812 extends AbstractMigration
+{
+    public function getDescription(): string
+    {
+        return 'Add reemplazo_precio and reemplazo_plazo to proyecto_items';
+    }
+
+    public function up(Schema $schema): void
+    {
+        $this->addSql("ALTER TABLE proyecto_items ADD reemplazo_precio TINYINT(1) NOT NULL DEFAULT 0, ADD reemplazo_plazo TINYINT(1) NOT NULL DEFAULT 0");
+    }
+
+    public function down(Schema $schema): void
+    {
+        $this->addSql("ALTER TABLE proyecto_items DROP COLUMN reemplazo_precio, DROP COLUMN reemplazo_plazo");
+    }
+}
