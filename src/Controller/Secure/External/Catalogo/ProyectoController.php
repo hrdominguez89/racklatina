@@ -10,6 +10,7 @@ use App\Repository\ArticuloEcommerceRepository;
 use App\Repository\ClientesRepository;
 use App\Repository\ProyectoItemRepository;
 use App\Repository\ProyectoRepository;
+use App\Services\CalypsoLeadtimeService;
 use App\Services\CalypsoPreciosService;
 use App\Services\ProyectoExcelExporter;
 use App\Services\StockAdvisorService;
@@ -49,6 +50,7 @@ class ProyectoController extends AbstractController
         private StockAdvisorService $stockService,
         private ProyectoExcelExporter $excelExporter,
         private CalypsoPreciosService $preciosService,
+        private CalypsoLeadtimeService $leadtimeService,
     ) {}
 
     #[Route('', name: 'app_proyectos_index')]
@@ -507,6 +509,7 @@ class ProyectoController extends AbstractController
             'items'            => $proyecto->getItems(),
             'fecha'            => new \DateTime(),
             'precio_total_usd' => $proyecto->getPrecioTotalUsd(),
+            'plazo_maximo'     => $this->calcularPlazoMaximo($proyecto),
         ];
 
         $tipo = $request->query->get('tipo', 'interno');
@@ -568,20 +571,24 @@ class ProyectoController extends AbstractController
             }
         }
 
-        // Snapshot de precios primero: los items quedan con precio antes de renderizar emails/excel
+        // 1. Snapshot de precios
         $this->snapshotPrecios($proyecto, $clienteCodigo);
+
+        // 2. Snapshot de leadtime — debe completarse antes de armar los emails
+        $this->snapshotLeadtime($proyecto);
 
         $fecha = new \DateTime();
         $items = $proyecto->getItems();
         $templateContext = [
-            'proyecto_id'     => $proyecto->getId(),
-            'proyecto_nombre' => $proyecto->getNombre(),
-            'usuario_nombre'  => $usuarioNombre,
-            'usuario_email'   => $usuarioEmail,
-            'empresa_nombre'  => $empresaNombre,
-            'items'           => $items,
-            'fecha'           => $fecha,
+            'proyecto_id'      => $proyecto->getId(),
+            'proyecto_nombre'  => $proyecto->getNombre(),
+            'usuario_nombre'   => $usuarioNombre,
+            'usuario_email'    => $usuarioEmail,
+            'empresa_nombre'   => $empresaNombre,
+            'items'            => $items,
+            'fecha'            => $fecha,
             'precio_total_usd' => $proyecto->getPrecioTotalUsd(),
+            'plazo_maximo'     => $this->calcularPlazoMaximo($proyecto),
         ];
 
         // Generar Excel adjunto
@@ -652,6 +659,69 @@ class ProyectoController extends AbstractController
 
         if ($hayPrecios) {
             $proyecto->setPrecioTotalUsd(round($totalUsd, 2));
+        }
+    }
+
+    /**
+     * Consulta el leadtime de cada ítem en Calypso y lo persiste como snapshot.
+     * Las fechas se almacenan como string "d/m/Y" para compatibilidad con JSON.
+     */
+    /**
+     * Calcula la fecha máxima de entrega entre todos los ítems del proyecto.
+     * Retorna la fecha como string "d/m/Y", o null si algún ítem requiere consulta manual.
+     */
+    private function calcularPlazoMaximo(Proyecto $proyecto): ?string
+    {
+        $max = null;
+
+        foreach ($proyecto->getItems() as $item) {
+            $lt = $item->getLeadtimeResultado();
+
+            if ($lt === null || $lt['consultarPlazos'] === true) {
+                return null; // Al menos un ítem sin fecha conocida → no se puede mostrar fecha
+            }
+
+            foreach ($lt['items'] as $ltItem) {
+                $fecha = \DateTimeImmutable::createFromFormat('d/m/Y', $ltItem['fechaEntrega']);
+                if ($fecha === false) {
+                    return null;
+                }
+                if ($max === null || $fecha > $max) {
+                    $max = $fecha;
+                }
+            }
+        }
+
+        return $max?->format('d/m/Y');
+    }
+
+    private function snapshotLeadtime(Proyecto $proyecto): void
+    {
+        foreach ($proyecto->getItems() as $item) {
+            $codigo   = $item->getArticulo()->getCodigoCalipso();
+            $deposito = $this->leadtimeService->resolverDeposito($codigo);
+
+            if ($deposito === null) {
+                // País/depósito aún no soportado → CONSULTAR PLAZOS
+                $item->setLeadtimeResultado(['consultarPlazos' => true, 'items' => []]);
+                continue;
+            }
+
+            $resultado = $this->leadtimeService->consultarLeadtime($codigo, $item->getCantidad(), $deposito);
+
+            // Convertir DateTimeImmutable → string para almacenamiento JSON
+            $itemsSerializables = array_map(static function (array $ltItem): array {
+                return [
+                    'cantidad'     => $ltItem['cantidad'],
+                    'disponible'   => $ltItem['disponible'],
+                    'fechaEntrega' => $ltItem['fechaEntrega']->format('d/m/Y'),
+                ];
+            }, $resultado['items']);
+
+            $item->setLeadtimeResultado([
+                'consultarPlazos' => $resultado['consultarPlazos'],
+                'items'           => $itemsSerializables,
+            ]);
         }
     }
 

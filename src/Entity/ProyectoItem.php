@@ -42,6 +42,13 @@ class ProyectoItem
     #[ORM\Column(name: 'reemplazo_plazo', type: 'boolean', options: ['default' => false])]
     private bool $reemplazoPlazo = false;
 
+    /**
+     * Snapshot del leadtime al momento de finalizar el proyecto.
+     * Estructura: {consultarPlazos: bool, items: [{cantidad: int, disponible: bool, fechaEntrega: string 'd/m/Y'}]}
+     */
+    #[ORM\Column(name: 'leadtime_resultado', type: 'json', nullable: true)]
+    private ?array $leadtimeResultado = null;
+
     public function getId(): ?int { return $this->id; }
 
     public function getProyecto(): Proyecto { return $this->proyecto; }
@@ -64,6 +71,9 @@ class ProyectoItem
 
     public function isReemplazoPlazo(): bool { return $this->reemplazoPlazo; }
     public function setReemplazoPlazo(bool $v): static { $this->reemplazoPlazo = $v; return $this; }
+
+    public function getLeadtimeResultado(): ?array { return $this->leadtimeResultado; }
+    public function setLeadtimeResultado(?array $v): static { $this->leadtimeResultado = $v; return $this; }
 
     public function getPrecioTotalUsd(): ?float
     {
