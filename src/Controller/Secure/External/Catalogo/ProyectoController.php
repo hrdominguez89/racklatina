@@ -185,11 +185,50 @@ class ProyectoController extends AbstractController
             }
         }
 
+        // Leadtime en tiempo real para proyectos en curso.
+        // Para proyectos finalizados se leen los snapshots guardados en BD.
+        $leadtimeMap = [];
+
+        if ($proyecto->getStatus() !== ProyectoStatus::FINISHED) {
+            foreach ($proyecto->getItems() as $item) {
+                $codigo   = $item->getArticulo()->getCodigoCalipso();
+                $deposito = $this->leadtimeService->resolverDeposito($codigo);
+
+                if ($deposito === null) {
+                    $leadtimeMap[$codigo] = ['consultarPlazos' => true, 'items' => []];
+                    continue;
+                }
+
+                $resultado = $this->leadtimeService->consultarLeadtime($codigo, $item->getCantidad(), $deposito);
+
+                // Normalizar DateTimeImmutable → string "d/m/Y" para Twig
+                $leadtimeMap[$codigo] = [
+                    'consultarPlazos' => $resultado['consultarPlazos'],
+                    'items' => array_map(static fn(array $ltItem): array => [
+                        'cantidad'     => $ltItem['cantidad'],
+                        'disponible'   => $ltItem['disponible'],
+                        'fechaEntrega' => $ltItem['fechaEntrega'] instanceof \DateTimeImmutable
+                            ? $ltItem['fechaEntrega']->format('d/m/Y')
+                            : $ltItem['fechaEntrega'],
+                    ], $resultado['items']),
+                ];
+            }
+        } else {
+            foreach ($proyecto->getItems() as $item) {
+                $codigo = $item->getArticulo()->getCodigoCalipso();
+                $lt     = $item->getLeadtimeResultado();
+                if ($lt !== null) {
+                    $leadtimeMap[$codigo] = $lt;
+                }
+            }
+        }
+
         return $this->render('secure/external/proyectos/show.html.twig', [
             'proyecto'             => $proyecto,
             'stockMap'             => $stockMap,
             'preciosMap'           => $preciosMap,
             'precioTotalCalculado' => $precioTotalCalculado,
+            'leadtimeMap'          => $leadtimeMap,
         ]);
     }
 
@@ -411,7 +450,27 @@ class ProyectoController extends AbstractController
         $item->setCantidad($cantidad);
         $this->em->flush();
 
-        return $this->json(['success' => true, 'cantidad' => $item->getCantidad()]);
+        // Recalcular leadtime con la nueva cantidad para actualizarlo en la UI
+        $codigo   = $item->getArticulo()->getCodigoCalipso();
+        $deposito = $this->leadtimeService->resolverDeposito($codigo);
+
+        if ($deposito === null) {
+            $leadtime = ['consultarPlazos' => true, 'items' => []];
+        } else {
+            $resultado = $this->leadtimeService->consultarLeadtime($codigo, $cantidad, $deposito);
+            $leadtime  = [
+                'consultarPlazos' => $resultado['consultarPlazos'],
+                'items' => array_map(static fn(array $ltItem): array => [
+                    'cantidad'     => $ltItem['cantidad'],
+                    'disponible'   => $ltItem['disponible'],
+                    'fechaEntrega' => $ltItem['fechaEntrega'] instanceof \DateTimeImmutable
+                        ? $ltItem['fechaEntrega']->format('d/m/Y')
+                        : $ltItem['fechaEntrega'],
+                ], $resultado['items']),
+            ];
+        }
+
+        return $this->json(['success' => true, 'cantidad' => $item->getCantidad(), 'leadtime' => $leadtime]);
     }
 
     #[Route('/item/{itemId}/comment', name: 'app_proyectos_update_comment', requirements: ['itemId' => '\d+'], methods: ['POST'])]
