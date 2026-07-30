@@ -1,0 +1,338 @@
+{# Modal Encuesta NPS Anual - Solo usuarios externos autenticados #}
+{% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMINISTRACION') %}
+<div id="encuestaNpsOverlay" class="encuesta-nps-overlay" style="display: none;" aria-modal="true" role="dialog" aria-labelledby="encuestaNpsTitulo">
+    <div class="encuesta-nps-modal">
+
+        <div id="encuestaNpsBody">
+            <h2 class="encuesta-nps-titulo" id="encuestaNpsTitulo">Necesitamos conocer tu opinión</h2>
+
+            <p class="encuesta-nps-pregunta">
+                En una escala de 0 a 10, ¿qué probabilidad hay de que recomiendes a Racklatina
+                como proveedor a un colega o empresa del sector?
+            </p>
+
+            <div class="encuesta-nps-escala">
+                <div class="encuesta-nps-botones" id="encuestaNpsBotones">
+                    {% for i in 0..10 %}
+                    <button type="button" class="encuesta-nps-btn" data-value="{{ i }}">{{ i }}</button>
+                    {% endfor %}
+                </div>
+                <div class="encuesta-nps-labels">
+                    <span>POCO PROBABLE</span>
+                    <span>MUY PROBABLE</span>
+                </div>
+            </div>
+
+            <p class="encuesta-nps-comentario-label">Contanos brevemente por qué elegiste ese puntaje.</p>
+            <textarea
+                id="encuestaNpsComentario"
+                class="encuesta-nps-textarea"
+                placeholder="Comentarios"
+                rows="4"
+                maxlength="1000"
+            ></textarea>
+
+            <button type="button" class="encuesta-nps-submit" id="encuestaNpsEnviar" disabled>
+                ENVIAR RESPUESTA
+            </button>
+
+            <div class="encuesta-nps-ahora-no">
+                <button type="button" id="encuestaNpsAhoraNno">Ahora no</button>
+            </div>
+        </div>
+
+        <div id="encuestaNpsGracias" style="display: none;" class="encuesta-nps-gracias">
+            <div class="encuesta-nps-gracias-icon">✓</div>
+            <p>¡Gracias por tu opinión!</p>
+            <p class="encuesta-nps-gracias-sub">Tu respuesta nos ayuda a mejorar.</p>
+        </div>
+
+    </div>
+</div>
+
+<style>
+.encuesta-nps-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1060;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.encuesta-nps-modal {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    padding: 48px 52px 40px;
+    width: 100%;
+    max-width: 600px;
+    animation: npsModalIn 0.25s ease-out;
+}
+
+@keyframes npsModalIn {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.encuesta-nps-titulo {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--rkl-primary, #aca300);
+    margin: 0 0 16px;
+    line-height: 1.3;
+}
+
+.encuesta-nps-pregunta {
+    font-size: 14px;
+    color: #555;
+    margin: 0 0 28px;
+    line-height: 1.5;
+}
+
+.encuesta-nps-escala {
+    margin-bottom: 32px;
+}
+
+.encuesta-nps-botones {
+    display: flex;
+    gap: 6px;
+    flex-wrap: nowrap;
+    margin-bottom: 8px;
+}
+
+.encuesta-nps-btn {
+    flex: 1;
+    min-width: 0;
+    aspect-ratio: 1;
+    border: 1px solid #ccc;
+    background: #e9ecef;
+    color: #555;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    padding: 0;
+    line-height: 1;
+}
+
+.encuesta-nps-btn:hover {
+    background: #d0d3d6;
+    border-color: #aaa;
+}
+
+.encuesta-nps-btn.selected {
+    background: #495057;
+    border-color: #495057;
+    color: #fff;
+}
+
+.encuesta-nps-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #888;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.encuesta-nps-comentario-label {
+    font-size: 14px;
+    color: #555;
+    margin: 0 0 10px;
+}
+
+.encuesta-nps-textarea {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 12px 14px;
+    font-size: 14px;
+    color: #333;
+    resize: none;
+    outline: none;
+    margin-bottom: 20px;
+    font-family: inherit;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+}
+
+.encuesta-nps-textarea:focus {
+    border-color: var(--rkl-primary, #aca300);
+}
+
+.encuesta-nps-submit {
+    width: 100%;
+    background: var(--rkl-primary, #aca300);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+}
+
+.encuesta-nps-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.encuesta-nps-submit:not(:disabled):hover {
+    background: var(--rkl-primary-hover, #bfb535);
+}
+
+.encuesta-nps-ahora-no {
+    text-align: center;
+    margin-top: 12px;
+}
+
+.encuesta-nps-ahora-no button {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 8px;
+    text-decoration: underline;
+}
+
+.encuesta-nps-ahora-no button:hover {
+    color: #666;
+}
+
+.encuesta-nps-gracias {
+    text-align: center;
+    padding: 32px 0;
+}
+
+.encuesta-nps-gracias-icon {
+    width: 56px;
+    height: 56px;
+    background: var(--rkl-primary, #aca300);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.encuesta-nps-gracias p {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 6px;
+}
+
+.encuesta-nps-gracias-sub {
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    color: #777 !important;
+}
+
+@media (max-width: 480px) {
+    .encuesta-nps-modal {
+        padding: 32px 24px 28px;
+    }
+
+    .encuesta-nps-botones {
+        gap: 4px;
+    }
+
+    .encuesta-nps-btn {
+        font-size: 12px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const STORAGE_KEY = 'encuesta_nps_cerrada';
+    const overlay    = document.getElementById('encuestaNpsOverlay');
+    const botones    = document.querySelectorAll('.encuesta-nps-btn');
+    const btnEnviar  = document.getElementById('encuestaNpsEnviar');
+    const btnAhoraNno = document.getElementById('encuestaNpsAhoraNno');
+    const textarea   = document.getElementById('encuestaNpsComentario');
+    const body       = document.getElementById('encuestaNpsBody');
+    const gracias    = document.getElementById('encuestaNpsGracias');
+
+    let scoreSeleccionado = null;
+
+    function cerrarTemporal() {
+        sessionStorage.setItem(STORAGE_KEY, '1');
+        overlay.style.display = 'none';
+    }
+
+    function mostrarModal() {
+        overlay.style.display = 'flex';
+    }
+
+    function verificarYMostrar() {
+        if (sessionStorage.getItem(STORAGE_KEY)) return;
+
+        fetch('/secure/clientes/encuesta-nps/verificar')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && !data.yaRespondio) {
+                    mostrarModal();
+                }
+            })
+            .catch(() => {});
+    }
+
+    botones.forEach(btn => {
+        btn.addEventListener('click', function () {
+            botones.forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+            scoreSeleccionado = parseInt(this.dataset.value);
+            btnEnviar.disabled = false;
+        });
+    });
+
+    btnEnviar.addEventListener('click', function () {
+        if (scoreSeleccionado === null) return;
+
+        btnEnviar.disabled = true;
+        btnEnviar.textContent = 'Enviando...';
+
+        fetch('/secure/clientes/encuesta-nps/responder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                score: scoreSeleccionado,
+                comentario: textarea.value.trim() || null
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                body.style.display    = 'none';
+                gracias.style.display = 'block';
+                setTimeout(() => { overlay.style.display = 'none'; }, 2500);
+            } else {
+                alert(data.message || 'Error al enviar');
+                btnEnviar.disabled   = false;
+                btnEnviar.textContent = 'ENVIAR RESPUESTA';
+            }
+        })
+        .catch(() => {
+            alert('Error al enviar la respuesta. Intentá nuevamente.');
+            btnEnviar.disabled   = false;
+            btnEnviar.textContent = 'ENVIAR RESPUESTA';
+        });
+    });
+
+    btnAhoraNno.addEventListener('click', cerrarTemporal);
+
+    verificarYMostrar();
+});
+</script>
+{% endif %}

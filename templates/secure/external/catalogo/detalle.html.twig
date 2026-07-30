@@ -134,6 +134,7 @@
     white-space: nowrap;
 }
 .btn-agregar-det:hover { background: var(--rkl-primary-dark); }
+.btn-agregar-det--login { width: auto; display: inline-block; }
 .btn-cotizacion-det {
     background: #fff;
     color: var(--rkl-primary);
@@ -440,7 +441,7 @@
 
         {% else %}
         <div class="det-actions">
-            <a href="{{ path('app_login', {redirect: app.request.requestUri}) }}" class="btn-agregar-det text-center text-decoration-none">
+            <a href="{{ path('app_login', {redirect: app.request.requestUri}) }}" class="btn-agregar-det btn-agregar-det--login text-center text-decoration-none">
                 Iniciá sesión para agregar
             </a>
         </div>
