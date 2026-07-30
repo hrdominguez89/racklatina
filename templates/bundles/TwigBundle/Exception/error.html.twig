@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error {{ status_code }} – Racklatina</title>
+    <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #f4f5f7;
+        }
+
+        .topbar {
+            background: #ffffff;
+            border-bottom: 3px solid #aca300;
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        }
+        .topbar img { height: 38px; }
+
+        .error-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 1.5rem;
+            text-align: center;
+        }
+
+        .code-badge {
+            font-size: 7rem;
+            font-weight: 900;
+            letter-spacing: -4px;
+            line-height: 1;
+            color: #e8e9ec;
+            user-select: none;
+            margin-bottom: 0.5rem;
+        }
+
+        .error-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1e2733;
+            margin-bottom: 0.6rem;
+        }
+        .error-sub {
+            font-size: 0.95rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+            max-width: 360px;
+        }
+
+        .btn-home {
+            display: inline-block;
+            background: #aca300;
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 0.65rem 1.8rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+            letter-spacing: 0.3px;
+        }
+        .btn-home:hover { background: #bfb535; color: #fff; text-decoration: none; }
+
+        .page-footer {
+            text-align: center;
+            padding: 1.25rem;
+            font-size: 0.78rem;
+            color: #adb5bd;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="topbar">
+        <a href="{{ path('app_home') }}">
+            <img src="{{ asset('logo-racklatina-light.png') }}" alt="Racklatina"
+                 onerror="this.src='{{ asset('assets/images/logo-dark-EsNP9Mv.png') }}'">
+        </a>
+    </header>
+
+    <main class="error-wrap">
+
+        <div class="code-badge">{{ status_code }}</div>
+
+        {% if status_code == 500 %}
+            <svg width="160" height="120" viewBox="0 0 160 120" fill="none"
+                 xmlns="http://www.w3.org/2000/svg" style="margin-bottom:2rem" aria-hidden="true">
+                <!-- server rack -->
+                <rect x="30" y="20" width="100" height="80" rx="6" fill="#dde1e9"/>
+                <rect x="38" y="30" width="84" height="14" rx="3" fill="#eef0f4"/>
+                <rect x="38" y="50" width="84" height="14" rx="3" fill="#eef0f4"/>
+                <rect x="38" y="70" width="84" height="14" rx="3" fill="#eef0f4"/>
+                <!-- status lights -->
+                <circle cx="112" cy="37" r="4" fill="#e74c3c"/>
+                <circle cx="112" cy="57" r="4" fill="#aca300"/>
+                <circle cx="112" cy="77" r="4" fill="#c9cdd6"/>
+                <!-- warning bolt -->
+                <polygon points="80,8 72,24 79,24 71,40 89,20 82,20" fill="#aca300" opacity="0.85"/>
+            </svg>
+
+            {% set title = "Algo salió mal en el servidor" %}
+            {% set sub = "Ocurrió un error interno. Ya fuimos notificados y estamos trabajando para resolverlo." %}
+
+        {% elseif status_code == 403 %}
+            <svg width="160" height="120" viewBox="0 0 160 120" fill="none"
+                 xmlns="http://www.w3.org/2000/svg" style="margin-bottom:2rem" aria-hidden="true">
+                <!-- shield -->
+                <path d="M80 10 L120 30 L120 70 Q120 100 80 115 Q40 100 40 70 L40 30 Z" fill="#dde1e9"/>
+                <path d="M80 20 L112 37 L112 70 Q112 95 80 108 Q48 95 48 70 L48 37 Z" fill="#eef0f4"/>
+                <!-- lock icon -->
+                <rect x="66" y="62" width="28" height="22" rx="3" fill="#c9cdd6"/>
+                <path d="M70 62 Q70 50 80 50 Q90 50 90 62" stroke="#c9cdd6" stroke-width="5" fill="none" stroke-linecap="round"/>
+                <circle cx="80" cy="72" r="4" fill="#8e97a8"/>
+                <!-- accent -->
+                <circle cx="80" cy="72" r="2" fill="#aca300"/>
+            </svg>
+
+            {% set title = "No tenés permiso para acceder a esta sección" %}
+            {% set sub = "Si creés que esto es un error, contactá a tu administrador o iniciá sesión con una cuenta con los permisos necesarios." %}
+
+        {% else %}
+            <svg width="160" height="120" viewBox="0 0 160 120" fill="none"
+                 xmlns="http://www.w3.org/2000/svg" style="margin-bottom:2rem" aria-hidden="true">
+                <!-- generic alert triangle -->
+                <polygon points="80,15 145,105 15,105" fill="#dde1e9" stroke="#c9cdd6" stroke-width="3" stroke-linejoin="round"/>
+                <polygon points="80,25 137,100 23,100" fill="#eef0f4"/>
+                <rect x="76" y="50" width="8" height="28" rx="4" fill="#c9cdd6"/>
+                <circle cx="80" cy="88" r="5" fill="#aca300"/>
+            </svg>
+
+            {% set title = "Ocurrió un error inesperado" %}
+            {% set sub = "No pudimos procesar tu solicitud. Intentá de nuevo o volvé a la página principal." %}
+        {% endif %}
+
+        <p class="error-title">{{ title }}</p>
+        <p class="error-sub">{{ sub }}</p>
+
+        <a href="{{ path('app_home') }}" class="btn-home">Ir a la página principal</a>
+
+    </main>
+
+    <footer class="page-footer">
+        &copy; {{ "now"|date("Y") }} Racklatina S.A. Todos los derechos reservados.
+    </footer>
+
+</body>
+</html>

@@ -369,7 +369,7 @@
                                    data-stock-max="{{ maxStock }}"
                                    {% if isFinished or sinStock %}disabled{% endif %}>
                             <button type="button" class="btn-item-mas" data-item="{{ item.id }}"
-                                    {% if isFinished or sinStock or item.cantidad >= maxStock %}disabled{% endif %}>+</button>
+                                    {% if isFinished or sinStock %}disabled{% endif %}>+</button>
                         </div>
                         {% if sinStock %}
                         <div style="font-size:.7rem;color:#dc3545;margin-top:.25rem;white-space:nowrap;">Sin stock</div>
@@ -470,9 +470,10 @@
             {% endfor %}
             </tbody>
         </table>
-        <p style="font-size:.72rem;color:#999;margin-top:.4rem;margin-bottom:0;">
-            * Stock sujeto a confirmación de compra final.
-        </p>
+        <div style="margin-top:.6rem;display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#7a6f00;background:#fffde7;border:1px solid #e0d850;border-radius:5px;padding:.45rem .85rem;">
+            <i class="ri-information-line" style="font-size:1rem;flex-shrink:0;"></i>
+            <span>Stock sujeto a confirmación de compra final.</span>
+        </div>
     </div>
 
     {# ── Sidebar Solicitud ── #}
@@ -747,15 +748,9 @@
         }
     }
 
-    // ── Habilita/deshabilita el botón + según stock ──
+    // ── Sincroniza estado visual del botón + (sin deshabilitar, el aviso se da por toast) ──
     function sincronizarBotonesMas(inputEl) {
-        const itemId  = inputEl.dataset.item;
-        const max     = parseInt(inputEl.dataset.stockMax);
-        const actual  = parseInt(inputEl.value);
-        const btnMas  = document.querySelector(`.btn-item-mas[data-item="${itemId}"]`);
-        if (btnMas && max > 0) {
-            btnMas.disabled = actual >= max;
-        }
+        // No se deshabilita: el aviso de stock agotado se muestra como toast al hacer click.
     }
 
     if (isFinished) return;
@@ -837,19 +832,33 @@
     });
 
     // ── Botón + (incrementar) ──
-    document.querySelectorAll('.btn-item-mas').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const id    = this.dataset.item;
-            const input = document.querySelector(`.input-item-cantidad[data-item="${id}"]`);
-            const max   = parseInt(input.dataset.stockMax);
-            const val   = parseInt(input.value);
-            const tope  = max > 0 ? max : 999;
+    // Se escucha en el contenedor .qty-ctrl para capturar clics aunque el botón esté disabled
+    document.querySelectorAll('.qty-ctrl').forEach(ctrl => {
+        ctrl.addEventListener('click', function (e) {
+            const btn = e.target.closest('.btn-item-mas');
+            if (!btn) return;
+            const id    = btn.dataset.item;
+            const input = ctrl.querySelector(`.input-item-cantidad[data-item="${id}"]`);
+            if (!input) return;
+            const max  = parseInt(input.dataset.stockMax);
+            const val  = parseInt(input.value);
+            const tope = max > 0 ? max : 999;
+
+            // Si el botón está deshabilitado (sinStock o isFinished), mostrar aviso y salir
+            if (btn.disabled) {
+                if (max === 0) {
+                    RKL.toast('Este producto no tiene stock disponible.', 'warning');
+                }
+                return;
+            }
+
             if (val < tope) {
                 input.value = val + 1;
                 recalcularTotales();
                 actualizarCantidad(id, input.value, input);
+            } else if (max > 0) {
+                RKL.toast(`No hay más stock disponible para este producto (máx. ${max} unidad${max !== 1 ? 'es' : ''}).`, 'warning');
             }
-            if (parseInt(input.value) >= tope) this.disabled = true;
         });
     });
 
