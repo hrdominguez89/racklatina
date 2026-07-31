@@ -192,20 +192,16 @@
                     {% elseif articulo.descripcion %}
                     <p class="rkl-prod-sub">{{ articulo.descripcion }}</p>
                     {% endif %}
+                    {% if app.user %}
                     <div class="mt-auto position-relative">
-                        {% if app.user %}
                         <button type="button"
                                 class="rkl-btn-agregar btn-agregar-proyecto"
                                 data-articulo-codigo="{{ articulo.codigoCalipso }}"
                                 data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}">
                             Agregar a Proyecto
                         </button>
-                        {% else %}
-                        <a href="{{ path('app_login', {redirect: app.request.requestUri}) }}" class="rkl-btn-agregar" style="display:block;text-align:center;">
-                            Iniciá sesión
-                        </a>
-                        {% endif %}
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
