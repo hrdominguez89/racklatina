@@ -133,7 +133,7 @@
     </div>
     <div class="row g-2 g-md-3">
         {% for categoria in categorias %}
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-4">
             <a href="{{ path('app_catalogo_lista', {categoria: categoria}) }}" class="rkl-cat-card">
                 <div class="rkl-cat-bg c{{ loop.index0 % 8 }}"></div>
                 <div class="rkl-cat-overlay"></div>
