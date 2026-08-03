@@ -35,10 +35,6 @@
             <button type="button" class="encuesta-nps-submit" id="encuestaNpsEnviar" disabled>
                 ENVIAR RESPUESTA
             </button>
-
-            <div class="encuesta-nps-ahora-no">
-                <button type="button" id="encuestaNpsAhoraNno">Ahora no</button>
-            </div>
         </div>
 
         <div id="encuestaNpsGracias" style="display: none;" class="encuesta-nps-gracias">
@@ -188,25 +184,6 @@
     background: var(--rkl-primary-hover, #bfb535);
 }
 
-.encuesta-nps-ahora-no {
-    text-align: center;
-    margin-top: 12px;
-}
-
-.encuesta-nps-ahora-no button {
-    background: none;
-    border: none;
-    color: #aaa;
-    font-size: 12px;
-    cursor: pointer;
-    padding: 4px 8px;
-    text-decoration: underline;
-}
-
-.encuesta-nps-ahora-no button:hover {
-    color: #666;
-}
-
 .encuesta-nps-gracias {
     text-align: center;
     padding: 32px 0;
@@ -255,38 +232,46 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const STORAGE_KEY = 'encuesta_nps_cerrada';
-    const overlay    = document.getElementById('encuestaNpsOverlay');
-    const botones    = document.querySelectorAll('.encuesta-nps-btn');
-    const btnEnviar  = document.getElementById('encuestaNpsEnviar');
-    const btnAhoraNno = document.getElementById('encuestaNpsAhoraNno');
-    const textarea   = document.getElementById('encuestaNpsComentario');
-    const body       = document.getElementById('encuestaNpsBody');
-    const gracias    = document.getElementById('encuestaNpsGracias');
+    const overlay  = document.getElementById('encuestaNpsOverlay');
+    const botones  = document.querySelectorAll('.encuesta-nps-btn');
+    const btnEnviar = document.getElementById('encuestaNpsEnviar');
+    const textarea = document.getElementById('encuestaNpsComentario');
+    const body     = document.getElementById('encuestaNpsBody');
+    const gracias  = document.getElementById('encuestaNpsGracias');
 
     let scoreSeleccionado = null;
 
-    function cerrarTemporal() {
-        sessionStorage.setItem(STORAGE_KEY, '1');
-        overlay.style.display = 'none';
-    }
+    // Bloquear cierre al hacer click fuera del modal
+    overlay.addEventListener('click', function (e) {
+        e.stopPropagation();
+    });
+
+    // Bloquear tecla Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && overlay.style.display === 'flex') {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }, true);
 
     function mostrarModal() {
         overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
     }
 
-    function verificarYMostrar() {
-        if (sessionStorage.getItem(STORAGE_KEY)) return;
-
-        fetch('/secure/clientes/encuesta-nps/verificar')
-            .then(r => r.json())
-            .then(data => {
-                if (data.success && !data.yaRespondio) {
-                    mostrarModal();
-                }
-            })
-            .catch(() => {});
+    function ocultarModal() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
     }
+
+    fetch('/secure/clientes/encuesta-nps/verificar')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && !data.yaRespondio) {
+                mostrarModal();
+            }
+        })
+        .catch(() => {});
 
     botones.forEach(btn => {
         btn.addEventListener('click', function () {
@@ -316,23 +301,19 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.success) {
                 body.style.display    = 'none';
                 gracias.style.display = 'block';
-                setTimeout(() => { overlay.style.display = 'none'; }, 2500);
+                setTimeout(() => { ocultarModal(); }, 2500);
             } else {
                 alert(data.message || 'Error al enviar');
-                btnEnviar.disabled   = false;
+                btnEnviar.disabled    = false;
                 btnEnviar.textContent = 'ENVIAR RESPUESTA';
             }
         })
         .catch(() => {
             alert('Error al enviar la respuesta. Intentá nuevamente.');
-            btnEnviar.disabled   = false;
+            btnEnviar.disabled    = false;
             btnEnviar.textContent = 'ENVIAR RESPUESTA';
         });
     });
-
-    btnAhoraNno.addEventListener('click', cerrarTemporal);
-
-    verificarYMostrar();
 });
 </script>
 {% endif %}
