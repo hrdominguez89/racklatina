@@ -402,7 +402,14 @@
                     {# Envío / Leadtime #}
                     {% set lt = leadtimeMap[item.articulo.codigoCalipso] ?? null %}
                     <td id="leadtime-cell-{{ item.id }}" style="text-align:center;vertical-align:middle;white-space:nowrap;min-width:130px;">
-                        {% if lt is null %}
+                        {% if not isFinished %}
+                            {# Cargado de forma asíncrona vía JS #}
+                            <span class="leadtime-spinner">
+                                <span class="spinner-border spinner-border-sm text-secondary" role="status"
+                                      style="width:.85rem;height:.85rem;border-width:.15em;vertical-align:middle;"></span>
+                                <span style="font-size:.75rem;color:#888;margin-left:.3rem;">Calculando…</span>
+                            </span>
+                        {% elseif lt is null %}
                             <span style="color:#bbb;font-size:.78rem;">N/D</span>
                         {% elseif lt.consultarPlazos %}
                             <span style="font-size:.75rem;color:#888;">Consultar plazos</span>
@@ -599,6 +606,27 @@
 (function () {
 
     const isFinished = {{ isFinished ? 'true' : 'false' }};
+    const proyectoId = {{ proyecto.id }};
+
+    // ── Carga asíncrona de leadtimes al renderizar la página ──
+    (function () {
+        if (isFinished) return;
+
+        fetch(`/secure/proyectos/${proyectoId}/leadtimes-json`)
+            .then(r => r.json())
+            .then(data => {
+                // data = { itemId: { consultarPlazos, items: [...] }, ... }
+                for (const [itemId, lt] of Object.entries(data)) {
+                    renderLeadtimeCell(parseInt(itemId), lt);
+                }
+            })
+            .catch(() => {
+                // En caso de error de red, mostrar "Consultar plazos" en todas las celdas
+                document.querySelectorAll('.leadtime-spinner').forEach(el => {
+                    el.closest('td').innerHTML = '<span style="font-size:.75rem;color:#888;">Consultar plazos</span>';
+                });
+            });
+    })();
 
     // ── Solicitar cotización ──
     (function () {
@@ -683,6 +711,14 @@
         }
     }
 
+    // ── Spinner HTML para celdas de leadtime ──
+    const LEADTIME_SPINNER_HTML = `
+        <span class="leadtime-spinner">
+            <span class="spinner-border spinner-border-sm text-secondary" role="status"
+                  style="width:.85rem;height:.85rem;border-width:.15em;vertical-align:middle;"></span>
+            <span style="font-size:.75rem;color:#888;margin-left:.3rem;">Calculando…</span>
+        </span>`;
+
     // ── Renderiza la celda de leadtime a partir del objeto devuelto por el servidor ──
     function renderLeadtimeCell(itemId, lt) {
         const cell = document.getElementById(`leadtime-cell-${itemId}`);
@@ -721,6 +757,11 @@
     // ── Actualizar cantidad vía AJAX ──
     async function actualizarCantidad(itemId, cantidad, inputEl) {
         const prevValue = inputEl ? parseInt(inputEl.dataset.prev) : null;
+
+        // Mostrar spinner en la celda de leadtime mientras se recalcula
+        const cell = document.getElementById(`leadtime-cell-${itemId}`);
+        if (cell) cell.innerHTML = LEADTIME_SPINNER_HTML;
+
         const fd = new FormData();
         fd.append('cantidad', cantidad);
         const res = await fetch(`/secure/proyectos/item/${itemId}/cantidad`, { method: 'POST', body: fd });
@@ -731,6 +772,8 @@
                 sincronizarBotonesMas(inputEl);
                 recalcularTotales();
             }
+            // Restaurar celda de leadtime al estado anterior
+            renderLeadtimeCell(itemId, { consultarPlazos: true, items: [] });
             if (res.status === 422) {
                 RKL.toast(data.error || 'Stock insuficiente.', 'danger');
             } else if (res.status === 403) {

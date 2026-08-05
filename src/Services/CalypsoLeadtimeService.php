@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -28,9 +29,13 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 class CalypsoLeadtimeService
 {
+    /** Segundos que el leadtime permanece en sesión antes de re-consultarse */
+    private const CACHE_TTL = 600;
+
     public function __construct(
         private HttpClientInterface $httpClient,
         private LoggerInterface $logger,
+        private RequestStack $requestStack,
         #[Autowire(env: 'APP_ENV')] private string $appEnv,
     ) {}
 
@@ -56,6 +61,17 @@ class CalypsoLeadtimeService
     {
         if ($this->appEnv === 'local') {
             return $this->leadtimeSimulado($stockId, $cantidad, $deposito);
+        }
+
+        // Verificar cache en sesión
+        // La clave incluye cantidad porque la distribución de plazos depende de cuántas unidades se piden.
+        $cacheKey = "leadtime_{$stockId}_{$cantidad}_{$deposito}";
+        $session  = $this->requestStack->getSession();
+        $cached   = $session->get($cacheKey);
+
+        if (is_array($cached) && isset($cached['data'], $cached['ts']) && (time() - $cached['ts']) < self::CACHE_TTL) {
+            $this->logger->debug('[CalypsoLeadtimeService] Cache HIT', ['key' => $cacheKey]);
+            return $this->deserializarDesdeCache($cached['data']);
         }
 
         $token = $_ENV['TOKEN_LEADTIME'] ?? $_ENV['TOKEN'];
@@ -148,10 +164,18 @@ class CalypsoLeadtimeService
             return $this->respuestaConsultarPlazos();
         }
 
-        return [
+        $resultado = [
             'consultarPlazos' => false,
             'items'           => $items,
         ];
+
+        // Guardar en sesión (fechas como string para serialización)
+        $session->set($cacheKey, [
+            'data' => $this->serializarParaCache($resultado),
+            'ts'   => time(),
+        ]);
+
+        return $resultado;
     }
 
     /**
@@ -200,6 +224,42 @@ class CalypsoLeadtimeService
         return [
             'consultarPlazos' => true,
             'items'           => [],
+        ];
+    }
+
+    /**
+     * Convierte DateTimeImmutable → string para poder guardar en sesión.
+     */
+    private function serializarParaCache(array $resultado): array
+    {
+        return [
+            'consultarPlazos' => $resultado['consultarPlazos'],
+            'items' => array_map(static fn(array $item): array => [
+                'stockId'      => $item['stockId'],
+                'deposito'     => $item['deposito'],
+                'cantidad'     => $item['cantidad'],
+                'fechaEntrega' => $item['fechaEntrega'] instanceof \DateTimeImmutable
+                    ? $item['fechaEntrega']->format('d/m/Y')
+                    : $item['fechaEntrega'],
+                'disponible'   => $item['disponible'],
+            ], $resultado['items']),
+        ];
+    }
+
+    /**
+     * Restaura DateTimeImmutable desde el string guardado en sesión.
+     */
+    private function deserializarDesdeCache(array $data): array
+    {
+        return [
+            'consultarPlazos' => $data['consultarPlazos'],
+            'items' => array_map(static fn(array $item): array => [
+                'stockId'      => $item['stockId'],
+                'deposito'     => $item['deposito'],
+                'cantidad'     => $item['cantidad'],
+                'fechaEntrega' => \DateTimeImmutable::createFromFormat('d/m/Y', $item['fechaEntrega']),
+                'disponible'   => $item['disponible'],
+            ], $data['items']),
         ];
     }
 

@@ -185,35 +185,11 @@ class ProyectoController extends AbstractController
             }
         }
 
-        // Leadtime en tiempo real para proyectos en curso.
-        // Para proyectos finalizados se leen los snapshots guardados en BD.
+        // Leadtime: para proyectos finalizados se leen los snapshots guardados en BD.
+        // Para proyectos en curso se calculan de forma asíncrona vía JS (endpoint leadtimes-json).
         $leadtimeMap = [];
 
-        if ($proyecto->getStatus() !== ProyectoStatus::FINISHED) {
-            foreach ($proyecto->getItems() as $item) {
-                $codigo   = $item->getArticulo()->getCodigoCalipso();
-                $deposito = $this->leadtimeService->resolverDeposito($codigo);
-
-                if ($deposito === null) {
-                    $leadtimeMap[$codigo] = ['consultarPlazos' => true, 'items' => []];
-                    continue;
-                }
-
-                $resultado = $this->leadtimeService->consultarLeadtime($codigo, $item->getCantidad(), $deposito);
-
-                // Normalizar DateTimeImmutable → string "d/m/Y" para Twig
-                $leadtimeMap[$codigo] = [
-                    'consultarPlazos' => $resultado['consultarPlazos'],
-                    'items' => array_map(static fn(array $ltItem): array => [
-                        'cantidad'     => $ltItem['cantidad'],
-                        'disponible'   => $ltItem['disponible'],
-                        'fechaEntrega' => $ltItem['fechaEntrega'] instanceof \DateTimeImmutable
-                            ? $ltItem['fechaEntrega']->format('d/m/Y')
-                            : $ltItem['fechaEntrega'],
-                    ], $resultado['items']),
-                ];
-            }
-        } else {
+        if ($proyecto->getStatus() === ProyectoStatus::FINISHED) {
             foreach ($proyecto->getItems() as $item) {
                 $codigo = $item->getArticulo()->getCodigoCalipso();
                 $lt     = $item->getLeadtimeResultado();
@@ -330,6 +306,49 @@ class ProyectoController extends AbstractController
             'nombre'   => $p->getNombre(),
             'cantidad' => $p->getCantidadProductos(),
         ], $proyectos));
+    }
+
+    // --- Leadtimes asíncronos (carga diferida en la vista show) ---
+
+    #[Route('/{id}/leadtimes-json', name: 'app_proyectos_leadtimes_json', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function leadtimesJson(int $id): JsonResponse
+    {
+        $this->denyUnlessProyectosAccess();
+        $proyecto = $this->getProyectoDelUsuario($id);
+
+        if ($proyecto->getStatus() === ProyectoStatus::FINISHED) {
+            return $this->json(['error' => 'Proyecto finalizado'], 400);
+        }
+
+        $result = [];
+
+        foreach ($proyecto->getItems() as $item) {
+            $codigo   = $item->getArticulo()->getCodigoCalipso();
+            $deposito = $this->leadtimeService->resolverDeposito($codigo);
+
+            if ($deposito === null) {
+                $result[$item->getId()] = ['consultarPlazos' => true, 'items' => []];
+                continue;
+            }
+
+            try {
+                $resultado = $this->leadtimeService->consultarLeadtime($codigo, $item->getCantidad(), $deposito);
+                $result[$item->getId()] = [
+                    'consultarPlazos' => $resultado['consultarPlazos'],
+                    'items' => array_map(static fn(array $ltItem): array => [
+                        'cantidad'     => $ltItem['cantidad'],
+                        'disponible'   => $ltItem['disponible'],
+                        'fechaEntrega' => $ltItem['fechaEntrega'] instanceof \DateTimeImmutable
+                            ? $ltItem['fechaEntrega']->format('d/m/Y')
+                            : $ltItem['fechaEntrega'],
+                    ], $resultado['items']),
+                ];
+            } catch (\Throwable) {
+                $result[$item->getId()] = ['consultarPlazos' => true, 'items' => []];
+            }
+        }
+
+        return $this->json($result);
     }
 
     // --- Set proyecto activo ---
