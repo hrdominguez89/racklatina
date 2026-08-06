@@ -63,26 +63,23 @@ class ProyectoController extends AbstractController
         if ($this->isGranted('ROLE_ADMIN')) {
             $filtroEmpresa = $request->query->get('empresa') ?: null;
             $filtroUsuario = ($v = $request->query->get('usuario')) && ctype_digit($v) ? (int) $v : null;
-            $filtroStatus  = ProyectoStatus::tryFrom($request->query->get('estado', ''));
-            $orden         = in_array($request->query->get('orden'), ['fecha_desc', 'fecha_asc', 'nombre_asc', 'nombre_desc'], true)
-                ? $request->query->get('orden')
-                : 'fecha_desc';
 
+            // La vista admin muestra únicamente solicitudes enviadas (FINISHED)
             $proyectos = $this->proyectoRepo->findAllWithFilters(
                 $filtroEmpresa,
                 $filtroUsuario,
-                $filtroStatus,
-                $orden,
+                ProyectoStatus::FINISHED,
+                'fecha_desc',
             );
 
-            // Opciones de filtro: solo empresas/usuarios que tienen proyectos
+            // Opciones de filtro: solo empresas/usuarios que tienen solicitudes
             $codigos         = $this->proyectoRepo->findDistinctClientesCodigos();
             $empresasOptions = $clientesRepo->findBy(['codigoCalipso' => $codigos], ['razonSocial' => 'ASC']);
             $usuariosOptions = $this->proyectoRepo->findUsersWithProyectos($filtroEmpresa);
 
-            // Mapa clienteCodigo → razonSocial para mostrar en las cards
-            $allCodigos  = array_unique(array_filter(array_map(fn($p) => $p->getClienteCodigo(), $proyectos)));
-            $clientes    = $clientesRepo->findBy(['codigoCalipso' => $allCodigos]);
+            // Mapa clienteCodigo → razonSocial para mostrar en la tabla
+            $allCodigos   = array_unique(array_filter(array_map(fn($p) => $p->getClienteCodigo(), $proyectos)));
+            $clientes     = $clientesRepo->findBy(['codigoCalipso' => $allCodigos]);
             $clienteNames = [];
             foreach ($clientes as $c) {
                 $clienteNames[$c->getCodigoCalipso()] = $c->getRazonSocial();
@@ -96,8 +93,6 @@ class ProyectoController extends AbstractController
                 'clienteNames'    => $clienteNames,
                 'filtroEmpresa'   => $filtroEmpresa,
                 'filtroUsuario'   => $filtroUsuario,
-                'filtroStatus'    => $filtroStatus?->value,
-                'orden'           => $orden,
             ]);
         }
 

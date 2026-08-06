@@ -12,6 +12,9 @@
 {% endblock %}
 
 {% block stylesheets %}
+{% if isAdmin %}
+<link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
+{% endif %}
 <style>
 /* ── Admin filter bar ── */
 .proy-filters {
@@ -81,17 +84,6 @@
     text-decoration: none;
 }
 .btn-filter-clear:hover { border-color: #aaa; color: #333; }
-
-/* ── Admin card extras ── */
-.proy-card-owner {
-    font-size: .78rem;
-    color: #777;
-    margin-top: .3rem;
-    display: flex;
-    flex-direction: column;
-    gap: .15rem;
-}
-.proy-card-owner strong { color: #444; }
 
 /* ── Search bar ── */
 .proyectos-search {
@@ -280,10 +272,11 @@
 
 {% block body %}
 
-<h4 class="fw-bold mb-3" style="color:#1a1a1a;">{{ isAdmin ? 'Todos los Proyectos' : 'Proyectos' }}</h4>
+<h4 class="fw-bold mb-3" style="color:#1a1a1a;">{{ isAdmin ? 'Solicitudes de cotización' : 'Proyectos' }}</h4>
 
 {% if isAdmin %}
-{# ── Panel de filtros (solo admin) ── #}
+{# ── VISTA ADMIN: DataTable de solicitudes recibidas ── #}
+
 <div class="proy-filters">
     <form method="get" action="{{ path('app_proyectos_index') }}" id="form-filtros">
         <div class="filter-row">
@@ -311,25 +304,8 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="filter-group">
-                <label for="f-estado">Estado</label>
-                <select name="estado" id="f-estado" onchange="this.form.submit()">
-                    <option value="">Todos los estados</option>
-                    <option value="in_progress" {% if filtroStatus == 'in_progress' %}selected{% endif %}>En progreso</option>
-                    <option value="finished"    {% if filtroStatus == 'finished' %}selected{% endif %}>Orden generada</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="f-orden">Ordenar por</label>
-                <select name="orden" id="f-orden" onchange="this.form.submit()">
-                    <option value="fecha_desc"  {% if orden == 'fecha_desc'  %}selected{% endif %}>Más reciente</option>
-                    <option value="fecha_asc"   {% if orden == 'fecha_asc'   %}selected{% endif %}>Más antiguo</option>
-                    <option value="nombre_asc"  {% if orden == 'nombre_asc'  %}selected{% endif %}>Nombre A-Z</option>
-                    <option value="nombre_desc" {% if orden == 'nombre_desc' %}selected{% endif %}>Nombre Z-A</option>
-                </select>
-            </div>
             <div class="filter-actions">
-                {% if filtroEmpresa or filtroUsuario or filtroStatus or (orden is defined and orden != 'fecha_desc') %}
+                {% if filtroEmpresa or filtroUsuario %}
                 <a href="{{ path('app_proyectos_index') }}" class="btn-filter-clear">
                     <i class="ri-close-line me-1"></i>Limpiar
                 </a>
@@ -337,12 +313,67 @@
             </div>
         </div>
     </form>
-    {% set totalProyectos = proyectos|length %}
     <div class="mt-2" style="font-size:.8rem; color:#888;">
-        {{ totalProyectos }} proyecto{{ totalProyectos != 1 ? 's' : '' }} encontrado{{ totalProyectos != 1 ? 's' : '' }}
+        {% set totalProyectos = proyectos|length %}
+        {{ totalProyectos }} solicitud{{ totalProyectos != 1 ? 'es' : '' }} encontrada{{ totalProyectos != 1 ? 's' : '' }}
     </div>
 </div>
-{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        <table id="tabla-proyectos" class="table table-hover" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Empresa</th>
+                    <th>Usuario</th>
+                    <th>Fecha de solicitud</th>
+                    <th>Nombre del proyecto</th>
+                    <th class="text-center" style="width:60px;">Ver</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for proyecto in proyectos %}
+                <tr>
+                    <td>{{ clienteNames[proyecto.clienteCodigo] ?? proyecto.clienteCodigo ?? '—' }}</td>
+                    <td>{{ proyecto.user.firstName }} {{ proyecto.user.lastName }}</td>
+                    <td data-order="{{ proyecto.updatedAt|date('Y-m-d H:i:s') }}">
+                        {{ proyecto.updatedAt|date('d/m/Y H:i') }}
+                    </td>
+                    <td>{{ proyecto.nombre }}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-secondary btn-ver-solicitud"
+                                data-proyecto-id="{{ proyecto.id }}"
+                                data-proyecto-nombre="{{ proyecto.nombre|e('html_attr') }}"
+                                title="Ver solicitud">
+                            <i class="ri-eye-line"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# Modal: Preview solicitud de cotización #}
+<div class="modal fade" id="modalVerSolicitud" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-semibold">
+                    <i class="ri-mail-line me-2"></i><span id="modal-solicitud-titulo">Solicitud de cotización</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="min-height:400px;">
+                <iframe id="iframe-solicitud" src="" style="width:100%;height:640px;border:none;display:block;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+{# ── VISTA USUARIO: Grid de proyectos ── #}
 
 {# Search bar #}
 <div class="proyectos-search">
@@ -352,8 +383,8 @@
 
 <div class="row g-3" id="grid-proyectos">
 
-    {# Tarjeta "Crear Proyecto" — solo para roles con permiso de escritura #}
-    {% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') %}
+    {# Tarjeta "Crear Proyecto" — solo para compradores #}
+    {% if is_granted('ROLE_COMPRADOR') %}
     <div class="col-12 col-md-6 col-xl-3">
         <div class="proy-card-create"
              data-bs-toggle="modal"
@@ -367,13 +398,11 @@
     <div class="col-12 col-md-6 col-xl-3 proy-col" data-nombre="{{ proyecto.nombre|lower }}">
         <div class="proy-card">
 
-            {# Status strip — solo si NO es in_progress #}
-            {% if proyecto.status.value != 'in_progress' %}
-            <div class="proy-status-strip status-{{ proyecto.status.value|replace({'_': '-'}) }}">
+            {# Status strip — solo si está finalizado #}
+            {% if proyecto.status.value == 'finished' %}
+            <div class="proy-status-strip status-finished">
                 <span class="proy-status-dot"></span>
-                <span class="proy-status-label">
-                    {% if proyecto.status.value == 'finished' %}Orden de compra generado{% endif %}
-                </span>
+                <span class="proy-status-label">Solicitud de cotización enviada</span>
                 <div class="dropdown">
                     <button class="proy-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Opciones">
                         <i class="ri-more-2-fill"></i>
@@ -417,20 +446,13 @@
                 </p>
                 {% endif %}
 
-                {% if isAdmin %}
-                <div class="proy-card-owner">
-                    <span><strong>Usuario:</strong> {{ proyecto.user.firstName }} {{ proyecto.user.lastName }}</span>
-                    {% if proyecto.clienteCodigo %}
-                    <span><strong>Empresa:</strong> {{ clienteNames[proyecto.clienteCodigo] ?? proyecto.clienteCodigo }}</span>
-                    {% endif %}
-                </div>
-                {% endif %}
-
                 {# Acciones #}
                 <div class="proy-card-actions">
+                    {% if proyecto.status.value == 'in_progress' %}
                     <button type="button" class="btn-solicitar-cotizacion" disabled>
                         Solicitar Cotización
                     </button>
+                    {% endif %}
                     <a href="{{ path('app_proyectos_show', {id: proyecto.id}) }}" class="proy-card-link">
                         Ver proyecto
                     </a>
@@ -442,6 +464,8 @@
     {% endfor %}
 
 </div>
+
+{% endif %}
 
 {# Macro para el dropdown de opciones (evita duplicar el HTML) #}
 {% macro dropdown_menu(proyecto, readonly) %}
@@ -469,7 +493,8 @@
 </ul>
 {% endmacro %}
 
-{# Modal: Confirmar Eliminar #}
+{# Modal: Confirmar Eliminar (solo vista usuario) #}
+{% if not isAdmin %}
 <div class="modal fade" id="modalEliminarProyecto" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
@@ -493,10 +518,42 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 {% endblock %}
 
 {% block extra_js %}
+{% if isAdmin %}
+<script src="{{ asset('Datatables/datatables.min.js') }}"></script>
+<script>
+$(document).ready(function () {
+    $('#tabla-proyectos').DataTable({
+        language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+        order: [[2, 'desc']],
+        pageLength: 25,
+        columnDefs: [
+            { orderable: false, targets: 4 }
+        ]
+    });
+
+    // Abrir modal con preview de la solicitud
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-ver-solicitud');
+        if (!btn) return;
+        const id     = btn.dataset.proyectoId;
+        const nombre = btn.dataset.proyectoNombre;
+        document.getElementById('modal-solicitud-titulo').textContent = nombre;
+        document.getElementById('iframe-solicitud').src = '/secure/proyectos/' + id + '/cotizacion-preview';
+        new bootstrap.Modal(document.getElementById('modalVerSolicitud')).show();
+    });
+
+    // Limpiar iframe al cerrar modal
+    document.getElementById('modalVerSolicitud').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('iframe-solicitud').src = '';
+    });
+});
+</script>
+{% else %}
 <script>
 // Eliminar proyecto
 document.querySelectorAll('.btn-eliminar-proyecto').forEach(btn => {
@@ -523,4 +580,5 @@ document.getElementById('input-buscar-proyecto').addEventListener('input', funct
     });
 });
 </script>
+{% endif %}
 {% endblock %}
