@@ -147,38 +147,10 @@ class ProyectoController extends AbstractController
         $codigos  = $proyecto->getItems()->map(fn($i) => $i->getArticulo()->getCodigoCalipso())->toArray();
         $stockMap = array_map(fn($s) => (int)floor($s), $this->stockService->getStockMap($codigos));
 
-        // Precios en tiempo real (con caché de sesión) para proyectos en curso.
-        // Para proyectos finalizados se usan los snapshots guardados en BD.
+        // Precios: para proyectos finalizados se usan snapshots guardados en BD.
+        // Para proyectos en curso se cargan de forma asíncrona vía JS (endpoint precios-json).
         $preciosMap           = [];
         $precioTotalCalculado = null;
-
-        if ($proyecto->getStatus() !== ProyectoStatus::FINISHED) {
-            $user          = $this->getUser();
-            $clienteCodigo = $user?->getActiveClienteCodigo() ?? $proyecto->getClienteCodigo();
-
-            if ($clienteCodigo) {
-                $total     = 0.0;
-                $hayPrecios = false;
-
-                foreach ($proyecto->getItems() as $item) {
-                    $codigo = $item->getArticulo()->getCodigoCalipso();
-                    try {
-                        $resultado = $this->preciosService->consultarPrecio($clienteCodigo, $codigo, $item->getCantidad());
-                        if ($resultado !== null) {
-                            $preciosMap[$codigo] = $resultado;
-                            $total += $resultado['precioTotal'];
-                            $hayPrecios = true;
-                        }
-                    } catch (\RuntimeException) {
-                        // Sin precio disponible para este ítem
-                    }
-                }
-
-                if ($hayPrecios) {
-                    $precioTotalCalculado = round($total, 2);
-                }
-            }
-        }
 
         // Leadtime: para proyectos finalizados se leen los snapshots guardados en BD.
         // Para proyectos en curso se calculan de forma asíncrona vía JS (endpoint leadtimes-json).
@@ -301,6 +273,40 @@ class ProyectoController extends AbstractController
             'nombre'   => $p->getNombre(),
             'cantidad' => $p->getCantidadProductos(),
         ], $proyectos));
+    }
+
+    // --- Precios asíncronos (carga diferida en la vista show) ---
+
+    #[Route('/{id}/precios-json', name: 'app_proyectos_precios_json', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function preciosJson(int $id): JsonResponse
+    {
+        $this->denyUnlessProyectosAccess();
+        $proyecto = $this->getProyectoDelUsuario($id);
+
+        if ($proyecto->getStatus() === ProyectoStatus::FINISHED) {
+            return $this->json(['error' => 'Proyecto finalizado'], 400);
+        }
+
+        $user          = $this->getUser();
+        $clienteCodigo = $user?->getActiveClienteCodigo() ?? $proyecto->getClienteCodigo();
+
+        if (!$clienteCodigo) {
+            return $this->json([]);
+        }
+
+        $result = [];
+
+        foreach ($proyecto->getItems() as $item) {
+            $codigo = $item->getArticulo()->getCodigoCalipso();
+            try {
+                $resultado = $this->preciosService->consultarPrecio($clienteCodigo, $codigo, $item->getCantidad());
+                $result[$item->getId()] = $resultado;
+            } catch (\RuntimeException) {
+                $result[$item->getId()] = null;
+            }
+        }
+
+        return $this->json($result);
     }
 
     // --- Leadtimes asíncronos (carga diferida en la vista show) ---
@@ -473,7 +479,16 @@ class ProyectoController extends AbstractController
             ];
         }
 
-        return $this->json(['success' => true, 'cantidad' => $item->getCantidad(), 'leadtime' => $leadtime]);
+        // Recalcular precio con la nueva cantidad
+        $precio        = null;
+        $clienteCodigo = $item->getProyecto()->getClienteCodigo();
+        if ($clienteCodigo) {
+            try {
+                $precio = $this->preciosService->consultarPrecio($clienteCodigo, $codigo, $cantidad);
+            } catch (\RuntimeException) {}
+        }
+
+        return $this->json(['success' => true, 'cantidad' => $item->getCantidad(), 'leadtime' => $leadtime, 'precio' => $precio]);
     }
 
     #[Route('/item/{itemId}/comment', name: 'app_proyectos_update_comment', requirements: ['itemId' => '\d+'], methods: ['POST'])]

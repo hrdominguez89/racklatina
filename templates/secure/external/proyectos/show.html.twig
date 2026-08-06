@@ -370,18 +370,22 @@
                         </div>
                     </td>
 
-                    {# Precio unitario: snapshot si está finalizado, tiempo real (caché) si en curso #}
+                    {# Precio unitario: snapshot si está finalizado, asíncrono vía JS si en curso #}
                     {% if isFinished %}
                         {% set precioUnit  = item.precioUnitarioUsd %}
                         {% set precioTotal = item.precioTotalUsd %}
                     {% else %}
-                        {% set precioEntry = preciosMap[item.articulo.codigoCalipso] ?? null %}
-                        {% set precioUnit  = precioEntry ? precioEntry.precio : null %}
-                        {% set precioTotal = precioEntry ? precioEntry.precioTotal : null %}
+                        {% set precioUnit  = null %}
+                        {% set precioTotal = null %}
                     {% endif %}
-                    <td style="text-align:right;white-space:nowrap;font-size:.88rem;">
+                    <td id="precio-unit-cell-{{ item.id }}" style="text-align:right;white-space:nowrap;font-size:.88rem;">
                         {% if precioUnit is not null %}
                             U$S {{ precioUnit|number_format(2, ',', '.') }}
+                        {% elseif not isFinished %}
+                            <span class="precio-spinner">
+                                <span class="spinner-border spinner-border-sm text-secondary" role="status"
+                                      style="width:.85rem;height:.85rem;border-width:.15em;vertical-align:middle;"></span>
+                            </span>
                         {% else %}
                             <span style="color:#bbb;font-size:.8rem;">N/D</span>
                         {% endif %}
@@ -389,6 +393,8 @@
                     <td class="td-precio-total" style="text-align:right;white-space:nowrap;font-size:.88rem;font-weight:700;">
                         {% if precioTotal is not null %}
                             U$S {{ precioTotal|number_format(2, ',', '.') }}
+                        {% elseif not isFinished %}
+                            <span style="color:#bbb;font-size:.8rem;">—</span>
                         {% else %}
                             <span style="color:#bbb;font-size:.8rem;">N/D</span>
                         {% endif %}
@@ -622,6 +628,26 @@
             });
     })();
 
+    // ── Carga asíncrona de precios al renderizar la página ──
+    (function () {
+        if (isFinished) return;
+
+        fetch(`/secure/proyectos/${proyectoId}/precios-json`)
+            .then(r => r.json())
+            .then(data => {
+                // data = { itemId: { articulo, precio, precioTotal } | null, ... }
+                for (const [itemId, precio] of Object.entries(data)) {
+                    renderPrecioCell(parseInt(itemId), precio);
+                }
+                recalcularTotales();
+            })
+            .catch(() => {
+                document.querySelectorAll('.precio-spinner').forEach(el => {
+                    el.closest('td').innerHTML = '<span style="color:#bbb;font-size:.8rem;">N/D</span>';
+                });
+            });
+    })();
+
     // ── Solicitar cotización ──
     (function () {
         const btnSolicitar = document.getElementById('btn-solicitar-pedido');
@@ -705,6 +731,23 @@
         }
     }
 
+    // ── Renderiza la celda de precio unitario y actualiza data-precio-unit ──
+    function renderPrecioCell(itemId, precio) {
+        const cell = document.getElementById(`precio-unit-cell-${itemId}`);
+        if (!cell) return;
+
+        const row = document.querySelector(`.tr-producto[data-item-id="${itemId}"]`);
+
+        if (!precio) {
+            cell.innerHTML = '<span style="color:#bbb;font-size:.8rem;">N/D</span>';
+            if (row) row.dataset.precioUnit = '';
+            return;
+        }
+
+        cell.textContent = `U$S ${precio.precio.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+        if (row) row.dataset.precioUnit = precio.precio;
+    }
+
     // ── Spinner HTML para celdas de leadtime ──
     const LEADTIME_SPINNER_HTML = `
         <span class="leadtime-spinner">
@@ -781,6 +824,10 @@
             }
             if (data.leadtime !== undefined) {
                 renderLeadtimeCell(itemId, data.leadtime);
+            }
+            if (data.precio !== undefined) {
+                renderPrecioCell(itemId, data.precio);
+                recalcularTotales();
             }
         }
     }
