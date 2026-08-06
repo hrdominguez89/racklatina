@@ -6,7 +6,6 @@ use App\Entity\Proyecto;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ProyectoExcelExporter
@@ -27,12 +26,13 @@ class ProyectoExcelExporter
         $sheet->getColumnDimension('C')->setWidth(38);
         $sheet->getColumnDimension('D')->setWidth(12);
         $sheet->getColumnDimension('E')->setWidth(30);
+        $sheet->getColumnDimension('F')->setWidth(28);
         if ($hayPrecios) {
-            $sheet->getColumnDimension('F')->setWidth(18);
             $sheet->getColumnDimension('G')->setWidth(18);
+            $sheet->getColumnDimension('H')->setWidth(18);
         }
 
-        $lastCol = $hayPrecios ? 'G' : 'E';
+        $lastCol = $hayPrecios ? 'H' : 'F';
 
         // Fila 2: borde inferior decorativo
         $sheet->getRowDimension(2)->setRowHeight(15.75);
@@ -45,10 +45,11 @@ class ProyectoExcelExporter
             'C3' => 'Descripción',
             'D3' => 'Cantidad',
             'E3' => 'Notas',
+            'F3' => 'Plazo de entrega',
         ];
         if ($hayPrecios) {
-            $headers['F3'] = 'Precio unit. (USD)';
-            $headers['G3'] = 'Total (USD)';
+            $headers['G3'] = 'Precio unit. (USD)';
+            $headers['H3'] = 'Total (USD)';
         }
         foreach ($headers as $cell => $label) {
             $sheet->setCellValue($cell, $label);
@@ -68,26 +69,48 @@ class ProyectoExcelExporter
                 $notas[] = $item->getComment();
             }
             if ($item->isReemplazoPrecio()) {
-                $notas[] = '↔ Reemplazo por precio';
+                $notas[] = 'Reemplazo por precio';
             }
             if ($item->isReemplazoPlazo()) {
-                $notas[] = '↔ Reemplazo por plazo';
+                $notas[] = 'Reemplazo por plazo';
             }
             $sheet->setCellValue('E' . $row, implode("\n", $notas));
+
+            // Plazo de entrega
+            $lt = $item->getLeadtimeResultado();
+            if ($lt === null) {
+                $plazoTexto = '';
+            } elseif ($lt['consultarPlazos']) {
+                $plazoTexto = 'CONSULTAR PLAZOS';
+            } else {
+                $lineas = [];
+                foreach ($lt['items'] as $ltItem) {
+                    if ($ltItem['disponible']) {
+                        $lineas[] = $ltItem['cantidad'] . ' U. Disponible' . ($ltItem['cantidad'] != 1 ? 's' : '');
+                    } else {
+                        $lineas[] = $ltItem['cantidad'] . ' U. para ' . $ltItem['fechaEntrega'];
+                    }
+                }
+                $plazoTexto = implode(' - ', $lineas);
+            }
+            $sheet->setCellValue('F' . $row, $plazoTexto);
+
+            // Altura automática para que el wrap se vea bien
+            $sheet->getRowDimension($row)->setRowHeight(-1);
 
             if ($hayPrecios) {
                 $precioUnit = $item->getPrecioUnitarioUsd();
                 $precioTotal = $item->getPrecioTotalUsd();
 
                 if ($precioUnit !== null) {
-                    $sheet->setCellValue('F' . $row, $precioUnit);
-                    $sheet->setCellValue('G' . $row, $precioTotal);
-                    $sheet->getStyle('F' . $row . ':G' . $row)
+                    $sheet->setCellValue('G' . $row, $precioUnit);
+                    $sheet->setCellValue('H' . $row, $precioTotal);
+                    $sheet->getStyle('G' . $row . ':H' . $row)
                         ->getNumberFormat()
                         ->setFormatCode('"U$S "#,##0.00');
                 } else {
-                    $sheet->setCellValue('F' . $row, 'N/D');
                     $sheet->setCellValue('G' . $row, 'N/D');
+                    $sheet->setCellValue('H' . $row, 'N/D');
                 }
             }
 
@@ -99,12 +122,12 @@ class ProyectoExcelExporter
         $sheet->getRowDimension($lastRow)->setRowHeight(15.75);
 
         if ($hayPrecios && $proyecto->getPrecioTotalUsd() !== null) {
-            $sheet->setCellValue('F' . $lastRow, 'Total estimado');
-            $sheet->setCellValue('G' . $lastRow, $proyecto->getPrecioTotalUsd());
-            $sheet->getStyle('F' . $lastRow)->getFont()->setBold(true);
-            $sheet->getStyle('F' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->setCellValue('G' . $lastRow, 'Total estimado');
+            $sheet->setCellValue('H' . $lastRow, $proyecto->getPrecioTotalUsd());
             $sheet->getStyle('G' . $lastRow)->getFont()->setBold(true);
-            $sheet->getStyle('G' . $lastRow)
+            $sheet->getStyle('G' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle('H' . $lastRow)->getFont()->setBold(true);
+            $sheet->getStyle('H' . $lastRow)
                 ->getNumberFormat()
                 ->setFormatCode('"U$S "#,##0.00');
         }
@@ -136,7 +159,7 @@ class ProyectoExcelExporter
     private function styleDataRow(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet, string $range): void
     {
         $sheet->getStyle($range)->applyFromArray([
-            'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+            'alignment' => ['vertical' => Alignment::VERTICAL_TOP],
             'borders'   => [
                 'bottom' => ['borderStyle' => Border::BORDER_HAIR],
             ],
@@ -146,9 +169,10 @@ class ProyectoExcelExporter
         $rowNum = preg_replace('/[^0-9]/', '', $col[0]);
         $sheet->getStyle('D' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle('E' . $rowNum)->getAlignment()->setWrapText(true);
+        $sheet->getStyle('F' . $rowNum)->getAlignment()->setWrapText(true);
         // Precios alineados a la derecha
-        $sheet->getStyle('F' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
         $sheet->getStyle('G' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $sheet->getStyle('H' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
     }
 
     private function applyBorderBottom(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet, string $range): void

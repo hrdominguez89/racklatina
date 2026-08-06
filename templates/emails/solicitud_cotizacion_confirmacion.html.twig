@@ -97,12 +97,11 @@
                             {% else %}
                                 {% for ltItem in lt.items %}
                                     {% if ltItem.disponible %}
-                                        <strong>{{ ltItem.cantidad }}</strong> Disponible{{ ltItem.cantidad != 1 ? 's' : '' }}<br>
+                                        <strong>{{ ltItem.cantidad }}</strong> U. Disponible{{ ltItem.cantidad != 1 ? 's' : '' }}<br>
                                     {% else %}
-                                        <strong>{{ ltItem.cantidad }}</strong> para {{ ltItem.fechaEntrega }}<br>
+                                        <strong>{{ ltItem.cantidad }}</strong> U. para {{ ltItem.fechaEntrega }}<br>
                                     {% endif %}
                                 {% endfor %}
-                                <span style="color:#888;font-size:10px;">Salvo venta</span>
                             {% endif %}
                         </td>
                         <td class="col-precio">
@@ -135,11 +134,7 @@
 
         <p class="status-highlight">Actualmente su pedido se encuentra en proceso de revisión.</p>
         <p class="status-body">
-            {% if plazo_maximo is not null %}
-                Le informamos que la fecha estimada de entrega es el <strong>{{ plazo_maximo }}</strong>. Salvo venta.
-            {% else %}
-                Para consultar los plazos de entrega, comuníquese con nuestro equipo comercial.
-            {% endif %}
+            Le informamos que el precio total y el plazo de entrega indicados son estimados, y se confirmará al momento de concretar la compra.
         </p>
         <p class="cierre">Quedamos a su disposición ante cualquier consulta o requerimiento adicional.</p>
 

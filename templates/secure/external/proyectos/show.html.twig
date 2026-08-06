@@ -357,23 +357,17 @@
                     </td>
 
                     {# Cantidad #}
-                    {% set maxStock = stockMap[item.articulo.codigoCalipso] is defined ? stockMap[item.articulo.codigoCalipso] : 0 %}
-                    {% set sinStock = maxStock == 0 %}
                     <td>
                         <div class="qty-ctrl">
                             <button type="button" class="btn-item-menos" data-item="{{ item.id }}"
-                                    {% if isFinished or sinStock %}disabled{% endif %}>−</button>
+                                    {% if isFinished %}disabled{% endif %}>−</button>
                             <input type="number" class="input-item-cantidad"
-                                   value="{{ item.cantidad }}" min="1" max="{{ maxStock > 0 ? maxStock : 1 }}"
+                                   value="{{ item.cantidad }}" min="1"
                                    data-item="{{ item.id }}" data-prev="{{ item.cantidad }}"
-                                   data-stock-max="{{ maxStock }}"
-                                   {% if isFinished or sinStock %}disabled{% endif %}>
+                                   {% if isFinished %}disabled{% endif %}>
                             <button type="button" class="btn-item-mas" data-item="{{ item.id }}"
-                                    {% if isFinished or sinStock %}disabled{% endif %}>+</button>
+                                    {% if isFinished %}disabled{% endif %}>+</button>
                         </div>
-                        {% if sinStock %}
-                        <div style="font-size:.7rem;color:#dc3545;margin-top:.25rem;white-space:nowrap;">Sin stock</div>
-                        {% endif %}
                     </td>
 
                     {# Precio unitario: snapshot si está finalizado, tiempo real (caché) si en curso #}
@@ -875,47 +869,23 @@
     });
 
     // ── Botón + (incrementar) ──
-    // Se escucha en el contenedor .qty-ctrl para capturar clics aunque el botón esté disabled
-    document.querySelectorAll('.qty-ctrl').forEach(ctrl => {
-        ctrl.addEventListener('click', function (e) {
-            const btn = e.target.closest('.btn-item-mas');
-            if (!btn) return;
-            const id    = btn.dataset.item;
-            const input = ctrl.querySelector(`.input-item-cantidad[data-item="${id}"]`);
+    document.querySelectorAll('.btn-item-mas').forEach(btn => {
+        btn.addEventListener('click', function () {
+            if (this.disabled) return;
+            const id    = this.dataset.item;
+            const input = document.querySelector(`.input-item-cantidad[data-item="${id}"]`);
             if (!input) return;
-            const max  = parseInt(input.dataset.stockMax);
-            const val  = parseInt(input.value);
-            const tope = max > 0 ? max : 999;
-
-            // Si el botón está deshabilitado (sinStock o isFinished), mostrar aviso y salir
-            if (btn.disabled) {
-                if (max === 0) {
-                    RKL.toast('Este producto no tiene stock disponible.', 'warning');
-                }
-                return;
-            }
-
-            if (val < tope) {
-                input.value = val + 1;
-                recalcularTotales();
-                actualizarCantidad(id, input.value, input);
-            } else if (max > 0) {
-                RKL.toast(`No hay más stock disponible para este producto (máx. ${max} unidad${max !== 1 ? 'es' : ''}).`, 'warning');
-            }
+            input.value = parseInt(input.value) + 1;
+            recalcularTotales();
+            actualizarCantidad(id, input.value, input);
         });
     });
 
     // ── Cambio manual de input ──
     document.querySelectorAll('.input-item-cantidad').forEach(input => {
         input.addEventListener('change', function () {
-            const max = parseInt(this.dataset.stockMax);
-            const tope = max > 0 ? max : 999;
-            const v = Math.max(1, Math.min(tope, parseInt(this.value) || 1));
-            if (parseInt(this.value) > tope) {
-                RKL.toast(`Stock disponible: ${tope} unidad${tope !== 1 ? 'es' : ''}.`, 'danger');
-            }
+            const v = Math.max(1, parseInt(this.value) || 1);
             this.value = v;
-            sincronizarBotonesMas(this);
             recalcularTotales();
             actualizarCantidad(this.dataset.item, v, this);
         });
