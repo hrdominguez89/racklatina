@@ -35,8 +35,8 @@ class ProyectoController extends AbstractController
 
     private function denyUnlessProyectosWrite(): void
     {
-        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
-            throw $this->createAccessDeniedException('El perfil Administración solo puede visualizar proyectos.');
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_ADMINISTRACION')) {
+            throw $this->createAccessDeniedException('No tenés permiso para crear o modificar proyectos.');
         }
     }
 
@@ -445,7 +445,7 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/cantidad', name: 'app_proyectos_update_cantidad', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function updateCantidad(int $itemId, Request $request): JsonResponse
     {
-        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_ADMINISTRACION')) {
             return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
         }
 
@@ -494,7 +494,7 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/comment', name: 'app_proyectos_update_comment', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function updateComment(int $itemId, Request $request): JsonResponse
     {
-        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_ADMINISTRACION')) {
             return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
         }
 
@@ -512,7 +512,7 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/reemplazo', name: 'app_proyectos_update_reemplazo', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function updateReemplazo(int $itemId, Request $request): JsonResponse
     {
-        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_ADMINISTRACION')) {
             return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
         }
 
@@ -540,7 +540,7 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/quitar', name: 'app_proyectos_quitar_articulo', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function quitarArticulo(int $itemId, Request $request): JsonResponse
     {
-        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_ADMINISTRACION')) {
             return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
         }
 

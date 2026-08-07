@@ -365,8 +365,8 @@
 
 <div class="row g-3" id="grid-proyectos">
 
-    {# Tarjeta "Crear Proyecto" — solo para compradores #}
-    {% if is_granted('ROLE_COMPRADOR') %}
+    {# Tarjeta "Crear Proyecto" — para usuarios externos (no admins internos) #}
+    {% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMINISTRACION') %}
     <div class="col-12 col-md-6 col-xl-3">
         <div class="proy-card-create"
              data-bs-toggle="modal"
