@@ -387,7 +387,7 @@
                                       style="width:.85rem;height:.85rem;border-width:.15em;vertical-align:middle;"></span>
                             </span>
                         {% else %}
-                            <span style="color:#bbb;font-size:.8rem;">N/D</span>
+                            <span style="color:#888;font-size:.8rem;">Consultar precio</span>
                         {% endif %}
                     </td>
                     <td class="td-precio-total" style="text-align:right;white-space:nowrap;font-size:.88rem;font-weight:700;">
@@ -396,7 +396,7 @@
                         {% elseif not isFinished %}
                             <span style="color:#bbb;font-size:.8rem;">—</span>
                         {% else %}
-                            <span style="color:#bbb;font-size:.8rem;">N/D</span>
+                            <span style="color:#888;font-size:.8rem;">Consultar precio</span>
                         {% endif %}
                     </td>
                     {# Envío / Leadtime #}
@@ -412,27 +412,19 @@
                         {% elseif lt is null %}
                             <span style="color:#bbb;font-size:.78rem;">N/D</span>
                         {% elseif lt.consultarPlazos %}
-                            <span style="font-size:.75rem;color:#888;">Consultar plazos</span>
+                            {% set _cantConsultar = lt.cantidadSolicitada ?? item.cantidad %}
+                            <span style="font-size:.75rem;color:#888;">{{ _cantConsultar }} U. a consultar</span>
                         {% else %}
-                            {% set cantDisp = 0 %}
-                            {% set cantFut = 0 %}
-                            {% set fechaPrimFutura = null %}
+                            {% set _cubierto = 0 %}
                             {% for ltItem in lt.items %}
-                                {% if ltItem.disponible %}
-                                    {% set cantDisp = cantDisp + ltItem.cantidad %}
-                                {% else %}
-                                    {% set cantFut = cantFut + ltItem.cantidad %}
-                                    {% if fechaPrimFutura is null %}
-                                        {% set fechaPrimFutura = ltItem.fechaEntrega %}
-                                    {% endif %}
-                                {% endif %}
+                                <span style="font-size:.75rem;color:#333;display:block;">
+                                    {{ ltItem.cantidad }} U. para el {{ ltItem.fechaEntrega }}
+                                </span>
+                                {% set _cubierto = _cubierto + ltItem.cantidad %}
                             {% endfor %}
-                            {% if cantDisp > 0 %}
-                                <span style="color:#1a7f37;font-size:.78rem;font-weight:700;">{{ cantDisp }} ud. DISPONIBLE</span>
-                            {% endif %}
-                            {% if cantFut > 0 %}
-                                {% if cantDisp > 0 %}<br>{% endif %}
-                                <span style="font-size:.75rem;color:#555;">{{ cantFut }} ud. — {{ fechaPrimFutura }}</span>
+                            {% set _cantTotal = lt.cantidadSolicitada ?? item.cantidad %}
+                            {% if _cubierto < _cantTotal %}
+                                <span style="font-size:.75rem;color:#888;display:block;">{{ _cantTotal - _cubierto }} U. a consultar</span>
                             {% endif %}
                         {% endif %}
                     </td>
@@ -738,8 +730,8 @@
 
         const row = document.querySelector(`.tr-producto[data-item-id="${itemId}"]`);
 
-        if (!precio) {
-            cell.innerHTML = '<span style="color:#bbb;font-size:.8rem;">N/D</span>';
+        if (!precio || precio.precio <= 0) {
+            cell.innerHTML = '<span style="color:#888;font-size:.8rem;">Consultar precio</span>';
             if (row) row.dataset.precioUnit = '';
             return;
         }
@@ -765,28 +757,24 @@
             cell.innerHTML = '<span style="color:#bbb;font-size:.78rem;">N/D</span>';
             return;
         }
+
+        const cantidadSolicitada = lt.cantidadSolicitada ?? 0;
+
         if (lt.consultarPlazos) {
-            cell.innerHTML = '<span style="font-size:.75rem;color:#888;">Consultar plazos</span>';
+            const txt = cantidadSolicitada > 0 ? `${cantidadSolicitada} U. a consultar` : 'A consultar';
+            cell.innerHTML = `<span style="font-size:.75rem;color:#888;">${txt}</span>`;
             return;
         }
 
-        let cantDisp = 0, cantFut = 0, fechaPrimFutura = null;
-        for (const i of lt.items) {
-            if (i.disponible) {
-                cantDisp += i.cantidad;
-            } else {
-                cantFut += i.cantidad;
-                if (!fechaPrimFutura) fechaPrimFutura = i.fechaEntrega;
-            }
-        }
-
         let html = '';
-        if (cantDisp > 0) {
-            html += `<span style="color:#1a7f37;font-size:.78rem;font-weight:700;">${cantDisp} ud. DISPONIBLE</span>`;
+        let cubierto = 0;
+        for (const i of lt.items) {
+            html += `<span style="font-size:.75rem;color:#333;display:block;">${i.cantidad} U. para el ${i.fechaEntrega}</span>`;
+            cubierto += i.cantidad;
         }
-        if (cantFut > 0) {
-            if (cantDisp > 0) html += '<br>';
-            html += `<span style="font-size:.75rem;color:#555;">${cantFut} ud. \u2014 ${fechaPrimFutura}</span>`;
+        const restante = cantidadSolicitada - cubierto;
+        if (restante > 0) {
+            html += `<span style="font-size:.75rem;color:#888;display:block;">${restante} U. a consultar</span>`;
         }
         cell.innerHTML = html || '<span style="color:#bbb;font-size:.78rem;">N/D</span>';
     }

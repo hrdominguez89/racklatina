@@ -107,6 +107,15 @@ class CalypsoPreciosService
 
         $precioUnitario = (float) $data['precio'];
 
+        // Precio cero = sin precio acordado para este artículo/cliente
+        if ($precioUnitario <= 0) {
+            $this->logger->info('[CalypsoPreciosService] Precio cero, se trata como sin precio', [
+                'cliente'  => $codigoCliente,
+                'articulo' => $codigoArticulo,
+            ]);
+            return null;
+        }
+
         // Guardar en sesión (solo el precio unitario, independiente de la cantidad)
         $session->set($cacheKey, ['precio' => $precioUnitario, 'ts' => time()]);
 

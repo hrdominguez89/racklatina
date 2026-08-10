@@ -324,28 +324,32 @@ class ProyectoController extends AbstractController
         $result = [];
 
         foreach ($proyecto->getItems() as $item) {
-            $codigo   = $item->getArticulo()->getCodigoCalipso();
-            $deposito = $this->leadtimeService->resolverDeposito($codigo);
+            $codigo             = $item->getArticulo()->getCodigoCalipso();
+            $deposito           = $this->leadtimeService->resolverDeposito($codigo);
+            $cantidadSolicitada = $item->getCantidad();
 
             if ($deposito === null) {
-                $result[$item->getId()] = ['consultarPlazos' => true, 'items' => []];
+                $result[$item->getId()] = ['consultarPlazos' => true, 'cantidadSolicitada' => $cantidadSolicitada, 'items' => []];
                 continue;
             }
 
             try {
-                $resultado = $this->leadtimeService->consultarLeadtime($codigo, $item->getCantidad(), $deposito);
+                $resultado = $this->leadtimeService->consultarLeadtime($codigo, $cantidadSolicitada, $deposito);
                 $result[$item->getId()] = [
-                    'consultarPlazos' => $resultado['consultarPlazos'],
+                    'consultarPlazos'    => $resultado['consultarPlazos'],
+                    'cantidadSolicitada' => $cantidadSolicitada,
                     'items' => array_map(static fn(array $ltItem): array => [
-                        'cantidad'     => $ltItem['cantidad'],
-                        'disponible'   => $ltItem['disponible'],
-                        'fechaEntrega' => $ltItem['fechaEntrega'] instanceof \DateTimeImmutable
+                        'cantidad'       => $ltItem['cantidad'],
+                        'disponible'     => $ltItem['disponible'],
+                        'fechaEntrega'   => $ltItem['fechaEntrega'] instanceof \DateTimeImmutable
                             ? $ltItem['fechaEntrega']->format('d/m/Y')
                             : $ltItem['fechaEntrega'],
+                        'deposito'       => $ltItem['deposito'] ?? '',
+                        'depositoNombre' => CalypsoLeadtimeService::getNombreDeposito($ltItem['deposito'] ?? ''),
                     ], $resultado['items']),
                 ];
             } catch (\Throwable) {
-                $result[$item->getId()] = ['consultarPlazos' => true, 'items' => []];
+                $result[$item->getId()] = ['consultarPlazos' => true, 'cantidadSolicitada' => $cantidadSolicitada, 'items' => []];
             }
         }
 
@@ -464,17 +468,20 @@ class ProyectoController extends AbstractController
         $deposito = $this->leadtimeService->resolverDeposito($codigo);
 
         if ($deposito === null) {
-            $leadtime = ['consultarPlazos' => true, 'items' => []];
+            $leadtime = ['consultarPlazos' => true, 'cantidadSolicitada' => $cantidad, 'items' => []];
         } else {
             $resultado = $this->leadtimeService->consultarLeadtime($codigo, $cantidad, $deposito);
             $leadtime  = [
-                'consultarPlazos' => $resultado['consultarPlazos'],
+                'consultarPlazos'    => $resultado['consultarPlazos'],
+                'cantidadSolicitada' => $cantidad,
                 'items' => array_map(static fn(array $ltItem): array => [
-                    'cantidad'     => $ltItem['cantidad'],
-                    'disponible'   => $ltItem['disponible'],
-                    'fechaEntrega' => $ltItem['fechaEntrega'] instanceof \DateTimeImmutable
+                    'cantidad'       => $ltItem['cantidad'],
+                    'disponible'     => $ltItem['disponible'],
+                    'fechaEntrega'   => $ltItem['fechaEntrega'] instanceof \DateTimeImmutable
                         ? $ltItem['fechaEntrega']->format('d/m/Y')
                         : $ltItem['fechaEntrega'],
+                    'deposito'       => $ltItem['deposito'] ?? '',
+                    'depositoNombre' => CalypsoLeadtimeService::getNombreDeposito($ltItem['deposito'] ?? ''),
                 ], $resultado['items']),
             ];
         }
@@ -551,6 +558,9 @@ class ProyectoController extends AbstractController
         $esPropio = $item->getProyecto()->getUser()->getId() === $this->getUser()->getId();
         if (!$esPropio && !$this->isGranted('ROLE_ADMIN')) {
             return $this->json(['error' => 'No autorizado'], 403);
+        }
+        if ($item->getProyecto()->getStatus() !== ProyectoStatus::IN_PROGRESS) {
+            return $this->json(['error' => 'El proyecto ya fue enviado y no puede modificarse.'], 403);
         }
 
         $this->em->remove($item);
@@ -775,29 +785,37 @@ class ProyectoController extends AbstractController
     private function snapshotLeadtime(Proyecto $proyecto): void
     {
         foreach ($proyecto->getItems() as $item) {
-            $codigo   = $item->getArticulo()->getCodigoCalipso();
-            $deposito = $this->leadtimeService->resolverDeposito($codigo);
+            $codigo             = $item->getArticulo()->getCodigoCalipso();
+            $deposito           = $this->leadtimeService->resolverDeposito($codigo);
+            $cantidadSolicitada = $item->getCantidad();
 
             if ($deposito === null) {
                 // País/depósito aún no soportado → CONSULTAR PLAZOS
-                $item->setLeadtimeResultado(['consultarPlazos' => true, 'items' => []]);
+                $item->setLeadtimeResultado([
+                    'consultarPlazos'    => true,
+                    'cantidadSolicitada' => $cantidadSolicitada,
+                    'items'              => [],
+                ]);
                 continue;
             }
 
-            $resultado = $this->leadtimeService->consultarLeadtime($codigo, $item->getCantidad(), $deposito);
+            $resultado = $this->leadtimeService->consultarLeadtime($codigo, $cantidadSolicitada, $deposito);
 
             // Convertir DateTimeImmutable → string para almacenamiento JSON
             $itemsSerializables = array_map(static function (array $ltItem): array {
                 return [
-                    'cantidad'     => $ltItem['cantidad'],
-                    'disponible'   => $ltItem['disponible'],
-                    'fechaEntrega' => $ltItem['fechaEntrega']->format('d/m/Y'),
+                    'cantidad'       => $ltItem['cantidad'],
+                    'disponible'     => $ltItem['disponible'],
+                    'fechaEntrega'   => $ltItem['fechaEntrega']->format('d/m/Y'),
+                    'deposito'       => (string) $ltItem['deposito'],
+                    'depositoNombre' => CalypsoLeadtimeService::getNombreDeposito((string) $ltItem['deposito']),
                 ];
             }, $resultado['items']);
 
             $item->setLeadtimeResultado([
-                'consultarPlazos' => $resultado['consultarPlazos'],
-                'items'           => $itemsSerializables,
+                'consultarPlazos'    => $resultado['consultarPlazos'],
+                'cantidadSolicitada' => $cantidadSolicitada,
+                'items'              => $itemsSerializables,
             ]);
         }
     }

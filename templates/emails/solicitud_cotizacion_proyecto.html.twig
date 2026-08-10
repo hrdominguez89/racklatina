@@ -78,15 +78,18 @@
                         {% if lt is null %}
                             <span style="color:#ccc;">&#8212;</span>
                         {% elseif lt.consultarPlazos %}
-                            <span style="color:#999;font-size:11px;">CONSULTAR PLAZOS</span>
+                            {% set _cantC = lt.cantidadSolicitada ?? item.cantidad %}
+                            <span style="color:#999;font-size:11px;">{{ _cantC }} U. a consultar</span>
                         {% else %}
+                            {% set _cubiertoE = 0 %}
                             {% for ltItem in lt.items %}
-                                {% if ltItem.disponible %}
-                                    <strong>{{ ltItem.cantidad }}</strong> Disponible{{ ltItem.cantidad != 1 ? 's' : '' }}<br>
-                                {% else %}
-                                    <strong>{{ ltItem.cantidad }}</strong> para {{ ltItem.fechaEntrega }}<br>
-                                {% endif %}
+                                <strong>{{ ltItem.cantidad }}</strong> U. para el {{ ltItem.fechaEntrega }}<br>
+                                {% set _cubiertoE = _cubiertoE + ltItem.cantidad %}
                             {% endfor %}
+                            {% set _totalE = lt.cantidadSolicitada ?? item.cantidad %}
+                            {% if _cubiertoE < _totalE %}
+                                <span style="color:#999;font-size:11px;">{{ _totalE - _cubiertoE }} U. a consultar</span><br>
+                            {% endif %}
                             <span style="color:#888;font-size:10px;">Salvo venta</span>
                         {% endif %}
                     </td>
@@ -94,14 +97,14 @@
                         {% if item.precioUnitarioUsd is not null %}
                             U$S {{ item.precioUnitarioUsd|number_format(2, ',', '.') }}
                         {% else %}
-                            <span class="precio-nd">N/D</span>
+                            <span class="precio-nd">Consultar precio</span>
                         {% endif %}
                     </td>
                     <td class="col-total">
                         {% if item.precioTotalUsd is not null %}
                             U$S {{ item.precioTotalUsd|number_format(2, ',', '.') }}
                         {% else %}
-                            <span class="precio-nd">N/D</span>
+                            <span class="precio-nd">Consultar precio</span>
                         {% endif %}
                     </td>
                 </tr>

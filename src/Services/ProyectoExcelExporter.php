@@ -81,17 +81,21 @@ class ProyectoExcelExporter
             if ($lt === null) {
                 $plazoTexto = '';
             } elseif ($lt['consultarPlazos']) {
-                $plazoTexto = 'CONSULTAR PLAZOS';
+                $cantConsultar = $lt['cantidadSolicitada'] ?? $item->getCantidad();
+                $plazoTexto = $cantConsultar . ' U. a consultar';
             } else {
                 $lineas = [];
+                $cubierto = 0;
                 foreach ($lt['items'] as $ltItem) {
-                    if ($ltItem['disponible']) {
-                        $lineas[] = $ltItem['cantidad'] . ' U. Disponible' . ($ltItem['cantidad'] != 1 ? 's' : '');
-                    } else {
-                        $lineas[] = $ltItem['cantidad'] . ' U. para ' . $ltItem['fechaEntrega'];
-                    }
+                    $lineas[] = $ltItem['cantidad'] . ' U. para el ' . $ltItem['fechaEntrega'];
+                    $cubierto += (int) $ltItem['cantidad'];
                 }
-                $plazoTexto = implode(' - ', $lineas);
+                $cantTotal = $lt['cantidadSolicitada'] ?? $item->getCantidad();
+                $restante = $cantTotal - $cubierto;
+                if ($restante > 0) {
+                    $lineas[] = $restante . ' U. a consultar';
+                }
+                $plazoTexto = implode("\n", $lineas);
             }
             $sheet->setCellValue('F' . $row, $plazoTexto);
 
@@ -109,8 +113,8 @@ class ProyectoExcelExporter
                         ->getNumberFormat()
                         ->setFormatCode('"U$S "#,##0.00');
                 } else {
-                    $sheet->setCellValue('G' . $row, 'N/D');
-                    $sheet->setCellValue('H' . $row, 'N/D');
+                    $sheet->setCellValue('G' . $row, 'Consultar precio');
+                    $sheet->setCellValue('H' . $row, 'Consultar precio');
                 }
             }
 

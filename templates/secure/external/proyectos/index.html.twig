@@ -16,6 +16,9 @@
 <link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
 {% endif %}
 <style>
+
+/* Zebra striping: la variable se setea vía drawCallback en JS */
+
 /* ── Admin filter bar ── */
 .proy-filters {
     background: #fff;
@@ -321,7 +324,7 @@
 
 <div class="card">
     <div class="card-body">
-        <table id="tabla-proyectos" class="table table-hover table-striped" style="width:100%">
+        <table id="tabla-proyectos" class="table table-hover" style="width:100%">
             <thead>
                 <tr>
                     <th>Empresa</th>
@@ -467,7 +470,8 @@
     <li>
         <button class="dropdown-item text-danger btn-eliminar-proyecto"
                 data-proyecto-id="{{ proyecto.id }}"
-                data-proyecto-nombre="{{ proyecto.nombre|e('html_attr') }}">
+                data-proyecto-nombre="{{ proyecto.nombre|e('html_attr') }}"
+                data-csrf="{{ csrf_token('proyecto_eliminar_' ~ proyecto.id) }}">
             <i class="ri-delete-bin-line me-2"></i> Eliminar
         </button>
     </li>
@@ -506,16 +510,28 @@
 
 {% block extra_js %}
 {% if isAdmin %}
+<script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
 <script src="{{ asset('Datatables/datatables.min.js') }}"></script>
 <script>
 $(document).ready(function () {
     $('#tabla-proyectos').DataTable({
-        language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+        language: { url: '{{ asset('lang/es-ES.json') }}' },
         order: [[2, 'desc']],
         pageLength: 25,
         columnDefs: [
             { orderable: false, targets: 4 }
-        ]
+        ],
+        drawCallback: function () {
+            this.api().rows({ page: 'current' }).nodes().each(function (row, i) {
+                $(row).find('td').each(function () {
+                    if (i % 2 === 0) {
+                        this.style.setProperty('--vz-table-bg-type', 'rgba(0, 0, 0, 0.07)');
+                    } else {
+                        this.style.removeProperty('--vz-table-bg-type');
+                    }
+                });
+            });
+        }
     });
 });
 </script>
@@ -528,7 +544,7 @@ document.querySelectorAll('.btn-eliminar-proyecto').forEach(btn => {
         const nombre = this.dataset.proyectoNombre;
         document.getElementById('nombre-proyecto-eliminar').textContent = `"${nombre}"`;
         document.getElementById('form-eliminar-proyecto').action = `/secure/proyectos/${id}/eliminar`;
-        document.getElementById('token-eliminar').value = '{{ csrf_token("proyecto_eliminar_") }}' + id;
+        document.getElementById('token-eliminar').value = this.dataset.csrf;
         new bootstrap.Modal(document.getElementById('modalEliminarProyecto')).show();
     });
 });

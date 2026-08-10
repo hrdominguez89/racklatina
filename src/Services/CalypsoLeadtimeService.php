@@ -219,6 +219,23 @@ class CalypsoLeadtimeService
         };
     }
 
+    /**
+     * Devuelve el nombre comercial de un depósito para mostrar al usuario.
+     *
+     * Mapeo de depósitos confirmado por Calypso:
+     *   101 → Rockwell (ARG)
+     *   Agregar nuevos depósitos cuando Calypso los habilite.
+     */
+    public static function getNombreDeposito(string $deposito): string
+    {
+        return match($deposito) {
+            '101' => 'Rockwell',
+            // '201' => 'Rockwell UY',
+            // '301' => 'Rockwell PY',
+            default => '',
+        };
+    }
+
     private function respuestaConsultarPlazos(): array
     {
         return [
@@ -235,13 +252,14 @@ class CalypsoLeadtimeService
         return [
             'consultarPlazos' => $resultado['consultarPlazos'],
             'items' => array_map(static fn(array $item): array => [
-                'stockId'      => $item['stockId'],
-                'deposito'     => $item['deposito'],
-                'cantidad'     => $item['cantidad'],
-                'fechaEntrega' => $item['fechaEntrega'] instanceof \DateTimeImmutable
+                'stockId'        => $item['stockId'],
+                'deposito'       => $item['deposito'],
+                'depositoNombre' => self::getNombreDeposito((string) $item['deposito']),
+                'cantidad'       => $item['cantidad'],
+                'fechaEntrega'   => $item['fechaEntrega'] instanceof \DateTimeImmutable
                     ? $item['fechaEntrega']->format('d/m/Y')
                     : $item['fechaEntrega'],
-                'disponible'   => $item['disponible'],
+                'disponible'     => $item['disponible'],
             ], $resultado['items']),
         ];
     }
@@ -254,11 +272,12 @@ class CalypsoLeadtimeService
         return [
             'consultarPlazos' => $data['consultarPlazos'],
             'items' => array_map(static fn(array $item): array => [
-                'stockId'      => $item['stockId'],
-                'deposito'     => $item['deposito'],
-                'cantidad'     => $item['cantidad'],
-                'fechaEntrega' => \DateTimeImmutable::createFromFormat('d/m/Y', $item['fechaEntrega']),
-                'disponible'   => $item['disponible'],
+                'stockId'        => $item['stockId'],
+                'deposito'       => $item['deposito'],
+                'depositoNombre' => $item['depositoNombre'] ?? self::getNombreDeposito((string) $item['deposito']),
+                'cantidad'       => $item['cantidad'],
+                'fechaEntrega'   => \DateTimeImmutable::createFromFormat('d/m/Y', $item['fechaEntrega']),
+                'disponible'     => $item['disponible'],
             ], $data['items']),
         ];
     }
