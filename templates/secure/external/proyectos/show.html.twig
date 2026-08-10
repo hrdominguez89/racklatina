@@ -842,7 +842,8 @@
     });
 
     // ── Modal eliminar item ──
-    let pendingDeleteId = null;
+    let pendingDeleteId  = null;
+    let pendingDeleteUrl = null;
     const _modalEl = document.getElementById('modalEliminarItem');
     const _bsModal = bootstrap.Modal.getOrCreateInstance(_modalEl);
 
@@ -850,7 +851,8 @@
         const row    = document.querySelector(`.tr-producto[data-item-id="${id}"]`);
         const btn    = row ? row.querySelector('.btn-quitar-item') : null;
         const nombre = btn ? btn.dataset.nombre : 'Este producto';
-        pendingDeleteId = id;
+        pendingDeleteId  = id;
+        pendingDeleteUrl = btn?.dataset.url ?? `/secure/proyectos/item/${id}/quitar`;
         document.getElementById('modal-item-nombre').textContent = nombre;
         _bsModal.show();
     }
@@ -858,10 +860,10 @@
     document.getElementById('btn-confirmar-eliminar-item').addEventListener('click', async function () {
         if (!pendingDeleteId) return;
         const id  = pendingDeleteId;
-        pendingDeleteId = null;
+        const url = pendingDeleteUrl;
+        pendingDeleteId  = null;
+        pendingDeleteUrl = null;
         _bsModal.hide();
-        const row = document.querySelector(`.tr-producto[data-item-id="${id}"]`);
-        const url = row?.querySelector('.btn-quitar-item')?.dataset.url;
         if (!url) { RKL.toast('Error: URL no encontrada.', 'danger'); return; }
         try {
             const fd   = new FormData();
