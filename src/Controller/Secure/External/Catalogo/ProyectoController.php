@@ -166,12 +166,21 @@ class ProyectoController extends AbstractController
             }
         }
 
+        $isAdmin     = $this->isGranted('ROLE_ADMIN');
+        $empresaNombre = null;
+        if ($isAdmin && $proyecto->getClienteCodigo()) {
+            $cliente = $this->clientesRepo->findOneBy(['codigoCalipso' => $proyecto->getClienteCodigo()]);
+            $empresaNombre = $cliente?->getRazonSocial();
+        }
+
         return $this->render('secure/external/proyectos/show.html.twig', [
             'proyecto'             => $proyecto,
             'stockMap'             => $stockMap,
             'preciosMap'           => $preciosMap,
             'precioTotalCalculado' => $precioTotalCalculado,
             'leadtimeMap'          => $leadtimeMap,
+            'isAdmin'              => $isAdmin,
+            'empresaNombre'        => $empresaNombre,
         ]);
     }
 
