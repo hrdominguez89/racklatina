@@ -31,10 +31,18 @@ class CatalogoController extends AbstractController
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
-        $codigo = $request->request->get('cliente_codigo', '');
+        $codigo = trim($request->request->get('cliente_codigo', ''));
         $user = $this->getUser();
 
         if ($this->isGranted('ROLE_ADMIN')) {
+            // Admin puede limpiar la selección enviando código vacío
+            if ($codigo === '') {
+                $user->setActiveCliente(null);
+                $user->setActiveProyectoId(null);
+                $this->em->flush();
+                $referer = $request->headers->get('referer');
+                return $this->redirect($referer ?: $this->generateUrl('app_catalogo_index'));
+            }
             // Admins pueden switchear a cualquier empresa existente en Calypso
             if (!$this->clientesRepo->find($codigo)) {
                 throw $this->createNotFoundException('Empresa no encontrada.');
@@ -209,10 +217,17 @@ class CatalogoController extends AbstractController
         ));
 
         $precio = null;
-        if ($user && $user->getActiveClienteCodigo()) {
+        $puedeVerPrecio = $user && (
+            $this->isGranted('ROLE_COMPRADOR') ||
+            $this->isGranted('ROLE_ADMIN') ||
+            $this->isGranted('ROLE_ADMINISTRACION') ||
+            $this->isGranted('ROLE_INGENIERO_N2')
+        );
+        if ($puedeVerPrecio) {
+            $codigoCliente = $user->getActiveClienteCodigo() ?? 'DEMO';
             try {
                 $precio = $this->preciosService->consultarPrecio(
-                    $user->getActiveClienteCodigo(),
+                    $codigoCliente,
                     $articulo->getCodigoCalipso()
                 );
             } catch (\RuntimeException) {

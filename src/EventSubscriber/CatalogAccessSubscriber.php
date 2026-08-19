@@ -53,7 +53,8 @@ class CatalogAccessSubscriber implements EventSubscriberInterface
             return;
         }
 
-        if (!str_ends_with($user->getEmail(), '@racklatina.com')) {
+        $rolesPermitidos = ['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_INGENIERO_N1', 'ROLE_INGENIERO_N2', 'ROLE_USER'];
+        if (!str_ends_with($user->getEmail(), '@racklatina.com') && !array_intersect($rolesPermitidos, $user->getRoles())) {
             if ($session instanceof FlashBagAwareSessionInterface) {
                 $session->getFlashBag()->add('info', 'El catálogo estará disponible próximamente.');
             }

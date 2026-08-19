@@ -403,6 +403,15 @@ document.addEventListener('click', function(e) {
                             style="background:var(--rkl-primary);color:#fff;border:none;border-radius:6px;letter-spacing:.5px;">
                         GUARDAR CAMBIOS
                     </button>
+                    {% if activoCodigo %}
+                    <form method="POST" action="{{ path('app_catalogo_switch_empresa') }}" class="m-0">
+                        <input type="hidden" name="cliente_codigo" value="">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm w-100"
+                                style="border-radius:6px;font-size:.8rem;">
+                            <i class="ri-close-line me-1"></i>Ver sin empresa seleccionada
+                        </button>
+                    </form>
+                    {% endif %}
                     <div class="d-flex justify-content-between align-items-center mt-1">
                         <a href="{{ path('app_mi_perfil_controllador_edicion') }}"
                            class="small text-muted text-decoration-none">

@@ -6,6 +6,8 @@
 {% set stockMap = stockMap ?? {} %}
 {% set tagsMap = tagsMap ?? {} %}
 {% set tieneStock = stockMap[articulo.codigoCalipso] is defined and stockMap[articulo.codigoCalipso] > 0 %}
+{% set puedeVerStock = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
+{% set puedeProyectos = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') %}
 {% set rawTags = tagsMap[articulo.codigoCalipso] is defined ? tagsMap[articulo.codigoCalipso] : null %}
 {% set articleTags = rawTags ? rawTags|split(',')|map(t => t|trim)|filter(t => t != '') : [] %}
 
@@ -42,7 +44,7 @@
                 {% endif %}
             </div>
             <div class="col-auto ms-auto d-flex gap-2 flex-wrap justify-content-end position-relative">
-                {% if app.user %}
+                {% if puedeProyectos %}
                     <button type="button" class="btn btn-dark btn-sm btn-agregar-proyecto"
                             data-articulo-codigo="{{ articulo.codigoCalipso }}"
                             data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}">
@@ -51,7 +53,7 @@
                     <button type="button" class="btn btn-outline-secondary btn-sm" disabled>
                         Pedir cotización
                     </button>
-                {% else %}
+                {% elseif not app.user %}
                     <a href="{{ path('app_login', {redirect: app.request.requestUri}) }}" class="btn btn-outline-warning btn-sm">
                         Iniciá sesión para agregar
                     </a>
@@ -78,17 +80,19 @@
             <i class="ri-image-line fs-1 text-muted"></i>
             {% endif %}
         </div>
-        {# Badges de tags (de StockAdvisor) o fallback a "En Stock" #}
-        {% if articleTags|length > 0 %}
-        <div class="position-absolute top-0 start-0 m-2 d-flex flex-column gap-1">
-            {% for tag in articleTags %}
-            <span class="badge rounded-pill"
-                  style="background:var(--rkl-primary);font-size:.68rem;font-weight:600;letter-spacing:.2px;">{{ tag }}</span>
-            {% endfor %}
-        </div>
-        {% elseif tieneStock %}
-        <span class="position-absolute top-0 start-0 m-2 badge rounded-pill"
-              style="background:var(--rkl-primary);font-size:.68rem;font-weight:600;letter-spacing:.2px;">En Stock</span>
+        {# Badges de tags (de StockAdvisor) o fallback a "En Stock" — solo para roles con acceso a stock #}
+        {% if puedeVerStock %}
+            {% if articleTags|length > 0 %}
+            <div class="position-absolute top-0 start-0 m-2 d-flex flex-column gap-1">
+                {% for tag in articleTags %}
+                <span class="badge rounded-pill"
+                      style="background:var(--rkl-primary);font-size:.68rem;font-weight:600;letter-spacing:.2px;">{{ tag }}</span>
+                {% endfor %}
+            </div>
+            {% elseif tieneStock %}
+            <span class="position-absolute top-0 start-0 m-2 badge rounded-pill"
+                  style="background:var(--rkl-primary);font-size:.68rem;font-weight:600;letter-spacing:.2px;">En Stock</span>
+            {% endif %}
         {% endif %}
     </div>
     <div class="card-body p-3 d-flex flex-column">
@@ -103,7 +107,7 @@
         <small class="text-muted mb-2 d-block">Cód: {{ articulo.codigoRockwell }}</small>
         {% endif %}
         <div class="mt-auto position-relative">
-            {% if app.user %}
+            {% if puedeProyectos %}
                 <button type="button"
                         class="btn btn-agregar-proyecto w-100"
                         style="border:1.5px solid var(--rkl-primary);color:var(--rkl-primary);background:#fff;border-radius:5px;font-size:.73rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:.5rem .75rem;transition:background .15s,color .15s;"
@@ -113,7 +117,7 @@
                         data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}">
                     Agregar a Proyecto
                 </button>
-            {% else %}
+            {% elseif not app.user %}
                 <a href="{{ path('app_login', {redirect: app.request.requestUri}) }}" class="btn w-100"
                    style="border:1.5px solid var(--rkl-primary);color:var(--rkl-primary);background:#fff;border-radius:5px;font-size:.73rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:.5rem .75rem;">
                     Iniciá sesión

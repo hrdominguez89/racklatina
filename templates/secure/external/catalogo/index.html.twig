@@ -102,7 +102,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="fw-bold mb-0" style="color:#1a1a1a;">Productos</h4>
-    {% if app.user %}
+    {% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') %}
     <button type="button"
             class="btn btn-sm fw-semibold d-none d-md-inline-flex align-items-center gap-1"
             style="background:var(--rkl-primary);color:#fff;border:none;padding:.4rem 1.2rem;border-radius:6px;"
@@ -192,7 +192,7 @@
                     {% elseif articulo.descripcion %}
                     <p class="rkl-prod-sub">{{ articulo.descripcion }}</p>
                     {% endif %}
-                    {% if app.user %}
+                    {% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') %}
                     <div class="mt-auto position-relative">
                         <button type="button"
                                 class="rkl-btn-agregar btn-agregar-proyecto"

@@ -6,33 +6,24 @@ use App\Repository\StockAdvisorRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StockAdvisorRepository::class, readOnly: true)]
-#[ORM\Table(name: 'Stock_Advisor')]
+#[ORM\Table(name: 'Advisor_Stock')]
 class StockAdvisor
 {
     #[ORM\Id]
     #[ORM\Column(name: 'Codigo_Calipso', length: 50)]
     private string $codigoCalipso;
 
-    #[ORM\Column(name: 'Esquema', length: 30, nullable: true)]
+    #[ORM\Column(name: 'Esquema', length: 10, nullable: true)]
     private ?string $esquema = null;
 
-    #[ORM\Column(name: 'Articulo', length: 100, nullable: true)]
-    private ?string $articulo = null;
-
-    #[ORM\Column(name: 'Codigo_IdeaConnector', length: 100, nullable: true)]
-    private ?string $codigoIdeaConnector = null;
+    #[ORM\Column(name: 'Stock', type: 'decimal', precision: 10, scale: 4, nullable: true)]
+    private ?string $stock = null;
 
     #[ORM\Column(name: 'Codigo_Rockwell', length: 100, nullable: true)]
     private ?string $codigoRockwell = null;
 
     #[ORM\Column(name: 'Descripcion', length: 500, nullable: true)]
     private ?string $descripcion = null;
-
-    #[ORM\Column(name: 'Descripcion_Ideaconector', length: 500, nullable: true)]
-    private ?string $descripcionIdeaconector = null;
-
-    #[ORM\Column(name: 'Descripcion_Tecnica_Ideaconector', type: 'text', nullable: true)]
-    private ?string $descripcionTecnica = null;
 
     #[ORM\Column(name: 'Imagen', length: 1000, nullable: true)]
     private ?string $imagen = null;
@@ -61,26 +52,36 @@ class StockAdvisor
     #[ORM\Column(name: 'Tags', type: 'text', nullable: true)]
     private ?string $tags = null;
 
-    #[ORM\Column(name: 'Stock', type: 'decimal', precision: 10, scale: 4, nullable: true)]
-    private ?string $stock = null;
-
     public function getCodigoCalipso(): string { return $this->codigoCalipso; }
 
     public function getEsquema(): ?string { return $this->esquema; }
-
-    public function getArticulo(): ?string { return $this->articulo; }
-
-    public function getCodigoIdeaConnector(): ?string { return $this->codigoIdeaConnector; }
 
     public function getCodigoRockwell(): ?string { return $this->codigoRockwell; }
 
     public function getDescripcion(): ?string { return $this->descripcion; }
 
-    public function getDescripcionIdeaconector(): ?string { return $this->descripcionIdeaconector; }
-
-    public function getDescripcionTecnica(): ?string { return $this->descripcionTecnica; }
-
     public function getImagen(): ?string { return $this->imagen; }
+
+    /**
+     * URL de la imagen con fallback genérico según proveedor.
+     * Rockwell tiene su propia imagen placeholder; el resto usa la genérica.
+     */
+    public function getImagenUrl(): string
+    {
+        if (!empty($this->imagen)) {
+            return $this->imagen;
+        }
+
+        return $this->isRockwell()
+            ? '/images/productos/rockwell-placeholder.jpg'
+            : '/images/productos/producto-generico.jpg';
+    }
+
+    public function isRockwell(): bool
+    {
+        return $this->proveedor !== null
+            && str_contains(strtolower($this->proveedor), 'rockwell');
+    }
 
     public function getSoluciones(): ?string { return $this->soluciones; }
 

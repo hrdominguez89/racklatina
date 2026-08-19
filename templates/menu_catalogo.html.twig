@@ -22,7 +22,7 @@
     </a>
 </li>
 
-{% if app.user is not null %}
+{% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') %}
 <li class="nav-item">
     <a href="{{ path('app_proyectos_index') }}"
        class="nav-link menu-link {% if current_route starts with 'app_proyectos' %}active{% endif %}"

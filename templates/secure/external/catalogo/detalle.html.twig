@@ -376,8 +376,10 @@
         <p class="mb-3" style="font-size:.85rem;color:#666;line-height:1.65;">{{ articulo.descripcion }}</p>
         {% endif %}
 
-        {# Badges de tags (StockAdvisor) #}
-        {% if stockAdvisor and stockAdvisor.tags %}
+        {# Badges de tags (StockAdvisor) — solo roles con acceso a stock #}
+        {% set puedeVerStock = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
+        {% set puedeProyectos = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') %}
+        {% if puedeVerStock and stockAdvisor and stockAdvisor.tags %}
         {% set _detTags = stockAdvisor.tags|split(',')|map(t => t|trim)|filter(t => t != '') %}
         {% if _detTags|length > 0 %}
         <div class="mb-3 d-flex flex-wrap gap-2">
@@ -389,7 +391,7 @@
         {% endif %}
 
         {# Precio #}
-        {% if precio is not null %}
+        {% if precio is not null and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N2')) %}
         <div class="mb-3">
             <p class="mb-0" style="font-size:.72rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;">Precio unitario (USD)</p>
             <p class="mb-0 fw-bold" style="font-size:1.5rem;color:#1a1a1a;">
@@ -407,7 +409,7 @@
         </div>
 
         {# Botones de acción #}
-        {% if app.user %}
+        {% if puedeProyectos %}
         <div class="det-actions">
             {# AGREGAR A PROYECTO con dropdown inline #}
             <div class="proyectos-dropdown-wrap">
@@ -439,7 +441,7 @@
         </p>
         {% endif %}
 
-        {% else %}
+        {% elseif not app.user %}
         <div class="det-actions">
             <a href="{{ path('app_login', {redirect: app.request.requestUri}) }}" class="btn-agregar-det btn-agregar-det--login text-center text-decoration-none">
                 Iniciá sesión para agregar

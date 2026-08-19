@@ -28,10 +28,10 @@ class ArticuloEcommerceRepository extends ServiceEntityRepository
     ): array {
         $conn = $this->getEntityManager()->getConnection();
 
-        // Stock_Advisor tiene collation distinta a articulos_ecommerce; usamos SQL nativo con COLLATE explícito
+        // Advisor_Stock tiene collation distinta a articulos_ecommerce; usamos SQL nativo con COLLATE explícito
         // para evitar "Illegal mix of collations" en el JOIN de DQL.
         $codigosConStock = $conn->fetchFirstColumn(
-            'SELECT sa.Codigo_Calipso COLLATE utf8mb4_unicode_ci FROM Stock_Advisor sa WHERE sa.Stock > 0'
+            'SELECT sa.Codigo_Calipso COLLATE utf8mb4_unicode_ci FROM Advisor_Stock sa WHERE sa.Stock > 0 AND sa.Visible_Advisor IS NOT NULL AND sa.Visible_Advisor != 0'
         );
 
         $qb = $this->createQueryBuilder('a');
@@ -62,7 +62,7 @@ class ArticuloEcommerceRepository extends ServiceEntityRepository
                 $tagParams["tag$i"] = '%' . $tag . '%';
             }
             $codigosConTag = $conn->fetchFirstColumn(
-                'SELECT sa.Codigo_Calipso COLLATE utf8mb4_unicode_ci FROM Stock_Advisor sa WHERE ' . implode(' OR ', $orParts),
+                'SELECT sa.Codigo_Calipso COLLATE utf8mb4_unicode_ci FROM Advisor_Stock sa WHERE sa.Visible_Advisor IS NOT NULL AND sa.Visible_Advisor != 0 AND (' . implode(' OR ', $orParts) . ')',
                 $tagParams
             );
             if (!empty($codigosConTag)) {
@@ -134,8 +134,8 @@ class ArticuloEcommerceRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()->getConnection();
         $codigos = $conn->fetchFirstColumn(
             'SELECT ae.Codigo_Calipso FROM articulos_ecommerce ae
-             INNER JOIN Stock_Advisor sa ON sa.Codigo_Calipso COLLATE utf8mb4_unicode_ci = ae.Codigo_Calipso
-             WHERE ae.Imagen IS NOT NULL AND sa.Stock > 0
+             INNER JOIN Advisor_Stock sa ON sa.Codigo_Calipso COLLATE utf8mb4_unicode_ci = ae.Codigo_Calipso
+             WHERE ae.Imagen IS NOT NULL AND sa.Stock > 0 AND sa.Visible_Advisor IS NOT NULL AND sa.Visible_Advisor != 0
              ORDER BY RAND() LIMIT :limit',
             ['limit' => $limit],
             ['limit' => \Doctrine\DBAL\ParameterType::INTEGER]

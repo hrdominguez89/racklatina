@@ -30,7 +30,9 @@ class StockAdvisorRepository extends ServiceEntityRepository
         $row = $this->createQueryBuilder('s')
             ->select('s.stock')
             ->where('s.codigoCalipso = :codigo')
+            ->andWhere('s.visibleAdvisor IS NOT NULL AND s.visibleAdvisor != :cero')
             ->setParameter('codigo', $codigoCalipso)
+            ->setParameter('cero', '0')
             ->getQuery()
             ->getOneOrNullResult();
 
@@ -52,8 +54,10 @@ class StockAdvisorRepository extends ServiceEntityRepository
         $rows = $this->createQueryBuilder('s')
             ->select('DISTINCT s.tags')
             ->where('s.tags IS NOT NULL AND s.tags != :vacio AND s.tags != :header')
+            ->andWhere('s.visibleAdvisor IS NOT NULL AND s.visibleAdvisor != :cero')
             ->setParameter('vacio', '')
             ->setParameter('header', 'Tags')
+            ->setParameter('cero', '0')
             ->getQuery()
             ->getSingleColumnResult();
 
@@ -87,7 +91,9 @@ class StockAdvisorRepository extends ServiceEntityRepository
         $rows = $this->createQueryBuilder('s')
             ->select('s.codigoCalipso', 's.tags')
             ->where('s.codigoCalipso IN (:codigos)')
+            ->andWhere('s.visibleAdvisor IS NOT NULL AND s.visibleAdvisor != :cero')
             ->setParameter('codigos', $codigos)
+            ->setParameter('cero', '0')
             ->getQuery()
             ->getArrayResult();
 
@@ -114,7 +120,9 @@ class StockAdvisorRepository extends ServiceEntityRepository
         $rows = $this->createQueryBuilder('s')
             ->select('s.codigoCalipso', 's.stock')
             ->where('s.codigoCalipso IN (:codigos)')
+            ->andWhere('s.visibleAdvisor IS NOT NULL AND s.visibleAdvisor != :cero')
             ->setParameter('codigos', $codigos)
+            ->setParameter('cero', '0')
             ->getQuery()
             ->getArrayResult();
 

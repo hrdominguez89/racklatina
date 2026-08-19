@@ -45,7 +45,7 @@ security:
         - { path: ^/secure/proyectos, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
         - { path: ^/secure/seccion-cuenta/clientes/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
         - { path: ^/secure/clientes/*, roles: [ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
-        - { path: ^/secure/mi-perfil/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN,ROLE_COMPRADOR,ROLE_ADMINISTRACION] }
+        - { path: ^/secure/mi-perfil/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_COMPRADOR, ROLE_ADMINISTRACION, ROLE_INGENIERO_N1, ROLE_INGENIERO_N2, ROLE_USER] }
         - { path: ^/secure/service-requests-externos/*, roles: [ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
         - { path: ^/secure/service-requests-internos/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN] }
         - { path: ^/secure/servicios-externos/*, roles: [ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
