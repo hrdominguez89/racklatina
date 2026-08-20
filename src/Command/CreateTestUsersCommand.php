@@ -2,9 +2,13 @@
 
 namespace App\Command;
 
+use App\Entity\CustomerRequest;
 use App\Entity\ExternalUserData;
 use App\Entity\User;
+use App\Entity\UserCustomer;
 use App\Entity\UserRole;
+use App\Enum\CustomerRequestStatus;
+use App\Enum\CustomerRequestType;
 use App\Repository\RoleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -78,6 +82,19 @@ class CreateTestUsersCommand extends Command
                 $ext->setVerified(true);
                 $ext->setProfileCompleted(true);
                 $this->em->persist($ext);
+
+                $customerRequest = new CustomerRequest();
+                $customerRequest->setRequestType(CustomerRequestType::REPRESENTACION);
+                $customerRequest->setStatus(CustomerRequestStatus::APROBADO);
+                $customerRequest->setUserRequest($user);
+                $customerRequest->setData(['cliente' => '01000225', 'razon_social' => 'YPF S.A.']);
+                $this->em->persist($customerRequest);
+
+                $userCustomer = new UserCustomer();
+                $userCustomer->setUser($user);
+                $userCustomer->setCliente('01000225');
+                $userCustomer->setCustomerRequest($customerRequest);
+                $this->em->persist($userCustomer);
             }
 
             $userRole = new UserRole();
