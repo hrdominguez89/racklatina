@@ -60,6 +60,7 @@ class ProyectoController extends AbstractController
 
         $user = $this->getUser();
 
+        // Admin sin impersonar → vista admin global
         if ($this->isGranted('ROLE_ADMIN')) {
             $filtroEmpresa = $request->query->get('empresa') ?: null;
             $filtroUsuario = ($v = $request->query->get('usuario')) && ctype_digit($v) ? (int) $v : null;
@@ -96,6 +97,7 @@ class ProyectoController extends AbstractController
             ]);
         }
 
+        // Impersonando o usuario externo normal → vista del usuario efectivo
         $proyectos = $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo());
 
         return $this->render('secure/external/proyectos/index.html.twig', [
@@ -130,7 +132,6 @@ class ProyectoController extends AbstractController
         $this->em->persist($proyecto);
         $this->em->flush();
 
-        // Setear como proyecto activo automáticamente
         $user->setActiveProyectoId($proyecto->getId());
         $this->em->flush();
 
@@ -296,8 +297,7 @@ class ProyectoController extends AbstractController
             return $this->json(['error' => 'Proyecto finalizado'], 400);
         }
 
-        $user          = $this->getUser();
-        $clienteCodigo = $user?->getActiveClienteCodigo() ?? $proyecto->getClienteCodigo();
+        $clienteCodigo = $proyecto->getClienteCodigo();
 
         if (!$clienteCodigo) {
             return $this->json([]);
@@ -835,10 +835,17 @@ class ProyectoController extends AbstractController
         if (!$proyecto) {
             throw $this->createNotFoundException('Proyecto no encontrado');
         }
-        // Admin puede ver cualquier proyecto; comprador solo el propio
-        if (!$this->isGranted('ROLE_ADMIN') && $proyecto->getUser()->getId() !== $this->getUser()->getId()) {
+
+        // Admin sin impersonar puede ver cualquier proyecto
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return $proyecto;
+        }
+
+        // Impersonando o usuario externo: solo sus propios proyectos
+        if ($proyecto->getUser()->getId() !== $this->getUser()->getId()) {
             throw $this->createNotFoundException('Proyecto no encontrado');
         }
+
         return $proyecto;
     }
 
@@ -848,9 +855,11 @@ class ProyectoController extends AbstractController
         if (!$proyecto) {
             throw $this->createNotFoundException('Proyecto no encontrado');
         }
+
         if ($proyecto->getUser()->getId() !== $this->getUser()->getId()) {
             throw $this->createAccessDeniedException('No tenés permiso para modificar este proyecto.');
         }
+
         return $proyecto;
     }
 }

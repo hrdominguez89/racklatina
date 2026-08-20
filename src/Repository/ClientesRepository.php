@@ -30,6 +30,24 @@ class ClientesRepository extends ServiceEntityRepository
         ->getArrayResult();
     }
 
+    /**
+     * Búsqueda para el client selector del panel interno.
+     * Acepta razón social o CUIT, retorna hasta $limit resultados.
+     *
+     * @return array<int, array{codigoCalipso: string, razonSocial: string|null, cuit: string|null}>
+     */
+    public function searchForSelector(string $query, int $limit = 15): array
+    {
+        return $this->createQueryBuilder('c')
+            ->select('c.codigoCalipso', 'c.razonSocial', 'c.cuit')
+            ->where('c.razonSocial LIKE :q OR c.cuit LIKE :q')
+            ->setParameter('q', '%' . $query . '%')
+            ->orderBy('c.razonSocial', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
 //    /**
 //     * @return Clientes[] Returns an array of Clientes objects
 //     */
