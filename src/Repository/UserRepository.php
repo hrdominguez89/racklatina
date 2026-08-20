@@ -50,8 +50,11 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function searchExternalUsersForSelector(string $query, int $limit = 15): array
     {
-        $conn = $this->getEntityManager()->getConnection();
+        $em   = $this->getEntityManager();
+        $conn = $em->getConnection();
         $q    = '%' . mb_strtolower($query) . '%';
+
+        $clientesTable = $em->getClassMetadata(\App\Entity\Clientes::class)->getTableName();
 
         // Derived table para obtener el primer UserCustomer por usuario
         // (evita producto cartesiano con múltiples roles/clientes).
@@ -73,7 +76,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
                 GROUP BY uc_inner.user_id
             ) AS fuc_id ON fuc_id.user_id = u.id
             LEFT JOIN user_customer fuc ON fuc.id = fuc_id.first_id
-            LEFT JOIN clientes c        ON c.Codigo_Calipso = fuc.cliente COLLATE utf8mb4_general_ci
+            LEFT JOIN {$clientesTable} c ON c.Codigo_Calipso = fuc.cliente COLLATE utf8mb4_general_ci
             WHERE u.deleted_at IS NULL
               AND (
                   LOWER(u.first_name)    LIKE :q
