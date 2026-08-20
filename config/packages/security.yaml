@@ -1,6 +1,7 @@
 security:
     role_hierarchy:
         ROLE_SUPER_ADMIN: [ROLE_ADMIN]
+        ROLE_ADMIN: [ROLE_ALLOWED_TO_SWITCH]
     # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: "auto"
@@ -35,7 +36,7 @@ security:
             # https://symfony.com/doc/current/security.html#the-firewall
 
             # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
+            switch_user: { role: ROLE_ALLOWED_TO_SWITCH }
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
@@ -47,6 +48,7 @@ security:
         - { path: ^/secure/clientes/*, roles: [ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
         - { path: ^/secure/mi-perfil/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_COMPRADOR, ROLE_ADMINISTRACION, ROLE_INGENIERO_N1, ROLE_INGENIERO_N2, ROLE_USER] }
         - { path: ^/secure/service-requests-externos/*, roles: [ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
+        - { path: ^/secure/cliente-selector/, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN] }
         - { path: ^/secure/service-requests-internos/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN] }
         - { path: ^/secure/servicios-externos/*, roles: [ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
         - { path: ^/secure/servicios-internos/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN] }
