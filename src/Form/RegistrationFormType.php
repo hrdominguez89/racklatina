@@ -195,7 +195,7 @@ class RegistrationFormType extends AbstractType
                         'data-description' => $descriptions[$roleName] ?? ''
                     ];
                 },
-                'multiple' => true,
+                'multiple' => false,
                 'expanded' => true,
                 'required' => true,
             ]);
