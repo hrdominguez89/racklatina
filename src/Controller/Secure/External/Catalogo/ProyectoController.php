@@ -28,16 +28,36 @@ class ProyectoController extends AbstractController
 {
     private function denyUnlessProyectosAccess(): void
     {
-        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_ADMINISTRACION')) {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')
+            && !$this->isGranted('ROLE_ADMINISTRACION')
+            && !$this->isGranted('ROLE_INGENIERO_N1') && !$this->isGranted('ROLE_INGENIERO_N2')) {
             throw $this->createAccessDeniedException();
         }
     }
 
     private function denyUnlessProyectosWrite(): void
     {
-        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')
+            && !$this->isGranted('ROLE_INGENIERO_N1') && !$this->isGranted('ROLE_INGENIERO_N2')) {
             throw $this->createAccessDeniedException('No tenés permiso para crear o modificar proyectos.');
         }
+    }
+
+    /** Solo COMPRADOR y ADMIN pueden enviar una cotización. Los ingenieros usan proyectos como wishlist. */
+    private function denyUnlessPuedeCotizar(): void
+    {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+            throw $this->createAccessDeniedException('No tenés permiso para solicitar cotizaciones.');
+        }
+    }
+
+    /** Retorna true si el usuario puede ver precios (excluye INGENIERO_N1). */
+    private function canVerPrecios(): bool
+    {
+        return $this->isGranted('ROLE_ADMIN')
+            || $this->isGranted('ROLE_COMPRADOR')
+            || $this->isGranted('ROLE_ADMINISTRACION')
+            || $this->isGranted('ROLE_INGENIERO_N2');
     }
 
     public function __construct(
@@ -182,6 +202,8 @@ class ProyectoController extends AbstractController
             'leadtimeMap'          => $leadtimeMap,
             'isAdmin'              => $isAdmin,
             'empresaNombre'        => $empresaNombre,
+            'canCotizar'           => $this->isGranted('ROLE_COMPRADOR') || $this->isGranted('ROLE_ADMIN'),
+            'canVerPrecio'         => $this->canVerPrecios(),
         ]);
     }
 
@@ -241,10 +263,78 @@ class ProyectoController extends AbstractController
 
     // --- Lista de proyectos (JSON, para el modal del catálogo) ---
 
+    /**
+     * Endpoint exclusivo para ingenieros: busca su único proyecto (wishlist) o lo crea,
+     * y agrega el artículo directamente. Un ingeniero no puede tener más de un proyecto.
+     */
+    #[Route('/agregar-automatico', name: 'app_proyectos_agregar_automatico', methods: ['POST'])]
+    public function agregarAutomatico(Request $request): JsonResponse
+    {
+        if (!$this->isGranted('ROLE_INGENIERO_N1') && !$this->isGranted('ROLE_INGENIERO_N2')) {
+            return $this->json(['error' => 'No autorizado'], 403);
+        }
+
+        $articuloCodigo = trim($request->request->get('articulo_codigo', ''));
+        if (empty($articuloCodigo)) {
+            return $this->json(['error' => 'Código de artículo requerido'], 400);
+        }
+
+        $articulo = $this->articuloRepo->find($articuloCodigo);
+        if (!$articulo) {
+            return $this->json(['error' => "Artículo '{$articuloCodigo}' no encontrado"], 404);
+        }
+
+        $user      = $this->getUser();
+        $proyectos = $this->proyectoRepo->findByUser($user, null, ProyectoStatus::IN_PROGRESS);
+
+        if (empty($proyectos)) {
+            $proyecto = new Proyecto();
+            $proyecto->setUser($user);
+            $proyecto->setNombre('Mi Lista');
+            $proyecto->setClienteCodigo($user->getActiveClienteCodigo());
+            $this->em->persist($proyecto);
+            $this->em->flush();
+        } else {
+            $proyecto = $proyectos[0];
+        }
+
+        // Sincronizar proyecto activo en sesión si cambió
+        if ($user->getActiveProyectoId() !== $proyecto->getId()) {
+            $user->setActiveProyectoId($proyecto->getId());
+            $this->em->flush();
+        }
+
+        $item = $this->itemRepo->findOneBy(['proyecto' => $proyecto, 'articulo' => $articulo]);
+        if ($item) {
+            $item->setCantidad($item->getCantidad() + 1);
+        } else {
+            $item = new ProyectoItem();
+            $item->setProyecto($proyecto);
+            $item->setArticulo($articulo);
+            $item->setCantidad(1);
+            $this->em->persist($item);
+        }
+        $this->em->flush();
+        $this->em->refresh($proyecto);
+
+        return $this->json([
+            'success'        => true,
+            'mensaje'        => "Artículo agregado a tu lista",
+            'cantidadItems'  => $proyecto->getCantidadProductos(),
+            'proyectoNombre' => $proyecto->getNombre(),
+            'proyecto'       => ['id' => $proyecto->getId(), 'nombre' => $proyecto->getNombre()],
+        ]);
+    }
+
     #[Route('/crear-ajax', name: 'app_proyectos_crear_ajax', methods: ['POST'])]
     public function crearAjax(Request $request): JsonResponse
     {
         $this->denyUnlessProyectosWrite();
+
+        // Los ingenieros solo pueden tener un proyecto (wishlist); usar /agregar-automatico
+        if ($this->isGranted('ROLE_INGENIERO_N1') || $this->isGranted('ROLE_INGENIERO_N2')) {
+            return $this->json(['success' => false, 'error' => 'Los ingenieros solo pueden tener una lista activa.'], 403);
+        }
 
         $nombre = trim($request->request->get('nombre', ''));
         if (empty($nombre)) {
@@ -299,7 +389,7 @@ class ProyectoController extends AbstractController
 
         $clienteCodigo = $proyecto->getClienteCodigo();
 
-        if (!$clienteCodigo) {
+        if (!$clienteCodigo || !$this->canVerPrecios()) {
             return $this->json([]);
         }
 
@@ -458,7 +548,8 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/cantidad', name: 'app_proyectos_update_cantidad', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function updateCantidad(int $itemId, Request $request): JsonResponse
     {
-        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')
+            && !$this->isGranted('ROLE_INGENIERO_N1') && !$this->isGranted('ROLE_INGENIERO_N2')) {
             return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
         }
 
@@ -495,10 +586,10 @@ class ProyectoController extends AbstractController
             ];
         }
 
-        // Recalcular precio con la nueva cantidad
+        // Recalcular precio con la nueva cantidad (solo si el usuario tiene permiso para ver precios)
         $precio        = null;
         $clienteCodigo = $item->getProyecto()->getClienteCodigo();
-        if ($clienteCodigo) {
+        if ($clienteCodigo && $this->canVerPrecios()) {
             try {
                 $precio = $this->preciosService->consultarPrecio($clienteCodigo, $codigo, $cantidad);
             } catch (\RuntimeException) {}
@@ -510,7 +601,8 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/comment', name: 'app_proyectos_update_comment', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function updateComment(int $itemId, Request $request): JsonResponse
     {
-        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')
+            && !$this->isGranted('ROLE_INGENIERO_N1') && !$this->isGranted('ROLE_INGENIERO_N2')) {
             return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
         }
 
@@ -528,7 +620,8 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/reemplazo', name: 'app_proyectos_update_reemplazo', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function updateReemplazo(int $itemId, Request $request): JsonResponse
     {
-        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')
+            && !$this->isGranted('ROLE_INGENIERO_N1') && !$this->isGranted('ROLE_INGENIERO_N2')) {
             return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
         }
 
@@ -556,7 +649,8 @@ class ProyectoController extends AbstractController
     #[Route('/item/{itemId}/quitar', name: 'app_proyectos_quitar_articulo', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function quitarArticulo(int $itemId, Request $request): JsonResponse
     {
-        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')
+            && !$this->isGranted('ROLE_INGENIERO_N1') && !$this->isGranted('ROLE_INGENIERO_N2')) {
             return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
         }
 
@@ -642,7 +736,7 @@ class ProyectoController extends AbstractController
     #[Route('/{id}/solicitar-cotizacion', name: 'app_proyectos_solicitar_cotizacion', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function solicitarCotizacion(int $id, Request $request): JsonResponse
     {
-        $this->denyUnlessProyectosWrite();
+        $this->denyUnlessPuedeCotizar();
 
         if (!$this->isCsrfTokenValid('solicitar_cotizacion_' . $id, $request->request->get('_token'))) {
             return $this->json(['success' => false, 'error' => 'Token inválido.'], 403);

@@ -334,6 +334,7 @@ RKL.proyectoActivo = {{ _pa is not null ? '{id:' ~ _pa.id ~ ',nombre:' ~ _pa.nom
 {% else %}
 RKL.proyectoActivo = null;
 {% endif %}
+RKL.esIngeniero = {{ (is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) ? 'true' : 'false' }};
 
 // Cambiar proyecto activo desde el header dropdown
 document.addEventListener('click', function(e) {
@@ -536,7 +537,7 @@ document.addEventListener('click', function(e) {
 {% endif %}
 
 {# ── Modal: Agregar a Proyecto (global, disponible en todas las vistas) ── #}
-{% if app.user is not null and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN')) %}
+{% if app.user is not null and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) %}
 <div class="modal fade" id="modalAgregarProyecto" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius:12px;overflow:hidden;">
@@ -628,6 +629,29 @@ document.addEventListener('click', function(e) {
         }
     }
 
+    // Agregar automático para ingenieros: crea/obtiene su única lista y agrega el producto
+    async function rklAgregarAutomatico(articuloCodigo, btnOrigen) {
+        if (btnOrigen) btnOrigen.disabled = true;
+        const fd = new FormData();
+        fd.append('articulo_codigo', articuloCodigo);
+        try {
+            const res  = await fetch('/secure/proyectos/agregar-automatico', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                RKL.proyectoActivo = data.proyecto;
+                RKL.clarity('event', 'producto_agregado');
+                RKL.clarity('set', 'producto_agregado', articuloCodigo);
+                RKL.toast(data.mensaje, 'success');
+            } else {
+                RKL.toast(data.error || 'Error al agregar', 'danger');
+            }
+        } catch (e) {
+            RKL.toast('Error de red: ' + e.message, 'danger');
+        } finally {
+            if (btnOrigen) btnOrigen.disabled = false;
+        }
+    }
+
     // Delegación de eventos: funciona para cualquier btn-agregar-proyecto en toda la página
     document.addEventListener('click', function (e) {
         const btn = e.target.closest('.btn-agregar-proyecto');
@@ -635,6 +659,12 @@ document.addEventListener('click', function(e) {
 
         _articuloCodigo = btn.dataset.articuloCodigo;
         _articuloNombre = btn.dataset.articuloNombre;
+
+        // Ingenieros: flujo simplificado sin modal ni selección de proyecto
+        if (RKL.esIngeniero) {
+            rklAgregarAutomatico(_articuloCodigo, btn);
+            return;
+        }
 
         if (RKL.proyectoActivo) {
             rklAgregarArticulo(RKL.proyectoActivo.id, _articuloCodigo, 1, btn);

@@ -338,10 +338,12 @@
                 <tr>
                     <th class="col-producto">Producto</th>
                     <th>Cantidad</th>
+                    {% if canVerPrecio %}
                     <th>Precio unit.<br><span style="font-weight:400;font-size:.75em;">(USD)</span></th>
                     <th>Total<br><span style="font-weight:400;font-size:.75em;">(USD)</span></th>
+                    {% endif %}
                     <th>Envío</th>
-                    {% if not isFinished %}
+                    {% if not isFinished and canCotizar %}
                     <th>Sugerir remplazo<br>por precio</th>
                     <th>Sugerir remplazo<br>por plazo</th>
                     {% endif %}
@@ -396,7 +398,8 @@
                         </div>
                     </td>
 
-                    {# Precio unitario: snapshot si está finalizado, asíncrono vía JS si en curso #}
+                    {# Precio unitario: solo si el usuario tiene permiso para ver precios #}
+                    {% if canVerPrecio %}
                     {% if isFinished %}
                         {% set precioUnit  = item.precioUnitarioUsd %}
                         {% set precioTotal = item.precioTotalUsd %}
@@ -425,6 +428,7 @@
                             <span style="color:#888;font-size:.8rem;">Consultar precio</span>
                         {% endif %}
                     </td>
+                    {% endif %}
                     {# Envío / Leadtime #}
                     {% set lt = leadtimeMap[item.articulo.codigoCalipso] ?? null %}
                     <td id="leadtime-cell-{{ item.id }}" style="text-align:center;vertical-align:middle;white-space:nowrap;min-width:130px;">
@@ -455,7 +459,7 @@
                         {% endif %}
                     </td>
 
-                    {% if not isFinished %}
+                    {% if not isFinished and canCotizar %}
                     {# Sugerir remplazo por precio #}
                     <td>
                         <input type="checkbox" class="check-reemplazo input-item-reemplazo" data-item="{{ item.id }}" data-type="precio"
@@ -480,7 +484,7 @@
 
                     {# Quitar #}
                     <td>
-                        {% if not isFinished and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN')) %}
+                        {% if not isFinished and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) %}
                         <button class="btn-quitar-item" data-item="{{ item.id }}"
                                 data-nombre="{{ item.articulo.nombreDisplay|e('html_attr') }}"
                 data-url="{{ path('app_proyectos_quitar_articulo', {itemId: item.id}) }}"
@@ -502,15 +506,22 @@
     </div>
 
     {# ── Sidebar Solicitud ── #}
+    {% set esIngenieroN1 = is_granted('ROLE_INGENIERO_N1') and not is_granted('ROLE_INGENIERO_N2') %}
+    {% set esIngenieroN2 = is_granted('ROLE_INGENIERO_N2') %}
+    {% set esIngeniero   = esIngenieroN1 or esIngenieroN2 %}
     <div class="proyecto-sidebar">
         <div class="sidebar-card">
+
+            {% if not esIngeniero %}
             <div class="sidebar-title">Solicitud</div>
 
             <div class="sidebar-items-row">
                 <span class="sidebar-items-label">Cantidad de items a cotizar</span>
                 <span class="sidebar-items-count" id="sidebar-items-count">{{ proyecto.cantidadProductos }}</span>
             </div>
+            {% endif %}
 
+            {% if canVerPrecio %}
             {% set totalMostrar = isFinished ? proyecto.precioTotalUsd : precioTotalCalculado %}
             <div class="mb-3" id="sidebar-total-wrap" style="background:#f5f5f5;border-radius:6px;padding:.75rem 1rem;{% if totalMostrar is null %}display:none{% endif %}">
                 <div style="font-size:.72rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:.2rem;">Total estimado</div>
@@ -518,40 +529,49 @@
                     {% if totalMostrar is not null %}U$S {{ totalMostrar|number_format(2, ',', '.') }}{% endif %}
                 </div>
             </div>
+            {% endif %}
 
-            {% if isFinished %}
-            <div class="mb-3" style="font-size:.82rem;color:#888;text-align:center;">
-                <i class="ri-lock-line me-1"></i> Proyecto finalizado
-            </div>
-            <div class="d-flex flex-column gap-2">
-                <a href="{{ path('app_proyectos_cotizacion_preview', {id: proyecto.id}) }}"
-                   target="_blank"
-                   class="btn btn-outline-secondary btn-sm fw-semibold">
-                    <i class="ri-mail-line me-1"></i> Ver mail a Racklatina
-                </a>
-                <a href="{{ path('app_proyectos_cotizacion_preview', {id: proyecto.id, tipo: 'confirmacion'}) }}"
-                   target="_blank"
-                   class="btn btn-outline-secondary btn-sm fw-semibold">
-                    <i class="ri-mail-check-line me-1"></i> Ver mail de confirmación
-                </a>
-                <a href="{{ path('app_proyectos_excel_preview', {id: proyecto.id}) }}"
-                   target="_blank"
-                   class="btn btn-outline-secondary btn-sm fw-semibold">
-                    <i class="ri-file-excel-line me-1"></i> Descargar Excel
-                </a>
-            </div>
-            {% else %}
-            <button type="button" class="btn-solicitar-sidebar"
-                    id="btn-solicitar-pedido"
-                    data-proyecto-id="{{ proyecto.id }}"
-                    data-csrf="{{ csrf_token('solicitar_cotizacion_' ~ proyecto.id) }}"
-                    {% if proyecto.cantidadProductos == 0 %}disabled{% endif %}>
-                Solicitar Cotización
-            </button>
+            {% if not esIngeniero %}
+                {% if canCotizar %}
+                    {% if isFinished %}
+                    <div class="mb-3" style="font-size:.82rem;color:#888;text-align:center;">
+                        <i class="ri-lock-line me-1"></i> Proyecto finalizado
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="{{ path('app_proyectos_cotizacion_preview', {id: proyecto.id}) }}"
+                           target="_blank"
+                           class="btn btn-outline-secondary btn-sm fw-semibold">
+                            <i class="ri-mail-line me-1"></i> Ver mail a Racklatina
+                        </a>
+                        <a href="{{ path('app_proyectos_cotizacion_preview', {id: proyecto.id, tipo: 'confirmacion'}) }}"
+                           target="_blank"
+                           class="btn btn-outline-secondary btn-sm fw-semibold">
+                            <i class="ri-mail-check-line me-1"></i> Ver mail de confirmación
+                        </a>
+                        <a href="{{ path('app_proyectos_excel_preview', {id: proyecto.id}) }}"
+                           target="_blank"
+                           class="btn btn-outline-secondary btn-sm fw-semibold">
+                            <i class="ri-file-excel-line me-1"></i> Descargar Excel
+                        </a>
+                    </div>
+                    {% else %}
+                    <button type="button" class="btn-solicitar-sidebar"
+                            id="btn-solicitar-pedido"
+                            data-proyecto-id="{{ proyecto.id }}"
+                            data-csrf="{{ csrf_token('solicitar_cotizacion_' ~ proyecto.id) }}"
+                            {% if proyecto.cantidadProductos == 0 %}disabled{% endif %}>
+                        Solicitar Cotización
+                    </button>
 
-            <a href="{{ path('app_catalogo_lista') }}" class="sidebar-link">
-                Seguir sumando productos
-            </a>
+                    <a href="{{ path('app_catalogo_lista') }}" class="sidebar-link">
+                        Seguir sumando productos
+                    </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ path('app_catalogo_lista') }}" class="sidebar-link">
+                        Seguir sumando productos
+                    </a>
+                {% endif %}
             {% endif %}
         </div>
     </div>
@@ -623,8 +643,9 @@
 <script>
 (function () {
 
-    const isFinished = {{ isFinished ? 'true' : 'false' }};
-    const proyectoId = {{ proyecto.id }};
+    const isFinished  = {{ isFinished ? 'true' : 'false' }};
+    const proyectoId  = {{ proyecto.id }};
+    const canVerPrecio = {{ canVerPrecio ? 'true' : 'false' }};
 
     // ── Carga asíncrona de leadtimes al renderizar la página ──
     (function () {
@@ -648,7 +669,7 @@
 
     // ── Carga asíncrona de precios al renderizar la página ──
     (function () {
-        if (isFinished) return;
+        if (isFinished || !canVerPrecio) return;
 
         fetch(`/secure/proyectos/${proyectoId}/precios-json`)
             .then(r => r.json())
@@ -839,7 +860,7 @@
             if (data.leadtime !== undefined) {
                 renderLeadtimeCell(itemId, data.leadtime);
             }
-            if (data.precio !== undefined) {
+            if (canVerPrecio && data.precio !== undefined) {
                 renderPrecioCell(itemId, data.precio);
                 recalcularTotales();
             }

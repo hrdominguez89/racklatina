@@ -66,18 +66,16 @@ final class RegisterController extends AbstractController
             $external->setUser($user);
             $user->setExternalUserData($external);
 
-            // Asignar múltiples roles
-            $selectedRoles = $form->get('role')->getData();
-            if (is_array($selectedRoles)) {
-                foreach ($selectedRoles as $roleId) {
-                    $role = $roleRepository->find($roleId);
-                    if ($role) {
-                        $userRole = new UserRole();
-                        $userRole->setRole($role);
-                        $userRole->setUser($user);
-                        $user->addUserRole($userRole);
-                        $em->persist($userRole);
-                    }
+            // Asignar rol seleccionado
+            $roleId = $form->get('role')->getData();
+            if ($roleId) {
+                $role = $roleRepository->find($roleId);
+                if ($role) {
+                    $userRole = new UserRole();
+                    $userRole->setRole($role);
+                    $userRole->setUser($user);
+                    $user->addUserRole($userRole);
+                    $em->persist($userRole);
                 }
             }
 

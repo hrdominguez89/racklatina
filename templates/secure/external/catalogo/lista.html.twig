@@ -562,7 +562,7 @@
                         {% if articulo.marca %}
                         <p class="rkl-prod-meta">{{ articulo.marca }}</p>
                         {% endif %}
-                        {% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') %}
+                        {% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
                         <div class="mt-auto position-relative">
                             <button type="button"
                                     class="rkl-btn-agregar btn-agregar-proyecto"
