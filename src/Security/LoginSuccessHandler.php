@@ -28,7 +28,7 @@ class LoginSuccessHandler implements AuthenticationSuccessHandlerInterface
         }
 
         $roles = $user->getRoles();
-        $rolesCatalogo = ['ROLE_INGENIERO_N1', 'ROLE_INGENIERO_N2', 'ROLE_USER'];
+        $rolesCatalogo = ['ROLE_INGENIERO_N1', 'ROLE_INGENIERO_N2'];
         $esCatalogoOnly = (bool) array_intersect($rolesCatalogo, $roles);
 
         if ($esCatalogoOnly) {

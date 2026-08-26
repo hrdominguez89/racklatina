@@ -46,7 +46,6 @@ class CreateTestUsersCommand extends Command
             ['test.admin-ext@racklatina.com.ar',   'Administ', 'Test',      99000004,  'ROLE_ADMINISTRACION',false],
             ['test.ingeniero1@racklatina.com.ar',  'Ingeniero','N1 Test',   99000005,  'ROLE_INGENIERO_N1',  false],
             ['test.ingeniero2@racklatina.com.ar',  'Ingeniero','N2 Test',   99000006,  'ROLE_INGENIERO_N2',  false],
-            ['test.user@racklatina.com.ar',        'Usuario',  'Test',      99000007,  'ROLE_USER',          false],
         ];
 
         $creados = 0;
@@ -55,8 +54,35 @@ class CreateTestUsersCommand extends Command
         foreach ($usuarios as [$email, $firstName, $lastName, $cuit, $roleName, $isInternal]) {
             $existente = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
             if ($existente) {
-                $io->writeln("  <comment>SKIP</comment> {$email} (ya existe)");
-                $omitidos++;
+                if (!$isInternal) {
+                    $yaAsociado = $this->em->getRepository(UserCustomer::class)->findOneBy([
+                        'user' => $existente,
+                        'cliente' => '01000225',
+                    ]);
+                    if (!$yaAsociado) {
+                        $customerRequest = new CustomerRequest();
+                        $customerRequest->setRequestType(CustomerRequestType::REPRESENTACION);
+                        $customerRequest->setStatus(CustomerRequestStatus::APROBADO);
+                        $customerRequest->setUserRequest($existente);
+                        $customerRequest->setData(['cliente' => '01000225', 'razon_social' => 'YPF S.A.']);
+                        $this->em->persist($customerRequest);
+
+                        $userCustomer = new UserCustomer();
+                        $userCustomer->setUser($existente);
+                        $userCustomer->setCliente('01000225');
+                        $userCustomer->setCustomerRequest($customerRequest);
+                        $this->em->persist($userCustomer);
+
+                        $io->writeln("  <info>EMPRESA</info> {$email} → YPF S.A. (01000225)");
+                        $creados++;
+                    } else {
+                        $io->writeln("  <comment>SKIP</comment> {$email} (ya tiene empresa asociada)");
+                        $omitidos++;
+                    }
+                } else {
+                    $io->writeln("  <comment>SKIP</comment> {$email} (ya existe)");
+                    $omitidos++;
+                }
                 continue;
             }
 

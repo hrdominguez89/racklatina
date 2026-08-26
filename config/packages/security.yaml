@@ -43,10 +43,10 @@ security:
     access_control:
         - { path: ^/secure/carousel/api/images, roles: PUBLIC_ACCESS }
         - { path: ^/catalogo, roles: PUBLIC_ACCESS }
-        - { path: ^/secure/proyectos, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
+        - { path: ^/secure/proyectos, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_COMPRADOR, ROLE_ADMINISTRACION, ROLE_INGENIERO_N1, ROLE_INGENIERO_N2] }
         - { path: ^/secure/seccion-cuenta/clientes/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
         - { path: ^/secure/clientes/*, roles: [ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
-        - { path: ^/secure/mi-perfil/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_COMPRADOR, ROLE_ADMINISTRACION, ROLE_INGENIERO_N1, ROLE_INGENIERO_N2, ROLE_USER] }
+        - { path: ^/secure/mi-perfil/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_COMPRADOR, ROLE_ADMINISTRACION, ROLE_INGENIERO_N1, ROLE_INGENIERO_N2] }
         - { path: ^/secure/service-requests-externos/*, roles: [ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
         - { path: ^/secure/cliente-selector/, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN] }
         - { path: ^/secure/service-requests-internos/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN] }

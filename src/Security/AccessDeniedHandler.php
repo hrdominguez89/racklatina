@@ -31,7 +31,7 @@ class AccessDeniedHandler implements AccessDeniedHandlerInterface
             if ($user->isInternal()) {
                 return new RedirectResponse($this->router->generate('app_secure_internal_home'));
             }
-            $rolesCatalogo = ['ROLE_INGENIERO_N1', 'ROLE_INGENIERO_N2', 'ROLE_USER'];
+            $rolesCatalogo = ['ROLE_INGENIERO_N1', 'ROLE_INGENIERO_N2'];
             foreach ($user->getRoles() as $rol) {
                 if (in_array($rol, $rolesCatalogo, true)) {
                     return new RedirectResponse($this->router->generate('app_catalogo_index'));
