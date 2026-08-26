@@ -184,9 +184,17 @@
                 t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
                 y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
             })(window, document, "clarity", "script", "wfrjwyqxpz");
+
+            {# Custom tags de sesión: permiten filtrar grabaciones por empresa/usuario en el dashboard de Clarity #}
+            {% if app.user is not null %}
+            clarity("set", "empresa",  "{{ app.user.activeClienteCodigo|default('sin_empresa')|e('js') }}");
+            clarity("set", "usuario",  "{{ app.user.email|e('js') }}");
+            clarity("set", "rol",      "{{ app.user.roles|first|e('js') }}");
+            {% else %}
+            clarity("set", "empresa",  "anonimo");
+            clarity("set", "rol",      "anonimo");
+            {% endif %}
         </script>
-    {% if app.environment == 'dev' %}
-    {% endif %}
 </head>
 
 <body>
