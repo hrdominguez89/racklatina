@@ -305,6 +305,29 @@
 }
 #modalCotizacion .btn-close-cot:hover { color: #111; }
 
+/* ── Precio a consultar ── */
+.precio-consultar {
+    border: 1px solid #f0c040;
+    border-radius: 6px;
+    padding: .65rem .9rem;
+    background: #fffdf0;
+    display: inline-block;
+    min-width: 180px;
+}
+.precio-consultar-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    font-size: .85rem;
+    font-weight: 600;
+    color: #856404;
+    border-left: 3px solid #f0c040;
+    padding-left: .5rem;
+}
+.precio-consultar-badge i {
+    font-size: 1rem;
+}
+
 /* ── Relacionados ── */
 .rel-section {
     margin-top: 2.5rem;
@@ -391,13 +414,23 @@
         {% endif %}
 
         {# Precio #}
-        {% if precio is not null and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N2')) %}
-        <div class="mb-3">
-            <p class="mb-0" style="font-size:.72rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;">Precio unitario (USD)</p>
-            <p class="mb-0 fw-bold" style="font-size:1.5rem;color:#1a1a1a;">
-                U$S {{ precio.precio|number_format(2, ',', '.') }}
-            </p>
-        </div>
+        {% set puedeVerPrecio = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N2') %}
+        {% if puedeVerPrecio %}
+            {% if precio is not null and precio.precio is defined and precio.precio > 0 %}
+            <div class="mb-3">
+                <p class="mb-0" style="font-size:.72rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;">Precio unitario (USD)</p>
+                <p class="mb-0 fw-bold" style="font-size:1.5rem;color:#1a1a1a;">
+                    U$S {{ precio.precio|number_format(2, ',', '.') }}
+                </p>
+            </div>
+            {% else %}
+            <div class="precio-consultar mb-3">
+                <p class="mb-1" style="font-size:.85rem;color:#555;">{{ articulo.nombreDisplay }}</p>
+                <div class="precio-consultar-badge">
+                    <i class="ri-alert-line"></i> Precio a consultar
+                </div>
+            </div>
+            {% endif %}
         {% endif %}
 
         {# Cantidad #}

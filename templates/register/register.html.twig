@@ -1,266 +1,494 @@
 {% extends 'base_public.html.twig' %}
 
-{% block title %}Racklatina - Portal clientes
-{% endblock %}
+{% block title %}Racklatina - Registro de clientes{% endblock %}
 
 {% block body %}
+<style>
+/* ── Wrapper ── */
+.reg-wrap {
+    max-width: 560px;
+    margin: 2.5rem auto 3rem;
+    padding: 2rem 2.25rem 2.25rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,.10);
+}
+.reg-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--rkl-primary);
+    margin-bottom: 1.5rem;
+}
 
-	<!-- auth page content -->
+/* ── Floating labels ── */
+.form-floating > label {
+    font-size: .82rem;
+    color: #aaa;
+    padding-top: .9rem;
+}
+.form-floating > .form-control,
+.form-floating > .form-select {
+    border: 1px solid #d8d8d8;
+    border-radius: 6px;
+    font-size: .9rem;
+    color: #1a1a1a;
+    background: #fff;
+    padding-top: 1.5rem;
+    padding-bottom: .4rem;
+    height: calc(3.3rem + 2px);
+    line-height: 1.3;
+}
+.form-floating > .form-control:focus,
+.form-floating > .form-select:focus {
+    border-color: var(--rkl-primary);
+    box-shadow: 0 0 0 2px rgba(125,140,10,.12);
+    outline: none;
+}
+.form-floating > .form-control.is-invalid,
+.form-floating > .form-select.is-invalid {
+    border-color: #dc3545;
+}
+.form-floating > .form-control::placeholder { color: transparent; }
 
-	<!-- end row -->
+/* ── Section title ── */
+.reg-section-title {
+    font-size: .68rem;
+    font-weight: 700;
+    color: #444;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    margin: 1.6rem 0 1rem;
+    padding-bottom: .45rem;
+    border-bottom: 1px solid #ebebeb;
+}
 
-		<div class="row justify-content-center"> <div class="col-8">
-			<div class="card mt-4 card-bg-fill">
+/* ── Password toggle ── */
+.reg-pass-wrap { position: relative; }
+.reg-pass-wrap > .form-control { padding-right: 3rem; }
+.reg-pass-toggle {
+    position: absolute;
+    right: .85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #bbb;
+    cursor: pointer;
+    font-size: 1.15rem;
+    padding: 0;
+    line-height: 1;
+    z-index: 10;
+}
+.reg-pass-toggle:hover { color: #555; }
 
-				<div class="card-body p-4">
-					<div class="row">
-						<div class="col-12 text-center mt-2 mb-4">
-							<h4 class="text-rkl-secondary">Registro de clientes</h4>
-							{# <p class="text-muted"></p> #}
-						</div>
-					</div>
-					<div class="row">
-						{{ form_start(form, {attr: {'data-turbo': 'false',class: 'needs-validation'}}) }}
-						{% for error in form.vars.errors %}
-							<div class="alert alert-danger">{{ error.message }}</div>
-						{% endfor %}
-						{% if form.vars.errors|length > 0 %}
-							<div class="alert alert-danger">
-								{{ form_errors(form) }}
-							</div>
-						{% endif %}
-					</div>
-						
-					<div class="row">
-						<div class="col-12 col-md-4 mb-3">
-							{{ form_label(form.firstName) }}
-							{{ form_widget(form.firstName, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.firstName) }}
-						</div>
-						<div class="col-12 col-md-4 mb-3">
-							{{ form_label(form.lastName) }}
-							{{ form_widget(form.lastName, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.lastName) }}
-						</div>
-						<div class="col-12 col-md-4 mb-3">
-							{{ form_label(form.phoneNumber) }}
-							{{ form_widget(form.phoneNumber, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.phoneNumber) }}
-						</div>
-						<div class="col-12 col-md-6 mb-3">
-							{{ form_label(form.email) }}
-							{{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.email) }}
-						</div>
-						<div class="col-12 col-md-6 mb-3">
-							{{ form_label(form.plainPassword) }}
-							{{ form_widget(form.plainPassword, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.plainPassword) }}
-						</div>
-					</div>
-					<hr>
-					<div class="row">
-						<div class="col-12 text-center mt-2 mb-4">
-							<h5 class="text-rkl-secondary">Información de la empresa</h5>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-12 col-md-6 mb-3">
-							{{ form_label(form.cuit) }}
-							{{ form_widget(form.cuit, {'attr': {'class': 'form-control', 'placeholder': 'Ej: 30-50080256-8'}}) }}
-							<div id="cuit-format-error" class="text-danger small mt-1" style="display:none;">
-								Formato inválido. Usá el formato XX-XXXXXXXX-X (ej: 30-50080256-8).
-							</div>
-							{{ form_errors(form.cuit) }}
-						</div>
-						{# Sección extra para no-clientes (CUIT sin match en Calypso) #}
-						<div id="no-cliente-section" class="col-12" style="display:none;">
-							<div class="row">
-								<div class="col-12 col-md-6 mb-3">
-									{{ form_label(form.companyName) }}
-									{{ form_widget(form.companyName, {'attr': {'class': 'form-control', 'placeholder': 'Ingresá la razón social'}}) }}
-									{{ form_errors(form.companyName) }}
-								</div>
-								<div class="col-12 col-md-6 mb-3">
-									{{ form_label(form.domicilio) }}
-									{{ form_widget(form.domicilio, {'attr': {'class': 'form-control', 'placeholder': 'Calle y número'}}) }}
-									{{ form_errors(form.domicilio) }}
-								</div>
-								<div class="col-12 col-md-4 mb-3">
-									{{ form_label(form.codigoPostal) }}
-									{{ form_widget(form.codigoPostal, {'attr': {'class': 'form-control', 'placeholder': 'Ej: 1414'}}) }}
-									{{ form_errors(form.codigoPostal) }}
-								</div>
-								<div class="col-12 col-md-4 mb-3">
-									{{ form_label(form.localidad) }}
-									{{ form_widget(form.localidad, {'attr': {'class': 'form-control', 'placeholder': 'Localidad'}}) }}
-									{{ form_errors(form.localidad) }}
-								</div>
-								<div class="col-12 col-md-4 mb-3">
-									{{ form_label(form.provincia) }}
-									{{ form_widget(form.provincia, {'attr': {'class': 'form-control', 'placeholder': 'Provincia'}}) }}
-									{{ form_errors(form.provincia) }}
-								</div>
-								<div class="col-12 col-md-6 mb-3">
-									{{ form_label(form.tipoCliente) }}
-									{{ form_widget(form.tipoCliente, {'attr': {'class': 'form-select'}}) }}
-									{{ form_errors(form.tipoCliente) }}
-								</div>
-								<div class="col-12 col-md-6 mb-3">
-									{{ form_label(form.segmento) }}
-									{{ form_widget(form.segmento, {'attr': {'class': 'form-select'}}) }}
-									{{ form_errors(form.segmento) }}
-								</div>
-							</div>
-						</div>
-						<div class="col-12 col-md-6 mb-3">
-							{{ form_label(form.jobTitle) }}
-							{{ form_widget(form.jobTitle, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.jobTitle) }}
-						</div>
-						<div class="col-12 col-md-6 mb-3">
-							{{ form_label(form.role) }}
-							<div class="d-flex flex-column gap-2 mt-2">
-								{% for child in form.role %}
-									<div class="form-check d-flex align-items-center gap-2">
-										{{ form_widget(child, {'attr': {'class': 'form-check-input mt-0'}}) }}
-										{{ form_label(child, null, {'label_attr': {'class': 'form-check-label mb-0'}}) }}
-										{% set desc = child.vars.attr['data-description'] ?? '' %}
-										{% if desc %}
-											<i class="ri-information-line text-muted"
-											   data-bs-toggle="tooltip"
-											   data-bs-placement="top"
-											   title="{{ desc }}"
-											   style="cursor:pointer;font-size:1rem;flex-shrink:0;"></i>
-										{% endif %}
-									</div>
-								{% endfor %}
-							</div>
-							{{ form_errors(form.role) }}
-						</div>
+/* ── Checkboxes de perfiles ── */
+.reg-profiles-label {
+    font-size: .8rem;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: .6rem;
+    display: block;
+}
+.reg-profile-item {
+    display: flex;
+    align-items: flex-start;
+    gap: .8rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+}
+.reg-profile-check {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    border: 1.5px solid #ccc;
+    border-radius: 50%;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    background: #fff;
+    position: relative;
+    margin-top: .1rem;
+    transition: border-color .15s, background .15s;
+}
+.reg-profile-check:checked {
+    border-color: var(--rkl-primary);
+    background: #fff;
+}
+.reg-profile-check:checked::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--rkl-primary);
+}
+.reg-profile-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.35;
+}
+.reg-profile-text strong {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+.reg-profile-text span {
+    font-size: .8rem;
+    color: #999;
+    margin-top: .15rem;
+    line-height: 1.4;
+}
 
-						<div class="mt-4">
-							<button class="btn btn-primary w-100" type="submit">Registrarse</button>
-						</div>
+/* ── Submit ── */
+.btn-reg-submit {
+    display: block;
+    width: 100%;
+    background: var(--rkl-primary);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: .9rem 1rem;
+    font-size: .76rem;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .15s;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+.btn-reg-submit:hover { background: #6b7a08; color: #fff; }
 
-						{{ form_end(form) }}
-						<div class="mt-4 text-center">
-							<div class="mt-4 text-center">
-								<p class="mb-0">¿Ya tenés cuenta?
-									<a href="{{ path('app_login') }}" class="fw-semibold text-rkl-primary text-decoration-underline">
-										Iniciá sesión
-									</a>
-								</p>
-							</div>
-						</div>
-					
-					</div>
-				</div>
-				<!-- end card body -->
-			</div>
-			<!-- end card -->
+/* ── Errores inline ── */
+.reg-field-error {
+    font-size: .76rem;
+    color: #dc3545;
+    margin-top: .25rem;
+    display: block;
+}
+</style>
 
+<div class="reg-wrap">
 
-		</div>
-	</div>
-	<!-- end row -->
+    <h2 class="reg-title">Registro de clientes</h2>
 
-	<script>
-		document.addEventListener('DOMContentLoaded', function() {
-			document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
-				new bootstrap.Tooltip(el);
-			});
+    {{ form_start(form, {attr: {'data-turbo': 'false', 'novalidate': 'novalidate', 'id': 'reg-form'}}) }}
 
-			const cuitInput = document.querySelector('input[name*="cuit"]');
-			const noClienteSection = document.getElementById('no-cliente-section');
-			const cuitFormatError = document.getElementById('cuit-format-error');
+    {% if form.vars.errors|length > 0 %}
+        <div class="alert alert-danger py-2 mb-3">{{ form_errors(form) }}</div>
+    {% endif %}
 
-			if (!cuitInput || !noClienteSection || !cuitFormatError) {
-				console.error('No se encontraron todos los elementos DOM necesarios');
-				return;
-			}
+    {# ── Datos personales ── #}
+    <div class="row g-3 mb-1">
+        <div class="col-12 col-md-4">
+            <div class="form-floating">
+                {{ form_widget(form.firstName, {'attr': {'class': 'form-control', 'placeholder': ' '}}) }}
+                {{ form_label(form.firstName, 'Nombre *') }}
+            </div>
+            {% if form.firstName.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.firstName) }}</span>
+            {% endif %}
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="form-floating">
+                {{ form_widget(form.lastName, {'attr': {'class': 'form-control', 'placeholder': ' '}}) }}
+                {{ form_label(form.lastName, 'Apellido *') }}
+            </div>
+            {% if form.lastName.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.lastName) }}</span>
+            {% endif %}
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="form-floating">
+                {{ form_widget(form.phoneNumber, {'attr': {'class': 'form-control', 'placeholder': ' '}}) }}
+                {{ form_label(form.phoneNumber, 'Teléfono *') }}
+            </div>
+            {% if form.phoneNumber.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.phoneNumber) }}</span>
+            {% endif %}
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="form-floating">
+                {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': ' '}}) }}
+                {{ form_label(form.email, 'Email *') }}
+            </div>
+            {% if form.email.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.email) }}</span>
+            {% endif %}
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="form-floating reg-pass-wrap">
+                {{ form_widget(form.plainPassword, {'attr': {'class': 'form-control', 'id': 'reg-password', 'placeholder': ' '}}) }}
+                {{ form_label(form.plainPassword, 'Contraseña *') }}
+                <button type="button" class="reg-pass-toggle" id="btn-toggle-pass" tabindex="-1">
+                    <i class="ri-eye-off-line" id="pass-icon"></i>
+                </button>
+            </div>
+            {% if form.plainPassword.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.plainPassword) }}</span>
+            {% endif %}
+        </div>
+    </div>
 
-			const SEARCH_URL = '{{ path("reg_cliente_cuit") }}';
-			// Formato: XX-XXXXXXXX-X (2 dígitos, guión, 8 dígitos, guión, 1 dígito)
-			const CUIT_REGEX = /^\d{2}-\d{8}-\d{1}$/;
-			let searchTimeout;
+    <hr class="my-3">
 
-			function isValidCuitFormat(cuit) {
-				return CUIT_REGEX.test(cuit);
-			}
+    {# ── Información de la empresa ── #}
+    <p class="reg-section-title">Información de la empresa</p>
 
-			function showFormatError() {
-				cuitFormatError.style.display = '';
-				cuitInput.classList.add('is-invalid');
-			}
+    <div class="row g-3">
+        <div class="col-12 col-md-4">
+            <div class="form-floating">
+                {{ form_widget(form.cuit, {'attr': {'class': 'form-control', 'id': 'reg-cuit', 'placeholder': 'Ej: 30-50080256-0'}}) }}
+                {{ form_label(form.cuit, 'CUIT/RUT *') }}
+            </div>
+            <div id="cuit-format-error" class="reg-field-error" style="display:none;">
+                Formato inválido. Ej: 30-50080256-0
+            </div>
+            {% if form.cuit.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.cuit) }}</span>
+            {% endif %}
+        </div>
 
-			function hideFormatError() {
-				cuitFormatError.style.display = 'none';
-				cuitInput.classList.remove('is-invalid');
-			}
+        {# Campos no-cliente: se muestran cuando el CUIT no existe en Calypso #}
+        <div id="no-cliente-section" style="display:none;" class="col-12 p-0">
+            <div class="row g-3">
+                <div class="col-12 col-md-4">
+                    <div class="form-floating">
+                        {{ form_widget(form.companyName, {'attr': {'class': 'form-control', 'placeholder': ' '}}) }}
+                        {{ form_label(form.companyName, 'Razón Social *') }}
+                    </div>
+                    {% if form.companyName.vars.errors|length %}
+                        <span class="reg-field-error">{{ form_errors(form.companyName) }}</span>
+                    {% endif %}
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="form-floating">
+                        {{ form_widget(form.domicilio, {'attr': {'class': 'form-control', 'placeholder': ' '}}) }}
+                        {{ form_label(form.domicilio, 'Domicilio *') }}
+                    </div>
+                    {% if form.domicilio.vars.errors|length %}
+                        <span class="reg-field-error">{{ form_errors(form.domicilio) }}</span>
+                    {% endif %}
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="form-floating">
+                        {{ form_widget(form.codigoPostal, {'attr': {'class': 'form-control', 'placeholder': ' '}}) }}
+                        {{ form_label(form.codigoPostal, 'Código Postal *') }}
+                    </div>
+                    {% if form.codigoPostal.vars.errors|length %}
+                        <span class="reg-field-error">{{ form_errors(form.codigoPostal) }}</span>
+                    {% endif %}
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="form-floating">
+                        {{ form_widget(form.localidad, {'attr': {'class': 'form-control', 'placeholder': ' '}}) }}
+                        {{ form_label(form.localidad, 'Localidad *') }}
+                    </div>
+                    {% if form.localidad.vars.errors|length %}
+                        <span class="reg-field-error">{{ form_errors(form.localidad) }}</span>
+                    {% endif %}
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="form-floating">
+                        {{ form_widget(form.provincia, {'attr': {'class': 'form-control', 'placeholder': ' '}}) }}
+                        {{ form_label(form.provincia, 'Provincia *') }}
+                    </div>
+                    {% if form.provincia.vars.errors|length %}
+                        <span class="reg-field-error">{{ form_errors(form.provincia) }}</span>
+                    {% endif %}
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="form-floating">
+                        {{ form_widget(form.tipoCliente, {'attr': {'class': 'form-select'}}) }}
+                        {{ form_label(form.tipoCliente, 'Tipo de Cliente *') }}
+                    </div>
+                    {% if form.tipoCliente.vars.errors|length %}
+                        <span class="reg-field-error">{{ form_errors(form.tipoCliente) }}</span>
+                    {% endif %}
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="form-floating">
+                        {{ form_widget(form.segmento, {'attr': {'class': 'form-select'}}) }}
+                        {{ form_label(form.segmento, 'Segmento *') }}
+                    </div>
+                    {% if form.segmento.vars.errors|length %}
+                        <span class="reg-field-error">{{ form_errors(form.segmento) }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
-			function showNoClienteSection() {
-				noClienteSection.style.display = '';
-			}
+        <div class="col-12">
+            <div class="form-floating">
+                {{ form_widget(form.jobTitle, {'attr': {'class': 'form-control', 'placeholder': ' '}}) }}
+                {{ form_label(form.jobTitle, 'Cargo *') }}
+            </div>
+            {% if form.jobTitle.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.jobTitle) }}</span>
+            {% endif %}
+        </div>
+    </div>
 
-			function hideNoClienteSection() {
-				noClienteSection.style.display = 'none';
-				noClienteSection.querySelectorAll('input, select').forEach(el => el.value = '');
-			}
+    {# ── Perfiles ── #}
+    <p class="reg-section-title mt-3">Perfiles *</p>
+    <div>
+        {% for child in form.role %}
+            {% set desc = child.vars.attr['data-description'] ?? '' %}
+            <label class="reg-profile-item" for="{{ child.vars.id }}">
+                <input type="radio"
+                       id="{{ child.vars.id }}"
+                       name="{{ child.vars.full_name }}"
+                       value="{{ child.vars.value }}"
+                       class="reg-profile-check"
+                       {% if child.vars.checked %}checked{% endif %}>
+                <span class="reg-profile-text">
+                    <span class="d-flex align-items-center gap-2">
+                        <strong>{{ child.vars.label }}</strong>
+                        {% if desc %}
+                        <i class="ri-information-line text-muted"
+                           data-bs-toggle="tooltip"
+                           data-bs-placement="top"
+                           title="{{ desc }}"
+                           style="cursor:pointer;font-size:1rem;flex-shrink:0;"></i>
+                        {% endif %}
+                    </span>
+                    {% if desc %}<span>{{ desc }}</span>{% endif %}
+                </span>
+            </label>
+            {# Marcar como rendered para que form_end no lo vuelva a renderizar #}
+            {% do child.setRendered() %}
+        {% endfor %}
+        {% do form.role.setRendered() %}
+    </div>
+    {% if form.role.vars.errors|length %}
+        <span class="reg-field-error">{{ form_errors(form.role) }}</span>
+    {% endif %}
 
-			async function searchCompanyByCuit(cuit) {
-				if (!isValidCuitFormat(cuit)) {
-					showFormatError();
-					hideNoClienteSection();
-					return;
-				}
+    <button type="submit" class="btn-reg-submit">Registrate</button>
 
-				hideFormatError();
+    {{ form_end(form) }}
 
-				try {
-					const response = await fetch(SEARCH_URL, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							'X-Requested-With': 'XMLHttpRequest'
-						},
-						body: JSON.stringify({ cuit: cuit })
-					});
+    <div class="text-center mb-2">
+        <p class="mb-0" style="font-size:.87rem;color:#666;">
+            ¿Ya tenés cuenta?
+            <a href="{{ path('app_login') }}" class="fw-semibold text-decoration-underline" style="color:#333;">
+                Iniciá sesión
+            </a>
+        </p>
+    </div>
 
-					const data = await response.json();
+</div>
 
-					if (response.ok && data.success) {
-						hideNoClienteSection();
-					} else {
-						showNoClienteSection();
-					}
-				} catch (error) {
-					console.error('Error en búsqueda:', error);
-					showNoClienteSection();
-				}
-			}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
 
-			// Solo dispara la búsqueda al salir del campo (blur)
-			cuitInput.addEventListener('blur', function(e) {
-				const cuit = e.target.value.trim();
-				clearTimeout(searchTimeout);
-				if (!cuit) {
-					hideFormatError();
-					hideNoClienteSection();
-					return;
-				}
-				searchCompanyByCuit(cuit);
-			});
+    // ── Password toggle ──
+    const passInput = document.getElementById('reg-password');
+    const passBtn   = document.getElementById('btn-toggle-pass');
+    const passIcon  = document.getElementById('pass-icon');
+    passBtn?.addEventListener('click', function() {
+        const isPass = passInput.type === 'password';
+        passInput.type = isPass ? 'text' : 'password';
+        passIcon.className = isPass ? 'ri-eye-line' : 'ri-eye-off-line';
+    });
 
-			// En input: solo oculta errores/sección si el campo se vacía
-			cuitInput.addEventListener('input', function(e) {
-				const cuit = e.target.value.trim();
-				if (!cuit) {
-					clearTimeout(searchTimeout);
-					hideFormatError();
-					hideNoClienteSection();
-				}
-			});
-		});
-	</script>
+    // ── Tooltips ──
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+        new bootstrap.Tooltip(el);
+    });
+
+    const cuitInput = document.querySelector('input[name*="cuit"]');
+    const noClienteSection = document.getElementById('no-cliente-section');
+    const cuitFormatError = document.getElementById('cuit-format-error');
+
+    if (!cuitInput || !noClienteSection || !cuitFormatError) {
+        console.error('No se encontraron todos los elementos DOM necesarios');
+        return;
+    }
+
+    const SEARCH_URL = '{{ path("reg_cliente_cuit") }}';
+    // Formato: XX-XXXXXXXX-X (2 dígitos, guión, 8 dígitos, guión, 1 dígito)
+    const CUIT_REGEX = /^\d{2}-\d{8}-\d{1}$/;
+    let searchTimeout;
+
+    function isValidCuitFormat(cuit) {
+        return CUIT_REGEX.test(cuit);
+    }
+
+    function showFormatError() {
+        cuitFormatError.style.display = '';
+        cuitInput.classList.add('is-invalid');
+    }
+
+    function hideFormatError() {
+        cuitFormatError.style.display = 'none';
+        cuitInput.classList.remove('is-invalid');
+    }
+
+    function showNoClienteSection() {
+        noClienteSection.style.display = '';
+    }
+
+    function hideNoClienteSection() {
+        noClienteSection.style.display = 'none';
+        noClienteSection.querySelectorAll('input, select').forEach(el => el.value = '');
+    }
+
+    async function searchCompanyByCuit(cuit) {
+        if (!isValidCuitFormat(cuit)) {
+            showFormatError();
+            hideNoClienteSection();
+            return;
+        }
+
+        hideFormatError();
+
+        try {
+            const response = await fetch(SEARCH_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ cuit: cuit })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                hideNoClienteSection();
+            } else {
+                showNoClienteSection();
+            }
+        } catch (error) {
+            console.error('Error en búsqueda:', error);
+            showNoClienteSection();
+        }
+    }
+
+    // Solo dispara la búsqueda al salir del campo (blur)
+    cuitInput.addEventListener('blur', function(e) {
+        const cuit = e.target.value.trim();
+        clearTimeout(searchTimeout);
+        if (!cuit) {
+            hideFormatError();
+            hideNoClienteSection();
+            return;
+        }
+        searchCompanyByCuit(cuit);
+    });
+
+    // En input: solo oculta errores/sección si el campo se vacía
+    cuitInput.addEventListener('input', function(e) {
+        const cuit = e.target.value.trim();
+        if (!cuit) {
+            clearTimeout(searchTimeout);
+            hideFormatError();
+            hideNoClienteSection();
+        }
+    });
+});
+</script>
 {% endblock %}

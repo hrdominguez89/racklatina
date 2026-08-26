@@ -80,34 +80,38 @@ class ProyectoController extends AbstractController
 
         $user = $this->getUser();
 
-        // Admin sin impersonar → vista admin global
+        // Admin sin impersonar → vista combinada: sus proyectos propios + tabla de solicitudes recibidas
         if ($this->isGranted('ROLE_ADMIN')) {
             $filtroEmpresa = $request->query->get('empresa') ?: null;
             $filtroUsuario = ($v = $request->query->get('usuario')) && ctype_digit($v) ? (int) $v : null;
 
-            // La vista admin muestra únicamente solicitudes enviadas (FINISHED)
-            $proyectos = $this->proyectoRepo->findAllWithFilters(
+            // Solicitudes recibidas: solo proyectos FINISHED de otros usuarios
+            $solicitudes = $this->proyectoRepo->findAllWithFilters(
                 $filtroEmpresa,
                 $filtroUsuario,
                 ProyectoStatus::FINISHED,
                 'fecha_desc',
             );
 
-            // Opciones de filtro: solo empresas/usuarios que tienen solicitudes
+            // Opciones de filtro
             $codigos         = $this->proyectoRepo->findDistinctClientesCodigos();
             $empresasOptions = $clientesRepo->findBy(['codigoCalipso' => $codigos], ['razonSocial' => 'ASC']);
             $usuariosOptions = $this->proyectoRepo->findUsersWithProyectos($filtroEmpresa);
 
-            // Mapa clienteCodigo → razonSocial para mostrar en la tabla
-            $allCodigos   = array_unique(array_filter(array_map(fn($p) => $p->getClienteCodigo(), $proyectos)));
+            // Mapa clienteCodigo → razonSocial
+            $allCodigos   = array_unique(array_filter(array_map(fn($p) => $p->getClienteCodigo(), $solicitudes)));
             $clientes     = $clientesRepo->findBy(['codigoCalipso' => $allCodigos]);
             $clienteNames = [];
             foreach ($clientes as $c) {
                 $clienteNames[$c->getCodigoCalipso()] = $c->getRazonSocial();
             }
 
+            // Proyectos propios del admin (todos los estados)
+            $misProyectos = $this->proyectoRepo->findByUser($user, null);
+
             return $this->render('secure/external/proyectos/index.html.twig', [
-                'proyectos'       => $proyectos,
+                'proyectos'       => $misProyectos,
+                'solicitudes'     => $solicitudes,
                 'isAdmin'         => true,
                 'empresasOptions' => $empresasOptions,
                 'usuariosOptions' => $usuariosOptions,
@@ -121,8 +125,9 @@ class ProyectoController extends AbstractController
         $proyectos = $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo());
 
         return $this->render('secure/external/proyectos/index.html.twig', [
-            'proyectos' => $proyectos,
-            'isAdmin'   => false,
+            'proyectos'   => $proyectos,
+            'solicitudes' => [],
+            'isAdmin'     => false,
         ]);
     }
 

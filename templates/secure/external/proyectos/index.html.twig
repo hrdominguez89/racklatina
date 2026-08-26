@@ -275,10 +275,19 @@
 
 {% block body %}
 
-<h4 class="fw-bold mb-3" style="color:#1a1a1a;">{{ isAdmin ? 'Solicitudes de cotización' : 'Proyectos' }}</h4>
-
 {% if isAdmin %}
-{# ── VISTA ADMIN: DataTable de solicitudes recibidas ── #}
+{# ── VISTA ADMIN ── #}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h4 class="fw-bold mb-0" style="color:#1a1a1a;">Proyectos</h4>
+    <button type="button"
+            class="btn btn-sm btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#modalCrearProyecto"
+            style="font-size:.8rem;font-weight:600;letter-spacing:.5px;">
+        <i class="ri-add-line me-1"></i> Crear Proyecto
+    </button>
+</div>
 
 <div class="proy-filters">
     <form method="get" action="{{ path('app_proyectos_index') }}" id="form-filtros">
@@ -316,10 +325,6 @@
             </div>
         </div>
     </form>
-    <div class="mt-2" style="font-size:.8rem; color:#888;">
-        {% set totalProyectos = proyectos|length %}
-        {{ totalProyectos }} solicitud{{ totalProyectos != 1 ? 'es' : '' }} encontrada{{ totalProyectos != 1 ? 's' : '' }}
-    </div>
 </div>
 
 <div class="card">
@@ -329,24 +334,51 @@
                 <tr>
                     <th>Empresa</th>
                     <th>Usuario</th>
-                    <th>Fecha de solicitud</th>
+                    <th>Fecha</th>
                     <th>Nombre del proyecto</th>
+                    <th>Estado</th>
                     <th class="text-center" style="width:60px;">Ver</th>
                 </tr>
             </thead>
             <tbody>
-                {% for proyecto in proyectos %}
+                {# Proyectos propios del admin #}
+                {% set adminId = app.user.id %}
+                {% for p in proyectos %}
                 <tr>
-                    <td>{{ clienteNames[proyecto.clienteCodigo] ?? proyecto.clienteCodigo ?? '—' }}</td>
-                    <td>{{ proyecto.user.firstName }} {{ proyecto.user.lastName }}</td>
-                    <td data-order="{{ proyecto.updatedAt|date('Y-m-d H:i:s') }}">
-                        {{ proyecto.updatedAt|date('d/m/Y H:i') }}
+                    <td>{{ clienteNames[p.clienteCodigo] ?? '—' }}</td>
+                    <td>
+                        {{ p.user.firstName }} {{ p.user.lastName }}
+                        <span class="badge ms-1" style="background:#e8f0fe;color:#1a56db;font-size:.7rem;"
+                              title="Tu proyecto">Yo</span>
                     </td>
-                    <td>{{ proyecto.nombre }}</td>
+                    <td data-order="{{ p.updatedAt|date('Y-m-d H:i:s') }}">{{ p.updatedAt|date('d/m/Y H:i') }}</td>
+                    <td>{{ p.nombre }}</td>
+                    <td>
+                        {% if p.status.value == 'finished' %}
+                        <span class="badge" style="background:#F5F3D0;color:#6b6200;">Enviado</span>
+                        {% else %}
+                        <span class="badge" style="background:#e8f4ea;color:#2d6a4f;">En progreso</span>
+                        {% endif %}
+                    </td>
                     <td class="text-center">
-                        <a href="{{ path('app_proyectos_show', {id: proyecto.id}) }}"
-                           class="btn btn-sm btn-outline-secondary"
-                           title="Ver proyecto">
+                        <a href="{{ path('app_proyectos_show', {id: p.id}) }}"
+                           class="btn btn-sm btn-outline-secondary" title="Ver proyecto">
+                            <i class="ri-eye-line"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                {# Solicitudes recibidas de clientes #}
+                {% for p in solicitudes %}
+                <tr>
+                    <td>{{ clienteNames[p.clienteCodigo] ?? p.clienteCodigo ?? '—' }}</td>
+                    <td>{{ p.user.firstName }} {{ p.user.lastName }}</td>
+                    <td data-order="{{ p.updatedAt|date('Y-m-d H:i:s') }}">{{ p.updatedAt|date('d/m/Y H:i') }}</td>
+                    <td>{{ p.nombre }}</td>
+                    <td><span class="badge" style="background:#F5F3D0;color:#6b6200;">Enviado</span></td>
+                    <td class="text-center">
+                        <a href="{{ path('app_proyectos_show', {id: p.id}) }}"
+                           class="btn btn-sm btn-outline-secondary" title="Ver proyecto">
                             <i class="ri-eye-line"></i>
                         </a>
                     </td>
@@ -360,6 +392,8 @@
 {% else %}
 {# ── VISTA USUARIO: Grid de proyectos ── #}
 
+<h4 class="fw-bold mb-3" style="color:#1a1a1a;">Proyectos</h4>
+
 {# Search bar #}
 <div class="proyectos-search">
     <i class="ri-search-line search-icon"></i>
@@ -368,7 +402,7 @@
 
 <div class="row g-3" id="grid-proyectos">
 
-    {# Tarjeta "Crear Proyecto" — para usuarios externos (no admins internos) #}
+    {# Tarjeta "Crear Proyecto" — para usuarios externos #}
     {% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMINISTRACION') %}
     <div class="col-12 col-md-6 col-xl-3">
         <div class="proy-card-create"
@@ -479,8 +513,7 @@
 </ul>
 {% endmacro %}
 
-{# Modal: Confirmar Eliminar (solo vista usuario) #}
-{% if not isAdmin %}
+{# Modal: Confirmar Eliminar #}
 <div class="modal fade" id="modalEliminarProyecto" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
@@ -504,7 +537,6 @@
         </div>
     </div>
 </div>
-{% endif %}
 
 {% endblock %}
 
@@ -518,14 +550,12 @@ $(document).ready(function () {
         language: { url: '{{ asset('lang/es-ES.json') }}' },
         order: [[2, 'desc']],
         pageLength: 25,
-        columnDefs: [
-            { orderable: false, targets: 4 }
-        ],
+        columnDefs: [{ orderable: false, targets: 5 }],
         drawCallback: function () {
             this.api().rows({ page: 'current' }).nodes().each(function (row, i) {
                 $(row).find('td').each(function () {
                     if (i % 2 === 0) {
-                        this.style.setProperty('--vz-table-bg-type', 'rgba(0, 0, 0, 0.07)');
+                        this.style.setProperty('--vz-table-bg-type', 'rgba(0,0,0,0.07)');
                     } else {
                         this.style.removeProperty('--vz-table-bg-type');
                     }
@@ -533,6 +563,10 @@ $(document).ready(function () {
             });
         }
     });
+});
+
+document.addEventListener('rkl:proyecto-creado', function () {
+    setTimeout(() => location.reload(), 800);
 });
 </script>
 {% else %}
