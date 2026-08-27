@@ -25,6 +25,10 @@ services:
     # please note that last definitions always *replace* previous ones
     
     # Microsoft Graph Mailer Service
+    App\EventListener\MaintenanceListener:
+        arguments:
+            $inMaintenance: '%env(default::IN_MAINTENANCE)%'
+
     App\Services\MicrosoftGraphMailerService:
         arguments:
             $tenantId: '%env(MICROSOFT_GRAPH_TENANT_ID)%'
