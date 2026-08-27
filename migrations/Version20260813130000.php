@@ -16,8 +16,8 @@ final class Version20260813130000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql("INSERT INTO role (name, type) VALUES ('ROLE_INGENIERO_N1', 'external')");
-        $this->addSql("INSERT INTO role (name, type) VALUES ('ROLE_INGENIERO_N2', 'external')");
+        $this->addSql("INSERT INTO role (name, type) SELECT 'ROLE_INGENIERO_N1', 'external' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM role WHERE name = 'ROLE_INGENIERO_N1')");
+        $this->addSql("INSERT INTO role (name, type) SELECT 'ROLE_INGENIERO_N2', 'external' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM role WHERE name = 'ROLE_INGENIERO_N2')");
     }
 
     public function down(Schema $schema): void
