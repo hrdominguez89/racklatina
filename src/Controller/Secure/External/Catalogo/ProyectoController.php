@@ -6,7 +6,7 @@ use App\Email\ContactoEmailWithAttachments;
 use App\Entity\Proyecto;
 use App\Entity\ProyectoItem;
 use App\Enum\ProyectoStatus;
-use App\Repository\ArticuloEcommerceRepository;
+use App\Repository\StockAdvisorRepository;
 use App\Repository\ClientesRepository;
 use App\Repository\ProyectoItemRepository;
 use App\Repository\ProyectoRepository;
@@ -63,7 +63,7 @@ class ProyectoController extends AbstractController
     public function __construct(
         private ProyectoRepository $proyectoRepo,
         private ProyectoItemRepository $itemRepo,
-        private ArticuloEcommerceRepository $articuloRepo,
+        private StockAdvisorRepository $articuloRepo,
         private EntityManagerInterface $em,
         private MailerInterface $mailer,
         private ClientesRepository $clientesRepo,

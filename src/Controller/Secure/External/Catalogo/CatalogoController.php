@@ -2,7 +2,6 @@
 
 namespace App\Controller\Secure\External\Catalogo;
 
-use App\Repository\ArticuloEcommerceRepository;
 use App\Repository\ClientesRepository;
 use App\Repository\ProyectoRepository;
 use App\Repository\StockAdvisorRepository;
@@ -18,11 +17,10 @@ use Symfony\Component\Routing\Attribute\Route;
 class CatalogoController extends AbstractController
 {
     public function __construct(
-        private ArticuloEcommerceRepository $articuloRepo,
+        private StockAdvisorRepository $stockAdvisorRepo,
         private ClientesRepository $clientesRepo,
         private ProyectoRepository $proyectoRepo,
         private EntityManagerInterface $em,
-        private StockAdvisorRepository $stockAdvisorRepo,
         private CalypsoPreciosService $preciosService,
     ) {}
 
@@ -35,7 +33,6 @@ class CatalogoController extends AbstractController
         $user = $this->getUser();
 
         if ($this->isGranted('ROLE_ADMIN')) {
-            // Admin puede limpiar la selección enviando código vacío
             if ($codigo === '') {
                 $user->setActiveCliente(null);
                 $user->setActiveProyectoId(null);
@@ -43,12 +40,10 @@ class CatalogoController extends AbstractController
                 $referer = $request->headers->get('referer');
                 return $this->redirect($referer ?: $this->generateUrl('app_catalogo_index'));
             }
-            // Admins pueden switchear a cualquier empresa existente en Calypso
             if (!$this->clientesRepo->find($codigo)) {
                 throw $this->createNotFoundException('Empresa no encontrada.');
             }
         } else {
-            // Externos: solo empresas vinculadas a su usuario
             $valido = false;
             foreach ($user->getUserCustomers() as $uc) {
                 if ($uc->getClienteCodigo() === $codigo) {
@@ -63,7 +58,6 @@ class CatalogoController extends AbstractController
 
         $user->setActiveCliente($codigo);
 
-        // Limpiar proyecto activo si no pertenece al nuevo cliente
         if ($user->getActiveProyectoId() !== null) {
             $proyecto = $this->proyectoRepo->find($user->getActiveProyectoId());
             if ($proyecto === null || $proyecto->getClienteCodigo() !== $codigo) {
@@ -80,8 +74,8 @@ class CatalogoController extends AbstractController
     #[Route('', name: 'app_catalogo_index')]
     public function index(): Response
     {
-        $categorias = $this->articuloRepo->getCategorias();
-        $recomendados = $this->articuloRepo->getRecomendados(8);
+        $categorias = $this->stockAdvisorRepo->getCategorias();
+        $recomendados = $this->stockAdvisorRepo->getRecomendados(8);
 
         $codigos = array_map(fn($a) => $a->getCodigoCalipso(), $recomendados);
         $stockMap = $this->stockAdvisorRepo->getStockMap($codigos);
@@ -134,13 +128,12 @@ class CatalogoController extends AbstractController
             : 24;
         $vista = $request->query->get('vista', 'grid');
 
-        $resultado = $this->articuloRepo->buscarConFiltros(
+        $resultado = $this->stockAdvisorRepo->buscarConFiltros(
             $q, $categoria, $subcategoria, $marca, $pagina, $porPagina, $ordenar, $tags
         );
 
         $totalPaginas = (int)ceil($resultado['total'] / $porPagina);
 
-        // Proyectos solo si el usuario está autenticado
         $user = $this->getUser();
         $proyectos = $user
             ? $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo())
@@ -168,9 +161,9 @@ class CatalogoController extends AbstractController
                 'ordenar' => $ordenar,
             ],
             'opcionesFiltros' => [
-                'categorias' => $this->articuloRepo->getCategorias(),
-                'subcategorias' => $this->articuloRepo->getSubcategorias($categoria),
-                'marcas' => $this->articuloRepo->getMarcas(),
+                'categorias' => $this->stockAdvisorRepo->getCategorias(),
+                'subcategorias' => $this->stockAdvisorRepo->getSubcategorias($categoria),
+                'marcas' => $this->stockAdvisorRepo->getMarcas(),
                 'tags' => $this->stockAdvisorRepo->getTagsDisponibles(),
             ],
             'proyectos' => $proyectos,
@@ -180,13 +173,13 @@ class CatalogoController extends AbstractController
     #[Route('/productos/{codigo}/similares', name: 'app_catalogo_similares', methods: ['GET'])]
     public function similares(string $codigo): JsonResponse
     {
-        $articulo = $this->articuloRepo->find($codigo);
+        $articulo = $this->stockAdvisorRepo->find($codigo);
         if (!$articulo || !$articulo->getCategoriaAdvisor()) {
             return $this->json([]);
         }
 
         $items = array_values(array_filter(
-            $this->articuloRepo->buscarConFiltros(null, $articulo->getCategoriaAdvisor(), null, null, 1, 6)['items'],
+            $this->stockAdvisorRepo->buscarConFiltros(null, $articulo->getCategoriaAdvisor(), null, null, 1, 6)['items'],
             fn($a) => $a->getCodigoCalipso() !== $codigo
         ));
 
@@ -201,7 +194,7 @@ class CatalogoController extends AbstractController
     #[Route('/productos/{codigo}', name: 'app_catalogo_detalle')]
     public function detalle(string $codigo): Response
     {
-        $articulo = $this->articuloRepo->find($codigo);
+        $articulo = $this->stockAdvisorRepo->find($codigo);
         if (!$articulo) {
             throw $this->createNotFoundException('Producto no encontrado');
         }
@@ -212,7 +205,7 @@ class CatalogoController extends AbstractController
             : [];
 
         $relacionados = array_values(array_filter(
-            $this->articuloRepo->buscarConFiltros(null, $articulo->getCategoriaAdvisor(), null, null, 1, 5)['items'],
+            $this->stockAdvisorRepo->buscarConFiltros(null, $articulo->getCategoriaAdvisor(), null, null, 1, 5)['items'],
             fn($a) => $a->getCodigoCalipso() !== $articulo->getCodigoCalipso()
         ));
 
@@ -235,14 +228,12 @@ class CatalogoController extends AbstractController
             }
         }
 
-        $stockAdvisor = $this->stockAdvisorRepo->findByCodigo($codigo);
-
         return $this->render('secure/external/catalogo/detalle.html.twig', [
             'articulo' => $articulo,
             'proyectos' => $proyectos,
             'relacionados' => array_slice($relacionados, 0, 4),
             'precio' => $precio,
-            'stockAdvisor' => $stockAdvisor,
+            'stockAdvisor' => $articulo,
         ]);
     }
 }

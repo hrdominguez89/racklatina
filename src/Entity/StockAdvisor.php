@@ -99,6 +99,13 @@ class StockAdvisor
 
     public function getTags(): ?string { return $this->tags; }
 
+    public function getDescripcionTecnica(): ?string { return null; }
+
+    public function getNombreDisplay(): string
+    {
+        return $this->descripcionAdvisor ?? $this->descripcion ?? $this->codigoCalipso;
+    }
+
     public function getStockNumerico(): float { return (float)($this->stock ?? 0); }
 
     public function tieneStock(): bool { return $this->getStockNumerico() > 0; }
