@@ -1,0 +1,20 @@
+<h2>Nuevo registro – usuario sin cuenta en Calypso</h2>
+<p>Se registró un nuevo usuario que <strong>no figura como cliente en Calypso</strong>. Requiere revisión manual.</p>
+
+<h3>Datos del usuario</h3>
+<p><strong>Nombre:</strong> {{ user.firstName }} {{ user.lastName }}</p>
+<p><strong>Email:</strong> {{ user.email }}</p>
+
+{% if external %}
+<h3>Datos de la empresa</h3>
+<p><strong>Razón Social:</strong> {{ external.companyName }}</p>
+<p><strong>CUIT:</strong> {{ user.cuit ?? '—' }}</p>
+<p><strong>Domicilio:</strong> {{ external.domicilio ?? '—' }}</p>
+<p><strong>Localidad:</strong> {{ external.localidad ?? '—' }}</p>
+<p><strong>Código Postal:</strong> {{ external.codigoPostal ?? '—' }}</p>
+<p><strong>Provincia:</strong> {{ external.provincia ?? '—' }}</p>
+<p><strong>Tipo de Cliente:</strong> {{ external.tipoCliente ?? '—' }}</p>
+<p><strong>Segmento:</strong> {{ external.segmento ?? '—' }}</p>
+<p><strong>Teléfono:</strong> {{ external.phoneNumber ?? '—' }}</p>
+<p><strong>Cargo:</strong> {{ external.jobTitle ?? '—' }}</p>
+{% endif %}

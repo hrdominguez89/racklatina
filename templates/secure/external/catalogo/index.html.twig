@@ -1,0 +1,213 @@
+{% extends 'base_catalogo.html.twig' %}
+
+{% block title %}Catálogo de Productos{% endblock %}
+
+{% block breadcrumb %}
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item active">Catálogo</li>
+    </ol>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+.rkl-search-input {
+    height: 44px;
+    border-radius: 50px !important;
+    border: 1px solid #e2e2e2;
+    padding-left: 2.8rem;
+    font-size: .9rem;
+    background: #f8f9fa;
+    transition: border-color .2s, background .2s;
+}
+.rkl-search-input:focus {
+    border-color: #bbb; background: #fff; box-shadow: none;
+}
+.rkl-search-icon {
+    left: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 1.05rem; color: #aaa; pointer-events: none;
+}
+.rkl-section-label { font-size: .82rem; font-weight: 600; color: #888; letter-spacing: .2px; }
+.rkl-section-link {
+    font-size: .78rem; font-weight: 600; color: var(--rkl-primary);
+    text-decoration: none; letter-spacing: .3px; text-transform: uppercase;
+}
+.rkl-section-link:hover { color: var(--rkl-primary-dark); }
+
+.rkl-cat-card {
+    position: relative; border-radius: 10px; overflow: hidden;
+    min-height: 200px; cursor: pointer; display: block;
+    text-decoration: none !important;
+    transition: transform .18s, box-shadow .18s;
+}
+.rkl-cat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.22); }
+.rkl-cat-bg {
+    position: absolute; inset: 0;
+    background-image: url('{{ asset('images/categories_ph.jpg') }}');
+    background-size: cover; background-position: center;
+    background-color: #2c3e50;
+    mix-blend-mode: multiply;
+}
+.rkl-cat-overlay { position: absolute; inset: 0; background: rgba(20, 28, 38, .62); }
+.rkl-cat-body {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    height: 100%; min-height: 200px; padding: 1rem;
+}
+.rkl-cat-name {
+    font-size: .9rem; font-weight: 700; color: #fff;
+    line-height: 1.35; margin: 0;
+    text-shadow: 0 1px 4px rgba(0,0,0,.4);
+}
+
+.rkl-prod-card {
+    position: relative;
+    background: #fff; border: 1px solid #ebebeb; border-radius: 10px; overflow: hidden;
+    height: 100%; display: flex; flex-direction: column;
+    transition: box-shadow .18s, transform .18s;
+}
+.rkl-prod-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.1); transform: translateY(-2px); }
+.rkl-prod-img-wrap {
+    position: relative; background: #f5f5f5; height: 160px;
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+    mix-blend-mode: multiply;
+}
+.rkl-prod-img-wrap img { max-height: 140px; max-width: 100%; object-fit: contain; padding: .75rem; }
+.rkl-prod-badge {
+    position: absolute; top: 8px; left: 8px;
+    background: #1a1a1a; color: #fff;
+    border-radius: 50px; font-size: .68rem; font-weight: 600;
+    padding: .18rem .6rem; letter-spacing: .2px;
+}
+.rkl-prod-body { padding: .85rem .9rem 1rem; display: flex; flex-direction: column; flex: 1; }
+.rkl-prod-name {
+    font-size: .82rem; font-weight: 700; color: #1a1a1a; line-height: 1.35; margin-bottom: .25rem;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.rkl-prod-sub {
+    font-size: .72rem; color: #999; margin-bottom: .75rem;
+    display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+}
+.rkl-btn-agregar {
+    display: block; width: 100%; text-align: center;
+    border: 1.5px solid #c8c5a0; background: #fff; color: #7a7300;
+    border-radius: 6px; font-size: .7rem; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+    padding: .5rem .5rem; transition: background .15s, color .15s, border-color .15s; cursor: pointer;
+}
+.rkl-btn-agregar:hover { background: var(--rkl-primary); color: #fff; border-color: var(--rkl-primary); }
+</style>
+{% endblock %}
+
+{% block body %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0" style="color:#1a1a1a;">Productos</h4>
+    {% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') %}
+    <button type="button"
+            class="btn btn-sm fw-semibold d-none d-md-inline-flex align-items-center gap-1"
+            style="background:var(--rkl-primary);color:#fff;border:none;padding:.4rem 1.2rem;border-radius:6px;"
+            data-bs-toggle="modal" data-bs-target="#modalCrearProyecto">
+        <i class="ri-add-line"></i> Nuevo Proyecto
+    </button>
+    {% endif %}
+</div>
+
+{# Buscador #}
+<div class="mb-5">
+    <form action="{{ path('app_catalogo_lista') }}" method="GET">
+        <div class="position-relative">
+            <i class="ri-search-line position-absolute rkl-search-icon"></i>
+            <input type="text" name="q"
+                   class="form-control rkl-search-input"
+                   placeholder="Buscá un producto"
+                   value="{{ app.request.query.get('q') ?? '' }}">
+        </div>
+    </form>
+</div>
+
+{# Categorías #}
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="rkl-section-label">Seleccioná una categoría</span>
+        <a href="{{ path('app_catalogo_lista') }}" class="rkl-section-link">Ver más</a>
+    </div>
+    <div class="row g-2 g-md-3">
+        {% for categoria in categorias %}
+        <div class="col-6 col-md-4">
+            <a href="{{ path('app_catalogo_lista', {categoria: categoria}) }}" class="rkl-cat-card">
+                <div class="rkl-cat-bg c{{ loop.index0 % 8 }}"></div>
+                <div class="rkl-cat-overlay"></div>
+                <div class="rkl-cat-body">
+                    <p class="rkl-cat-name">{{ categoria }}</p>
+                </div>
+            </a>
+        </div>
+        {% else %}
+        <div class="col-12"><p class="text-muted small">No hay categorías disponibles todavía.</p></div>
+        {% endfor %}
+    </div>
+</div>
+
+{# Productos más recomendados #}
+{% if recomendados is not empty %}
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="rkl-section-label">Productos más recomendados</span>
+        <a href="{{ path('app_catalogo_lista') }}" class="rkl-section-link">Ver más</a>
+    </div>
+    <div class="row g-3">
+        {% for articulo in recomendados %}
+        <div class="col-6 col-md-3">
+            <div class="rkl-prod-card">
+                <div class="rkl-prod-img-wrap">
+                    {% if articulo.imagen %}
+                    <img src="{{ articulo.imagen }}" alt="{{ articulo.nombreDisplay }}" style="mix-blend-mode: multiply;"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;">
+                        <i class="ri-image-line fs-2 text-muted"></i>
+                    </div>
+                    {% else %}
+                    <i class="ri-image-line fs-2 text-muted"></i>
+                    {% endif %}
+                    {% set _rawTags = tagsMap is defined and tagsMap[articulo.codigoCalipso] is defined ? tagsMap[articulo.codigoCalipso] : null %}
+                    {% set _artTags = _rawTags ? _rawTags|split(',')|map(t => t|trim)|filter(t => t != '') : [] %}
+                    {% if _artTags|length > 0 %}
+                    <div style="position:absolute;top:8px;left:8px;display:flex;flex-direction:column;gap:2px;">
+                        {% for tag in _artTags %}
+                        <span class="rkl-prod-badge">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% elseif stockMap is defined and stockMap[articulo.codigoCalipso] is defined and stockMap[articulo.codigoCalipso] > 0 %}
+                    <span class="rkl-prod-badge">En Stock</span>
+                    {% endif %}
+                </div>
+                <div class="rkl-prod-body">
+                    <a href="{{ path('app_catalogo_detalle', {codigo: articulo.codigoCalipso}) }}"
+                       class="text-decoration-none stretched-link"
+                       onclick="RKL.clarity('event','producto_click');RKL.clarity('set','producto_clickeado','{{ articulo.codigoCalipso|e('html_attr') }}');">
+                        <p class="rkl-prod-name">{{ articulo.nombreDisplay }}</p>
+                    </a>
+                    {% if articulo.subcategoriaAdvisor %}
+                    <p class="rkl-prod-sub">{{ articulo.subcategoriaAdvisor }}</p>
+                    {% elseif articulo.descripcion %}
+                    <p class="rkl-prod-sub">{{ articulo.descripcion }}</p>
+                    {% endif %}
+                    {% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
+                    <div class="mt-auto position-relative">
+                        <button type="button"
+                                class="rkl-btn-agregar btn-agregar-proyecto"
+                                data-articulo-codigo="{{ articulo.codigoCalipso }}"
+                                data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}">
+                            {{ (is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) ? 'Agregar a Lista' : 'Agregar a Proyecto' }}
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

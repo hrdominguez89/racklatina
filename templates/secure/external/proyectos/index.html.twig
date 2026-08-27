@@ -1,0 +1,601 @@
+{% extends 'base_catalogo.html.twig' %}
+
+{% block title %}{{ isAdmin ? 'Todos los Proyectos' : 'Mis Proyectos' }}{% endblock %}
+
+{% block breadcrumb %}
+<ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item">
+        <a href="{{ path('app_catalogo_index') }}">Catálogo</a>
+    </li>
+    <li class="breadcrumb-item active">Proyectos</li>
+</ol>
+{% endblock %}
+
+{% block stylesheets %}
+{% if isAdmin %}
+<link rel="stylesheet" href="{{ asset('Datatables/datatables.min.css') }}">
+{% endif %}
+<style>
+
+/* Zebra striping: la variable se setea vía drawCallback en JS */
+
+/* ── Admin filter bar ── */
+.proy-filters {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+.proy-filters .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    align-items: flex-end;
+}
+.proy-filters .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    flex: 1;
+    min-width: 180px;
+}
+.proy-filters label {
+    font-size: .75rem;
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+.proy-filters select {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: .45rem .75rem;
+    font-size: .85rem;
+    color: #333;
+    background: #fafafa;
+    cursor: pointer;
+}
+.proy-filters select:focus { outline: none; border-color: var(--rkl-primary); }
+.proy-filters .filter-actions {
+    display: flex;
+    gap: .5rem;
+    align-items: flex-end;
+    flex-shrink: 0;
+}
+.btn-filter-apply {
+    background: var(--rkl-primary);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: .47rem 1.1rem;
+    font-size: .82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+}
+.btn-filter-apply:hover { background: var(--rkl-primary-dark); }
+.btn-filter-clear {
+    background: none;
+    color: #888;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: .47rem .9rem;
+    font-size: .82rem;
+    cursor: pointer;
+    transition: border-color .15s, color .15s;
+    text-decoration: none;
+}
+.btn-filter-clear:hover { border-color: #aaa; color: #333; }
+
+/* ── Search bar ── */
+.proyectos-search {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 50px;
+    padding: .6rem 1.2rem;
+    width: 100%;
+    margin-bottom: 1.75rem;
+}
+.proyectos-search input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: .9rem;
+    color: #333;
+    background: transparent;
+}
+.proyectos-search input::placeholder { color: #aaa; }
+.proyectos-search .search-icon { color: #aaa; font-size: 1rem; flex-shrink: 0; }
+
+/* ── Project card ── */
+.proy-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Status strip ── */
+.proy-status-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .45rem .9rem .45rem .75rem;
+    font-size: .78rem;
+    font-weight: 600;
+    gap: .4rem;
+}
+.proy-status-strip.status-finished {
+    background: #F5F3D0;
+    color: #6b6200;
+}
+.proy-status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.status-finished .proy-status-dot { background: var(--rkl-primary); }
+.proy-status-label { flex: 1; }
+
+/* When there's a status strip, the menu lives inside it */
+.proy-card-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Header when no status strip */
+.proy-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: .85rem;
+    gap: .5rem;
+}
+.proy-card-title {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    flex: 1;
+    min-width: 0;
+}
+.proy-card-title i {
+    color: var(--rkl-primary);
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+.proy-card-title span {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--rkl-primary);
+    line-height: 1.3;
+    word-break: break-word;
+}
+.proy-menu-btn {
+    background: none;
+    border: none;
+    padding: .2rem .35rem;
+    cursor: pointer;
+    color: #888;
+    font-size: 1.1rem;
+    border-radius: 4px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.proy-menu-btn:hover { background: #f0f0f0; color: #333; }
+
+.proy-card-desc {
+    font-size: .85rem;
+    color: #555;
+    margin-bottom: .8rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.55;
+    flex: 1;
+}
+.proy-card-desc.empty { color: #ccc; font-style: italic; }
+
+.proy-card-meta {
+    font-size: .78rem;
+    color: #999;
+    margin-bottom: .25rem;
+}
+
+/* ── Card actions ── */
+.proy-card-actions {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .55rem;
+}
+.btn-solicitar-cotizacion {
+    background: var(--rkl-primary);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: .65rem 1rem;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    transition: background .15s;
+}
+.btn-solicitar-cotizacion:not(:disabled):hover { background: var(--rkl-primary-dark); }
+.btn-solicitar-cotizacion:disabled { opacity: .65; cursor: default; }
+
+.proy-card-link {
+    font-size: .85rem;
+    color: #333;
+    text-decoration: underline;
+    text-align: center;
+    display: block;
+    padding: .15rem 0;
+}
+.proy-card-link:hover { color: #000; }
+
+/* ── Create card ── */
+.proy-card-create {
+    background: #FAFAE8;
+    border: 1px solid #E8E6C0;
+    border-radius: 8px;
+    min-height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    height: 100%;
+    transition: background .15s;
+}
+.proy-card-create:hover { background: #F5F5D8; }
+.proy-card-create a {
+    font-size: .95rem;
+    font-weight: 600;
+    color: #555;
+    text-decoration: underline;
+    pointer-events: none;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% if isAdmin %}
+{# ── VISTA ADMIN ── #}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h4 class="fw-bold mb-0" style="color:#1a1a1a;">Proyectos</h4>
+    <button type="button"
+            class="btn btn-sm btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#modalCrearProyecto"
+            style="font-size:.8rem;font-weight:600;letter-spacing:.5px;">
+        <i class="ri-add-line me-1"></i> Crear Proyecto
+    </button>
+</div>
+
+<div class="proy-filters">
+    <form method="get" action="{{ path('app_proyectos_index') }}" id="form-filtros">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label for="f-empresa">Empresa</label>
+                <select name="empresa" id="f-empresa" onchange="this.form.submit()">
+                    <option value="">Todas las empresas</option>
+                    {% for empresa in empresasOptions %}
+                    <option value="{{ empresa.codigoCalipso }}"
+                        {% if filtroEmpresa == empresa.codigoCalipso %}selected{% endif %}>
+                        {{ empresa.razonSocial ?? empresa.codigoCalipso }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="f-usuario">Usuario</label>
+                <select name="usuario" id="f-usuario" onchange="this.form.submit()">
+                    <option value="">Todos los usuarios</option>
+                    {% for u in usuariosOptions %}
+                    <option value="{{ u.id }}"
+                        {% if filtroUsuario == u.id %}selected{% endif %}>
+                        {{ u.firstName }} {{ u.lastName }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-actions">
+                {% if filtroEmpresa or filtroUsuario %}
+                <a href="{{ path('app_proyectos_index') }}" class="btn-filter-clear">
+                    <i class="ri-close-line me-1"></i>Limpiar
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table id="tabla-proyectos" class="table table-hover" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Empresa</th>
+                    <th>Usuario</th>
+                    <th>Fecha</th>
+                    <th>Nombre del proyecto</th>
+                    <th>Estado</th>
+                    <th class="text-center" style="width:60px;">Ver</th>
+                </tr>
+            </thead>
+            <tbody>
+                {# Proyectos propios del admin #}
+                {% set adminId = app.user.id %}
+                {% for p in proyectos %}
+                <tr>
+                    <td>{{ clienteNames[p.clienteCodigo] ?? '—' }}</td>
+                    <td>
+                        {{ p.user.firstName }} {{ p.user.lastName }}
+                        <span class="badge ms-1" style="background:#e8f0fe;color:#1a56db;font-size:.7rem;"
+                              title="Tu proyecto">Yo</span>
+                    </td>
+                    <td data-order="{{ p.updatedAt|date('Y-m-d H:i:s') }}">{{ p.updatedAt|date('d/m/Y H:i') }}</td>
+                    <td>{{ p.nombre }}</td>
+                    <td>
+                        {% if p.status.value == 'finished' %}
+                        <span class="badge" style="background:#F5F3D0;color:#6b6200;">Enviado</span>
+                        {% else %}
+                        <span class="badge" style="background:#e8f4ea;color:#2d6a4f;">En progreso</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ path('app_proyectos_show', {id: p.id}) }}"
+                           class="btn btn-sm btn-outline-secondary" title="Ver proyecto">
+                            <i class="ri-eye-line"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                {# Solicitudes recibidas de clientes #}
+                {% for p in solicitudes %}
+                <tr>
+                    <td>{{ clienteNames[p.clienteCodigo] ?? p.clienteCodigo ?? '—' }}</td>
+                    <td>{{ p.user.firstName }} {{ p.user.lastName }}</td>
+                    <td data-order="{{ p.updatedAt|date('Y-m-d H:i:s') }}">{{ p.updatedAt|date('d/m/Y H:i') }}</td>
+                    <td>{{ p.nombre }}</td>
+                    <td><span class="badge" style="background:#F5F3D0;color:#6b6200;">Enviado</span></td>
+                    <td class="text-center">
+                        <a href="{{ path('app_proyectos_show', {id: p.id}) }}"
+                           class="btn btn-sm btn-outline-secondary" title="Ver proyecto">
+                            <i class="ri-eye-line"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% else %}
+{# ── VISTA USUARIO: Grid de proyectos ── #}
+{% set esIngenieroIdx = is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
+
+<h4 class="fw-bold mb-3" style="color:#1a1a1a;">{{ esIngenieroIdx ? 'Mis Listas' : 'Proyectos' }}</h4>
+
+{# Search bar #}
+<div class="proyectos-search">
+    <i class="ri-search-line search-icon"></i>
+    <input type="text" id="input-buscar-proyecto" placeholder="Buscá {{ esIngenieroIdx ? 'una lista' : 'un proyecto' }}" autocomplete="off">
+</div>
+
+<div class="row g-3" id="grid-proyectos">
+
+    {# Tarjeta "Crear Proyecto" — para usuarios externos #}
+    {% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMINISTRACION') %}
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="proy-card-create"
+             data-bs-toggle="modal"
+             data-bs-target="#modalCrearProyecto">
+            <a href="#" onclick="return false;">Crear Proyecto</a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% for proyecto in proyectos %}
+    <div class="col-12 col-md-6 col-xl-3 proy-col" data-nombre="{{ proyecto.nombre|lower }}">
+        <div class="proy-card">
+
+            {# Status strip — solo si está finalizado #}
+            {% if proyecto.status.value == 'finished' %}
+            <div class="proy-status-strip status-finished">
+                <span class="proy-status-dot"></span>
+                <span class="proy-status-label">Solicitud de cotización enviada</span>
+                <div class="dropdown">
+                    <button class="proy-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Opciones">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    {{ _self.dropdown_menu(proyecto, true) }}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="proy-card-body">
+
+                {# Header: icono + nombre + menú (solo cuando no hay strip) #}
+                <div class="proy-card-header">
+                    <div class="proy-card-title">
+                        <i class="ri-file-list-3-line"></i>
+                        <span>{{ proyecto.nombre }}</span>
+                    </div>
+                    {% if proyecto.status.value == 'in_progress' %}
+                    <div class="dropdown">
+                        <button class="proy-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Opciones">
+                            <i class="ri-more-2-fill"></i>
+                        </button>
+                        {{ _self.dropdown_menu(proyecto) }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                {# Descripción #}
+                {% if proyecto.descripcion %}
+                <p class="proy-card-desc">{{ proyecto.descripcion }}</p>
+                {% else %}
+                <p class="proy-card-desc empty">Sin descripción</p>
+                {% endif %}
+
+                {# Meta info #}
+                <p class="proy-card-meta">Fecha de creación: {{ proyecto.createdAt|date('d/m/Y') }}</p>
+                <p class="proy-card-meta {% if proyecto.precioTotalUsd is null %}mb-0{% endif %}">Cantidad de productos: {{ proyecto.cantidadProductos }}</p>
+                {% if proyecto.precioTotalUsd is not null %}
+                <p class="proy-card-meta mb-0" style="font-weight:700;color:#1a1a1a;">
+                    Total: U$S {{ proyecto.precioTotalUsd|number_format(2, ',', '.') }}
+                </p>
+                {% endif %}
+
+                {# Acciones #}
+                <div class="proy-card-actions">
+                    {% if proyecto.status.value == 'in_progress' %}
+                    <button type="button" class="btn-solicitar-cotizacion" disabled>
+                        Solicitar Cotización
+                    </button>
+                    {% endif %}
+                    <a href="{{ path('app_proyectos_show', {id: proyecto.id}) }}" class="proy-card-link">
+                        Ver proyecto
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+{% endif %}
+
+{# Macro para el dropdown de opciones (evita duplicar el HTML) #}
+{% macro dropdown_menu(proyecto, readonly) %}
+<ul class="dropdown-menu dropdown-menu-end" style="font-size:.85rem;">
+    <li>
+        <a class="dropdown-item" href="{{ path('app_proyectos_show', {id: proyecto.id}) }}">
+            <i class="ri-eye-line me-2"></i> Ver detalle
+        </a>
+    </li>
+    {% if not readonly %}
+    <li>
+        <a class="dropdown-item" href="{{ path('app_proyectos_editar', {id: proyecto.id}) }}">
+            <i class="ri-edit-line me-2"></i> Editar
+        </a>
+    </li>
+    <li><hr class="dropdown-divider"></li>
+    <li>
+        <button class="dropdown-item text-danger btn-eliminar-proyecto"
+                data-proyecto-id="{{ proyecto.id }}"
+                data-proyecto-nombre="{{ proyecto.nombre|e('html_attr') }}"
+                data-csrf="{{ csrf_token('proyecto_eliminar_' ~ proyecto.id) }}">
+            <i class="ri-delete-bin-line me-2"></i> Eliminar
+        </button>
+    </li>
+    {% endif %}
+</ul>
+{% endmacro %}
+
+{# Modal: Confirmar Eliminar #}
+<div class="modal fade" id="modalEliminarProyecto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger">
+                    <i class="ri-delete-bin-line me-2"></i>Eliminar Proyecto
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">¿Estás seguro que querés eliminar el proyecto <strong id="nombre-proyecto-eliminar"></strong>?</p>
+                <p class="text-danger small">Esta acción no se puede deshacer y eliminará todos los productos del proyecto.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <form id="form-eliminar-proyecto" method="POST" class="d-inline">
+                    <input type="hidden" name="_token" id="token-eliminar">
+                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{% if isAdmin %}
+<script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
+<script src="{{ asset('Datatables/datatables.min.js') }}"></script>
+<script>
+$(document).ready(function () {
+    $('#tabla-proyectos').DataTable({
+        language: { url: '{{ asset('lang/es-ES.json') }}' },
+        order: [[2, 'desc']],
+        pageLength: 25,
+        columnDefs: [{ orderable: false, targets: 5 }],
+        drawCallback: function () {
+            this.api().rows({ page: 'current' }).nodes().each(function (row, i) {
+                $(row).find('td').each(function () {
+                    if (i % 2 === 0) {
+                        this.style.setProperty('--vz-table-bg-type', 'rgba(0,0,0,0.07)');
+                    } else {
+                        this.style.removeProperty('--vz-table-bg-type');
+                    }
+                });
+            });
+        }
+    });
+});
+
+document.addEventListener('rkl:proyecto-creado', function () {
+    setTimeout(() => location.reload(), 800);
+});
+</script>
+{% else %}
+<script>
+// Eliminar proyecto
+document.querySelectorAll('.btn-eliminar-proyecto').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const id     = this.dataset.proyectoId;
+        const nombre = this.dataset.proyectoNombre;
+        document.getElementById('nombre-proyecto-eliminar').textContent = `"${nombre}"`;
+        document.getElementById('form-eliminar-proyecto').action = `/secure/proyectos/${id}/eliminar`;
+        document.getElementById('token-eliminar').value = this.dataset.csrf;
+        new bootstrap.Modal(document.getElementById('modalEliminarProyecto')).show();
+    });
+});
+
+// Recargar al crear proyecto desde el modal del base
+document.addEventListener('rkl:proyecto-creado', function () {
+    setTimeout(() => location.reload(), 800);
+});
+
+// Filtro por nombre de proyecto
+document.getElementById('input-buscar-proyecto').addEventListener('input', function () {
+    const q = this.value.toLowerCase().trim();
+    document.querySelectorAll('.proy-col').forEach(col => {
+        col.style.display = col.dataset.nombre.includes(q) ? '' : 'none';
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

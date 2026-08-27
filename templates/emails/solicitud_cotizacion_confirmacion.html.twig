@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu solicitud de presupuesto fue enviada</title>
+    <style>
+        body { margin:0; padding:0; background:#ebebeb; font-family:Arial,Helvetica,sans-serif; color:#1a1a1a; }
+        .outer { background:#ebebeb; padding:40px 20px; }
+        .card { background:#ffffff; border-radius:12px; max-width:720px; margin:0 auto; overflow:hidden; }
+        .card-body { padding:48px 36px 36px; }
+        .logo-wrap { text-align:center; margin-bottom:40px; }
+        .headline { font-size:22px; font-weight:400; line-height:1.4; margin:0 0 6px; color:#1a1a1a; }
+        .headline strong { font-weight:700; }
+        .subline { font-size:13px; color:#444; margin:0 0 28px; }
+        .subline strong { font-weight:700; color:#1a1a1a; }
+        .section-label { font-size:14px; font-weight:700; color:#ACA300; margin:0 0 12px; }
+        .items-table { width:100%; border-collapse:collapse; }
+        .items-table thead tr { background:#e8e8e8; }
+        .items-table thead th { padding:10px 10px; font-size:10px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:#666; text-align:center; }
+        .items-table thead th.col-producto { text-align:left; }
+        .items-table tbody td { padding:12px 10px; border-bottom:1px solid #e8e8e8; font-size:13px; vertical-align:middle; }
+        .items-table tbody tr:last-child td { border-bottom:none; }
+        .items-table tbody td.col-producto { font-weight:600; color:#1a1a1a; border-right:1px solid #e8e8e8; }
+        .items-table tbody td.col-cantidad { text-align:center; font-weight:700; font-size:16px; color:#1a1a1a; border-right:1px solid #e8e8e8; }
+        .items-table tbody td.col-notas { color:#555; font-size:12px; border-right:1px solid #e8e8e8; }
+        .items-table tbody td.col-plazo { font-size:12px; color:#333; line-height:1.5; border-right:1px solid #e8e8e8; }
+        .items-table tbody td.col-precio { text-align:right; white-space:nowrap; border-right:1px solid #e8e8e8; }
+        .items-table tbody td.col-total { text-align:right; font-weight:700; white-space:nowrap; }
+        .items-table tfoot td { padding:14px 16px; font-size:14px; border-top:2px solid #1a1a1a; }
+        .items-table tfoot td.col-total-label { text-align:right; font-weight:700; color:#444; }
+        .items-table tfoot td.col-total-value { text-align:right; font-weight:700; font-size:16px; color:#1a1a1a; white-space:nowrap; }
+        .precio-nd { color:#bbb; font-size:12px; }
+        .table-wrap { border:1px solid #e8e8e8; border-radius:6px; overflow:hidden; margin-bottom:28px; }
+        .status-highlight { font-size:15px; font-weight:700; color:#ACA300; margin:0 0 12px; }
+        .status-body { font-size:14px; color:#333; line-height:1.6; margin:0 0 10px; }
+        .cierre { font-size:14px; color:#333; margin:0; }
+    </style>
+</head>
+<body>
+<div class="outer">
+<div class="card">
+
+    <div class="card-body">
+
+        <div class="logo-wrap">
+            <img src="https://link2-files.s3.us-east-1.amazonaws.com/logo-racklatina-light.png" alt="Racklatina" height="44" style="height:44px;display:block;margin:0 auto;">
+        </div>
+
+        <p class="headline">
+            <strong>{{ usuario_nombre }}</strong> tu solicitud de presupuesto fue enviada con éxito.
+        </p>
+        <p class="subline">
+            Número de solicitud <strong>#{{ proyecto_id }}</strong> registrado el día
+            <strong>{{ fecha|date('d/m/Y') }}</strong> a las <strong>{{ fecha|date('H:i') }}</strong> hs.
+        </p>
+
+        <p class="section-label">Detalle</p>
+
+        <div class="table-wrap">
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th class="col-producto" style="width:26%;">Producto</th>
+                        <th style="width:9%;">Cant.</th>
+                        <th style="width:16%;">Notas</th>
+                        <th style="width:19%;">Plazo de entrega</th>
+                        <th style="width:15%;">Precio unit. (USD)</th>
+                        <th style="width:15%;">Total (USD)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td class="col-producto">{{ item.articulo.nombreDisplay }}</td>
+                        <td class="col-cantidad">{{ item.cantidad }}</td>
+                        <td class="col-notas">
+                            {% if item.comment %}
+                                <span style="display:block;color:#555;font-size:12px;margin-bottom:2px;">{{ item.comment }}</span>
+                            {% endif %}
+                            {% if item.reemplazoPrecio %}
+                                <span style="display:inline-block;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;margin-top:2px;margin-right:3px;background:#e8f4e8;color:#2d7a2d;white-space:nowrap;">&#8596; Reemplazo<br>por precio</span>
+                            {% endif %}
+                            {% if item.reemplazoPlazo %}
+                                <span style="display:inline-block;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;margin-top:2px;background:#e8f0fe;color:#1a56c4;white-space:nowrap;">&#8596; Reemplazo<br>por plazo</span>
+                            {% endif %}
+                            {% if not item.comment and not item.reemplazoPrecio and not item.reemplazoPlazo %}
+                                <span style="color:#ccc;">&#8212;</span>
+                            {% endif %}
+                        </td>
+                        <td class="col-plazo">
+                            {% set lt = item.leadtimeResultado %}
+                            {% if lt is null %}
+                                <span style="color:#ccc;">&#8212;</span>
+                            {% elseif lt.consultarPlazos %}
+                                {% set _cantC2 = lt.cantidadSolicitada ?? item.cantidad %}
+                                <span style="color:#999;font-size:11px;">{{ _cantC2 }} U. a consultar</span>
+                            {% else %}
+                                {% set _cubiertoC = 0 %}
+                                {% for ltItem in lt.items %}
+                                    <strong>{{ ltItem.cantidad }}</strong> U. para el {{ ltItem.fechaEntrega }}<br>
+                                    {% set _cubiertoC = _cubiertoC + ltItem.cantidad %}
+                                {% endfor %}
+                                {% set _totalC = lt.cantidadSolicitada ?? item.cantidad %}
+                                {% if _cubiertoC < _totalC %}
+                                    <span style="color:#999;font-size:11px;">{{ _totalC - _cubiertoC }} U. a consultar</span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td class="col-precio">
+                            {% if item.precioUnitarioUsd is not null %}
+                                U$S {{ item.precioUnitarioUsd|number_format(2, ',', '.') }}
+                            {% else %}
+                                <span class="precio-nd">Consultar precio</span>
+                            {% endif %}
+                        </td>
+                        <td class="col-total">
+                            {% if item.precioTotalUsd is not null %}
+                                U$S {{ item.precioTotalUsd|number_format(2, ',', '.') }}
+                            {% else %}
+                                <span class="precio-nd">Consultar precio</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                {% if precio_total_usd is not null %}
+                <tfoot>
+                    <tr>
+                        <td colspan="5" class="col-total-label">Total estimado</td>
+                        <td class="col-total-value">U$S {{ precio_total_usd|number_format(2, ',', '.') }}</td>
+                    </tr>
+                </tfoot>
+                {% endif %}
+            </table>
+        </div>
+
+        <p class="status-highlight">Actualmente su pedido se encuentra en proceso de revisión.</p>
+        <p class="status-body">
+            Le informamos que el precio total y el plazo de entrega indicados son estimados, y se confirmará al momento de concretar la compra.
+        </p>
+        <p class="cierre">Quedamos a su disposición ante cualquier consulta o requerimiento adicional.</p>
+
+    </div>
+
+    {# Footer #}
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ACA300;">
+        <tr>
+            <td style="padding:20px 36px;text-align:right;">
+                <img src="https://link2-files.s3.us-east-1.amazonaws.com/logo-sm.png" alt="Racklatina" height="40"
+                     style="display:inline-block;height:40px;width:auto;">
+            </td>
+        </tr>
+    </table>
+
+</div>
+</div>
+</body>
+</html>

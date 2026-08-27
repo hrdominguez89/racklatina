@@ -1,255 +1,519 @@
 {% extends 'base_public.html.twig' %}
 
-{% block title %}Racklatina - Portal clientes
-{% endblock %}
+{% block title %}Racklatina - Registro de clientes{% endblock %}
 
 {% block body %}
+<style>
+/* ── Wrapper ── */
+.reg-wrap {
+    max-width: 780px;
+    margin: 2.5rem auto 3rem;
+    padding: 2.25rem 2.5rem 2.5rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 18px rgba(0,0,0,.10);
+}
+.reg-title {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--rkl-primary);
+    margin-bottom: 1.75rem;
+}
 
-	<!-- auth page content -->
+/* ── Outlined inputs – estilo Material UI ── */
+.fl-field {
+    position: relative;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    padding: 10px 14px 9px;
+    background: #fff;
+    transition: border-color .15s, box-shadow .15s;
+}
+.fl-field:focus-within {
+    border-color: var(--rkl-primary);
+    box-shadow: 0 0 0 2px rgba(125,140,10,.10);
+}
+.fl-field > label {
+    position: absolute;
+    top: -9px;
+    left: 10px;
+    background: #fff;
+    padding: 0 4px;
+    font-size: .74rem;
+    color: #aaa;
+    line-height: 1;
+    pointer-events: none;
+    margin: 0;
+    white-space: nowrap;
+}
+.fl-field:focus-within > label { color: var(--rkl-primary); }
+.fl-field.fl-invalid { border-color: #dc3545; }
+.fl-field.fl-invalid > label { color: #dc3545; }
+.fl-input {
+    border: none;
+    outline: none;
+    box-shadow: none;
+    width: 100%;
+    font-size: .9rem;
+    color: #1a1a1a;
+    background: transparent;
+    padding: 4px 0 0;
+    line-height: 1.5;
+    display: block;
+}
+.fl-input::placeholder { color: #c4c4c4; font-size: .85rem; }
+.fl-input:focus { outline: none; box-shadow: none; border: none; }
+.fl-select {
+    border: none;
+    outline: none;
+    box-shadow: none;
+    width: 100%;
+    font-size: .88rem;
+    color: #888;
+    background: transparent;
+    padding: 4px 0 0;
+    line-height: 1.5;
+    cursor: pointer;
+    -webkit-appearance: auto;
+    appearance: auto;
+}
+.fl-select:focus { outline: none; box-shadow: none; border: none; }
+.fl-select.fl-select-filled { color: #1a1a1a; }
 
-	<!-- end row -->
+/* ── Section title ── */
+.reg-section-title {
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--rkl-primary);
+    letter-spacing: 1.7px;
+    text-transform: uppercase;
+    margin: 1.75rem 0 1.15rem;
+}
 
-		<div class="row justify-content-center"> <div class="col-8">
-			<div class="card mt-4 card-bg-fill">
+/* ── Password toggle ── */
+.reg-pass-wrap { position: relative; }
+.reg-pass-toggle {
+    position: absolute;
+    right: .85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #bbb;
+    cursor: pointer;
+    font-size: 1.15rem;
+    padding: 0;
+    line-height: 1;
+    z-index: 10;
+}
+.reg-pass-toggle:hover { color: #555; }
 
-				<div class="card-body p-4">
-					<div class="row">
-						<div class="col-12 text-center mt-2 mb-4">
-							<h4 class="text-rkl-secondary">Registro de clientes</h4>
-							{# <p class="text-muted"></p> #}
-						</div>
-					</div>
-					<div class="row">
-						{{ form_start(form, {attr: {'data-turbo': 'false',class: 'needs-validation'}}) }}
-						{% for error in form.vars.errors %}
-							<div class="alert alert-danger">{{ error.message }}</div>
-						{% endfor %}
-						{% if form.vars.errors|length > 0 %}
-							<div class="alert alert-danger">
-								{{ form_errors(form) }}
-							</div>
-						{% endif %}
-					</div>
-						
-					<div class="row">
-						<div class="col-12 col-md-4 mb-3">
-							{{ form_label(form.firstName) }}
-							{{ form_widget(form.firstName, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.firstName) }}
-						</div>
-						<div class="col-12 col-md-4 mb-3">
-							{{ form_label(form.lastName) }}
-							{{ form_widget(form.lastName, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.lastName) }}
-						</div>
-						<div class="col-12 col-md-4 mb-3">
-							{{ form_label(form.phoneNumber) }}
-							{{ form_widget(form.phoneNumber, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.phoneNumber) }}
-						</div>
-						<div class="col-12 col-md-6 mb-3">
-							{{ form_label(form.email) }}
-							{{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.email) }}
-						</div>
-						<div class="col-12 col-md-6 mb-3">
-							{{ form_label(form.plainPassword) }}
-							{{ form_widget(form.plainPassword, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.plainPassword) }}
-						</div>
-					</div>
-					<hr>
-					<div class="row">
-						<div class="col-12 text-center mt-2 mb-4">
-							<h5 class="text-rkl-secondary">Información de la empresa</h5>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-12 col-md-6 mb-3">
-							{{ form_label(form.cuit) }}
-							{{ form_widget(form.cuit, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.cuit) }}
-						</div>
-						<div class="col-12 col-md-6 mb-3">
-							{{ form_label(form.companyName) }}
-							<div id="company-search-message" class="text-danger small mb-1" style="display: none;">
-								* No se encontró empresa con ese CUIT
-							</div>
-							<div class="position-relative">
-								{{ form_widget(form.companyName, {'attr': {'class': 'form-control', 'readonly': true, 'placeholder': 'Se completará automáticamente'}}) }}
-								<div id="company-loading" class="position-absolute top-50 end-0 translate-middle-y me-2" style="display: none;">
-									<div class="spinner-border spinner-border-sm text-primary" role="status">
-										<span class="visually-hidden">Buscando...</span>
-									</div>
-								</div>
-							</div>
-							{{ form_errors(form.companyName) }}
-						</div>
-						<div class="col-12 col-md-6 mb-3">
-							{{ form_label(form.jobTitle) }}
-							{{ form_widget(form.jobTitle, {'attr': {'class': 'form-control'}}) }}
-							{{ form_errors(form.jobTitle) }}
-						</div>
-						<div class="col-12 col-md-6 mb-3">
-								{{ form_label(form.role) }}
-							<div class="d-flex flex-column gap-3 mt-2">
-								{% for child in form.role %}
-									<div class="form-check">
-										{{ form_widget(child, {'attr': {'class': 'form-check-input'}}) }}
-										{{ form_label(child, null, {'label_attr': {'class': 'form-check-label'}}) }}
-										{% if child.vars.attr['data-description'] is defined and child.vars.attr['data-description'] %}
-											<div class="text-muted small ms-4">
-												{{ child.vars.attr['data-description'] }}
-											</div>
-										{% endif %}
-									</div>
-								{% endfor %}
-							</div>
-							{{ form_errors(form.role) }}
-						</div>
+/* ── Perfiles label ── */
+.reg-profiles-label {
+    font-size: .88rem;
+    font-weight: 400;
+    color: #555;
+    margin-bottom: .85rem;
+    display: block;
+}
 
-						<div class="mt-4">
-							<button class="btn btn-primary w-100" type="submit">Registrarse</button>
-						</div>
+/* ── Profile items ── */
+.profile-item-wrap {
+    position: relative;
+    margin-bottom: .95rem;
+}
+.reg-profile-item {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    cursor: pointer;
+    margin: 0;
+}
+.reg-profile-check {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    border: 1.5px solid #ccc;
+    border-radius: 4px;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    background: #fff;
+    position: relative;
+    flex-shrink: 0;
+    transition: border-color .15s;
+}
+.reg-profile-check:checked { border-color: var(--rkl-primary); }
+.reg-profile-check:checked::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 7px;
+    height: 13px;
+    border: 2px solid var(--rkl-primary);
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg);
+}
+.reg-profile-name {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+.profile-help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid var(--rkl-primary);
+    color: var(--rkl-primary);
+    font-size: .7rem;
+    font-weight: 700;
+    cursor: default;
+    flex-shrink: 0;
+    line-height: 1;
+    user-select: none;
+    position: relative;
+}
+.profile-tooltip-box {
+    display: none;
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: .6rem .85rem;
+    font-size: .8rem;
+    color: #555;
+    width: 210px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.1);
+    z-index: 30;
+    line-height: 1.5;
+    font-weight: 400;
+    white-space: normal;
+}
+.profile-help-icon:hover .profile-tooltip-box { display: block; }
 
-						{{ form_end(form) }}
-						<div class="mt-4 text-center">
-							<div class="mt-4 text-center">
-								<p class="mb-0">¿Ya tenés cuenta?
-									<a href="{{ path('app_login') }}" class="fw-semibold text-rkl-primary text-decoration-underline">
-										Iniciá sesión
-									</a>
-								</p>
-							</div>
-						</div>
-					
-					</div>
-				</div>
-				<!-- end card body -->
-			</div>
-			<!-- end card -->
+/* ── Submit ── */
+.btn-reg-submit {
+    display: block;
+    width: 100%;
+    background: var(--rkl-primary);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 1rem 1rem;
+    font-size: .76rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .15s;
+    margin-top: 1.75rem;
+    margin-bottom: 1rem;
+}
+.btn-reg-submit:hover { background: #6b7a08; color: #fff; }
 
+/* ── Errores inline ── */
+.reg-field-error {
+    font-size: .76rem;
+    color: #dc3545;
+    margin-top: .3rem;
+    display: block;
+}
+</style>
 
-		</div>
-	</div>
-	<!-- end row -->
+<div class="reg-wrap">
 
-	<script>
-		document.addEventListener('DOMContentLoaded', function() {
-			// Elementos DOM
-			const cuitInput = document.querySelector('input[name*="cuit"]');
-			const companyNameInput = document.querySelector('input[name*="companyName"]');
-			const loadingIndicator = document.getElementById('company-loading');
-			const errorMessage = document.getElementById('company-search-message');
-			
-			// Verificar que todos los elementos existen
-			if (!cuitInput || !companyNameInput || !loadingIndicator || !errorMessage) {
-				console.error('No se encontraron todos los elementos DOM necesarios');
-				return;
-			}
-			
-			// Configuración
-			const SEARCH_URL = '{{ path("reg_cliente_cuit") }}';
-			let searchTimeout;
-			
-			// Función para limpiar estados
-			function clearStates() {
-				hideLoading();
-				hideError();
-			}
-			
-			// Función para mostrar loading
-			function showLoading() {
-				loadingIndicator.style.display = 'block';
-			}
-			
-			// Función para ocultar loading
-			function hideLoading() {
-				loadingIndicator.style.display = 'none';
-			}
-			
-			// Función para mostrar error
-			function showError() {
-				errorMessage.style.display = 'block';
-			}
-			
-			// Función para ocultar error
-			function hideError() {
-				errorMessage.style.display = 'none';
-			}
-			
-			// Función para limpiar nombre de empresa
-			function clearCompanyName() {
-				companyNameInput.value = '';
-			}
-			
-			// Función para establecer nombre de empresa
-			function setCompanyName(name) {
-				companyNameInput.value = name;
-			}
-			
-			// Función principal de búsqueda
-			async function searchCompanyByCuit(cuit) {
-				try {
-					showLoading();
-					hideError();
-					
-					const response = await fetch(SEARCH_URL, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							'X-Requested-With': 'XMLHttpRequest'
-						},
-						body: JSON.stringify({ cuit: cuit })
-					});
-					
-					const data = await response.json();
-					
-					if (response.ok && data.success) {
-						setCompanyName(data.companyName);
-						hideError();
-					} else {
-						clearCompanyName();
-						showError();
-					}
-				} catch (error) {
-					console.error('Error en búsqueda:', error);
-					clearCompanyName();
-					showError();
-				} finally {
-					hideLoading();
-				}
-			}
-			
-			// Event listener para el input de CUIT
-			cuitInput.addEventListener('input', function(e) {
-				const cuit = e.target.value.trim();
-				
-				// Limpiar timeout anterior
-				clearTimeout(searchTimeout);
-				
-				// Si el CUIT está vacío, limpiar todo
-				if (!cuit) {
-					clearStates();
-					clearCompanyName();
-					return;
-				}
-				
-				// Debounce: esperar 500ms después de que el usuario termine de escribir
-				searchTimeout = setTimeout(() => {
-					searchCompanyByCuit(cuit);
-				}, 500);
-			});
-			
-			// Event listener para cuando el usuario sale del campo (backup)
-			cuitInput.addEventListener('blur', function(e) {
-				const cuit = e.target.value.trim();
-				if (cuit ) {
-					// Cancelar cualquier búsqueda pendiente y ejecutar inmediatamente
-					clearTimeout(searchTimeout);
-					searchCompanyByCuit(cuit);
-				}
-			});
-		});
-	</script>
+    <h2 class="reg-title">Registro de clientes</h2>
+
+    {{ form_start(form, {attr: {'data-turbo': 'false', 'novalidate': 'novalidate', 'id': 'reg-form'}}) }}
+
+    {% if form.vars.errors|length > 0 %}
+        <div class="alert alert-danger py-2 mb-3">{{ form_errors(form) }}</div>
+    {% endif %}
+
+    {# ── Datos personales ── #}
+    <div class="row g-3 mb-1">
+        <div class="col-12 col-md-4">
+            <div class="fl-field {% if form.firstName.vars.errors|length %}fl-invalid{% endif %}">
+                {{ form_label(form.firstName, 'Nombre *') }}
+                {{ form_widget(form.firstName, {'attr': {'class': 'fl-input', 'placeholder': ''}}) }}
+            </div>
+            {% if form.firstName.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.firstName) }}</span>
+            {% endif %}
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="fl-field {% if form.lastName.vars.errors|length %}fl-invalid{% endif %}">
+                {{ form_label(form.lastName, 'Apellido *') }}
+                {{ form_widget(form.lastName, {'attr': {'class': 'fl-input', 'placeholder': ''}}) }}
+            </div>
+            {% if form.lastName.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.lastName) }}</span>
+            {% endif %}
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="fl-field {% if form.phoneNumber.vars.errors|length %}fl-invalid{% endif %}">
+                {{ form_label(form.phoneNumber, 'Teléfono *') }}
+                {{ form_widget(form.phoneNumber, {'attr': {'class': 'fl-input', 'placeholder': ''}}) }}
+            </div>
+            {% if form.phoneNumber.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.phoneNumber) }}</span>
+            {% endif %}
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="fl-field {% if form.email.vars.errors|length %}fl-invalid{% endif %}">
+                {{ form_label(form.email, 'Email *') }}
+                {{ form_widget(form.email, {'attr': {'class': 'fl-input', 'placeholder': ''}}) }}
+            </div>
+            {% if form.email.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.email) }}</span>
+            {% endif %}
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="fl-field reg-pass-wrap {% if form.plainPassword.vars.errors|length %}fl-invalid{% endif %}">
+                {{ form_label(form.plainPassword, 'Contraseña *') }}
+                {{ form_widget(form.plainPassword, {'attr': {'class': 'fl-input', 'id': 'reg-password', 'placeholder': '', 'style': 'padding-right:2.5rem;'}}) }}
+                <button type="button" class="reg-pass-toggle" id="btn-toggle-pass" tabindex="-1">
+                    <i class="ri-eye-off-line" id="pass-icon"></i>
+                </button>
+            </div>
+            {% if form.plainPassword.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.plainPassword) }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <hr class="my-3">
+
+    {# ── Información de la empresa ── #}
+    <p class="reg-section-title">Información de la empresa</p>
+
+    <div class="row g-3">
+
+        {# Fila 1: CUIT | Razón Social | Domicilio #}
+        <div class="col-12 col-md-4">
+            <div class="fl-field {% if form.cuit.vars.errors|length %}fl-invalid{% endif %}" id="fl-cuit">
+                {{ form_label(form.cuit, 'CUIT/RUT *') }}
+                {{ form_widget(form.cuit, {'attr': {'class': 'fl-input', 'id': 'reg-cuit', 'placeholder': 'Ej: 30-50080256-0'}}) }}
+            </div>
+            <div id="cuit-format-error" class="reg-field-error" style="display:none;">
+                Formato inválido. Ej: 30-50080256-0
+            </div>
+            {% if form.cuit.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.cuit) }}</span>
+            {% endif %}
+        </div>
+        <div class="col-12 col-md-4 nc-col" style="display:none;">
+            <div class="fl-field {% if form.companyName.vars.errors|length %}fl-invalid{% endif %}">
+                {{ form_label(form.companyName, 'Razón Social *') }}
+                {{ form_widget(form.companyName, {'attr': {'class': 'fl-input', 'placeholder': ''}}) }}
+            </div>
+            {% if form.companyName.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.companyName) }}</span>
+            {% endif %}
+        </div>
+        <div class="col-12 col-md-4 nc-col" style="display:none;">
+            <div class="fl-field {% if form.domicilio.vars.errors|length %}fl-invalid{% endif %}">
+                {{ form_label(form.domicilio, 'Domicilio *') }}
+                {{ form_widget(form.domicilio, {'attr': {'class': 'fl-input', 'placeholder': ''}}) }}
+            </div>
+            {% if form.domicilio.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.domicilio) }}</span>
+            {% endif %}
+        </div>
+
+        {# Fila 2: Código Postal | Localidad | Provincia #}
+        <div class="col-12 col-md-4 nc-col" style="display:none;">
+            <div class="fl-field {% if form.codigoPostal.vars.errors|length %}fl-invalid{% endif %}">
+                {{ form_label(form.codigoPostal, 'Código Postal *') }}
+                {{ form_widget(form.codigoPostal, {'attr': {'class': 'fl-input', 'placeholder': ''}}) }}
+            </div>
+            {% if form.codigoPostal.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.codigoPostal) }}</span>
+            {% endif %}
+        </div>
+        <div class="col-12 col-md-4 nc-col" style="display:none;">
+            <div class="fl-field {% if form.localidad.vars.errors|length %}fl-invalid{% endif %}">
+                {{ form_label(form.localidad, 'Localidad *') }}
+                {{ form_widget(form.localidad, {'attr': {'class': 'fl-input', 'placeholder': ''}}) }}
+            </div>
+            {% if form.localidad.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.localidad) }}</span>
+            {% endif %}
+        </div>
+        <div class="col-12 col-md-4 nc-col" style="display:none;">
+            <div class="fl-field {% if form.provincia.vars.errors|length %}fl-invalid{% endif %}">
+                {{ form_label(form.provincia, 'Provincia *') }}
+                {{ form_widget(form.provincia, {'attr': {'class': 'fl-input', 'placeholder': ''}}) }}
+            </div>
+            {% if form.provincia.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.provincia) }}</span>
+            {% endif %}
+        </div>
+
+        {# Fila 3: Tipo de Cliente | Segmento #}
+        <div class="col-12 col-md-6 nc-col" style="display:none;">
+            <div class="fl-field {% if form.tipoCliente.vars.errors|length %}fl-invalid{% endif %}">
+                {{ form_label(form.tipoCliente, 'Tipo de Cliente *') }}
+                {{ form_widget(form.tipoCliente, {'attr': {'class': 'fl-select'}}) }}
+            </div>
+            {% if form.tipoCliente.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.tipoCliente) }}</span>
+            {% endif %}
+        </div>
+        <div class="col-12 col-md-6 nc-col" style="display:none;">
+            <div class="fl-field {% if form.segmento.vars.errors|length %}fl-invalid{% endif %}">
+                {{ form_label(form.segmento, 'Segmento *') }}
+                {{ form_widget(form.segmento, {'attr': {'class': 'fl-select'}}) }}
+            </div>
+            {% if form.segmento.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.segmento) }}</span>
+            {% endif %}
+        </div>
+
+        {# Cargo - siempre visible #}
+        <div class="col-12">
+            <div class="fl-field {% if form.jobTitle.vars.errors|length %}fl-invalid{% endif %}">
+                {{ form_label(form.jobTitle, 'Cargo *') }}
+                {{ form_widget(form.jobTitle, {'attr': {'class': 'fl-input', 'placeholder': ''}}) }}
+            </div>
+            {% if form.jobTitle.vars.errors|length %}
+                <span class="reg-field-error">{{ form_errors(form.jobTitle) }}</span>
+            {% endif %}
+        </div>
+
+    </div>
+
+    {# ── Perfiles ── #}
+    <p class="reg-profiles-label mt-4">Perfiles *</p>
+    <div>
+        {% set hiddenRoles = ['ROLE_USER', 'User'] %}
+        {% for child in form.role %}
+            {% if child.vars.label not in hiddenRoles and child.vars.value not in hiddenRoles %}
+                {% set desc = child.vars.attr['data-description'] ?? '' %}
+                <div class="profile-item-wrap">
+                    <label class="reg-profile-item" for="{{ child.vars.id }}">
+                        <input type="radio"
+                               id="{{ child.vars.id }}"
+                               name="{{ child.vars.full_name }}"
+                               value="{{ child.vars.value }}"
+                               class="reg-profile-check"
+                               {% if child.vars.checked %}checked{% endif %}>
+                        <span class="reg-profile-name">{{ child.vars.label }}</span>
+                        {% if desc %}
+                        <span class="profile-help-icon" tabindex="0">?
+                            <span class="profile-tooltip-box">{{ desc }}</span>
+                        </span>
+                        {% endif %}
+                    </label>
+                </div>
+                {% do child.setRendered() %}
+            {% else %}
+                {% do child.setRendered() %}
+            {% endif %}
+        {% endfor %}
+        {% do form.role.setRendered() %}
+    </div>
+    {% if form.role.vars.errors|length %}
+        <span class="reg-field-error">{{ form_errors(form.role) }}</span>
+    {% endif %}
+
+    <button type="submit" class="btn-reg-submit">Registrate</button>
+
+    {{ form_end(form) }}
+
+    <div class="text-center mb-2">
+        <p class="mb-0" style="font-size:.87rem;color:#666;">
+            ¿Ya tenés cuenta?
+            <a href="{{ path('app_login') }}" class="fw-semibold text-decoration-underline" style="color:#333;">
+                Iniciá sesión
+            </a>
+        </p>
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // ── Password toggle ──
+    const passInput = document.getElementById('reg-password');
+    const passBtn   = document.getElementById('btn-toggle-pass');
+    const passIcon  = document.getElementById('pass-icon');
+    passBtn?.addEventListener('click', function() {
+        const isPass = passInput.type === 'password';
+        passInput.type = isPass ? 'text' : 'password';
+        passIcon.className = isPass ? 'ri-eye-line' : 'ri-eye-off-line';
+    });
+
+    const cuitInput      = document.querySelector('input[name*="cuit"]');
+    const cuitFormatError = document.getElementById('cuit-format-error');
+    const flCuit          = document.getElementById('fl-cuit');
+
+    if (!cuitInput || !cuitFormatError) return;
+
+    const SEARCH_URL = '{{ path("reg_cliente_cuit") }}';
+    const CUIT_REGEX = /^\d{2}-\d{8}-\d{1}$/;
+
+    function isValidCuitFormat(cuit) { return CUIT_REGEX.test(cuit); }
+
+    function showFormatError() {
+        cuitFormatError.style.display = '';
+        flCuit && flCuit.classList.add('fl-invalid');
+    }
+    function hideFormatError() {
+        cuitFormatError.style.display = 'none';
+        flCuit && flCuit.classList.remove('fl-invalid');
+    }
+    const ncCols = document.querySelectorAll('.nc-col');
+
+    function showNoClienteSection() {
+        ncCols.forEach(el => el.style.display = '');
+    }
+    function hideNoClienteSection() {
+        ncCols.forEach(el => {
+            el.style.display = 'none';
+            el.querySelectorAll('input, select').forEach(f => f.value = '');
+        });
+    }
+
+    async function searchCompanyByCuit(cuit) {
+        if (!isValidCuitFormat(cuit)) { showFormatError(); hideNoClienteSection(); return; }
+        hideFormatError();
+        try {
+            const response = await fetch(SEARCH_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({ cuit })
+            });
+            const data = await response.json();
+            if (response.ok && data.success) { hideNoClienteSection(); }
+            else { showNoClienteSection(); }
+        } catch (e) {
+            showNoClienteSection();
+        }
+    }
+
+    // Si hay valor al cargar (re-render por error de validación), disparar búsqueda
+    const initialCuit = cuitInput.value.trim();
+    if (initialCuit) { searchCompanyByCuit(initialCuit); }
+
+    cuitInput.addEventListener('blur', function(e) {
+        const cuit = e.target.value.trim();
+        if (!cuit) { hideFormatError(); hideNoClienteSection(); return; }
+        searchCompanyByCuit(cuit);
+    });
+
+    cuitInput.addEventListener('input', function(e) {
+        if (!e.target.value.trim()) { hideFormatError(); hideNoClienteSection(); }
+    });
+});
+</script>
 {% endblock %}

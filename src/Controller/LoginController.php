@@ -13,14 +13,26 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class LoginController extends AbstractController
 {
+    private function redirectByRole(): Response
+    {
+        $user = $this->getUser();
+        if ($user->isInternal()) {
+            return $this->redirectToRoute('app_secure_internal_home');
+        }
+        $rolesCatalogo = ['ROLE_INGENIERO_N1', 'ROLE_INGENIERO_N2'];
+        foreach ($user->getRoles() as $rol) {
+            if (in_array($rol, $rolesCatalogo, true)) {
+                return $this->redirectToRoute('app_catalogo_index');
+            }
+        }
+        return $this->redirectToRoute('app_secure_external_home');
+    }
+
     #[Route(path: '/', name: 'app_home')]
     public function home(): Response
     {
         if ($this->getUser()) {
-            if ($this->getUser()->isInternal()) {
-                return $this->redirectToRoute('app_secure_internal_home');
-            }
-            return $this->redirectToRoute('app_secure_external_home');
+            return $this->redirectByRole();
         }
         return $this->redirectToRoute('app_login');
     }
@@ -29,18 +41,7 @@ class LoginController extends AbstractController
     public function login(AuthenticationUtils $authenticationUtils, PedidosrelacionadosRepository $pedidosrelacionadosRepository): Response
     {
         if ($this->getUser()) {
-            if ($this->getUser()->isInternal()) {
-                return $this->redirectToRoute('app_secure_internal_home');
-            }
-            // $requets =  $this->getUser()->getUserRequests();
-            // if($requets)
-            // {
-            //     return $this->render('secure/external/home/index.html.twig');
-            // }
-            // $this->addFlash('info', 'No tiene empresas asignadas para administrar desde su usuario, por favor agregue las empresas que desee administrar desde su perfil.');
-            // return $this->redirectToRoute('app_secure_external_customer_request');
-
-            return $this->redirectToRoute('app_secure_external_home');
+            return $this->redirectByRole();
         }
 
 

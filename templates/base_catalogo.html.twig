@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="es" data-layout="vertical" data-topbar="light" data-sidebar="light" data-sidebar-size="sm" data-sidebar-image="none" data-preloader="disable" data-theme="default" data-bs-theme="light" data-theme-colors="default">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Catálogo{% endblock %} – Racklatina</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="Racklatina Catálogo" name="description"/>
+    <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}">
+
+    <!-- Layout config Js -->
+    <script src="{{ asset('js/layout.js') }}"></script>
+    <!-- RKL global namespace + toast — must be defined before any child template script -->
+    <script>
+    window.RKL = window.RKL || {};
+    RKL.proyectoActivo = RKL.proyectoActivo || null;
+    RKL.clarity = function() {
+        if (typeof clarity === 'function') { clarity.apply(null, arguments); }
+    };
+    RKL.toast = function(mensaje, tipo, duracion) {
+        tipo     = tipo     || 'success';
+        duracion = duracion || 4000;
+        var icons  = { success: 'ri-check-circle-line', danger: 'ri-error-warning-line', warning: 'ri-alert-line', info: 'ri-information-line' };
+        var colors = { success: '#198754',              danger: '#dc3545',               warning: '#ffc107',       info: '#0dcaf0' };
+        var icon  = icons[tipo]  || icons.info;
+        var color = colors[tipo] || colors.info;
+        var el = document.createElement('div');
+        el.style.cssText = 'background:#fff;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);border-left:4px solid '+color+';padding:.75rem 1rem;display:flex;align-items:flex-start;gap:.6rem;';
+        el.innerHTML = '<i class="'+icon+' fs-5 mt-1 flex-shrink-0" style="color:'+color+'"></i>'
+            + '<span class="flex-grow-1 small" style="color:#333;">'+mensaje+'</span>'
+            + '<button style="background:none;border:none;padding:0;line-height:1;color:#aaa;cursor:pointer;font-size:1rem;" onclick="this.closest(\'div\').remove()">×</button>';
+        var container = document.getElementById('rkl-toast-container');
+        if (container) {
+            container.appendChild(el);
+            setTimeout(function() { el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(function(){ el.remove(); }, 300); }, duracion);
+        } else {
+            // Fallback si el container aún no existe (muy raro)
+            console.info('[RKL toast]', tipo, mensaje);
+        }
+    };
+    </script>
+    <!-- Bootstrap Css -->
+    <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <!-- Icons Css -->
+    <link href="{{ asset('css/icons.min.css') }}" rel="stylesheet" type="text/css"/>
+    <!-- App Css -->
+    <link href="{{ asset('css/app.min.css') }}" rel="stylesheet" type="text/css"/>
+    <!-- custom Css -->
+    <link href="{{ asset('css/custom.min.css') }}" rel="stylesheet" type="text/css"/>
+
+    <style>
+        :root {
+            --rkl-primary: #ACA300;
+            --rkl-primary-dark: #8a9b00;
+        }
+
+        /* Active nav */
+        .navbar-menu .navbar-nav .nav-link.active,
+        .navbar-menu .navbar-nav .nav-link.active:hover,
+        .navbar-menu .navbar-nav .nav-link.active:focus {
+            background-color: #3D4F5E !important;
+            color: #ffffff !important;
+        }
+        .navbar-menu .navbar-nav .nav-link.active i {
+            color: var(--rkl-primary) !important;
+        }
+
+        /* En sidebar colapsado (sm) bloquear completamente el hover-expand del framework */
+        [data-sidebar-size=sm] .navbar-menu .navbar-nav .nav-item:hover > a.menu-link {
+            width: auto !important;
+            position: static !important;
+            background: inherit !important;
+            transition: none !important;
+        }
+        [data-sidebar-size=sm] .navbar-menu .navbar-nav .nav-item:hover > a.menu-link span,
+        [data-sidebar-size=sm] .navbar-menu .navbar-nav .nav-item:hover .nav-link span {
+            display: none !important;
+        }
+        [data-sidebar-size=sm] .navbar-menu .navbar-nav .nav-item:hover > .menu-dropdown {
+            display: none !important;
+        }
+
+        /* Forzar topbar blanco independientemente del tema */
+        #page-topbar {
+            background-color: #ffffff !important;
+            border-bottom: 1px solid #e9ecef !important;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .06) !important;
+        }
+        #topnav-hamburger-icon .hamburger-icon span {
+            background-color: #555 !important;
+        }
+        #page-topbar .breadcrumb-item a { color: #666 !important; }
+        #page-topbar .breadcrumb-item.active { color: #444 !important; }
+        #page-topbar .breadcrumb-item + .breadcrumb-item::before { color: #bbb !important; }
+
+        /* Header empresa badge */
+        .header-empresa-btn {
+            background: rgba(172, 163, 0, .1);
+            color: #7a7300;
+            border: 1px solid rgba(172, 163, 0, .3);
+            border-radius: 20px;
+            padding: .3rem .85rem;
+            font-size: .8rem;
+            font-weight: 500;
+            white-space: nowrap;
+            max-width: 240px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .header-empresa-btn:hover {
+            background: rgba(172, 163, 0, .18);
+        }
+
+        /* Header user section */
+        .header-user-btn {
+            background: none;
+            border: none;
+            padding: .25rem .5rem;
+            border-radius: 8px;
+            transition: background .15s;
+        }
+        .header-user-btn:hover {
+            background: rgba(0, 0, 0, .05);
+        }
+        .header-user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #2C3E50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: .8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            letter-spacing: .5px;
+        }
+        .header-user-name {
+            font-size: .85rem;
+            font-weight: 600;
+            color: #333;
+            line-height: 1.25;
+        }
+        .header-user-meta {
+            font-size: .72rem;
+            color: #999;
+            line-height: 1.25;
+        }
+
+        .main-content {
+            padding-top: 0 !important;
+        }
+        .page-content {
+            padding-top: calc(70px + 1.5rem) !important;
+        }
+
+        /* Cards */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+
+    {% block stylesheets %}{% endblock %}
+    {% block javascripts %}
+        {% block importmap %}{{ importmap('app') }}{% endblock %}
+    {% endblock %}
+
+    {# Microsoft Clarity – activo solo en dev mientras se prueba; pasar a 'prod' cuando esté listo #}
+        <script type="text/javascript">
+            (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "wfrjwyqxpz");
+
+            {# Custom tags de sesión: permiten filtrar grabaciones por empresa/usuario en el dashboard de Clarity #}
+            {% if app.user is not null %}
+            clarity("set", "empresa",  "{{ app.user.activeClienteCodigo|default('sin_empresa')|e('js') }}");
+            clarity("set", "usuario",  "{{ app.user.email|e('js') }}");
+            clarity("set", "rol",      "{{ app.user.roles|first|e('js') }}");
+            {% else %}
+            clarity("set", "empresa",  "anonimo");
+            clarity("set", "rol",      "anonimo");
+            {% endif %}
+        </script>
+</head>
+
+<body>
+<div id="layout-wrapper">
+
+    <!-- ===== HEADER ===== -->
+    <header id="page-topbar">
+        <div class="layout-width">
+            <div class="navbar-header">
+
+                <!-- Izquierda: hamburger + breadcrumb -->
+                <div class="d-flex align-items-center">
+                    <button type="button"
+                            class="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger material-shadow-none"
+                            id="topnav-hamburger-icon">
+                        <span class="hamburger-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </button>
+                    <nav aria-label="breadcrumb" class="ms-2 d-none d-sm-flex align-items-center">
+                        {% block breadcrumb %}
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item">
+                                    <a href="{{ path('app_catalogo_index') }}">Catálogo</a>
+                                </li>
+                            </ol>
+                        {% endblock %}
+                    </nav>
+                </div>
+
+                <!-- Derecha: usuario + empresa -->
+                <div class="d-flex align-items-center gap-2">
+
+                    {% if app.user is not null %}
+                        {# Bloque usuario: avatar + nombre + empresa → abre modal switch empresa #}
+                        {% set activoCodigo = app.user.activeClienteCodigo %}
+                        <button type="button"
+                                class="header-user-btn d-flex align-items-center gap-2"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalSwitchEmpresa">
+                            <div class="header-user-avatar">
+                                {{- app.user.firstName|first|upper -}}{{- app.user.lastName|first|upper -}}
+                            </div>
+                            <div class="d-none d-md-block text-start">
+                                <div class="header-user-name">
+                                    {{ app.user.firstName }} {{ app.user.lastName }}
+                                </div>
+                                {% if activoCodigo %}
+                                <div class="header-user-meta">
+                                    {{ cliente_razon_social(activoCodigo) }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </button>
+                    {% else %}
+                        <a href="{{ path('app_login', {redirect: app.request.requestUri}) }}" class="btn btn-sm btn-warning fw-semibold">
+                            Iniciar sesión
+                        </a>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== SIDEBAR (misma estructura que menu.html.twig del portal) ===== -->
+    <div class="app-menu navbar-menu">
+        <div class="navbar-brand-box">
+            <a href="{{ path('app_catalogo_index') }}" class="logo logo-dark">
+                <span class="logo-sm">
+                    <img src="{{ asset('images/logo-sm.png') }}" alt="" height="22">
+                </span>
+                <span class="logo-lg">
+                    <img src="{{ asset('images/logo-racklatina-light.png') }}" alt="" height="17">
+                </span>
+            </a>
+            <a href="{{ path('app_catalogo_index') }}" class="logo logo-light">
+                <span class="logo-sm">
+                    <img src="{{ asset('images/logo-sm.png') }}" alt="" height="22">
+                </span>
+                <span class="logo-lg">
+                    <img src="{{ asset('images/logo-racklatina-light.png') }}" alt="" height="17">
+                </span>
+            </a>
+            <button type="button"
+                    class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover"
+                    id="vertical-hover">
+                <i class="ri-record-circle-line"></i>
+            </button>
+        </div>
+        <div id="scrollbar">
+            <div class="container-fluid">
+                <div id="two-column-menu"></div>
+                <ul class="navbar-nav" id="navbar-nav">
+                    <li class="menu-title">
+                        <span data-key="t-menu">Menu</span>
+                    </li>
+                    {{ include('menu_catalogo.html.twig') }}
+                </ul>
+            </div>
+        </div>
+        <div class="sidebar-background"></div>
+    </div>
+
+    <div class="vertical-overlay"></div>
+
+    <!-- ===== CONTENIDO ===== -->
+    <div class="main-content">
+        <div class="page-content">
+
+            {# Flashes #}
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
+            {% block body %}{% endblock %}
+        </div>
+    </div>
+
+</div>
+
+{# Toast container global #}
+<div id="rkl-toast-container"
+     style="position:fixed;top:72px;right:1rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem;min-width:280px;max-width:360px;">
+</div>
+
+<!-- JS -->
+<script src="{{ asset('libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('libs/simplebar/simplebar.min.js') }}"></script>
+<script src="{{ asset('libs/node-waves/waves.min.js') }}"></script>
+<script src="{{ asset('libs/feather-icons/feather.min.js') }}"></script>
+<script src="{{ asset('js/app.js') }}"></script>
+
+<script>
+{% if app.user is not null %}
+{% set _pa = proyecto_activo(app.user) %}
+RKL.proyectoActivo = {{ _pa is not null ? '{id:' ~ _pa.id ~ ',nombre:' ~ _pa.nombre|json_encode ~ '}' : 'null' }};
+{% else %}
+RKL.proyectoActivo = null;
+{% endif %}
+RKL.esIngeniero = {{ (is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) ? 'true' : 'false' }};
+
+// Cambiar proyecto activo desde el header dropdown
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn-set-proyecto-activo');
+    if (!btn) return;
+    const id = btn.dataset.proyectoId;
+    const nombre = btn.dataset.proyectoNombre;
+    fetch(`/secure/proyectos/${id}/set-activo`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                RKL.proyectoActivo = { id: parseInt(id), nombre: nombre };
+                RKL.toast(`Proyecto activo: <strong>${nombre}</strong>`, 'success');
+                setTimeout(() => location.reload(), 800);
+            }
+        })
+        .catch(() => RKL.toast('Error al cambiar proyecto', 'danger'));
+});
+</script>
+
+<style>
+@keyframes rklSlideIn {
+    from { transform: translateX(20px); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+}
+</style>
+
+{% block extra_js %}{% endblock %}
+
+{# ── Modal: Switch empresa ── #}
+{% if app.user is not null %}
+{% set activoCodigo = app.user.activeClienteCodigo %}
+<div class="modal fade" id="modalSwitchEmpresa" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+        <div class="modal-content border-0" style="border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.18);">
+
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-semibold" style="font-size:1rem;color:#1a1a1a;line-height:1.4;">
+                    {% if is_granted('ROLE_ADMIN') %}
+                        Ver catálogo como empresa:
+                    {% else %}
+                        Seleccioná la empresa con la que deseas ingresar:
+                    {% endif %}
+                </h5>
+                <button type="button" class="btn-close ms-3 flex-shrink-0" data-bs-dismiss="modal"></button>
+            </div>
+
+            {% if is_granted('ROLE_ADMIN') %}
+            {# Admins: buscador de cualquier empresa en Calypso #}
+            <form method="POST" action="{{ path('app_catalogo_switch_empresa') }}" id="form-switch-empresa-admin">
+                <div class="modal-body px-4 pt-3 pb-2">
+                    <label class="form-label fw-semibold small mb-1" style="color:#444;">Buscar empresa</label>
+                    <input type="text" id="admin-empresa-search" class="form-control mb-2"
+                           placeholder="Escribí el nombre de la empresa…"
+                           autocomplete="off"
+                           value="{{ activoCodigo ? cliente_razon_social(activoCodigo) : '' }}"
+                           style="border-radius:6px;font-size:.9rem;">
+                    <div id="admin-empresa-results" class="list-group mb-1" style="max-height:220px;overflow-y:auto;display:none;"></div>
+                    <input type="hidden" name="cliente_codigo" id="admin-empresa-codigo" value="{{ activoCodigo ?: '' }}">
+                    <div id="admin-empresa-seleccionada" class="small text-muted mt-1">
+                        {{ activoCodigo ? 'Código: ' ~ activoCodigo : '' }}
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pt-2 pb-4 flex-column align-items-stretch gap-2">
+                    <button type="submit" id="admin-empresa-submit" class="btn fw-semibold w-100 py-2"
+                            {{ activoCodigo ? '' : 'disabled' }}
+                            style="background:var(--rkl-primary);color:#fff;border:none;border-radius:6px;letter-spacing:.5px;">
+                        GUARDAR CAMBIOS
+                    </button>
+                    {% if activoCodigo %}
+                    <form method="POST" action="{{ path('app_catalogo_switch_empresa') }}" class="m-0">
+                        <input type="hidden" name="cliente_codigo" value="">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm w-100"
+                                style="border-radius:6px;font-size:.8rem;">
+                            <i class="ri-close-line me-1"></i>Ver sin empresa seleccionada
+                        </button>
+                    </form>
+                    {% endif %}
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <a href="{{ path('app_mi_perfil_controllador_edicion') }}"
+                           class="small text-muted text-decoration-none">
+                            <i class="mdi mdi-account-circle me-1"></i>Mi perfil
+                        </a>
+                        <a href="{{ path('app_logout') }}"
+                           class="small text-muted text-decoration-none">
+                            <i class="mdi mdi-logout me-1"></i>Cerrar sesión
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            {% elseif app.user.userCustomers is not empty %}
+            {# Externos con empresas vinculadas: lista fija #}
+            <form method="POST" action="{{ path('app_catalogo_switch_empresa') }}">
+                <div class="modal-body px-4 pt-3 pb-2">
+                    <label class="form-label fw-semibold small mb-1" style="color:#444;">Empresa</label>
+                    <select name="cliente_codigo" class="form-select" style="border-radius:6px;font-size:.9rem;">
+                        {% for uc in app.user.userCustomers %}
+                        <option value="{{ uc.clienteCodigo }}"
+                                {% if uc.clienteCodigo == activoCodigo %}selected{% endif %}>
+                            {{ cliente_razon_social(uc.clienteCodigo) }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="modal-footer border-0 px-4 pt-2 pb-4 flex-column align-items-stretch gap-2">
+                    <button type="submit" class="btn fw-semibold w-100 py-2"
+                            style="background:var(--rkl-primary);color:#fff;border:none;border-radius:6px;letter-spacing:.5px;">
+                        GUARDAR CAMBIOS
+                    </button>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <a href="{{ path('app_mi_perfil_controllador_edicion') }}"
+                           class="small text-muted text-decoration-none">
+                            <i class="mdi mdi-account-circle me-1"></i>Mi perfil
+                        </a>
+                        <a href="{{ path('app_logout') }}"
+                           class="small text-muted text-decoration-none">
+                            <i class="mdi mdi-logout me-1"></i>Cerrar sesión
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            {% else %}
+            {# Sin empresas: solo perfil/logout #}
+            <div class="modal-body px-4 pt-2 pb-4">
+                <a href="{{ path('app_mi_perfil_controllador_edicion') }}"
+                   class="d-block py-2 small text-decoration-none text-dark border-bottom">
+                    <i class="mdi mdi-account-circle me-2 text-muted"></i>Mi perfil
+                </a>
+                <a href="{{ path('app_logout') }}"
+                   class="d-block py-2 small text-decoration-none text-dark">
+                    <i class="mdi mdi-logout me-2 text-muted"></i>Cerrar sesión
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+{% if is_granted('ROLE_ADMIN') %}
+<script>
+(function () {
+    const searchInput = document.getElementById('admin-empresa-search');
+    const results     = document.getElementById('admin-empresa-results');
+    const codigoInput = document.getElementById('admin-empresa-codigo');
+    const selLabel    = document.getElementById('admin-empresa-seleccionada');
+    const submitBtn   = document.getElementById('admin-empresa-submit');
+    let debounceTimer;
+
+    searchInput.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        const q = this.value.trim();
+        if (q.length < 2) { results.style.display = 'none'; results.innerHTML = ''; return; }
+        debounceTimer = setTimeout(() => {
+            fetch(`{{ path('app_catalogo_buscar_empresa') }}?q=` + encodeURIComponent(q))
+                .then(r => r.json())
+                .then(data => {
+                    results.innerHTML = '';
+                    if (!data.length) {
+                        results.innerHTML = '<div class="list-group-item text-muted small">Sin resultados</div>';
+                        results.style.display = 'block';
+                        return;
+                    }
+                    data.forEach(item => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'list-group-item list-group-item-action small py-2';
+                        btn.textContent = item.nombre;
+                        btn.addEventListener('click', function () {
+                            codigoInput.value  = item.codigo;
+                            searchInput.value  = item.nombre;
+                            selLabel.textContent = 'Código: ' + item.codigo;
+                            submitBtn.disabled = false;
+                            results.style.display = 'none';
+                        });
+                        results.appendChild(btn);
+                    });
+                    results.style.display = 'block';
+                });
+        }, 280);
+    });
+
+    // Al cerrar el modal, volver al estado de la empresa activa actual
+    const initialCodigo = codigoInput.value;
+    const initialNombre = searchInput.value;
+    document.getElementById('modalSwitchEmpresa').addEventListener('hidden.bs.modal', function () {
+        searchInput.value = initialNombre;
+        results.innerHTML = '';
+        results.style.display = 'none';
+        codigoInput.value = initialCodigo;
+        selLabel.textContent = initialCodigo ? 'Código: ' + initialCodigo : '';
+        submitBtn.disabled = !initialCodigo;
+    });
+})();
+</script>
+{% endif %}
+
+{% endif %}
+
+{# ── Modal: Agregar a Proyecto (global, disponible en todas las vistas) ── #}
+{% if app.user is not null and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) %}
+<div class="modal fade" id="modalAgregarProyecto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:12px;overflow:hidden;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Agregar a Proyecto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3" id="modal-articulo-nombre"></p>
+                <div id="modal-sin-proyectos" style="display:none;" class="text-center py-3">
+                    <i class="ri-folder-line fs-1 text-muted d-block mb-2"></i>
+                    <p class="text-muted mb-3">No tenés proyectos para esta empresa.</p>
+                    <a href="{{ path('app_proyectos_index') }}" class="btn fw-semibold px-4"
+                       style="background-color:var(--rkl-primary);color:#1a1a1a;border:none;">
+                        Ir a Proyectos
+                    </a>
+                </div>
+                <div id="modal-con-proyectos">
+                    <label class="form-label fw-semibold">Proyecto:</label>
+                    <select class="form-select mb-3" id="select-proyecto"><option>Cargando…</option></select>
+                    <label class="form-label fw-semibold">Cantidad:</label>
+                    <div class="input-group" style="max-width:140px;">
+                        <button class="btn btn-outline-secondary" type="button" id="rkl-btn-menos">−</button>
+                        <input type="number" class="form-control text-center" id="rkl-input-cantidad" value="1" min="1" max="999">
+                        <button class="btn btn-outline-secondary" type="button" id="rkl-btn-mas">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light fw-semibold" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn fw-semibold px-4" id="btn-confirmar-agregar"
+                        style="background-color:var(--rkl-primary);color:#1a1a1a;border:none;">
+                    Agregar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    let _articuloCodigo = null;
+    let _articuloNombre = null;
+
+    async function rklAgregarArticulo(proyectoId, articuloCodigo, cantidad, btnOrigen) {
+        if (btnOrigen) btnOrigen.disabled = true;
+        const fd = new FormData();
+        fd.append('articulo_codigo', articuloCodigo);
+        fd.append('cantidad', cantidad || 1);
+        try {
+            const res  = await fetch(`/secure/proyectos/${proyectoId}/agregar-articulo`, { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                RKL.clarity('event', 'producto_agregado');
+                RKL.clarity('set', 'producto_agregado', articuloCodigo);
+                RKL.toast(data.mensaje, 'success');
+            } else {
+                RKL.toast(data.error || 'Error al agregar', 'danger');
+            }
+        } catch (e) {
+            RKL.toast('Error de red: ' + e.message, 'danger');
+        } finally {
+            if (btnOrigen) btnOrigen.disabled = false;
+        }
+    }
+
+    async function rklCargarProyectosEnModal() {
+        const select             = document.getElementById('select-proyecto');
+        const cuerpoSinProyectos = document.getElementById('modal-sin-proyectos');
+        const cuerpoConProyectos = document.getElementById('modal-con-proyectos');
+        const btnConfirmar       = document.getElementById('btn-confirmar-agregar');
+        if (select) select.innerHTML = '<option>Cargando…</option>';
+        try {
+            const proyectos = await fetch('/secure/proyectos/mis-proyectos-json').then(r => r.json());
+            if (proyectos.length === 0) {
+                if (cuerpoSinProyectos) cuerpoSinProyectos.style.display = '';
+                if (cuerpoConProyectos) cuerpoConProyectos.style.display = 'none';
+                if (btnConfirmar)       btnConfirmar.style.display       = 'none';
+            } else {
+                if (cuerpoSinProyectos) cuerpoSinProyectos.style.display = 'none';
+                if (cuerpoConProyectos) cuerpoConProyectos.style.display = '';
+                if (btnConfirmar)       btnConfirmar.style.display       = '';
+                if (select) select.innerHTML = proyectos.map(p =>
+                    `<option value="${p.id}">${p.nombre} (${p.cantidad} items)</option>`
+                ).join('');
+            }
+        } catch {
+            if (select) select.innerHTML = '<option>Error al cargar</option>';
+        }
+    }
+
+    // Agregar automático para ingenieros: crea/obtiene su única lista y agrega el producto
+    async function rklAgregarAutomatico(articuloCodigo, btnOrigen) {
+        if (btnOrigen) btnOrigen.disabled = true;
+        const fd = new FormData();
+        fd.append('articulo_codigo', articuloCodigo);
+        try {
+            const res  = await fetch('/secure/proyectos/agregar-automatico', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                RKL.proyectoActivo = data.proyecto;
+                RKL.clarity('event', 'producto_agregado');
+                RKL.clarity('set', 'producto_agregado', articuloCodigo);
+                RKL.toast(data.mensaje, 'success');
+            } else {
+                RKL.toast(data.error || 'Error al agregar', 'danger');
+            }
+        } catch (e) {
+            RKL.toast('Error de red: ' + e.message, 'danger');
+        } finally {
+            if (btnOrigen) btnOrigen.disabled = false;
+        }
+    }
+
+    // Delegación de eventos: funciona para cualquier btn-agregar-proyecto en toda la página
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-agregar-proyecto');
+        if (!btn) return;
+
+        _articuloCodigo = btn.dataset.articuloCodigo;
+        _articuloNombre = btn.dataset.articuloNombre;
+
+        // Ingenieros: flujo simplificado sin modal ni selección de proyecto
+        if (RKL.esIngeniero) {
+            rklAgregarAutomatico(_articuloCodigo, btn);
+            return;
+        }
+
+        if (RKL.proyectoActivo) {
+            rklAgregarArticulo(RKL.proyectoActivo.id, _articuloCodigo, 1, btn);
+            return;
+        }
+
+        const el = document.getElementById('modal-articulo-nombre');
+        if (el) el.textContent = _articuloNombre;
+        const cantInput = document.getElementById('rkl-input-cantidad');
+        if (cantInput) cantInput.value = 1;
+        rklCargarProyectosEnModal();
+        new bootstrap.Modal(document.getElementById('modalAgregarProyecto')).show();
+    });
+
+    document.getElementById('btn-confirmar-agregar')?.addEventListener('click', async function () {
+        const proyectoId = document.getElementById('select-proyecto')?.value;
+        const cantidad   = parseInt(document.getElementById('rkl-input-cantidad')?.value || 1);
+        if (!proyectoId || !_articuloCodigo) return;
+        this.disabled    = true;
+        this.textContent = 'Agregando…';
+        bootstrap.Modal.getInstance(document.getElementById('modalAgregarProyecto')).hide();
+        await rklAgregarArticulo(proyectoId, _articuloCodigo, cantidad);
+        this.disabled    = false;
+        this.textContent = 'Agregar';
+    });
+
+    document.getElementById('rkl-btn-menos')?.addEventListener('click', () => {
+        const inp = document.getElementById('rkl-input-cantidad');
+        if (inp && parseInt(inp.value) > 1) inp.value = parseInt(inp.value) - 1;
+    });
+    document.getElementById('rkl-btn-mas')?.addEventListener('click', () => {
+        const inp = document.getElementById('rkl-input-cantidad');
+        if (inp && parseInt(inp.value) < 999) inp.value = parseInt(inp.value) + 1;
+    });
+
+    // Cuando se crea un proyecto desde el modal global, reabrir el modal de agregar
+    document.addEventListener('rkl:proyecto-creado', function (e) {
+        _articuloCodigo && rklAgregarArticulo(e.detail.id, _articuloCodigo, 1);
+    });
+})();
+</script>
+{% endif %}
+
+{# ── Modal: Crear nuevo proyecto ── #}
+{% if app.user is not null %}
+<div class="modal fade" id="modalCrearProyecto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+        <div class="modal-content border-0" style="border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.18);">
+
+            <div class="modal-header border-0 pb-1 pt-4 px-4">
+                <div class="flex-grow-1">
+                    <h5 class="modal-title fw-bold mb-1" style="font-size:1.15rem;color:#1a1a1a;">Nuevo Proyecto</h5>
+                    <p class="text-muted mb-0" style="font-size:.8rem;line-height:1.5;">
+                        Ingresá tu cuenta de Racklatina para conocer los precios, la cantidad de stock y los tiempos de espera de los productos.
+                    </p>
+                </div>
+                <button type="button" class="btn-close ms-3 mt-1 flex-shrink-0" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body px-4 pt-3 pb-4">
+                <div id="crear-proyecto-error" class="alert alert-danger py-2 small d-none"></div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small mb-1" style="color:#444;">Nombre del proyecto</label>
+                    <input type="text" id="cp-nombre" class="form-control" placeholder="Proyecto 1"
+                           style="border-radius:6px;font-size:.9rem;">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small mb-1" style="color:#444;">Rubro</label>
+                    <select id="cp-rubro" class="form-select" style="border-radius:6px;font-size:.9rem;color:#666;">
+                        <option value="">Seleccioná un rubro</option>
+                        <option value="Automatización Industrial">Automatización Industrial</option>
+                        <option value="Energía y Potencia">Energía y Potencia</option>
+                        <option value="Seguridad Industrial">Seguridad Industrial</option>
+                        <option value="Redes e Infraestructura">Redes e Infraestructura</option>
+                        <option value="Control de Motores">Control de Motores</option>
+                        <option value="Instrumentación">Instrumentación</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold small mb-1" style="color:#444;">Notas</label>
+                    <textarea id="cp-notas" class="form-control" rows="4"
+                              style="border-radius:6px;font-size:.9rem;resize:none;"></textarea>
+                </div>
+
+                <button type="button" id="cp-btn-crear" class="btn fw-semibold w-100 py-2"
+                        style="background:#2C3E50;color:#fff;border-radius:6px;font-size:.95rem;">
+                    Creá el proyecto
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const modal      = document.getElementById('modalCrearProyecto');
+    if (!modal) return;
+
+    const bsModal    = bootstrap.Modal.getOrCreateInstance(modal);
+    const btnCrear   = document.getElementById('cp-btn-crear');
+    const inputNombre = document.getElementById('cp-nombre');
+    const errorBox   = document.getElementById('crear-proyecto-error');
+
+    // Limpiar al abrir
+    modal.addEventListener('show.bs.modal', function () {
+        inputNombre.value = '';
+        document.getElementById('cp-rubro').value = '';
+        document.getElementById('cp-notas').value = '';
+        errorBox.classList.add('d-none');
+        errorBox.textContent = '';
+        btnCrear.disabled = false;
+        btnCrear.textContent = 'Creá el proyecto';
+    });
+
+    // Focus en nombre al abrir
+    modal.addEventListener('shown.bs.modal', function () {
+        inputNombre.focus();
+    });
+
+    btnCrear.addEventListener('click', async function () {
+        const nombre = inputNombre.value.trim();
+        if (!nombre) {
+            errorBox.textContent = 'El nombre del proyecto es obligatorio.';
+            errorBox.classList.remove('d-none');
+            inputNombre.focus();
+            return;
+        }
+
+        btnCrear.disabled = true;
+        btnCrear.textContent = 'Creando…';
+        errorBox.classList.add('d-none');
+
+        const fd = new FormData();
+        fd.append('nombre', nombre);
+        fd.append('rubro',  document.getElementById('cp-rubro').value);
+        fd.append('notas',  document.getElementById('cp-notas').value.trim());
+
+        try {
+            const res  = await fetch('/secure/proyectos/crear-ajax', { method: 'POST', body: fd });
+
+            if (!res.ok) {
+                errorBox.textContent = res.status === 403
+                    ? 'No tenés permiso para crear proyectos.'
+                    : 'Error del servidor. Intentá de nuevo.';
+                errorBox.classList.remove('d-none');
+                btnCrear.disabled = false;
+                btnCrear.textContent = 'Creá el proyecto';
+                return;
+            }
+
+            const data = await res.json();
+
+            if (data.success) {
+                RKL.proyectoActivo = { id: data.proyecto.id, nombre: data.proyecto.nombre };
+                bsModal.hide();
+                RKL.toast(`Proyecto <strong>${data.proyecto.nombre}</strong> creado y activado.`, 'success');
+                // Disparar evento para que otras partes de la página puedan reaccionar
+                document.dispatchEvent(new CustomEvent('rkl:proyecto-creado', { detail: data.proyecto }));
+            } else {
+                errorBox.textContent = data.error || 'Error al crear el proyecto.';
+                errorBox.classList.remove('d-none');
+                btnCrear.disabled = false;
+                btnCrear.textContent = 'Creá el proyecto';
+            }
+        } catch (e) {
+            errorBox.textContent = 'Error de conexión. Intentá de nuevo.';
+            errorBox.classList.remove('d-none');
+            btnCrear.disabled = false;
+            btnCrear.textContent = 'Creá el proyecto';
+        }
+    });
+
+    // Enter en nombre = submit
+    inputNombre.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') btnCrear.click();
+    });
+})();
+</script>
+{% endif %}
+
+</body>
+</html>

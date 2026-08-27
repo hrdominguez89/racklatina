@@ -1,0 +1,44 @@
+{% set current_route = app.request.get('_route') %}
+
+{% if app.user is not null %}
+<li class="nav-item">
+    <a href="{{ path('app_home') }}"
+       class="nav-link menu-link"
+       data-key="t-portal">
+        <i class="ri-layout-grid-line"></i>
+        <span>Ir al Portal</span>
+    </a>
+</li>
+
+<li class="menu-title mt-2"><span>Catálogo</span></li>
+{% endif %}
+
+<li class="nav-item">
+    <a href="{{ path('app_catalogo_index') }}"
+       class="nav-link menu-link {% if current_route starts with 'app_catalogo' %}active{% endif %}"
+       data-key="t-catalogo">
+        <i class="ri-store-2-line"></i>
+        <span>Catálogo</span>
+    </a>
+</li>
+
+{% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') %}
+<li class="nav-item">
+    <a href="{{ path('app_proyectos_index') }}"
+       class="nav-link menu-link {% if current_route starts with 'app_proyectos' %}active{% endif %}"
+       data-key="t-proyectos">
+        <i class="ri-folder-line"></i>
+        <span>Proyectos</span>
+    </a>
+</li>
+{% elseif is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
+    {% set _proyActivo = proyecto_activo(app.user) %}
+    <li class="nav-item">
+        <a href="{{ _proyActivo is not null ? path('app_proyectos_show', {id: _proyActivo.id}) : path('app_proyectos_index') }}"
+           class="nav-link menu-link {% if current_route starts with 'app_proyectos' %}active{% endif %}"
+           data-key="t-mi-lista">
+            <i class="ri-folder-line"></i>
+            <span>Mi Lista</span>
+        </a>
+    </li>
+{% endif %}

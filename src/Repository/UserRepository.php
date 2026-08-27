@@ -34,6 +34,65 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
+    /**
+     * Búsqueda para el selector de usuario del panel interno.
+     * Busca por nombre, apellido, email o razón social del cliente Calypso.
+     * Solo devuelve usuarios externos activos con UserCustomer asociado.
+     *
+     * @return array<int, array{id:int,first_name:string,last_name:string,email:string,cliente_codigo:string|null,cliente_nombre:string|null,roles:string}>
+     */
+    /**
+     * Búsqueda para el selector de usuario del panel interno.
+     * Busca por nombre, apellido, email o razón social del cliente Calypso.
+     * Solo devuelve usuarios externos activos.
+     *
+     * @return array<int, array{id:int,first_name:string,last_name:string,email:string,cliente_codigo:string|null,cliente_nombre:string|null}>
+     */
+    public function searchExternalUsersForSelector(string $query, int $limit = 15): array
+    {
+        $em   = $this->getEntityManager();
+        $conn = $em->getConnection();
+        $q    = '%' . mb_strtolower($query) . '%';
+
+        $clientesTable = $em->getClassMetadata(\App\Entity\Clientes::class)->getTableName();
+
+        // Derived table para obtener el primer UserCustomer por usuario
+        // (evita producto cartesiano con múltiples roles/clientes).
+        $sql = "
+            SELECT
+                u.id,
+                u.first_name,
+                u.last_name,
+                u.email,
+                fuc.cliente         AS cliente_codigo,
+                c.Razon_Social      AS cliente_nombre
+            FROM user u
+            INNER JOIN user_role ur ON ur.user_id = u.id
+            INNER JOIN role r       ON r.id = ur.role_id AND r.type = 'external'
+            LEFT JOIN (
+                SELECT uc_inner.user_id, MIN(uc_inner.id) AS first_id
+                FROM user_customer uc_inner
+                WHERE uc_inner.deleted_at IS NULL
+                GROUP BY uc_inner.user_id
+            ) AS fuc_id ON fuc_id.user_id = u.id
+            LEFT JOIN user_customer fuc ON fuc.id = fuc_id.first_id
+            LEFT JOIN {$clientesTable} c ON c.Codigo_Calipso = fuc.cliente COLLATE utf8mb4_general_ci
+            WHERE u.deleted_at IS NULL
+              AND (
+                  LOWER(u.first_name)    LIKE :q
+                  OR LOWER(u.last_name)  LIKE :q
+                  OR LOWER(u.email)      LIKE :q
+                  OR LOWER(c.Razon_Social) LIKE :q
+              )
+            GROUP BY u.id, u.first_name, u.last_name, u.email, fuc.cliente, c.Razon_Social
+            ORDER BY u.last_name, u.first_name
+            LIMIT :lim
+        ";
+
+        return $conn->executeQuery($sql, ['q' => $q, 'lim' => $limit], ['lim' => \PDO::PARAM_INT])
+                    ->fetchAllAssociative();
+    }
+
     public function findExternalUsers(): array
     {
         return $this->createQueryBuilder('u')

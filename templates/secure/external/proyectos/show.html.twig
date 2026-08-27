@@ -1,0 +1,1040 @@
+{% extends 'base_catalogo.html.twig' %}
+
+{% set isFinished = proyecto.status.value == 'finished' %}
+{% set esIngenieroShow = is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
+
+{% block title %}{{ proyecto.nombre }}{% endblock %}
+
+{% block breadcrumb %}
+<ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item">
+        <a href="{{ path('app_proyectos_index') }}">{{ esIngenieroShow ? 'Mis Listas' : 'Proyectos' }}</a>
+    </li>
+    <li class="breadcrumb-item active">{{ proyecto.nombre|slice(0,40) }}{% if proyecto.nombre|length > 40 %}…{% endif %}</li>
+</ol>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+/* ── Layout principal ── */
+.proyecto-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 1.5rem;
+    align-items: start;
+}
+.proyecto-layout.sin-sidebar {
+    grid-template-columns: 1fr;
+}
+@media (max-width: 991px) {
+    .proyecto-layout { grid-template-columns: 1fr; }
+    .proyecto-sidebar { order: -1; }
+}
+
+/* ── Tabla de productos ── */
+.tabla-wrap {
+    overflow-x: auto;
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+.tabla-productos {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    min-width: 680px;
+}
+.tabla-productos thead tr {
+    background: #f0f0f0;
+}
+.tabla-productos thead th {
+    padding: .7rem 1rem;
+    font-size: .75rem;
+    font-weight: 700;
+    color: #555;
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+    white-space: nowrap;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+}
+.tabla-productos thead th.col-producto {
+    text-align: left;
+    padding-left: 1.25rem;
+}
+
+/* ── Filas de producto ── */
+.tr-producto {
+    border-bottom: 1px solid #f0f0f0;
+    transition: background .1s;
+}
+.tr-producto:last-of-type {
+    border-bottom: none;
+}
+.tr-producto:hover td { background: #fafafa !important; }
+.tr-producto td {
+    padding: .85rem 1rem;
+    vertical-align: middle;
+    text-align: center;
+    font-size: .85rem;
+}
+.tr-producto td.td-producto {
+    text-align: left;
+    padding-left: 1.25rem;
+}
+
+/* ── Celda producto ── */
+.td-producto-inner {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+}
+.td-producto-img {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    background: #f5f5f5;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.td-producto-img img {
+    max-width: 100%;
+    max-height: 60px;
+    object-fit: contain;
+    padding: .3rem;
+    mix-blend-mode: multiply;
+}
+.td-producto-info { min-width: 0; }
+.td-producto-nombre {
+    font-size: .9rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    text-decoration: none;
+    display: block;
+    line-height: 1.35;
+}
+.td-producto-nombre:hover { color: #1a1a1a; text-decoration: underline; }
+.td-ver-producto {
+    font-size: .78rem;
+    color: var(--rkl-primary);
+    text-decoration: underline;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    font-weight: 400;
+    transition: color .12s;
+    display: inline;
+}
+.td-ver-producto:hover { color: var(--rkl-primary-dark); }
+
+/* ── Qty stepper ── */
+.qty-ctrl {
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    overflow: hidden;
+    height: 34px;
+}
+.qty-ctrl button {
+    background: #f5f5f5;
+    border: none;
+    width: 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #555;
+    cursor: pointer;
+    line-height: 1;
+    transition: background .12s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.qty-ctrl button:hover { background: #e8e8e8; }
+.qty-ctrl input {
+    border: none;
+    border-left: 1px solid #d0d0d0;
+    border-right: 1px solid #d0d0d0;
+    width: 44px;
+    text-align: center;
+    font-weight: 600;
+    font-size: .88rem;
+    background: #fff;
+    outline: none;
+    box-shadow: none;
+    -moz-appearance: textfield;
+}
+.qty-ctrl input::-webkit-outer-spin-button,
+.qty-ctrl input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+/* ── Checkbox reemplazo ── */
+.check-reemplazo {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--rkl-primary);
+    cursor: pointer;
+    margin: 0 auto;
+    display: block;
+    border: 1px solid #ccc;
+}
+
+/* ── Textarea comentario ── */
+.textarea-comentario {
+    width: 100%;
+    min-width: 160px;
+    font-size: .8rem;
+    color: #444;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    padding: .45rem .6rem;
+    resize: none;
+    outline: none;
+    line-height: 1.5;
+    background: #fff;
+    transition: border-color .15s;
+}
+.textarea-comentario:focus { border-color: #bbb; }
+.textarea-comentario::placeholder { color: #bbb; }
+.comment-status {
+    font-size: .7rem;
+    color: #aaa;
+    text-align: right;
+    min-height: 1em;
+    margin-top: .1rem;
+}
+
+/* ── Btn quitar ── */
+.btn-quitar-item {
+    background: none;
+    border: none;
+    padding: .3rem .4rem;
+    color: #ACA300;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 1.15rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color .15s, background .15s;
+}
+.btn-quitar-item:hover { color: #dc3545; background: #fde8e8; }
+
+/* ── Sidebar Solicitud ── */
+.proyecto-sidebar .sidebar-card {
+    background: #FAFAE8;
+    border: 1px solid #E8E6C0;
+    border-radius: 8px;
+    padding: 1.25rem;
+    position: sticky;
+    top: 80px;
+}
+.sidebar-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+}
+.sidebar-items-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.sidebar-items-label {
+    font-size: .85rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+.sidebar-items-count {
+    font-size: .95rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+.btn-solicitar-sidebar {
+    background: var(--rkl-primary);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: .7rem 1rem;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    transition: background .15s;
+    display: block;
+    margin-bottom: .75rem;
+}
+.btn-solicitar-sidebar:not(:disabled):hover { background: var(--rkl-primary-dark); }
+.btn-solicitar-sidebar:disabled { opacity: .65; cursor: default; }
+.sidebar-link {
+    font-size: .85rem;
+    color: #333;
+    text-decoration: underline;
+    text-align: center;
+    display: block;
+}
+.sidebar-link:hover { color: #000; }
+
+/* ── Filas pares (al final para ganar en cascada) ── */
+.tr-producto.fila-par td { background: #f5f5f5 !important; }
+</style>
+{% endblock %}
+
+{% block body %}
+
+{# Cabecera #}
+<h4 class="fw-bold mb-4" style="color:#1a1a1a;">{{ proyecto.nombre }}</h4>
+
+{% if isAdmin is defined and isAdmin %}
+<div class="d-flex flex-wrap gap-3 align-items-center mb-4 px-3 py-2"
+     style="background:#f8f9fa;border:1px solid #e5e5e5;border-radius:8px;font-size:.84rem;color:#555;">
+    <span>
+        <i class="ri-user-line me-1" style="color:#888;"></i>
+        <strong>Usuario:</strong>
+        {{ proyecto.user.firstName }} {{ proyecto.user.lastName }}
+        <span style="color:#aaa;">({{ proyecto.user.email }})</span>
+    </span>
+    <span style="color:#ddd;">|</span>
+    <span>
+        <i class="ri-building-line me-1" style="color:#888;"></i>
+        <strong>Empresa:</strong>
+        {{ empresaNombre ?? '—' }}
+    </span>
+    <span style="color:#ddd;">|</span>
+    <span>
+        <i class="ri-calendar-line me-1" style="color:#888;"></i>
+        <strong>Creado:</strong>
+        {{ proyecto.createdAt|date('d/m/Y H:i') }}
+    </span>
+    <span style="color:#ddd;">|</span>
+   
+</div>
+{% endif %}
+
+{% if isFinished and not (isAdmin is defined and isAdmin) %}
+<div class="alert d-flex align-items-center gap-2 mb-4"
+     style="background:#f0f0f0;border:1px solid #ddd;border-radius:8px;font-size:.88rem;color:#555;padding:.75rem 1rem;">
+    <i class="ri-lock-line" style="font-size:1.1rem;flex-shrink:0;"></i>
+    <span>Este proyecto está <strong>finalizado</strong>. Solo podés consultar su contenido.</span>
+</div>
+{% endif %}
+
+{% if proyecto.items is empty %}
+
+<div class="text-center py-5">
+    <i class="ri-shopping-bag-line" style="font-size:3rem;color:#ccc;"></i>
+    <h5 class="text-muted mt-3">El proyecto está vacío</h5>
+    <p class="text-muted small mb-4">Agregá productos desde el catálogo para armar tu pedido.</p>
+    <a href="{{ path('app_catalogo_lista') }}" class="btn btn-warning fw-semibold px-4">
+        <i class="ri-store-2-line me-1"></i> Ir al catálogo
+    </a>
+</div>
+
+{% else %}
+
+{% set _esIngN1pre = is_granted('ROLE_INGENIERO_N1') and not is_granted('ROLE_INGENIERO_N2') %}
+{% set _esIngN2pre = is_granted('ROLE_INGENIERO_N2') %}
+{% set _mostrarSidebar = not (_esIngN1pre or _esIngN2pre) or canVerPrecio %}
+
+<div class="proyecto-layout {{ not _mostrarSidebar ? 'sin-sidebar' : '' }}">
+
+    {# ── Tabla de productos ── #}
+    <div class="proyecto-items">
+        <p class="mb-2" style="font-size:.95rem;font-weight:600;color:#333;">Listado de productos</p>
+
+        <div class="tabla-wrap">
+        <table class="tabla-productos">
+            <thead>
+                <tr>
+                    <th class="col-producto">Producto</th>
+                    <th>Cantidad</th>
+                    {% if canVerPrecio %}
+                    <th>Precio unit.<br><span style="font-weight:400;font-size:.75em;">(USD)</span></th>
+                    <th>Total<br><span style="font-weight:400;font-size:.75em;">(USD)</span></th>
+                    {% endif %}
+                    <th>Envío</th>
+                    {% if not isFinished and canCotizar %}
+                    <th>Sugerir remplazo<br>por precio</th>
+                    <th>Sugerir remplazo<br>por plazo</th>
+                    {% endif %}
+                    {# <th>Dejá un<br>comentario</th> #}
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="lista-items">
+            {% for item in proyecto.items %}
+
+                {# Fila principal del producto #}
+                {% if isFinished %}
+                    {% set _precioUnitRow = item.precioUnitarioUsd %}
+                {% else %}
+                    {% set _precioEntryRow = preciosMap[item.articulo.codigoCalipso] ?? null %}
+                    {% set _precioUnitRow  = _precioEntryRow ? _precioEntryRow.precio : null %}
+                {% endif %}
+                <tr class="tr-producto{% if loop.index is even %} fila-par{% endif %}"
+                    data-item-id="{{ item.id }}"
+                    data-precio-unit="{{ _precioUnitRow is not null ? _precioUnitRow : '' }}">
+
+                    {# Producto #}
+                    <td class="td-producto">
+                        <div class="td-producto-inner">
+                            <div class="td-producto-img">
+                                {% if item.articulo.imagen %}
+                                <img src="{{ item.articulo.imagen }}" alt="{{ item.articulo.nombreDisplay }}"
+                                     onerror="this.style.display='none';this.closest('.td-producto-img').innerHTML='<i class=\'ri-image-line\' style=\'color:#ccc;font-size:1.4rem;\'></i>'">
+                                {% else %}
+                                <i class="ri-image-line" style="color:#ccc;font-size:1.4rem;"></i>
+                                {% endif %}
+                            </div>
+                            <div class="td-producto-info">
+                                <span class="td-producto-nombre">{{ item.articulo.nombreDisplay }}</span>
+                                <a href="{{ path('app_catalogo_detalle', {codigo: item.articulo.codigoCalipso}) }}"
+                                   class="td-ver-producto">Ver producto</a>
+                            </div>
+                        </div>
+                    </td>
+
+                    {# Cantidad #}
+                    <td>
+                        <div class="qty-ctrl">
+                            <button type="button" class="btn-item-menos" data-item="{{ item.id }}"
+                                    {% if isFinished %}disabled{% endif %}>−</button>
+                            <input type="number" class="input-item-cantidad"
+                                   value="{{ item.cantidad }}" min="1"
+                                   data-item="{{ item.id }}" data-prev="{{ item.cantidad }}"
+                                   {% if isFinished %}disabled{% endif %}>
+                            <button type="button" class="btn-item-mas" data-item="{{ item.id }}"
+                                    {% if isFinished %}disabled{% endif %}>+</button>
+                        </div>
+                    </td>
+
+                    {# Precio unitario: solo si el usuario tiene permiso para ver precios #}
+                    {% if canVerPrecio %}
+                    {% if isFinished %}
+                        {% set precioUnit  = item.precioUnitarioUsd %}
+                        {% set precioTotal = item.precioTotalUsd %}
+                    {% else %}
+                        {% set precioUnit  = null %}
+                        {% set precioTotal = null %}
+                    {% endif %}
+                    <td id="precio-unit-cell-{{ item.id }}" style="text-align:right;white-space:nowrap;font-size:.88rem;">
+                        {% if precioUnit is not null %}
+                            U$S {{ precioUnit|number_format(2, ',', '.') }}
+                        {% elseif not isFinished %}
+                            <span class="precio-spinner">
+                                <span class="spinner-border spinner-border-sm text-secondary" role="status"
+                                      style="width:.85rem;height:.85rem;border-width:.15em;vertical-align:middle;"></span>
+                            </span>
+                        {% else %}
+                            <span style="color:#888;font-size:.8rem;">Consultar precio</span>
+                        {% endif %}
+                    </td>
+                    <td class="td-precio-total" style="text-align:right;white-space:nowrap;font-size:.88rem;font-weight:700;">
+                        {% if precioTotal is not null %}
+                            U$S {{ precioTotal|number_format(2, ',', '.') }}
+                        {% elseif not isFinished %}
+                            <span style="color:#bbb;font-size:.8rem;">—</span>
+                        {% else %}
+                            <span style="color:#888;font-size:.8rem;">Consultar precio</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    {# Envío / Leadtime #}
+                    {% set lt = leadtimeMap[item.articulo.codigoCalipso] ?? null %}
+                    <td id="leadtime-cell-{{ item.id }}" style="text-align:center;vertical-align:middle;white-space:nowrap;min-width:130px;">
+                        {% if not isFinished %}
+                            {# Cargado de forma asíncrona vía JS #}
+                            <span class="leadtime-spinner">
+                                <span class="spinner-border spinner-border-sm text-secondary" role="status"
+                                      style="width:.85rem;height:.85rem;border-width:.15em;vertical-align:middle;"></span>
+                                <span style="font-size:.75rem;color:#888;margin-left:.3rem;">Calculando…</span>
+                            </span>
+                        {% elseif lt is null %}
+                            <span style="color:#bbb;font-size:.78rem;">N/D</span>
+                        {% elseif lt.consultarPlazos %}
+                            {% set _cantConsultar = lt.cantidadSolicitada ?? item.cantidad %}
+                            <span style="font-size:.75rem;color:#888;">{{ _cantConsultar }} U. a consultar</span>
+                        {% else %}
+                            {% set _cubierto = 0 %}
+                            {% for ltItem in lt.items %}
+                                <span style="font-size:.75rem;color:#333;display:block;">
+                                    {{ ltItem.cantidad }} U. para el {{ ltItem.fechaEntrega }}
+                                </span>
+                                {% set _cubierto = _cubierto + ltItem.cantidad %}
+                            {% endfor %}
+                            {% set _cantTotal = lt.cantidadSolicitada ?? item.cantidad %}
+                            {% if _cubierto < _cantTotal %}
+                                <span style="font-size:.75rem;color:#888;display:block;">{{ _cantTotal - _cubierto }} U. a consultar</span>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+
+                    {% if not isFinished and canCotizar %}
+                    {# Sugerir remplazo por precio #}
+                    <td>
+                        <input type="checkbox" class="check-reemplazo input-item-reemplazo" data-item="{{ item.id }}" data-type="precio"
+                               {% if item.reemplazoPrecio %}checked{% endif %}>
+                    </td>
+                    {# Sugerir remplazo por plazo #}
+                    <td>
+                        <input type="checkbox" class="check-reemplazo input-item-reemplazo" data-item="{{ item.id }}" data-type="plazo"
+                               {% if item.reemplazoPlazo %}checked{% endif %}>
+                    </td>
+                    {% endif %}
+
+                    {# Comentario #}
+                    {# <td>
+                        <textarea rows="2"
+                                  class="textarea-comentario input-item-comment"
+                                  placeholder="Escribí tu comentario..."
+                                  data-item="{{ item.id }}"
+                                  {% if isFinished %}disabled{% endif %}>{{ item.comment }}</textarea>
+                        <div class="comment-status" data-item="{{ item.id }}"></div>
+                    </td> #}
+
+                    {# Quitar #}
+                    <td>
+                        {% if not isFinished and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) %}
+                        <button class="btn-quitar-item" data-item="{{ item.id }}"
+                                data-nombre="{{ item.articulo.nombreDisplay|e('html_attr') }}"
+                data-url="{{ path('app_proyectos_quitar_articulo', {itemId: item.id}) }}"
+                                title="Quitar del proyecto">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
+                        {% endif %}
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>{# /tabla-wrap #}
+        <div style="margin-top:.6rem;display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#7a6f00;background:#fffde7;border:1px solid #e0d850;border-radius:5px;padding:.45rem .85rem;">
+            <i class="ri-information-line" style="font-size:1rem;flex-shrink:0;"></i>
+            <span>Stock sujeto a confirmación de compra final.</span>
+        </div>
+    </div>
+
+    {# ── Sidebar Solicitud ── #}
+    {% set esIngenieroN1 = is_granted('ROLE_INGENIERO_N1') and not is_granted('ROLE_INGENIERO_N2') %}
+    {% set esIngenieroN2 = is_granted('ROLE_INGENIERO_N2') %}
+    {% set esIngeniero   = esIngenieroN1 or esIngenieroN2 %}
+    {% if _mostrarSidebar %}
+    <div class="proyecto-sidebar">
+        <div class="sidebar-card">
+
+            {% if not esIngeniero %}
+            <div class="sidebar-title">Solicitud</div>
+
+            <div class="sidebar-items-row">
+                <span class="sidebar-items-label">Cantidad de items a cotizar</span>
+                <span class="sidebar-items-count" id="sidebar-items-count">{{ proyecto.cantidadProductos }}</span>
+            </div>
+            {% endif %}
+
+            {% if canVerPrecio %}
+            {% set totalMostrar = isFinished ? proyecto.precioTotalUsd : precioTotalCalculado %}
+            <div class="mb-3" id="sidebar-total-wrap" style="background:#f5f5f5;border-radius:6px;padding:.75rem 1rem;{% if totalMostrar is null %}display:none{% endif %}">
+                <div style="font-size:.72rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:.2rem;">Total estimado</div>
+                <div style="font-size:1.2rem;font-weight:700;color:#1a1a1a;" id="sidebar-total-usd">
+                    {% if totalMostrar is not null %}U$S {{ totalMostrar|number_format(2, ',', '.') }}{% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if not esIngeniero %}
+                {% if canCotizar %}
+                    {% if isFinished %}
+                    <div class="mb-3" style="font-size:.82rem;color:#888;text-align:center;">
+                        <i class="ri-lock-line me-1"></i> Proyecto finalizado
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="{{ path('app_proyectos_cotizacion_preview', {id: proyecto.id}) }}"
+                           target="_blank"
+                           class="btn btn-outline-secondary btn-sm fw-semibold">
+                            <i class="ri-mail-line me-1"></i> Ver mail a Racklatina
+                        </a>
+                        <a href="{{ path('app_proyectos_cotizacion_preview', {id: proyecto.id, tipo: 'confirmacion'}) }}"
+                           target="_blank"
+                           class="btn btn-outline-secondary btn-sm fw-semibold">
+                            <i class="ri-mail-check-line me-1"></i> Ver mail de confirmación
+                        </a>
+                        <a href="{{ path('app_proyectos_excel_preview', {id: proyecto.id}) }}"
+                           target="_blank"
+                           class="btn btn-outline-secondary btn-sm fw-semibold">
+                            <i class="ri-file-excel-line me-1"></i> Descargar Excel
+                        </a>
+                    </div>
+                    {% else %}
+                    <button type="button" class="btn-solicitar-sidebar"
+                            id="btn-solicitar-pedido"
+                            data-proyecto-id="{{ proyecto.id }}"
+                            data-csrf="{{ csrf_token('solicitar_cotizacion_' ~ proyecto.id) }}"
+                            {% if proyecto.cantidadProductos == 0 %}disabled{% endif %}>
+                        Solicitar Cotización
+                    </button>
+
+                    <a href="{{ path('app_catalogo_lista') }}" class="sidebar-link">
+                        Seguir sumando productos
+                    </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ path('app_catalogo_lista') }}" class="sidebar-link">
+                        Seguir sumando productos
+                    </a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endif %}
+
+{# ── Modal: confirmar solicitud de cotización ── #}
+<div class="modal fade" id="modalSolicitarCotizacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
+        <div class="modal-content" style="border-radius:12px;border:none;box-shadow:0 8px 32px rgba(0,0,0,.15);">
+            <div class="modal-body p-4 text-center">
+                <div style="width:60px;height:60px;background:#e8f0fe;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.1rem;">
+                    <i class="ri-mail-send-line" style="font-size:1.6rem;color:#2C3E50;"></i>
+                </div>
+                <h5 class="fw-bold mb-2" style="font-size:1.05rem;">¿Solicitar cotización?</h5>
+                <p class="mb-1" style="font-size:.9rem;color:#444;">
+                    Se enviará un mail a Racklatina con el detalle de todos los productos del proyecto.
+                </p>
+                <p class="text-muted mb-0" style="font-size:.82rem;">
+                    El proyecto quedará marcado como finalizado y no podrá modificarse.
+                </p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 justify-content-center">
+                <button type="button" class="btn btn-outline-secondary px-4 fw-semibold" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+                <button type="button" class="btn px-4 fw-semibold" id="btn-confirmar-cotizacion"
+                        style="background:#2C3E50;color:#fff;">
+                    <i class="ri-mail-send-line me-1"></i> Enviar solicitud
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── Modal: confirmar eliminación de item ── #}
+<div class="modal fade" id="modalEliminarItem" tabindex="-1" aria-labelledby="modalEliminarItemLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content" style="border-radius:12px;border:none;box-shadow:0 8px 32px rgba(0,0,0,.15);">
+            <div class="modal-body p-4 text-center">
+                <div style="width:60px;height:60px;background:#fde8e8;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.1rem;">
+                    <i class="ri-delete-bin-line" style="font-size:1.6rem;color:#e05252;"></i>
+                </div>
+                <h5 class="fw-bold mb-2" style="font-size:1.05rem;">¿Quitar producto?</h5>
+                <p class="mb-1" style="font-size:.9rem;color:#444;">
+                    <span id="modal-item-nombre" class="fw-semibold"></span>
+                    <span class="text-muted"> será eliminado del proyecto.</span>
+                </p>
+                <p class="text-muted mb-0" style="font-size:.8rem;">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 justify-content-center">
+                <button type="button" class="btn btn-outline-secondary px-4 fw-semibold" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+                <button type="button" class="btn px-4 fw-semibold" id="btn-confirmar-eliminar-item"
+                        style="background:#dc3545;color:#fff;">
+                    <i class="ri-delete-bin-line me-1"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+
+    const isFinished  = {{ isFinished ? 'true' : 'false' }};
+    const proyectoId  = {{ proyecto.id }};
+    const canVerPrecio = {{ canVerPrecio ? 'true' : 'false' }};
+
+    // ── Carga asíncrona de leadtimes al renderizar la página ──
+    (function () {
+        if (isFinished) return;
+
+        fetch(`/secure/proyectos/${proyectoId}/leadtimes-json`)
+            .then(r => r.json())
+            .then(data => {
+                // data = { itemId: { consultarPlazos, items: [...] }, ... }
+                for (const [itemId, lt] of Object.entries(data)) {
+                    renderLeadtimeCell(parseInt(itemId), lt);
+                }
+            })
+            .catch(() => {
+                // En caso de error de red, mostrar "Consultar plazos" en todas las celdas
+                document.querySelectorAll('.leadtime-spinner').forEach(el => {
+                    el.closest('td').innerHTML = '<span style="font-size:.75rem;color:#888;">Consultar plazos</span>';
+                });
+            });
+    })();
+
+    // ── Carga asíncrona de precios al renderizar la página ──
+    (function () {
+        if (isFinished || !canVerPrecio) return;
+
+        fetch(`/secure/proyectos/${proyectoId}/precios-json`)
+            .then(r => r.json())
+            .then(data => {
+                // data = { itemId: { articulo, precio, precioTotal } | null, ... }
+                for (const [itemId, precio] of Object.entries(data)) {
+                    renderPrecioCell(parseInt(itemId), precio);
+                }
+                recalcularTotales();
+            })
+            .catch(() => {
+                document.querySelectorAll('.precio-spinner').forEach(el => {
+                    el.closest('td').innerHTML = '<span style="color:#bbb;font-size:.8rem;">N/D</span>';
+                });
+            });
+    })();
+
+    // ── Solicitar cotización ──
+    (function () {
+        const btnSolicitar = document.getElementById('btn-solicitar-pedido');
+        if (!btnSolicitar) return;
+
+        const modalEl = document.getElementById('modalSolicitarCotizacion');
+        const bsModal  = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        btnSolicitar.addEventListener('click', function () {
+            RKL.clarity('event', 'solicitar_pedido');
+            RKL.clarity('set', 'proyecto_cotizado', this.dataset.proyectoId);
+            bsModal.show();
+        });
+
+        document.getElementById('btn-confirmar-cotizacion').addEventListener('click', async function () {
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ri-loader-4-line me-1"></i> Enviando…';
+
+            const proyectoId = btnSolicitar.dataset.proyectoId;
+            const csrf       = btnSolicitar.dataset.csrf;
+            const fd = new FormData();
+            fd.append('_token', csrf);
+
+            try {
+                const res  = await fetch(`/secure/proyectos/${proyectoId}/solicitar-cotizacion`, { method: 'POST', body: fd });
+                const data = await res.json();
+                bsModal.hide();
+                if (data.success) {
+                    RKL.toast('Solicitud enviada correctamente. Nos comunicaremos a la brevedad.', 'success');
+                    setTimeout(() => location.reload(), 1800);
+                } else {
+                    RKL.toast(data.error || 'Error al enviar la solicitud.', 'danger');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="ri-mail-send-line me-1"></i> Enviar solicitud';
+                }
+            } catch {
+                bsModal.hide();
+                RKL.toast('Error de red. Por favor intentá nuevamente.', 'danger');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ri-mail-send-line me-1"></i> Enviar solicitud';
+            }
+        });
+    })();
+
+    // ── Formato numérico argentino (2 decimales, . miles, , decimal) ──
+    function fmtUSD(n) {
+        return 'U$S ' + n.toFixed(2)
+            .replace('.', ',')
+            .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    // ── Recalcula totales por fila y el total del sidebar ──
+    function recalcularTotales() {
+        let totalGlobal = 0;
+        let hayAlgunPrecio = false;
+
+        document.querySelectorAll('.tr-producto').forEach(row => {
+            const precioUnit = parseFloat(row.dataset.precioUnit);
+            if (isNaN(precioUnit) || precioUnit <= 0) return;
+
+            const input    = row.querySelector('.input-item-cantidad');
+            const cantidad = input ? Math.max(1, parseInt(input.value) || 1) : 1;
+            const rowTotal = precioUnit * cantidad;
+            const totalCell = row.querySelector('.td-precio-total');
+
+            if (totalCell) totalCell.textContent = fmtUSD(rowTotal);
+            totalGlobal += rowTotal;
+            hayAlgunPrecio = true;
+        });
+
+        const wrap    = document.getElementById('sidebar-total-wrap');
+        const display = document.getElementById('sidebar-total-usd');
+        if (wrap && display) {
+            if (hayAlgunPrecio) {
+                display.textContent = fmtUSD(totalGlobal);
+                wrap.style.display = '';
+            } else {
+                wrap.style.display = 'none';
+            }
+        }
+    }
+
+    // ── Renderiza la celda de precio unitario y actualiza data-precio-unit ──
+    function renderPrecioCell(itemId, precio) {
+        const cell = document.getElementById(`precio-unit-cell-${itemId}`);
+        if (!cell) return;
+
+        const row = document.querySelector(`.tr-producto[data-item-id="${itemId}"]`);
+
+        if (!precio || precio.precio <= 0) {
+            cell.innerHTML = '<span style="color:#888;font-size:.8rem;">Consultar precio</span>';
+            if (row) row.dataset.precioUnit = '';
+            return;
+        }
+
+        cell.textContent = `U$S ${precio.precio.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+        if (row) row.dataset.precioUnit = precio.precio;
+    }
+
+    // ── Spinner HTML para celdas de leadtime ──
+    const LEADTIME_SPINNER_HTML = `
+        <span class="leadtime-spinner">
+            <span class="spinner-border spinner-border-sm text-secondary" role="status"
+                  style="width:.85rem;height:.85rem;border-width:.15em;vertical-align:middle;"></span>
+            <span style="font-size:.75rem;color:#888;margin-left:.3rem;">Calculando…</span>
+        </span>`;
+
+    // ── Renderiza la celda de leadtime a partir del objeto devuelto por el servidor ──
+    function renderLeadtimeCell(itemId, lt) {
+        const cell = document.getElementById(`leadtime-cell-${itemId}`);
+        if (!cell) return;
+
+        if (!lt) {
+            cell.innerHTML = '<span style="color:#bbb;font-size:.78rem;">N/D</span>';
+            return;
+        }
+
+        const cantidadSolicitada = lt.cantidadSolicitada ?? 0;
+
+        if (lt.consultarPlazos) {
+            const txt = cantidadSolicitada > 0 ? `${cantidadSolicitada} U. a consultar` : 'A consultar';
+            cell.innerHTML = `<span style="font-size:.75rem;color:#888;">${txt}</span>`;
+            return;
+        }
+
+        let html = '';
+        let cubierto = 0;
+        for (const i of lt.items) {
+            html += `<span style="font-size:.75rem;color:#333;display:block;">${i.cantidad} U. para el ${i.fechaEntrega}</span>`;
+            cubierto += i.cantidad;
+        }
+        const restante = cantidadSolicitada - cubierto;
+        if (restante > 0) {
+            html += `<span style="font-size:.75rem;color:#888;display:block;">${restante} U. a consultar</span>`;
+        }
+        cell.innerHTML = html || '<span style="color:#bbb;font-size:.78rem;">N/D</span>';
+    }
+
+    // ── Actualizar cantidad vía AJAX ──
+    async function actualizarCantidad(itemId, cantidad, inputEl) {
+        const prevValue = inputEl ? parseInt(inputEl.dataset.prev) : null;
+
+        // Mostrar spinner en la celda de leadtime mientras se recalcula
+        const cell = document.getElementById(`leadtime-cell-${itemId}`);
+        if (cell) cell.innerHTML = LEADTIME_SPINNER_HTML;
+
+        const fd = new FormData();
+        fd.append('cantidad', cantidad);
+        const res = await fetch(`/secure/proyectos/item/${itemId}/cantidad`, { method: 'POST', body: fd });
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            if (inputEl && prevValue !== null) {
+                inputEl.value = prevValue;
+                sincronizarBotonesMas(inputEl);
+                recalcularTotales();
+            }
+            // Restaurar celda de leadtime al estado anterior
+            renderLeadtimeCell(itemId, { consultarPlazos: true, items: [] });
+            if (res.status === 422) {
+                RKL.toast(data.error || 'Stock insuficiente.', 'danger');
+            } else if (res.status === 403) {
+                RKL.toast('No tenés permiso para modificar este proyecto.', 'danger');
+            }
+        } else {
+            const data = await res.json().catch(() => ({}));
+            if (inputEl) {
+                inputEl.dataset.prev = cantidad;
+                sincronizarBotonesMas(inputEl);
+            }
+            if (data.leadtime !== undefined) {
+                renderLeadtimeCell(itemId, data.leadtime);
+            }
+            if (canVerPrecio && data.precio !== undefined) {
+                renderPrecioCell(itemId, data.precio);
+                recalcularTotales();
+            }
+        }
+    }
+
+    // ── Sincroniza estado visual del botón + (sin deshabilitar, el aviso se da por toast) ──
+    function sincronizarBotonesMas(inputEl) {
+        // No se deshabilita: el aviso de stock agotado se muestra como toast al hacer click.
+    }
+
+    if (isFinished) return;
+
+    // ── Guardar reemplazo (precio / plazo) vía AJAX ──
+    document.querySelectorAll('.input-item-reemplazo').forEach(chk => {
+        chk.addEventListener('change', async function () {
+            const fd = new FormData();
+            fd.append('tipo', this.dataset.type);
+            fd.append('valor', this.checked ? '1' : '0');
+            try {
+                await fetch(`/secure/proyectos/item/${this.dataset.item}/reemplazo`, { method: 'POST', body: fd });
+            } catch {
+                RKL.toast('Error al guardar la opción de reemplazo.', 'danger');
+            }
+        });
+    });
+
+    // ── Modal eliminar item ──
+    let pendingDeleteId  = null;
+    let pendingDeleteUrl = null;
+    const _modalEl = document.getElementById('modalEliminarItem');
+    const _bsModal = bootstrap.Modal.getOrCreateInstance(_modalEl);
+
+    function abrirModalEliminar(id) {
+        const row    = document.querySelector(`.tr-producto[data-item-id="${id}"]`);
+        const btn    = row ? row.querySelector('.btn-quitar-item') : null;
+        const nombre = btn ? btn.dataset.nombre : 'Este producto';
+        pendingDeleteId  = id;
+        pendingDeleteUrl = btn?.dataset.url ?? `/secure/proyectos/item/${id}/quitar`;
+        document.getElementById('modal-item-nombre').textContent = nombre;
+        _bsModal.show();
+    }
+
+    document.getElementById('btn-confirmar-eliminar-item').addEventListener('click', async function () {
+        if (!pendingDeleteId) return;
+        const id  = pendingDeleteId;
+        const url = pendingDeleteUrl;
+        pendingDeleteId  = null;
+        pendingDeleteUrl = null;
+        _bsModal.hide();
+        if (!url) { RKL.toast('Error: URL no encontrada.', 'danger'); return; }
+        try {
+            const fd   = new FormData();
+            const res  = await fetch(url, { method: 'POST', body: fd });
+            const text = await res.text();
+            console.log('[quitar-item] status:', res.status, 'body:', text);
+            let data;
+            try { data = JSON.parse(text); } catch { data = null; }
+            if (data?.success) {
+                const rowProducto  = document.querySelector(`.tr-producto[data-item-id="${id}"]`);
+                const rowSimilares = document.getElementById(`similares-${id}`);
+                rowSimilares?.remove();
+                rowProducto?.remove();
+                actualizarSidebar();
+                recalcularTotales();
+                if (!document.querySelector('.tr-producto')) location.reload();
+            } else {
+                RKL.toast(data?.error || `Error ${res.status} al eliminar.`, 'danger');
+            }
+        } catch (e) {
+            console.error('[quitar-item] excepción:', e);
+            RKL.toast('Error de red al eliminar el producto.', 'danger');
+        }
+    });
+
+    // ── Botón − (decrementar) ──
+    document.querySelectorAll('.btn-item-menos').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id    = this.dataset.item;
+            const input = document.querySelector(`.input-item-cantidad[data-item="${id}"]`);
+            const val   = parseInt(input.value);
+            if (val > 1) {
+                input.value = val - 1;
+                recalcularTotales();
+                actualizarCantidad(id, input.value, input);
+            } else {
+                abrirModalEliminar(id);
+            }
+        });
+    });
+
+    // ── Botón + (incrementar) ──
+    document.querySelectorAll('.btn-item-mas').forEach(btn => {
+        btn.addEventListener('click', function () {
+            if (this.disabled) return;
+            const id    = this.dataset.item;
+            const input = document.querySelector(`.input-item-cantidad[data-item="${id}"]`);
+            if (!input) return;
+            input.value = parseInt(input.value) + 1;
+            recalcularTotales();
+            actualizarCantidad(id, input.value, input);
+        });
+    });
+
+    // ── Cambio manual de input ──
+    document.querySelectorAll('.input-item-cantidad').forEach(input => {
+        input.addEventListener('change', function () {
+            const v = Math.max(1, parseInt(this.value) || 1);
+            this.value = v;
+            recalcularTotales();
+            actualizarCantidad(this.dataset.item, v, this);
+        });
+    });
+
+    // ── Quitar item ──
+    document.querySelectorAll('.btn-quitar-item').forEach(btn => {
+        btn.addEventListener('click', function () {
+            abrirModalEliminar(this.dataset.item);
+        });
+    });
+
+    // ── Actualizar sidebar (contador) ──
+    function actualizarSidebar() {
+        const n = document.querySelectorAll('.tr-producto').length;
+        const countEl = document.getElementById('sidebar-items-count');
+        if (countEl) countEl.textContent = n;
+        const btnPedido = document.getElementById('btn-solicitar-pedido');
+        if (btnPedido) btnPedido.disabled = n === 0;
+    }
+
+    // ── Guardar comentario vía AJAX ──
+    let commentTimers = {};
+    document.querySelectorAll('.input-item-comment').forEach(ta => {
+        ta.addEventListener('input', function () {
+            const id     = this.dataset.item;
+            const status = document.querySelector(`.comment-status[data-item="${id}"]`);
+            clearTimeout(commentTimers[id]);
+            if (status) status.textContent = 'Escribiendo…';
+            commentTimers[id] = setTimeout(async () => {
+                const fd = new FormData();
+                fd.append('comment', this.value);
+                try {
+                    const res  = await fetch(`/secure/proyectos/item/${id}/comment`, { method: 'POST', body: fd });
+                    const data = await res.json();
+                    if (status) status.textContent = data.success ? 'Guardado ✓' : 'Error al guardar';
+                    if (data.success) setTimeout(() => { if (status) status.textContent = ''; }, 2000);
+                } catch {
+                    if (status) status.textContent = 'Error al guardar';
+                }
+            }, 700);
+        });
+    });
+
+})();
+</script>
+{% endblock %}

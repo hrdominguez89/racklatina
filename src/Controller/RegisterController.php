@@ -12,7 +12,6 @@ use App\Form\RegistrationFormType;
 use App\Repository\ClientesRepository;
 use App\Repository\RoleRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Doctrine\DBAL\Schema\UniqueConstraint;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -49,24 +48,34 @@ final class RegisterController extends AbstractController
             $user->setPassword($passwordHasher->hashPassword($user, $form->get('plainPassword')->getData()));
 
             $external = new ExternalUserData();
-            $external->setCompanyName($form->get('companyName')->getData());
+            $cuit = $form->get('cuit')->getData();
+            $companyName = $form->get('companyName')->getData();
+            if (!$companyName && $cuit) {
+                $cliente = $this->clienteRepository->findOneBy(['cuit' => $cuit]);
+                $companyName = $cliente?->getRazonSocial() ?? '';
+            }
+            $external->setCompanyName($companyName ?? '');
             $external->setPhoneNumber($form->get('phoneNumber')->getData());
             $external->setJobTitle($form->get('jobTitle')->getData());
+            $external->setDomicilio($form->get('domicilio')->getData());
+            $external->setCodigoPostal($form->get('codigoPostal')->getData());
+            $external->setLocalidad($form->get('localidad')->getData());
+            $external->setProvincia($form->get('provincia')->getData());
+            $external->setTipoCliente($form->get('tipoCliente')->getData());
+            $external->setSegmento($form->get('segmento')->getData());
             $external->setUser($user);
             $user->setExternalUserData($external);
 
-            // Asignar múltiples roles
-            $selectedRoles = $form->get('role')->getData();
-            if (is_array($selectedRoles)) {
-                foreach ($selectedRoles as $roleId) {
-                    $role = $roleRepository->find($roleId);
-                    if ($role) {
-                        $userRole = new UserRole();
-                        $userRole->setRole($role);
-                        $userRole->setUser($user);
-                        $user->addUserRole($userRole);
-                        $em->persist($userRole);
-                    }
+            // Asignar rol seleccionado
+            $roleId = $form->get('role')->getData();
+            if ($roleId) {
+                $role = $roleRepository->find($roleId);
+                if ($role) {
+                    $userRole = new UserRole();
+                    $userRole->setRole($role);
+                    $userRole->setUser($user);
+                    $user->addUserRole($userRole);
+                    $em->persist($userRole);
                 }
             }
 
@@ -95,19 +104,25 @@ final class RegisterController extends AbstractController
 
                 $mailer->send($email);
                 
-                // $user = $this->getUser();
-                $clientes =$request->request->all();
-                $cuit = $clientes["registration_form"]["cuit"];
-                $cliente = $this->clienteRepository->findOneBy(['cuit' => $cuit]);
-                $data[] = [
-                    'cuit' => $clientes["registration_form"]["cuit"],
-                    'id' => $cliente->getCodigoCalipso(),
-                    'razonSocial' => $cliente->getRazonSocial(),
-                ];
-                
-                $solicitud = $this->generarSolicitudDeRepresentacion($user,$em,$data);
-                $this->enviarMailDeSolicitudDeRepresentacion($user,(object)$data,$solicitud->getId());
-                $this->addFlash('success','Se le envio un email a su cuenta para confirmar el registro.');
+                $formData = $request->request->all();
+                $cuit     = $formData["registration_form"]["cuit"] ?? null;
+                $cliente  = $cuit ? $this->clienteRepository->findOneBy(['cuit' => $cuit]) : null;
+
+                if ($cliente) {
+                    // Cliente existente en Calypso: crear solicitud de representación
+                    $data[] = [
+                        'cuit'       => $cuit,
+                        'id'         => $cliente->getCodigoCalipso(),
+                        'razonSocial'=> $cliente->getRazonSocial(),
+                    ];
+                    $solicitud = $this->generarSolicitudDeRepresentacion($user, $em, $data);
+                    $this->enviarMailDeSolicitudDeRepresentacion($user, (object)$data, $solicitud->getId());
+                } else {
+                    // No-cliente: notificar a Racklatina para revisión manual
+                    $this->enviarMailNuevoNoCliente($user);
+                }
+
+                $this->addFlash('success', 'Se le envió un email a su cuenta para confirmar el registro.');
                 return $this->redirectToRoute('app_login');
             }
             catch(UniqueConstraintViolationException $ex)
@@ -241,6 +256,21 @@ final class RegisterController extends AbstractController
             ]));
         $this->mailer->send($email);
     }
+
+    private function enviarMailNuevoNoCliente(User $user): void
+    {
+        $external = $user->getExternalUserData();
+        $email = (new Email())
+            ->from($_ENV['MAIL_FROM'])
+            ->to($_ENV['MAIL_CENTRO_RAC'])
+            ->subject('Nuevo registro – usuario sin cuenta Calypso')
+            ->html($this->renderView('emails/registro_no_cliente.html.twig', [
+                'user'     => $user,
+                'external' => $external,
+            ]));
+        $this->mailer->send($email);
+    }
+
     #[Route('/registro/obtener', name: 'reg_cliente_cuit', methods: ['POST'])]
 public function obtenerSRLcuit(Request $request): JsonResponse
 {

@@ -1,0 +1,154 @@
+<?php
+
+namespace App\Repository;
+
+use App\Entity\ArticuloEcommerce;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+
+/**
+ * @extends ServiceEntityRepository<ArticuloEcommerce>
+ */
+class ArticuloEcommerceRepository extends ServiceEntityRepository
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, ArticuloEcommerce::class);
+    }
+
+    public function buscarConFiltros(
+        ?string $q,
+        ?string $categoria,
+        ?string $subcategoria,
+        ?string $marca,
+        int $pagina = 1,
+        int $porPagina = 24,
+        string $ordenar = 'az',
+        array $tags = [],
+    ): array {
+        $conn = $this->getEntityManager()->getConnection();
+
+        // Advisor_Stock tiene collation distinta a articulos_ecommerce; usamos SQL nativo con COLLATE explícito
+        // para evitar "Illegal mix of collations" en el JOIN de DQL.
+        $codigosConStock = $conn->fetchFirstColumn(
+            'SELECT sa.Codigo_Calipso COLLATE utf8mb4_unicode_ci FROM Advisor_Stock sa WHERE sa.Stock > 0 AND sa.Visible_Advisor IS NOT NULL AND sa.Visible_Advisor != 0'
+        );
+
+        $qb = $this->createQueryBuilder('a');
+
+        if ($q) {
+            $palabras = array_filter(array_map('trim', preg_split('/\s+/', $q)));
+            foreach ($palabras as $i => $palabra) {
+                $param = 'q' . $i;
+                $qb->andWhere("a.descripcion LIKE :$param OR a.descripcionIdeaconector LIKE :$param OR a.codigoCalipso LIKE :$param OR a.codigoRockwell LIKE :$param")
+                   ->setParameter($param, '%' . $palabra . '%');
+            }
+        }
+        if ($categoria) {
+            $qb->andWhere('a.categoriaAdvisor = :cat')->setParameter('cat', $categoria);
+        }
+        if ($subcategoria) {
+            $qb->andWhere('a.subcategoriaAdvisor = :sub')->setParameter('sub', $subcategoria);
+        }
+        if ($marca) {
+            $qb->andWhere('a.marca = :marca')->setParameter('marca', $marca);
+        }
+        if (!empty($tags)) {
+            // Tags viven en Stock_Advisor; obtener códigos matching via SQL nativo
+            $orParts = [];
+            $tagParams = [];
+            foreach ($tags as $i => $tag) {
+                $orParts[] = "sa.tags LIKE :tag$i";
+                $tagParams["tag$i"] = '%' . $tag . '%';
+            }
+            $codigosConTag = $conn->fetchFirstColumn(
+                'SELECT sa.Codigo_Calipso COLLATE utf8mb4_unicode_ci FROM Advisor_Stock sa WHERE sa.Visible_Advisor IS NOT NULL AND sa.Visible_Advisor != 0 AND (' . implode(' OR ', $orParts) . ')',
+                $tagParams
+            );
+            if (!empty($codigosConTag)) {
+                $qb->andWhere('a.codigoCalipso IN (:tagCodigos)')->setParameter('tagCodigos', $codigosConTag);
+            } else {
+                $qb->andWhere('1 = 0');
+            }
+        }
+
+        $total = (clone $qb)->select('COUNT(a.codigoCalipso)')->getQuery()->getSingleScalarResult();
+
+        $direction = $ordenar === 'za' ? 'DESC' : 'ASC';
+
+        $qb->select('a');
+        if (!empty($codigosConStock)) {
+            $qb->addSelect('CASE WHEN a.codigoCalipso IN (:codigosConStock) THEN 0 ELSE 1 END AS HIDDEN tiene_stock_orden')
+               ->setParameter('codigosConStock', $codigosConStock);
+        } else {
+            $qb->addSelect('0 AS HIDDEN tiene_stock_orden');
+        }
+
+        $items = $qb
+            ->orderBy('tiene_stock_orden', 'ASC')
+            ->addOrderBy('a.descripcionIdeaconector', $direction)
+            ->setFirstResult(($pagina - 1) * $porPagina)
+            ->setMaxResults($porPagina)
+            ->getQuery()
+            ->getResult();
+
+        return ['items' => $items, 'total' => (int)$total];
+    }
+
+    public function getCategorias(): array
+    {
+        return $this->createQueryBuilder('a')
+            ->select('DISTINCT a.categoriaAdvisor')
+            ->where('a.categoriaAdvisor IS NOT NULL')
+            ->orderBy('a.categoriaAdvisor', 'ASC')
+            ->getQuery()
+            ->getSingleColumnResult();
+    }
+
+    public function getSubcategorias(?string $categoria = null): array
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->select('DISTINCT a.subcategoriaAdvisor')
+            ->where('a.subcategoriaAdvisor IS NOT NULL');
+
+        if ($categoria) {
+            $qb->andWhere('a.categoriaAdvisor = :cat')->setParameter('cat', $categoria);
+        }
+
+        return $qb->orderBy('a.subcategoriaAdvisor', 'ASC')->getQuery()->getSingleColumnResult();
+    }
+
+    public function getMarcas(): array
+    {
+        return $this->createQueryBuilder('a')
+            ->select('DISTINCT a.marca')
+            ->where('a.marca IS NOT NULL AND a.marca != :empty')
+            ->setParameter('empty', '')
+            ->orderBy('a.marca', 'ASC')
+            ->getQuery()
+            ->getSingleColumnResult();
+    }
+
+    public function getRecomendados(int $limit = 8): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $codigos = $conn->fetchFirstColumn(
+            'SELECT ae.Codigo_Calipso FROM articulos_ecommerce ae
+             INNER JOIN Advisor_Stock sa ON sa.Codigo_Calipso COLLATE utf8mb4_unicode_ci = ae.Codigo_Calipso
+             WHERE ae.Imagen IS NOT NULL AND sa.Stock > 0 AND sa.Visible_Advisor IS NOT NULL AND sa.Visible_Advisor != 0
+             ORDER BY RAND() LIMIT :limit',
+            ['limit' => $limit],
+            ['limit' => \Doctrine\DBAL\ParameterType::INTEGER]
+        );
+
+        if (empty($codigos)) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('a')
+            ->where('a.codigoCalipso IN (:codigos)')
+            ->setParameter('codigos', $codigos)
+            ->getQuery()
+            ->getResult();
+    }
+}

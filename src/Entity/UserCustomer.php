@@ -62,6 +62,11 @@ class UserCustomer
         return $this;
     }
 
+    public function getClienteCodigo(): ?string
+    {
+        return $this->cliente;
+    }
+
     public function getCliente(ClientesRepository $repo): ?Clientes
     {
         return $this->cliente ? $repo->find($this->cliente) : null;

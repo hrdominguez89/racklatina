@@ -1,0 +1,735 @@
+{% extends 'base_catalogo.html.twig' %}
+
+{% block title %}{{ articulo.nombreDisplay }}{% endblock %}
+
+{% block breadcrumb %}
+<ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item">
+        <a href="{{ path('app_catalogo_index') }}">Catálogo</a>
+    </li>
+    {% if articulo.categoriaAdvisor %}
+    <li class="breadcrumb-item">
+        <a href="{{ path('app_catalogo_lista', {categoria: articulo.categoriaAdvisor}) }}">{{ articulo.categoriaAdvisor }}</a>
+    </li>
+    {% endif %}
+    <li class="breadcrumb-item active">{{ articulo.nombreDisplay|slice(0,40) }}{% if articulo.nombreDisplay|length > 40 %}…{% endif %}</li>
+</ol>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+/* ── Imagen ── */
+.det-img-wrap {
+    background: #fff;
+    border: 1px solid #ebebeb;
+    border-radius: 8px;
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.det-img-wrap img {
+    max-height: 380px;
+    max-width: 100%;
+    object-fit: contain;
+    padding: 1.5rem;
+}
+.det-img-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    min-height: 380px;
+}
+
+/* ── Category tags ── */
+.det-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    margin-bottom: .85rem;
+}
+.det-tag {
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--rkl-primary);
+    background: #f5f5e0;
+    border: 1px solid #e0dc9a;
+    border-radius: 20px;
+    padding: .2em .75em;
+    letter-spacing: .2px;
+}
+
+/* ── En Stock badge ── */
+.badge-stock {
+    display: inline-block;
+    background: var(--rkl-primary);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 600;
+    padding: .3em .9em;
+    border-radius: 20px;
+    letter-spacing: .3px;
+}
+
+/* ── Cantidad ── */
+.qty-ctrl {
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.qty-ctrl button {
+    background: #f5f5f5;
+    border: none;
+    width: 36px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    cursor: pointer;
+    line-height: 1;
+    transition: background .12s;
+}
+.qty-ctrl button:hover { background: #e8e8e8; }
+.qty-ctrl input {
+    border: none;
+    border-left: 1px solid #d0d0d0;
+    border-right: 1px solid #d0d0d0;
+    width: 52px;
+    height: 36px;
+    text-align: center;
+    font-weight: 600;
+    font-size: .9rem;
+    background: #fff;
+    outline: none;
+    box-shadow: none;
+    -moz-appearance: textfield;
+}
+.qty-ctrl input::-webkit-outer-spin-button,
+.qty-ctrl input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+/* ── Botones acción ── */
+.det-actions {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+.btn-agregar-det {
+    width: 100%;
+    background: var(--rkl-primary);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: .45rem .9rem;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .7px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .15s;
+    white-space: nowrap;
+}
+.btn-agregar-det:hover { background: var(--rkl-primary-dark); }
+.btn-agregar-det--login { width: auto; display: inline-block; }
+.btn-cotizacion-det {
+    background: #fff;
+    color: var(--rkl-primary);
+    border: 1.5px solid var(--rkl-primary);
+    border-radius: 5px;
+    padding: .45rem .9rem;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .7px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    white-space: nowrap;
+}
+.btn-cotizacion-det:hover { background: var(--rkl-primary); color: #fff; }
+
+/* ── Dropdown proyectos ── */
+.proyectos-dropdown-wrap {
+    position: relative;
+}
+.proyectos-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 220px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.1);
+    z-index: 200;
+    overflow: hidden;
+}
+.proyectos-dropdown.open { display: block; }
+.proy-drop-item {
+    display: block;
+    width: 100%;
+    padding: .6rem .9rem;
+    font-size: .85rem;
+    color: #333;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: background .1s;
+}
+.proy-drop-item:hover { background: #f5f5f5; }
+.proy-drop-item.loading { color: #aaa; cursor: default; }
+.proy-drop-divider { height: 1px; background: #f0f0f0; margin: .25rem 0; }
+.proy-drop-create {
+    display: block;
+    padding: .6rem .9rem;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--rkl-primary);
+    text-decoration: none;
+    transition: background .1s;
+}
+.proy-drop-create:hover { background: #f5f5f5; color: var(--rkl-primary-dark); }
+
+/* ── Tabs ── */
+.det-tabs-section {
+    margin-top: 2.5rem;
+    border-top: 1px solid #ebebeb;
+    padding-top: 1.5rem;
+}
+.det-tab-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    border-bottom: 2px solid #e8e8e8;
+    margin-bottom: 1.25rem;
+}
+.det-tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    padding: .55rem 1.1rem;
+    font-size: .85rem;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+    white-space: nowrap;
+}
+.det-tab-btn:hover { color: #444; }
+.det-tab-btn.active {
+    color: var(--rkl-primary);
+    border-bottom-color: var(--rkl-primary);
+}
+.det-tab-panel {
+    display: none;
+    font-size: .875rem;
+    color: #555;
+    line-height: 1.8;
+    padding: 0 9rem;
+}
+.det-tab-panel.active { display: block; }
+@media (max-width: 767px) {
+    .det-tab-panel { padding: 0; }
+}
+
+/* ── Modal Cotización ── */
+#modalCotizacion .modal-dialog {
+    max-width: 580px;
+}
+#modalCotizacion .modal-content {
+    border: none;
+    border-radius: 12px;
+    padding: 2rem 2.25rem 2.25rem;
+}
+#modalCotizacion .modal-title-cot {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--rkl-primary);
+    line-height: 1.3;
+    margin-bottom: .75rem;
+}
+#modalCotizacion .modal-subtitle-cot {
+    font-size: .9rem;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+}
+#modalCotizacion .btn-cot-crear {
+    display: block;
+    width: 100%;
+    background: var(--rkl-primary);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: .85rem 1rem;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .15s;
+    margin-bottom: 1.25rem;
+}
+#modalCotizacion .btn-cot-crear:hover { background: var(--rkl-primary-dark); }
+#modalCotizacion .btn-cot-solo {
+    display: block;
+    text-align: center;
+    font-size: .875rem;
+    font-weight: 500;
+    color: #333;
+    text-decoration: underline;
+    cursor: pointer;
+    background: none;
+    border: none;
+    width: 100%;
+    padding: 0;
+}
+#modalCotizacion .btn-cot-solo:hover { color: var(--rkl-primary); }
+#modalCotizacion .btn-close-cot {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.25rem;
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: #666;
+    cursor: pointer;
+    line-height: 1;
+    padding: .25rem;
+}
+#modalCotizacion .btn-close-cot:hover { color: #111; }
+
+/* ── Precio a consultar ── */
+.precio-consultar {
+    border: 1px solid #f0c040;
+    border-radius: 6px;
+    padding: .65rem .9rem;
+    background: #fffdf0;
+    display: inline-block;
+    min-width: 180px;
+}
+.precio-consultar-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    font-size: .85rem;
+    font-weight: 600;
+    color: #856404;
+    border-left: 3px solid #f0c040;
+    padding-left: .5rem;
+}
+.precio-consultar-badge i {
+    font-size: 1rem;
+}
+
+/* ── Relacionados ── */
+.rel-section {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #ebebeb;
+}
+.rel-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.rel-section-header span {
+    font-size: .95rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+.rel-section-header a {
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--rkl-primary);
+    text-decoration: none;
+}
+.rel-section-header a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block body %}
+<h3 class="fw-semibold mb-4" style="color:#1a1a1a;">Productos</h3>
+
+<div class="row g-4 g-lg-5">
+
+    {# ── Columna imagen ── #}
+    <div class="col-12 col-md-5">
+        <div class="det-img-wrap">
+            {% if articulo.imagen %}
+                <img src="{{ articulo.imagen }}"
+                     alt="{{ articulo.nombreDisplay }}"
+                     style="mix-blend-mode: multiply;"
+                     onerror="this.closest('.det-img-wrap').innerHTML='<div class=\'det-img-placeholder\'><i class=\'ri-image-line\' style=\'font-size:3rem;\'></i></div>'">
+            {% else %}
+                <div class="det-img-placeholder">
+                    <i class="ri-image-line" style="font-size:3rem;"></i>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ── Columna info ── #}
+    <div class="col-12 col-md-7">
+
+        {# Tags de categoría #}
+        {% if articulo.categoriaAdvisor or articulo.subcategoriaAdvisor %}
+        <div class="det-tags">
+            {% if articulo.categoriaAdvisor %}
+            <span class="det-tag">{{ articulo.categoriaAdvisor }}</span>
+            {% endif %}
+            {% if articulo.subcategoriaAdvisor %}
+            <span class="det-tag">{{ articulo.subcategoriaAdvisor }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {# Nombre #}
+        <h4 class="fw-bold mb-2" style="color:#1a1a1a;line-height:1.3;font-size:1.3rem;">{{ articulo.nombreDisplay }}</h4>
+
+        {# Descripción corta #}
+        {% if articulo.descripcion %}
+        <p class="mb-3" style="font-size:.85rem;color:#666;line-height:1.65;">{{ articulo.descripcion }}</p>
+        {% endif %}
+
+        {# Badges de tags (StockAdvisor) — solo roles con acceso a stock #}
+        {% set puedeVerStock = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
+        {% set puedeProyectos = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
+        {% if puedeVerStock and stockAdvisor and stockAdvisor.tags %}
+        {% set _detTags = stockAdvisor.tags|split(',')|map(t => t|trim)|filter(t => t != '') %}
+        {% if _detTags|length > 0 %}
+        <div class="mb-3 d-flex flex-wrap gap-2">
+            {% for tag in _detTags %}
+            <span class="badge-stock">{{ tag }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endif %}
+
+        {# Precio #}
+        {% set puedeVerPrecio = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N2') %}
+        {% if puedeVerPrecio %}
+            {% if precio is not null and precio.precio is defined and precio.precio > 0 %}
+            <div class="mb-3">
+                <p class="mb-0" style="font-size:.72rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;">Precio unitario (USD)</p>
+                <p class="mb-0 fw-bold" style="font-size:1.5rem;color:#1a1a1a;">
+                    U$S {{ precio.precio|number_format(2, ',', '.') }}
+                </p>
+            </div>
+            {% else %}
+            <div class="precio-consultar mb-3">
+                <div class="precio-consultar-badge">
+                    <i class="ri-alert-line"></i> Precio a consultar
+                </div>
+            </div>
+            {% endif %}
+        {% endif %}
+
+        {# Cantidad #}
+        <p class="mb-2" style="font-size:.78rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;">Cantidad</p>
+        <div class="qty-ctrl mb-0">
+            <button type="button" id="btn-menos">−</button>
+            <input type="number" id="input-cantidad" value="1" min="1" max="999">
+            <button type="button" id="btn-mas">+</button>
+        </div>
+
+        {# Botones de acción #}
+        {% set esIngenieroVista = is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
+        {% if puedeProyectos %}
+        <div class="det-actions">
+            {# AGREGAR con dropdown inline #}
+            <div class="proyectos-dropdown-wrap">
+                <button type="button" class="btn-agregar-det" id="btn-agregar-det">
+                    {{ esIngenieroVista ? 'Agregar a Lista' : 'Agregar a Proyecto' }}
+                </button>
+                <div class="proyectos-dropdown" id="proy-dropdown">
+                    <div id="proy-drop-list">
+                        <button class="proy-drop-item loading" disabled>Cargando…</button>
+                    </div>
+                    <div class="proy-drop-divider"></div>
+                    <a href="{{ path('app_proyectos_index') }}" class="proy-drop-create"
+                       data-bs-toggle="modal" data-bs-target="#modalCrearProyecto">
+                        + {{ esIngenieroVista ? 'Crear Nueva Lista' : 'Crear Nuevo Proyecto' }}
+                    </a>
+                </div>
+            </div>
+
+            {% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') %}
+            <button type="button" class="btn-cotizacion-det"
+                    data-bs-toggle="modal" data-bs-target="#modalCotizacion">
+                Solicitar Cotización
+            </button>
+            {% endif %}
+        </div>
+
+        {% if proyectos is empty %}
+        <p class="mt-2 mb-0" style="font-size:.8rem;color:#999;">
+            <a href="{{ path('app_proyectos_index') }}" class="fw-semibold" style="color:var(--rkl-primary);">Creá un proyecto</a>
+            para poder agregar productos.
+        </p>
+        {% endif %}
+
+        {% elseif not app.user %}
+        <div class="det-actions">
+            <a href="{{ path('app_login', {redirect: app.request.requestUri}) }}" class="btn-agregar-det btn-agregar-det--login text-center text-decoration-none">
+                Iniciá sesión para agregar
+            </a>
+        </div>
+        {% endif %}
+
+        {# Meta (código, marca) #}
+        {% if articulo.codigoCalipso or articulo.marca %}
+        <div class="mt-3" style="font-size:.78rem;color:#aaa;">
+            {% if articulo.codigoCalipso %}
+            <span class="me-3">Cód: <strong style="color:#888;">{{ articulo.codigoCalipso }}</strong></span>
+            {% endif %}
+            {% if articulo.marca %}
+            <span>{{ articulo.marca }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>{# /col-md-7 #}
+</div>{# /row #}
+
+{# ── Tabs de información ── #}
+<div class="det-tabs-section">
+    <div class="det-tab-nav">
+        <button class="det-tab-btn active" data-tab="descripcion">Descripción</button>
+        <button class="det-tab-btn" data-tab="caracteristicas">Características</button>
+        <button class="det-tab-btn" data-tab="seleccion">Selección de productos</button>
+        <button class="det-tab-btn" data-tab="envios">Envíos</button>
+    </div>
+
+    <div class="det-tab-panel active" id="tab-descripcion">
+        {% if articulo.descripcion %}
+            <p>{{ articulo.descripcion }}</p>
+        {% endif %}
+        {% if articulo.soluciones %}
+            <p>{{ articulo.soluciones }}</p>
+        {% else %}
+            <p class="text-muted">Sin descripción disponible.</p>
+        {% endif %}
+    </div>
+
+    <div class="det-tab-panel" id="tab-caracteristicas">
+        {% if articulo.descripcionTecnica %}
+            {{ articulo.descripcionTecnica|nl2br }}
+        {% else %}
+            <p class="text-muted">Sin información técnica disponible.</p>
+        {% endif %}
+    </div>
+
+    <div class="det-tab-panel" id="tab-seleccion">
+        <p>Agregá este producto a {{ esIngenieroVista ? 'una de tus listas' : 'uno de tus proyectos' }} para gestionarlo junto con otros artículos.</p>
+        {% if app.user %}
+        <a href="{{ path('app_proyectos_index') }}" class="fw-semibold" style="color:var(--rkl-primary);">
+            {{ esIngenieroVista ? 'Ver mis listas →' : 'Ver mis proyectos →' }}
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="det-tab-panel" id="tab-envios">
+        <p>Para información sobre envíos y tiempos de entrega, contactate con tu representante comercial.</p>
+    </div>
+</div>
+
+{# ── Relacionados ── #}
+{% if relacionados is not empty %}
+<div class="rel-section">
+    <div class="rel-section-header">
+        <span>Productos más recomendados</span>
+        {% if articulo.categoriaAdvisor %}
+        <a href="{{ path('app_catalogo_lista', {categoria: articulo.categoriaAdvisor}) }}">ver más →</a>
+        {% endif %}
+    </div>
+    <div class="row g-3">
+        {% for rel in relacionados %}
+        <div class="col-6 col-md-3">
+            {% include 'secure/external/catalogo/_card_articulo.html.twig' with {articulo: rel, proyectos: proyectos} %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# ── Modal: Solicitar Cotización ── #}
+<div class="modal fade" id="modalCotizacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content position-relative">
+            <button type="button" class="btn-close-cot" data-bs-dismiss="modal" aria-label="Cerrar">
+                &#x2715;
+            </button>
+
+            <p class="modal-title-cot">¿Querés cotizar solo este producto?</p>
+            <p class="modal-subtitle-cot">
+                Si agregás este producto a un proyecto, vas a poder cotizar todo junto en un solo documento.
+            </p>
+
+            <button type="button" class="btn-cot-crear" id="btn-cot-crear-proyecto" data-bs-dismiss="modal">
+                Crear Proyecto
+            </button>
+
+            <button type="button" class="btn-cot-solo" id="btn-cot-solo" data-bs-dismiss="modal">
+                Cotizar solo este producto
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const articuloCodigo = '{{ articulo.codigoCalipso|e('js') }}';
+
+    RKL.clarity('event', 'producto_visto');
+    RKL.clarity('set', 'producto_visto', articuloCodigo);
+
+    // ── Cantidad +/- ──
+    document.getElementById('btn-menos')?.addEventListener('click', () => {
+        const inp = document.getElementById('input-cantidad');
+        if (parseInt(inp.value) > 1) inp.value = parseInt(inp.value) - 1;
+    });
+    document.getElementById('btn-mas')?.addEventListener('click', () => {
+        const inp = document.getElementById('input-cantidad');
+        if (parseInt(inp.value) < 999) inp.value = parseInt(inp.value) + 1;
+    });
+
+    // ── Agregar artículo a un proyecto ──
+    async function agregarArticulo(proyectoId, cantidad, btnOrigen) {
+        if (btnOrigen) btnOrigen.disabled = true;
+        const fd = new FormData();
+        fd.append('articulo_codigo', articuloCodigo);
+        fd.append('cantidad', cantidad || 1);
+        try {
+            const res  = await fetch(`/secure/proyectos/${proyectoId}/agregar-articulo`, { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                RKL.clarity('event', 'producto_agregado');
+                RKL.clarity('set', 'producto_agregado', articuloCodigo);
+            }
+            RKL.toast(data.success ? data.mensaje : (data.error || 'Error al agregar'), data.success ? 'success' : 'danger');
+        } catch (e) {
+            RKL.toast('Error: ' + e.message, 'danger');
+        } finally {
+            if (btnOrigen) btnOrigen.disabled = false;
+        }
+    }
+
+    // ── Dropdown inline de proyectos ──
+    const btnAgregar  = document.getElementById('btn-agregar-det');
+    const dropdown    = document.getElementById('proy-dropdown');
+    const dropList    = document.getElementById('proy-drop-list');
+    let dropLoaded    = false;
+
+    async function cargarDropdown() {
+        if (dropLoaded) return;
+        dropList.innerHTML = '<button class="proy-drop-item loading" disabled>Cargando…</button>';
+        try {
+            const proyectos = await fetch('/secure/proyectos/mis-proyectos-json').then(r => r.json());
+            dropLoaded = true;
+            if (proyectos.length === 0) {
+                dropList.innerHTML = '<span class="proy-drop-item loading">Sin proyectos</span>';
+            } else {
+                dropList.innerHTML = proyectos.map(p =>
+                    `<button class="proy-drop-item" data-id="${p.id}">${p.nombre}</button>`
+                ).join('');
+                dropList.querySelectorAll('.proy-drop-item').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const cantidad = parseInt(document.getElementById('input-cantidad')?.value || 1);
+                        dropdown.classList.remove('open');
+                        agregarArticulo(this.dataset.id, cantidad, btnAgregar);
+                    });
+                });
+            }
+        } catch {
+            dropList.innerHTML = '<span class="proy-drop-item loading">Error al cargar</span>';
+        }
+    }
+
+    btnAgregar?.addEventListener('click', async function(e) {
+        e.stopPropagation();
+
+        // Ingenieros: flujo auto-create sin dropdown
+        if (RKL.esIngeniero) {
+            const fd = new FormData();
+            fd.append('articulo_codigo', articuloCodigo);
+            fd.append('cantidad', parseInt(document.getElementById('input-cantidad')?.value || 1));
+            this.disabled = true;
+            try {
+                const res  = await fetch('/secure/proyectos/agregar-automatico', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    RKL.proyectoActivo = data.proyecto;
+                    RKL.clarity('event', 'producto_agregado');
+                    RKL.clarity('set', 'producto_agregado', articuloCodigo);
+                    RKL.toast(data.mensaje, 'success');
+                } else {
+                    RKL.toast(data.error || 'Error al agregar', 'danger');
+                }
+            } catch (err) {
+                RKL.toast('Error: ' + err.message, 'danger');
+            } finally {
+                this.disabled = false;
+            }
+            return;
+        }
+
+        const isOpen = dropdown.classList.contains('open');
+        if (isOpen) {
+            dropdown.classList.remove('open');
+            return;
+        }
+        // Si hay proyecto activo, agregar directo sin abrir dropdown
+        if (RKL.proyectoActivo) {
+            const cantidad = parseInt(document.getElementById('input-cantidad')?.value || 1);
+            agregarArticulo(RKL.proyectoActivo.id, cantidad, this);
+            return;
+        }
+        await cargarDropdown();
+        dropdown.classList.add('open');
+    });
+
+    // Cerrar dropdown al hacer click afuera
+    document.addEventListener('click', function(e) {
+        if (dropdown && !dropdown.closest('.proyectos-dropdown-wrap').contains(e.target)) {
+            dropdown.classList.remove('open');
+        }
+    });
+
+    // ── Tabs ──
+    document.querySelectorAll('.det-tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.det-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.det-tab-panel').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+        });
+    });
+
+    // ── Modal Cotización ──
+    document.getElementById('btn-cot-crear-proyecto')?.addEventListener('click', function() {
+        // Abre modal de crear proyecto (Bootstrap)
+        const modalCrear = new bootstrap.Modal(document.getElementById('modalCrearProyecto'));
+        modalCrear.show();
+    });
+
+    document.getElementById('btn-cot-solo')?.addEventListener('click', function() {
+        // Cotizar solo este producto: agrega al carrito de cotización y redirige
+        const cantidad = parseInt(document.getElementById('input-cantidad')?.value || 1);
+        const params = new URLSearchParams({ articulo: articuloCodigo, cantidad });
+        window.location.href = `/secure/cotizacion/nueva?${params}`;
+    });
+
+})();
+</script>
+{% endblock extra_js %}

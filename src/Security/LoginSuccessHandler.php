@@ -27,6 +27,20 @@ class LoginSuccessHandler implements AuthenticationSuccessHandlerInterface
             return new RedirectResponse($this->router->generate('app_secure_internal_home'));
         }
 
+        $roles = $user->getRoles();
+        $rolesCatalogo = ['ROLE_INGENIERO_N1', 'ROLE_INGENIERO_N2'];
+        $esCatalogoOnly = (bool) array_intersect($rolesCatalogo, $roles);
+
+        if ($esCatalogoOnly) {
+            return new RedirectResponse($this->router->generate('app_catalogo_index'));
+        }
+
+        // Para roles con acceso al portal, respetar redirect solicitado
+        $targetPath = $request->request->get('_target_path');
+        if ($targetPath && str_starts_with($targetPath, '/')) {
+            return new RedirectResponse($targetPath);
+        }
+
         return new RedirectResponse($this->router->generate('app_secure_external_home'));
     }
 }

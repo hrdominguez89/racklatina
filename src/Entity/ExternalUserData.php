@@ -44,6 +44,18 @@ class ExternalUserData
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $provincia = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $domicilio = null;
+
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $codigoPostal = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $localidad = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $tipoCliente = null;
+
     #[ORM\Column(nullable: true)]
     private ?bool $profileCompleted = null;
 
@@ -178,6 +190,18 @@ class ExternalUserData
 
         return $this;
     }
+
+    public function getDomicilio(): ?string { return $this->domicilio; }
+    public function setDomicilio(?string $domicilio): static { $this->domicilio = $domicilio; return $this; }
+
+    public function getCodigoPostal(): ?string { return $this->codigoPostal; }
+    public function setCodigoPostal(?string $codigoPostal): static { $this->codigoPostal = $codigoPostal; return $this; }
+
+    public function getLocalidad(): ?string { return $this->localidad; }
+    public function setLocalidad(?string $localidad): static { $this->localidad = $localidad; return $this; }
+
+    public function getTipoCliente(): ?string { return $this->tipoCliente; }
+    public function setTipoCliente(?string $tipoCliente): static { $this->tipoCliente = $tipoCliente; return $this; }
 
     public function isProfileCompleted(): ?bool
     {
