@@ -1,13 +1,14 @@
 {% extends 'base_catalogo.html.twig' %}
 
 {% set isFinished = proyecto.status.value == 'finished' %}
+{% set esIngenieroShow = is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
 
 {% block title %}{{ proyecto.nombre }}{% endblock %}
 
 {% block breadcrumb %}
 <ol class="breadcrumb mb-0">
     <li class="breadcrumb-item">
-        <a href="{{ path('app_proyectos_index') }}">Proyectos</a>
+        <a href="{{ path('app_proyectos_index') }}">{{ esIngenieroShow ? 'Mis Listas' : 'Proyectos' }}</a>
     </li>
     <li class="breadcrumb-item active">{{ proyecto.nombre|slice(0,40) }}{% if proyecto.nombre|length > 40 %}…{% endif %}</li>
 </ol>
@@ -22,31 +23,40 @@
     gap: 1.5rem;
     align-items: start;
 }
+.proyecto-layout.sin-sidebar {
+    grid-template-columns: 1fr;
+}
 @media (max-width: 991px) {
     .proyecto-layout { grid-template-columns: 1fr; }
     .proyecto-sidebar { order: -1; }
 }
 
 /* ── Tabla de productos ── */
+.tabla-wrap {
+    overflow-x: auto;
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+}
 .tabla-productos {
     width: 100%;
     border-collapse: collapse;
     background: #fff;
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-    overflow: hidden;
+    min-width: 680px;
 }
 .tabla-productos thead tr {
     background: #f0f0f0;
 }
 .tabla-productos thead th {
-    padding: .75rem 1rem;
-    font-size: .82rem;
-    font-weight: 600;
+    padding: .7rem 1rem;
+    font-size: .75rem;
+    font-weight: 700;
     color: #555;
     text-align: center;
     border-bottom: 1px solid #e0e0e0;
     white-space: nowrap;
+    letter-spacing: .4px;
+    text-transform: uppercase;
 }
 .tabla-productos thead th.col-producto {
     text-align: left;
@@ -55,15 +65,18 @@
 
 /* ── Filas de producto ── */
 .tr-producto {
-    border-bottom: 1px solid #efefef;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background .1s;
 }
 .tr-producto:last-of-type {
     border-bottom: none;
 }
+.tr-producto:hover td { background: #fafafa !important; }
 .tr-producto td {
-    padding: .9rem 1rem;
+    padding: .85rem 1rem;
     vertical-align: middle;
     text-align: center;
+    font-size: .85rem;
 }
 .tr-producto td.td-producto {
     text-align: left;
@@ -271,7 +284,7 @@
 .sidebar-link:hover { color: #000; }
 
 /* ── Filas pares (al final para ganar en cascada) ── */
-.tr-producto.fila-par td { background: #e8e8e8 !important; }
+.tr-producto.fila-par td { background: #f5f5f5 !important; }
 </style>
 {% endblock %}
 
@@ -327,12 +340,17 @@
 
 {% else %}
 
-<div class="proyecto-layout">
+{% set _esIngN1pre = is_granted('ROLE_INGENIERO_N1') and not is_granted('ROLE_INGENIERO_N2') %}
+{% set _esIngN2pre = is_granted('ROLE_INGENIERO_N2') %}
+{% set _mostrarSidebar = not (_esIngN1pre or _esIngN2pre) or canVerPrecio %}
+
+<div class="proyecto-layout {{ not _mostrarSidebar ? 'sin-sidebar' : '' }}">
 
     {# ── Tabla de productos ── #}
     <div class="proyecto-items">
         <p class="mb-2" style="font-size:.95rem;font-weight:600;color:#333;">Listado de productos</p>
 
+        <div class="tabla-wrap">
         <table class="tabla-productos">
             <thead>
                 <tr>
@@ -499,6 +517,7 @@
             {% endfor %}
             </tbody>
         </table>
+        </div>{# /tabla-wrap #}
         <div style="margin-top:.6rem;display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#7a6f00;background:#fffde7;border:1px solid #e0d850;border-radius:5px;padding:.45rem .85rem;">
             <i class="ri-information-line" style="font-size:1rem;flex-shrink:0;"></i>
             <span>Stock sujeto a confirmación de compra final.</span>
@@ -509,6 +528,7 @@
     {% set esIngenieroN1 = is_granted('ROLE_INGENIERO_N1') and not is_granted('ROLE_INGENIERO_N2') %}
     {% set esIngenieroN2 = is_granted('ROLE_INGENIERO_N2') %}
     {% set esIngeniero   = esIngenieroN1 or esIngenieroN2 %}
+    {% if _mostrarSidebar %}
     <div class="proyecto-sidebar">
         <div class="sidebar-card">
 
@@ -575,6 +595,7 @@
             {% endif %}
         </div>
     </div>
+    {% endif %}
 
 </div>
 

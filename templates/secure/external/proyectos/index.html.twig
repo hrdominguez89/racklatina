@@ -391,13 +391,14 @@
 
 {% else %}
 {# ── VISTA USUARIO: Grid de proyectos ── #}
+{% set esIngenieroIdx = is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
 
-<h4 class="fw-bold mb-3" style="color:#1a1a1a;">Proyectos</h4>
+<h4 class="fw-bold mb-3" style="color:#1a1a1a;">{{ esIngenieroIdx ? 'Mis Listas' : 'Proyectos' }}</h4>
 
 {# Search bar #}
 <div class="proyectos-search">
     <i class="ri-search-line search-icon"></i>
-    <input type="text" id="input-buscar-proyecto" placeholder="Buscá un proyecto" autocomplete="off">
+    <input type="text" id="input-buscar-proyecto" placeholder="Buscá {{ esIngenieroIdx ? 'una lista' : 'un proyecto' }}" autocomplete="off">
 </div>
 
 <div class="row g-3" id="grid-proyectos">

@@ -425,7 +425,6 @@
             </div>
             {% else %}
             <div class="precio-consultar mb-3">
-                <p class="mb-1" style="font-size:.85rem;color:#555;">{{ articulo.nombreDisplay }}</p>
                 <div class="precio-consultar-badge">
                     <i class="ri-alert-line"></i> Precio a consultar
                 </div>
@@ -442,12 +441,13 @@
         </div>
 
         {# Botones de acción #}
+        {% set esIngenieroVista = is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
         {% if puedeProyectos %}
         <div class="det-actions">
-            {# AGREGAR A PROYECTO con dropdown inline #}
+            {# AGREGAR con dropdown inline #}
             <div class="proyectos-dropdown-wrap">
                 <button type="button" class="btn-agregar-det" id="btn-agregar-det">
-                    Agregar a Proyecto
+                    {{ esIngenieroVista ? 'Agregar a Lista' : 'Agregar a Proyecto' }}
                 </button>
                 <div class="proyectos-dropdown" id="proy-dropdown">
                     <div id="proy-drop-list">
@@ -456,7 +456,7 @@
                     <div class="proy-drop-divider"></div>
                     <a href="{{ path('app_proyectos_index') }}" class="proy-drop-create"
                        data-bs-toggle="modal" data-bs-target="#modalCrearProyecto">
-                        + Crear Nuevo Proyecto
+                        + {{ esIngenieroVista ? 'Crear Nueva Lista' : 'Crear Nuevo Proyecto' }}
                     </a>
                 </div>
             </div>
@@ -528,10 +528,10 @@
     </div>
 
     <div class="det-tab-panel" id="tab-seleccion">
-        <p>Agregá este producto a uno de tus proyectos para gestionarlo junto con otros artículos.</p>
+        <p>Agregá este producto a {{ esIngenieroVista ? 'una de tus listas' : 'uno de tus proyectos' }} para gestionarlo junto con otros artículos.</p>
         {% if app.user %}
         <a href="{{ path('app_proyectos_index') }}" class="fw-semibold" style="color:var(--rkl-primary);">
-            Ver mis proyectos →
+            {{ esIngenieroVista ? 'Ver mis listas →' : 'Ver mis proyectos →' }}
         </a>
         {% endif %}
     </div>

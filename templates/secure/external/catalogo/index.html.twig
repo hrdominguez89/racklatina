@@ -198,7 +198,7 @@
                                 class="rkl-btn-agregar btn-agregar-proyecto"
                                 data-articulo-codigo="{{ articulo.codigoCalipso }}"
                                 data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}">
-                            Agregar a Proyecto
+                            {{ (is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) ? 'Agregar a Lista' : 'Agregar a Proyecto' }}
                         </button>
                     </div>
                     {% endif %}

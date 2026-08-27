@@ -48,7 +48,7 @@
                     <button type="button" class="btn btn-dark btn-sm btn-agregar-proyecto"
                             data-articulo-codigo="{{ articulo.codigoCalipso }}"
                             data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}">
-                        <i class="ri-folder-add-line"></i> Agregar
+                        <i class="ri-folder-add-line"></i> {{ (is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) ? 'Agregar a Lista' : 'Agregar' }}
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm" disabled>
                         Pedir cotización
@@ -115,7 +115,7 @@
                         onmouseout="this.style.background='#fff';this.style.color='var(--rkl-primary)';"
                         data-articulo-codigo="{{ articulo.codigoCalipso }}"
                         data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}">
-                    Agregar a Proyecto
+                    {{ (is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) ? 'Agregar a Lista' : 'Agregar a Proyecto' }}
                 </button>
             {% elseif not app.user %}
                 <a href="{{ path('app_login', {redirect: app.request.requestUri}) }}" class="btn w-100"
