@@ -387,12 +387,8 @@
                     <td class="td-producto">
                         <div class="td-producto-inner">
                             <div class="td-producto-img">
-                                {% if item.articulo.imagen %}
-                                <img src="{{ item.articulo.imagen }}" alt="{{ item.articulo.nombreDisplay }}"
-                                     onerror="this.style.display='none';this.closest('.td-producto-img').innerHTML='<i class=\'ri-image-line\' style=\'color:#ccc;font-size:1.4rem;\'></i>'">
-                                {% else %}
-                                <i class="ri-image-line" style="color:#ccc;font-size:1.4rem;"></i>
-                                {% endif %}
+                                <img src="{{ item.articulo.imagenUrl }}" alt="{{ item.articulo.nombreDisplay }}"
+                                     onerror="this.onerror=null;this.src='{{ item.articulo.imagenFallbackUrl|e('html_attr') }}';">
                             </div>
                             <div class="td-producto-info">
                                 <span class="td-producto-nombre">{{ item.articulo.nombreDisplay }}</span>

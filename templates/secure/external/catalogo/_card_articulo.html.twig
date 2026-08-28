@@ -19,16 +19,9 @@
             <div class="col-auto">
                 <div class="bg-light rounded d-flex align-items-center justify-content-center"
                      style="width:80px;height:80px;overflow:hidden;">
-                    {% if articulo.imagen %}
-                    <img src="{{ articulo.imagen }}" alt="{{ articulo.nombreDisplay }}"
+                    <img src="{{ articulo.imagenUrl }}" alt="{{ articulo.nombreDisplay }}"
                          class="img-fluid p-1" style="max-height:80px;object-fit:contain;mix-blend-mode:multiply;"
-                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                    <div style="display:none" class="w-100 h-100 align-items-center justify-content-center">
-                        <i class="ri-image-line fs-2 text-muted"></i>
-                    </div>
-                    {% else %}
-                    <i class="ri-image-line fs-2 text-muted"></i>
-                    {% endif %}
+                         onerror="this.onerror=null;this.src='{{ articulo.imagenFallbackUrl|e('html_attr') }}';">
                 </div>
             </div>
             <div class="col">
@@ -69,16 +62,9 @@
     <div class="position-relative">
         <div class="bg-light rounded-top d-flex align-items-center justify-content-center"
              style="height:180px;overflow:hidden;">
-            {% if articulo.imagen %}
-            <img src="{{ articulo.imagen }}" alt="{{ articulo.nombreDisplay }}"
+            <img src="{{ articulo.imagenUrl }}" alt="{{ articulo.nombreDisplay }}"
                  class="img-fluid p-3" style="max-height:100%;object-fit:contain;mix-blend-mode:multiply;"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-            <div style="display:none" class="w-100 h-100 align-items-center justify-content-center">
-                <i class="ri-image-line fs-1 text-muted"></i>
-            </div>
-            {% else %}
-            <i class="ri-image-line fs-1 text-muted"></i>
-            {% endif %}
+                 onerror="this.onerror=null;this.src='{{ articulo.imagenFallbackUrl|e('html_attr') }}';">
         </div>
         {# Badges de tags (de StockAdvisor) o fallback a "En Stock" — solo para roles con acceso a stock #}
         {% if puedeVerStock %}

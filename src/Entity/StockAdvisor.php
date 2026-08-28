@@ -62,19 +62,23 @@ class StockAdvisor
 
     public function getImagen(): ?string { return $this->imagen; }
 
+    private const IMAGEN_FALLBACK_ROCKWELL = 'https://racklatina.com/Advisor/Rockwell-Automation.png';
+    private const IMAGEN_FALLBACK_RKL = '/images/productos/rkl-placeholder.jpg';
+
     /**
-     * URL de la imagen con fallback genérico según proveedor.
-     * Rockwell tiene su propia imagen placeholder; el resto usa la genérica.
+     * URL de imagen a mostrar: la del producto si existe, o la genérica según proveedor.
      */
     public function getImagenUrl(): string
     {
-        if (!empty($this->imagen)) {
-            return $this->imagen;
-        }
+        return !empty($this->imagen) ? $this->imagen : $this->getImagenFallbackUrl();
+    }
 
-        return $this->isRockwell()
-            ? '/images/productos/rockwell-placeholder.jpg'
-            : '/images/productos/producto-generico.jpg';
+    /**
+     * URL de imagen genérica según proveedor (usada como fallback en onerror).
+     */
+    public function getImagenFallbackUrl(): string
+    {
+        return $this->isRockwell() ? self::IMAGEN_FALLBACK_ROCKWELL : self::IMAGEN_FALLBACK_RKL;
     }
 
     public function isRockwell(): bool

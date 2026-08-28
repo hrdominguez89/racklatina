@@ -363,16 +363,10 @@
     {# ── Columna imagen ── #}
     <div class="col-12 col-md-5">
         <div class="det-img-wrap">
-            {% if articulo.imagen %}
-                <img src="{{ articulo.imagen }}"
-                     alt="{{ articulo.nombreDisplay }}"
-                     style="mix-blend-mode: multiply;"
-                     onerror="this.closest('.det-img-wrap').innerHTML='<div class=\'det-img-placeholder\'><i class=\'ri-image-line\' style=\'font-size:3rem;\'></i></div>'">
-            {% else %}
-                <div class="det-img-placeholder">
-                    <i class="ri-image-line" style="font-size:3rem;"></i>
-                </div>
-            {% endif %}
+            <img src="{{ articulo.imagenUrl }}"
+                 alt="{{ articulo.nombreDisplay }}"
+                 style="mix-blend-mode: multiply;"
+                 onerror="this.onerror=null;this.src='{{ articulo.imagenFallbackUrl|e('html_attr') }}';">
         </div>
     </div>
 
