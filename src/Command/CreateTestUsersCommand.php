@@ -36,12 +36,10 @@ class CreateTestUsersCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $password = 'Test1234!';
+        $passwords = [];
 
         $usuarios = [
             // email                              firstName    lastName     cuit          roleName              internal
-            ['test.superadmin@racklatina.com.ar', 'Super',    'Admin',     99000001,  'ROLE_SUPER_ADMIN',   true],
-            ['test.admin@racklatina.com.ar',       'Admin',    'Test',      99000002,  'ROLE_ADMIN',         true],
             ['test.comprador@racklatina.com.ar',   'Comprador','Test',      99000003,  'ROLE_COMPRADOR',     false],
             ['test.admin-ext@racklatina.com.ar',   'Administ', 'Test',      99000004,  'ROLE_ADMINISTRACION',false],
             ['test.ingeniero1@racklatina.com.ar',  'Ingeniero','N1 Test',   99000005,  'ROLE_INGENIERO_N1',  false],
@@ -52,8 +50,16 @@ class CreateTestUsersCommand extends Command
         $omitidos = 0;
 
         foreach ($usuarios as [$email, $firstName, $lastName, $cuit, $roleName, $isInternal]) {
+            $roleSlug = ucfirst(strtolower(str_replace(['ROLE_', '_'], ['', ''], $roleName)));
+            $password = $roleSlug . '123!';
+            $passwords[$email] = $password;
+
             $existente = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
             if ($existente) {
+                $existente->setPassword($this->hasher->hashPassword($existente, $password));
+                $this->em->persist($existente);
+                $io->writeln("  <info>PSW</info>  {$email} → password actualizada");
+
                 if (!$isInternal) {
                     $yaAsociado = $this->em->getRepository(UserCustomer::class)->findOneBy([
                         'user' => $existente,
@@ -138,7 +144,12 @@ class CreateTestUsersCommand extends Command
 
         $io->newLine();
         $io->success("Creados: {$creados} | Omitidos: {$omitidos}");
-        $io->writeln("Password para todos: <comment>{$password}</comment>");
+        if ($passwords) {
+            $io->writeln('Passwords generadas:');
+            foreach ($passwords as $email => $pass) {
+                $io->writeln("  {$email} → <comment>{$pass}</comment>");
+            }
+        }
 
         return Command::SUCCESS;
     }
