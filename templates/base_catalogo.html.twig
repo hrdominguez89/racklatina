@@ -413,13 +413,10 @@ document.addEventListener('click', function(e) {
                         GUARDAR CAMBIOS
                     </button>
                     {% if activoCodigo %}
-                    <form method="POST" action="{{ path('app_catalogo_switch_empresa') }}" class="m-0">
-                        <input type="hidden" name="cliente_codigo" value="">
-                        <button type="submit" class="btn btn-outline-secondary btn-sm w-100"
-                                style="border-radius:6px;font-size:.8rem;">
-                            <i class="ri-close-line me-1"></i>Ver sin empresa seleccionada
-                        </button>
-                    </form>
+                    <button type="button" id="admin-empresa-quitar" class="btn btn-outline-secondary btn-sm w-100"
+                            style="border-radius:6px;font-size:.8rem;">
+                        <i class="ri-close-line me-1"></i>Ver sin empresa seleccionada
+                    </button>
                     {% endif %}
                     <div class="d-flex justify-content-between align-items-center mt-1">
                         <a href="{{ path('app_mi_perfil_controllador_edicion') }}"
@@ -492,7 +489,15 @@ document.addEventListener('click', function(e) {
     const codigoInput = document.getElementById('admin-empresa-codigo');
     const selLabel    = document.getElementById('admin-empresa-seleccionada');
     const submitBtn   = document.getElementById('admin-empresa-submit');
+    const quitarBtn   = document.getElementById('admin-empresa-quitar');
     let debounceTimer;
+
+    if (quitarBtn) {
+        quitarBtn.addEventListener('click', function () {
+            codigoInput.value = '';
+            document.getElementById('form-switch-empresa-admin').submit();
+        });
+    }
 
     searchInput.addEventListener('input', function () {
         clearTimeout(debounceTimer);

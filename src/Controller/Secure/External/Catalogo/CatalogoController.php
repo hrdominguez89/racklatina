@@ -101,7 +101,11 @@ class CatalogoController extends AbstractController
 
         $resultados = $this->clientesRepo->createQueryBuilder('c')
             ->where('c.razonSocial LIKE :q')
+            ->andWhere('c.cuit LIKE :cuit30 OR c.cuit LIKE :cuit33 OR c.cuit LIKE :cuit34')
             ->setParameter('q', '%' . $q . '%')
+            ->setParameter('cuit30', '30-%')
+            ->setParameter('cuit33', '33-%')
+            ->setParameter('cuit34', '34-%')
             ->setMaxResults(10)
             ->getQuery()
             ->getResult();
