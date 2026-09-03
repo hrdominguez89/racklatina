@@ -610,8 +610,12 @@
             if (data.success) {
                 RKL.clarity('event', 'producto_agregado');
                 RKL.clarity('set', 'producto_agregado', articuloCodigo);
+                RKL.toast(data.mensaje
+                    + ` <a href="/secure/proyectos/${proyectoId}" class="fw-semibold" style="white-space:nowrap;">Ver proyecto →</a>`,
+                    'success');
+            } else {
+                RKL.toast(data.error || 'Error al agregar', 'danger');
             }
-            RKL.toast(data.success ? data.mensaje : (data.error || 'Error al agregar'), data.success ? 'success' : 'danger');
         } catch (e) {
             RKL.toast('Error: ' + e.message, 'danger');
         } finally {
@@ -666,7 +670,9 @@
                     RKL.proyectoActivo = data.proyecto;
                     RKL.clarity('event', 'producto_agregado');
                     RKL.clarity('set', 'producto_agregado', articuloCodigo);
-                    RKL.toast(data.mensaje, 'success');
+                    RKL.toast(data.mensaje
+                        + ` <a href="/secure/proyectos/${data.proyecto.id}" class="fw-semibold" style="white-space:nowrap;">Ver proyecto →</a>`,
+                        'success');
                 } else {
                     RKL.toast(data.error || 'Error al agregar', 'danger');
                 }

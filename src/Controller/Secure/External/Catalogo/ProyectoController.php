@@ -98,16 +98,19 @@ class ProyectoController extends AbstractController
             $empresasOptions = $clientesRepo->findBy(['codigoCalipso' => $codigos], ['razonSocial' => 'ASC']);
             $usuariosOptions = $this->proyectoRepo->findUsersWithProyectos($filtroEmpresa);
 
+            // Proyectos propios del admin (todos los estados)
+            $misProyectos = $this->proyectoRepo->findByUser($user, null);
+
             // Mapa clienteCodigo → razonSocial
-            $allCodigos   = array_unique(array_filter(array_map(fn($p) => $p->getClienteCodigo(), $solicitudes)));
+            $allCodigos   = array_unique(array_filter(array_map(
+                fn($p) => $p->getClienteCodigo(),
+                array_merge($solicitudes, $misProyectos)
+            )));
             $clientes     = $clientesRepo->findBy(['codigoCalipso' => $allCodigos]);
             $clienteNames = [];
             foreach ($clientes as $c) {
                 $clienteNames[$c->getCodigoCalipso()] = $c->getRazonSocial();
             }
-
-            // Proyectos propios del admin (todos los estados)
-            $misProyectos = $this->proyectoRepo->findByUser($user, null);
 
             return $this->render('secure/external/proyectos/index.html.twig', [
                 'proyectos'       => $misProyectos,

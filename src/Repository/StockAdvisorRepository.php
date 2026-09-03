@@ -30,6 +30,7 @@ class StockAdvisorRepository extends ServiceEntityRepository
         int $porPagina = 24,
         string $ordenar = 'az',
         array $tags = [],
+        ?string $solucion = null,
     ): array {
         $qb = $this->createQueryBuilder('s')
             ->where('s.visibleAdvisor IS NOT NULL AND s.visibleAdvisor != :cero')
@@ -41,6 +42,9 @@ class StockAdvisorRepository extends ServiceEntityRepository
                 $qb->andWhere("s.descripcion LIKE :$param OR s.descripcionAdvisor LIKE :$param OR s.codigoCalipso LIKE :$param OR s.codigoRockwell LIKE :$param")
                    ->setParameter($param, '%' . $palabra . '%');
             }
+        }
+        if ($solucion) {
+            $qb->andWhere('s.soluciones = :solucion')->setParameter('solucion', $solucion);
         }
         if ($categoria) {
             $qb->andWhere('s.categoriaAdvisor = :cat')->setParameter('cat', $categoria);
@@ -75,6 +79,18 @@ class StockAdvisorRepository extends ServiceEntityRepository
             ->getResult();
 
         return ['items' => $items, 'total' => (int)$total];
+    }
+
+    public function getSoluciones(): array
+    {
+        return $this->createQueryBuilder('s')
+            ->select('DISTINCT s.soluciones')
+            ->where('s.soluciones IS NOT NULL')
+            ->andWhere('s.visibleAdvisor IS NOT NULL AND s.visibleAdvisor != :cero')
+            ->setParameter('cero', '0')
+            ->orderBy('s.soluciones', 'ASC')
+            ->getQuery()
+            ->getSingleColumnResult();
     }
 
     public function getCategorias(): array

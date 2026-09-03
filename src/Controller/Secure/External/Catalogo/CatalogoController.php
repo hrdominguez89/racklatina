@@ -74,7 +74,7 @@ class CatalogoController extends AbstractController
     #[Route('', name: 'app_catalogo_index')]
     public function index(): Response
     {
-        $categorias = $this->stockAdvisorRepo->getCategorias();
+        $soluciones = $this->stockAdvisorRepo->getSoluciones();
         $recomendados = $this->stockAdvisorRepo->getRecomendados(8);
 
         $codigos = array_map(fn($a) => $a->getCodigoCalipso(), $recomendados);
@@ -82,7 +82,7 @@ class CatalogoController extends AbstractController
         $tagsMap = $this->stockAdvisorRepo->getTagsMap($codigos);
 
         return $this->render('secure/external/catalogo/index.html.twig', [
-            'categorias' => $categorias,
+            'soluciones' => $soluciones,
             'recomendados' => $recomendados,
             'stockMap' => $stockMap,
             'tagsMap' => $tagsMap,
@@ -123,6 +123,7 @@ class CatalogoController extends AbstractController
         $categoria = $request->query->get('categoria');
         $subcategoria = $request->query->get('subcategoria');
         $marca = $request->query->get('marca');
+        $solucion = $request->query->get('solucion');
         $rawTags = $request->query->all('tag');
         $tags = array_values(array_filter(is_array($rawTags) ? $rawTags : []));
         $ordenar = in_array($request->query->get('ordenar'), ['az', 'za']) ? $request->query->get('ordenar') : 'az';
@@ -133,7 +134,7 @@ class CatalogoController extends AbstractController
         $vista = $request->query->get('vista', 'grid');
 
         $resultado = $this->stockAdvisorRepo->buscarConFiltros(
-            $q, $categoria, $subcategoria, $marca, $pagina, $porPagina, $ordenar, $tags
+            $q, $categoria, $subcategoria, $marca, $pagina, $porPagina, $ordenar, $tags, $solucion
         );
 
         $totalPaginas = (int)ceil($resultado['total'] / $porPagina);
@@ -163,6 +164,7 @@ class CatalogoController extends AbstractController
                 'marca' => $marca,
                 'tags' => $tags,
                 'ordenar' => $ordenar,
+                'solucion' => $solucion,
             ],
             'opcionesFiltros' => [
                 'categorias' => $this->stockAdvisorRepo->getCategorias(),

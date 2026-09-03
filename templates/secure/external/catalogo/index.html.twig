@@ -125,25 +125,25 @@
     </form>
 </div>
 
-{# Categorías #}
+{# Soluciones #}
 <div class="mb-5">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <span class="rkl-section-label">Seleccioná una categoría</span>
+        <span class="rkl-section-label">Seleccioná una solución</span>
         <a href="{{ path('app_catalogo_lista') }}" class="rkl-section-link">Ver más</a>
     </div>
     <div class="row g-2 g-md-3">
-        {% for categoria in categorias %}
+        {% for solucion in soluciones %}
         <div class="col-6 col-md-4">
-            <a href="{{ path('app_catalogo_lista', {categoria: categoria}) }}" class="rkl-cat-card">
+            <a href="{{ path('app_catalogo_lista', {solucion: solucion}) }}" class="rkl-cat-card">
                 <div class="rkl-cat-bg c{{ loop.index0 % 8 }}"></div>
                 <div class="rkl-cat-overlay"></div>
                 <div class="rkl-cat-body">
-                    <p class="rkl-cat-name">{{ categoria }}</p>
+                    <p class="rkl-cat-name">{{ solucion }}</p>
                 </div>
             </a>
         </div>
         {% else %}
-        <div class="col-12"><p class="text-muted small">No hay categorías disponibles todavía.</p></div>
+        <div class="col-12"><p class="text-muted small">No hay soluciones disponibles todavía.</p></div>
         {% endfor %}
     </div>
 </div>

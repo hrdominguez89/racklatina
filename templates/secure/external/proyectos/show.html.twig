@@ -107,7 +107,7 @@
     padding: .3rem;
     mix-blend-mode: multiply;
 }
-.td-producto-info { min-width: 0; }
+.td-producto-info { min-width: 0; max-width: 260px; }
 .td-producto-nombre {
     font-size: .9rem;
     font-weight: 700;
@@ -115,6 +115,9 @@
     text-decoration: none;
     display: block;
     line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .td-producto-nombre:hover { color: #1a1a1a; text-decoration: underline; }
 .td-ver-producto {
@@ -391,7 +394,7 @@
                                      onerror="this.onerror=null;this.src='{{ item.articulo.imagenFallbackUrl|e('html_attr') }}';">
                             </div>
                             <div class="td-producto-info">
-                                <span class="td-producto-nombre">{{ item.articulo.nombreDisplay }}</span>
+                                <span class="td-producto-nombre" title="{{ item.articulo.nombreDisplay }}">{{ item.articulo.nombreDisplay }}</span>
                                 <a href="{{ path('app_catalogo_detalle', {codigo: item.articulo.codigoCalipso}) }}"
                                    class="td-ver-producto">Ver producto</a>
                             </div>
