@@ -7,6 +7,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -53,12 +54,24 @@ class CatalogAccessSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $rolesPermitidos = ['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_INGENIERO_N1', 'ROLE_INGENIERO_N2'];
-        if (!str_ends_with($user->getEmail(), '@racklatina.com') && !array_intersect($rolesPermitidos, $user->getRoles())) {
-            if ($session instanceof FlashBagAwareSessionInterface) {
-                $session->getFlashBag()->add('info', 'El catálogo estará disponible próximamente.');
+        $dominiosInternos = ['@racklatina.com', '@racklatina.com.ar', '@racklatina.com.uy'];
+        $emailInterno = false;
+        foreach ($dominiosInternos as $dominio) {
+            if (str_ends_with($user->getEmail(), $dominio)) {
+                $emailInterno = true;
+                break;
             }
-            $event->setResponse(new RedirectResponse($this->router->generate('app_login')));
+        }
+
+        $rolesPermitidos = ['ROLE_SUPER_ADMIN', 'ROLE_ADMIN'];
+        if (!$emailInterno && !array_intersect($rolesPermitidos, $user->getRoles())) {
+            // No redirigir a /login: un usuario ya autenticado sin acceso puede tener
+            // /catalogo como "home" por rol (ver LoginSuccessHandler/LoginController),
+            // lo que provocaría un loop de redirects login <-> catalogo.
+            $event->setResponse(new Response(
+                'El catálogo estará disponible próximamente. <a href="' . $this->router->generate('app_logout') . '">Cerrar sesión</a>',
+                Response::HTTP_FORBIDDEN
+            ));
         }
     }
 }
