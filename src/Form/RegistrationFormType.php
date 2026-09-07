@@ -23,6 +23,11 @@ class RegistrationFormType extends AbstractType
     {
         $roles = $this->roleRepository->findBy(['type' => UserRoleType::EXTERNAL]);
 
+        // Perfiles Ingeniero N1/N2 (Sprint 4.1) comentados: aún no disponibles para autoregistro
+        $roles = array_values(array_filter($roles, function ($r) {
+            return !in_array($r->getName(), ['ROLE_INGENIERO_N1', 'ROLE_INGENIERO_N2'], true);
+        }));
+
         $builder
             ->add('firstName', TextType::class, [
                 'label' => 'Nombre <span style="color:red">*</span>',
@@ -169,8 +174,8 @@ class RegistrationFormType extends AbstractType
                     $labels = [
                         'ROLE_COMPRADOR'      => 'Comprador',
                         'ROLE_ADMINISTRACION' => 'Administración',
-                        'ROLE_INGENIERO_N1'   => 'Ingeniero – Nivel 1',
-                        'ROLE_INGENIERO_N2'   => 'Ingeniero – Nivel 2',
+                        // 'ROLE_INGENIERO_N1'   => 'Ingeniero – Nivel 1',
+                        // 'ROLE_INGENIERO_N2'   => 'Ingeniero – Nivel 2',
                     ];
                     return $labels[$r->getName()] ?? ucfirst(strtolower(substr($r->getName(), 5)));
                 }, $roles),
@@ -187,8 +192,8 @@ class RegistrationFormType extends AbstractType
                     $descriptions = [
                         'COMPRADOR'      => 'Accede a órdenes de compra, fechas de entrega y descarga de facturas.',
                         'ADMINISTRACION' => 'Accede al estado y gestión de facturas e información administrativa de la cuenta.',
-                        'INGENIERO_N1'   => 'Acceso a catálogo, fichas técnicas y stock.',
-                        'INGENIERO_N2'   => 'Acceso a catálogo, fichas técnicas, stock y precios.',
+                        // 'INGENIERO_N1'   => 'Acceso a catálogo, fichas técnicas y stock.',
+                        // 'INGENIERO_N2'   => 'Acceso a catálogo, fichas técnicas, stock y precios.',
                     ];
 
                     return [
