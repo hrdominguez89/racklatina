@@ -102,7 +102,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="fw-bold mb-0" style="color:#1a1a1a;">Productos</h4>
-    {% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') %}
+    {% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') %}
     <button type="button"
             class="btn btn-sm fw-semibold d-none d-md-inline-flex align-items-center gap-1"
             style="background:var(--rkl-primary);color:#fff;border:none;padding:.4rem 1.2rem;border-radius:6px;"
@@ -169,16 +169,25 @@
                     {% else %}
                     <i class="ri-image-line fs-2 text-muted"></i>
                     {% endif %}
-                    {% set _rawTags = tagsMap is defined and tagsMap[articulo.codigoCalipso] is defined ? tagsMap[articulo.codigoCalipso] : null %}
-                    {% set _artTags = _rawTags ? _rawTags|split(',')|map(t => t|trim)|filter(t => t != '') : [] %}
-                    {% if _artTags|length > 0 %}
-                    <div style="position:absolute;top:8px;left:8px;display:flex;flex-direction:column;gap:2px;">
-                        {% for tag in _artTags %}
-                        <span class="rkl-prod-badge">{{ tag }}</span>
-                        {% endfor %}
+                    {% set _puedeVerStock = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
+                    {% set _codigoBadge = articulo.codigoRockwell ?: articulo.codigoCalipso %}
+                    {% if (_puedeVerStock and stockMap is defined and stockMap[articulo.codigoCalipso] is defined and stockMap[articulo.codigoCalipso] > 0) or _codigoBadge %}
+                    <div style="position:absolute;top:8px;left:8px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;">
+                        {% if _puedeVerStock %}
+                        {% set _rawTags = tagsMap is defined and tagsMap[articulo.codigoCalipso] is defined ? tagsMap[articulo.codigoCalipso] : null %}
+                        {% set _artTags = _rawTags ? _rawTags|split(',')|map(t => t|trim)|filter(t => t != '') : [] %}
+                        {% if _artTags|length > 0 %}
+                            {% for tag in _artTags %}
+                            <span class="rkl-prod-badge" style="position:static;">{{ tag }}</span>
+                            {% endfor %}
+                        {% elseif stockMap is defined and stockMap[articulo.codigoCalipso] is defined and stockMap[articulo.codigoCalipso] > 0 %}
+                        <span class="rkl-prod-badge" style="position:static;">En Stock ({{ stockMap[articulo.codigoCalipso] }})</span>
+                        {% endif %}
+                        {% endif %}
+                        {% if _codigoBadge %}
+                        <span class="rkl-prod-badge" style="position:static;background:#fff;color:#555;border:1px solid #ddd;">{{ _codigoBadge }}</span>
+                        {% endif %}
                     </div>
-                    {% elseif stockMap is defined and stockMap[articulo.codigoCalipso] is defined and stockMap[articulo.codigoCalipso] > 0 %}
-                    <span class="rkl-prod-badge">En Stock</span>
                     {% endif %}
                 </div>
                 <div class="rkl-prod-body">
@@ -192,13 +201,15 @@
                     {% elseif articulo.descripcion %}
                     <p class="rkl-prod-sub">{{ articulo.descripcion }}</p>
                     {% endif %}
-                    {% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
+                    {% if is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
                     <div class="mt-auto position-relative">
+                        {% set _esIngenieroBtn = is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
                         <button type="button"
                                 class="rkl-btn-agregar btn-agregar-proyecto"
                                 data-articulo-codigo="{{ articulo.codigoCalipso }}"
-                                data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}">
-                            {{ (is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) ? 'Agregar a Lista' : 'Agregar a Proyecto' }}
+                                data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}"
+                                data-modo-ingeniero="{{ _esIngenieroBtn ? '1' : '0' }}">
+                            {{ _esIngenieroBtn ? 'Agregar a Lista' : 'Agregar a Proyecto' }}
                         </button>
                     </div>
                     {% endif %}

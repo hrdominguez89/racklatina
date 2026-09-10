@@ -6,10 +6,11 @@
 {% set stockMap = stockMap ?? {} %}
 {% set tagsMap = tagsMap ?? {} %}
 {% set tieneStock = stockMap[articulo.codigoCalipso] is defined and stockMap[articulo.codigoCalipso] > 0 %}
-{% set puedeVerStock = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
-{% set puedeProyectos = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
+{% set puedeVerStock = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
+{% set puedeProyectos = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
 {% set rawTags = tagsMap[articulo.codigoCalipso] is defined ? tagsMap[articulo.codigoCalipso] : null %}
 {% set articleTags = rawTags ? rawTags|split(',')|map(t => t|trim)|filter(t => t != '') : [] %}
+{% set esIngenieroCard = is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
 
 {% if vista == 'list' %}
 {# ---- VISTA LISTA (horizontal) ---- #}
@@ -40,8 +41,9 @@
                 {% if puedeProyectos %}
                     <button type="button" class="btn btn-dark btn-sm btn-agregar-proyecto"
                             data-articulo-codigo="{{ articulo.codigoCalipso }}"
-                            data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}">
-                        <i class="ri-folder-add-line"></i> {{ (is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) ? 'Agregar a Lista' : 'Agregar' }}
+                            data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}"
+                            data-modo-ingeniero="{{ esIngenieroCard ? '1' : '0' }}">
+                        <i class="ri-folder-add-line"></i> {{ esIngenieroCard ? 'Agregar a Lista' : 'Agregar' }}
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm" disabled>
                         Pedir cotización
@@ -66,19 +68,26 @@
                  class="img-fluid p-3" style="max-height:100%;object-fit:contain;mix-blend-mode:multiply;"
                  onerror="this.onerror=null;this.src='{{ articulo.imagenFallbackUrl|e('html_attr') }}';">
         </div>
-        {# Badges de tags (de StockAdvisor) o fallback a "En Stock" — solo para roles con acceso a stock #}
-        {% if puedeVerStock %}
-            {% if articleTags|length > 0 %}
-            <div class="position-absolute top-0 start-0 m-2 d-flex flex-column gap-1">
-                {% for tag in articleTags %}
-                <span class="badge rounded-pill"
-                      style="background:var(--rkl-primary);font-size:.68rem;font-weight:600;letter-spacing:.2px;">{{ tag }}</span>
-                {% endfor %}
-            </div>
-            {% elseif tieneStock %}
-            <span class="position-absolute top-0 start-0 m-2 badge rounded-pill"
-                  style="background:var(--rkl-primary);font-size:.68rem;font-weight:600;letter-spacing:.2px;">En Stock</span>
+        {# Badges de tags (de StockAdvisor), stock y código — tags/stock solo para roles con acceso a stock #}
+        {% set codigoBadge = articulo.codigoRockwell ?: articulo.codigoCalipso %}
+        {% if (puedeVerStock and (articleTags|length > 0 or tieneStock)) or codigoBadge %}
+        <div class="position-absolute top-0 start-0 m-2 d-flex flex-column align-items-start gap-1">
+            {% if puedeVerStock %}
+                {% if articleTags|length > 0 %}
+                    {% for tag in articleTags %}
+                    <span class="badge rounded-pill"
+                          style="background:var(--rkl-primary);font-size:.68rem;font-weight:600;letter-spacing:.2px;">{{ tag }}</span>
+                    {% endfor %}
+                {% elseif tieneStock %}
+                    <span class="badge rounded-pill"
+                          style="background:var(--rkl-primary);font-size:.68rem;font-weight:600;letter-spacing:.2px;">En Stock ({{ stockMap[articulo.codigoCalipso] }})</span>
+                {% endif %}
             {% endif %}
+            {% if codigoBadge %}
+            <span class="badge rounded-pill"
+                  style="background:#fff;color:#555;border:1px solid #ddd;font-size:.68rem;font-weight:600;letter-spacing:.2px;">{{ codigoBadge }}</span>
+            {% endif %}
+        </div>
         {% endif %}
     </div>
     <div class="card-body p-3 d-flex flex-column">
@@ -100,8 +109,9 @@
                         onmouseover="this.style.background='var(--rkl-primary)';this.style.color='#fff';"
                         onmouseout="this.style.background='#fff';this.style.color='var(--rkl-primary)';"
                         data-articulo-codigo="{{ articulo.codigoCalipso }}"
-                        data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}">
-                    {{ (is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) ? 'Agregar a Lista' : 'Agregar a Proyecto' }}
+                        data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}"
+                        data-modo-ingeniero="{{ esIngenieroCard ? '1' : '0' }}">
+                    {{ esIngenieroCard ? 'Agregar a Lista' : 'Agregar a Proyecto' }}
                 </button>
             {% elseif not app.user %}
                 <a href="{{ path('app_login', {redirect: app.request.requestUri}) }}" class="btn w-100"

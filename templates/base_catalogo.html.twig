@@ -550,7 +550,7 @@ document.addEventListener('click', function(e) {
 {% endif %}
 
 {# ── Modal: Agregar a Proyecto (global, disponible en todas las vistas) ── #}
-{% if app.user is not null and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) %}
+{% if app.user is not null and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) %}
 <div class="modal fade" id="modalAgregarProyecto" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius:12px;overflow:hidden;">
@@ -678,7 +678,7 @@ document.addEventListener('click', function(e) {
         _articuloNombre = btn.dataset.articuloNombre;
 
         // Ingenieros: flujo simplificado sin modal ni selección de proyecto
-        if (RKL.esIngeniero) {
+        if (btn.dataset.modoIngeniero === '1') {
             rklAgregarAutomatico(_articuloCodigo, btn);
             return;
         }
