@@ -286,6 +286,54 @@
 }
 .sidebar-link:hover { color: #000; }
 
+/* ── Botón eliminar proyecto ── */
+.delete-project {
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    color: #dc2626;
+
+    padding: 8px 12px;
+    border-radius: 6px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    cursor: pointer;
+    transition: .15s ease;
+}
+
+.delete-project i { color: #dc2626; }
+
+.delete-project:hover {
+    color: #dc2626;
+    border-color: #fecaca;
+    background: #fef2f2;
+}
+
+.delete-project:active {
+    color: #dc2626;
+    border-color: #dc2626;
+    background: #fee2e2;
+}
+
+.delete-project:disabled,
+.delete-project.disabled {
+    color: #9ca3af;
+    border-color: #e5e7eb;
+    background: #f9fafb;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.delete-project:disabled i,
+.delete-project.disabled i {
+    color: #9ca3af;
+}
+
 /* ── Filas pares (al final para ganar en cascada) ── */
 .tr-producto.fila-par td { background: #f5f5f5 !important; }
 </style>
@@ -293,8 +341,17 @@
 
 {% block body %}
 
+{% set esPropio = app.user and proyecto.user.id == app.user.id %}
+
 {# Cabecera #}
-<h4 class="fw-bold mb-4" style="color:#1a1a1a;">{{ proyecto.nombre }}</h4>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="fw-bold mb-0" style="color:#1a1a1a;">{{ proyecto.nombre }}</h4>
+    {% if esPropio and not isFinished %}
+    <button type="button" class="delete-project" data-bs-toggle="modal" data-bs-target="#modalEliminarProyecto">
+        <i class="ri-delete-bin-line"></i> Eliminar proyecto
+    </button>
+    {% endif %}
+</div>
 
 {% if isAdmin is defined and isAdmin %}
 <div class="d-flex flex-wrap gap-3 align-items-center mb-4 px-3 py-2"
@@ -501,7 +558,7 @@
 
                     {# Quitar #}
                     <td>
-                        {% if not isFinished and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) %}
+                        {% if not isFinished and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) %}
                         <button class="btn-quitar-item" data-item="{{ item.id }}"
                                 data-nombre="{{ item.articulo.nombreDisplay|e('html_attr') }}"
                 data-url="{{ path('app_proyectos_quitar_articulo', {itemId: item.id}) }}"
@@ -598,6 +655,35 @@
 
 </div>
 
+{% endif %}
+
+{% if esPropio and not isFinished %}
+{# ── Modal: confirmar eliminación de proyecto ── #}
+<div class="modal fade" id="modalEliminarProyecto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger">
+                    <i class="ri-delete-bin-line me-2"></i>Eliminar Proyecto
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">¿Estás seguro que querés eliminar el proyecto <strong>{{ proyecto.nombre|e('html') }}</strong>?</p>
+                <p class="text-danger small">Esta acción no se puede deshacer y eliminará todos los productos del proyecto.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="{{ path('app_proyectos_eliminar', {id: proyecto.id}) }}" class="d-inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('proyecto_eliminar_' ~ proyecto.id) }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="ri-delete-bin-line me-1"></i> Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endif %}
 
 {# ── Modal: confirmar solicitud de cotización ── #}
