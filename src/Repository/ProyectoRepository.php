@@ -77,19 +77,6 @@ class ProyectoRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    /** Retorna los clienteCodigo distintos que tienen al menos un proyecto. */
-    public function findDistinctClientesCodigos(): array
-    {
-        $rows = $this->createQueryBuilder('p')
-            ->select('p.clienteCodigo')
-            ->where('p.clienteCodigo IS NOT NULL')
-            ->distinct()
-            ->getQuery()
-            ->getScalarResult();
-
-        return array_column($rows, 'clienteCodigo');
-    }
-
     /** Retorna los User distintos que tienen al menos un proyecto, filtrando opcionalmente por empresa. */
     public function findUsersWithProyectos(?string $clienteCodigo = null): array
     {

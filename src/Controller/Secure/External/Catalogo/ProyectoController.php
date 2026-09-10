@@ -38,15 +38,17 @@ class ProyectoController extends AbstractController
     private function denyUnlessProyectosWrite(): void
     {
         if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')
+            && !$this->isGranted('ROLE_ADMINISTRACION')
             && !$this->isGranted('ROLE_INGENIERO_N1') && !$this->isGranted('ROLE_INGENIERO_N2')) {
             throw $this->createAccessDeniedException('No tenés permiso para crear o modificar proyectos.');
         }
     }
 
-    /** Solo COMPRADOR y ADMIN pueden enviar una cotización. Los ingenieros usan proyectos como wishlist. */
+    /** COMPRADOR, ADMIN y ADMINISTRACION pueden enviar una cotización. Los ingenieros usan proyectos como wishlist. */
     private function denyUnlessPuedeCotizar(): void
     {
-        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')) {
+        if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')
+            && !$this->isGranted('ROLE_ADMINISTRACION')) {
             throw $this->createAccessDeniedException('No tenés permiso para solicitar cotizaciones.');
         }
     }
@@ -82,10 +84,10 @@ class ProyectoController extends AbstractController
 
         // Admin sin impersonar → vista combinada: sus proyectos propios + tabla de solicitudes recibidas
         if ($this->isGranted('ROLE_ADMIN')) {
-            $filtroEmpresa = $request->query->get('empresa') ?: null;
+            $filtroEmpresa = $user->getActiveClienteCodigo();
             $filtroUsuario = ($v = $request->query->get('usuario')) && ctype_digit($v) ? (int) $v : null;
 
-            // Solicitudes recibidas: solo proyectos FINISHED de otros usuarios
+            // Solicitudes recibidas: solo proyectos FINISHED de otros usuarios, de la empresa activa
             $solicitudes = $this->proyectoRepo->findAllWithFilters(
                 $filtroEmpresa,
                 $filtroUsuario,
@@ -93,9 +95,6 @@ class ProyectoController extends AbstractController
                 'fecha_desc',
             );
 
-            // Opciones de filtro
-            $codigos         = $this->proyectoRepo->findDistinctClientesCodigos();
-            $empresasOptions = $clientesRepo->findBy(['codigoCalipso' => $codigos], ['razonSocial' => 'ASC']);
             $usuariosOptions = $this->proyectoRepo->findUsersWithProyectos($filtroEmpresa);
 
             // Proyectos propios del admin (todos los estados)
@@ -116,10 +115,8 @@ class ProyectoController extends AbstractController
                 'proyectos'       => $misProyectos,
                 'solicitudes'     => $solicitudes,
                 'isAdmin'         => true,
-                'empresasOptions' => $empresasOptions,
                 'usuariosOptions' => $usuariosOptions,
                 'clienteNames'    => $clienteNames,
-                'filtroEmpresa'   => $filtroEmpresa,
                 'filtroUsuario'   => $filtroUsuario,
             ]);
         }
@@ -210,7 +207,7 @@ class ProyectoController extends AbstractController
             'leadtimeMap'          => $leadtimeMap,
             'isAdmin'              => $isAdmin,
             'empresaNombre'        => $empresaNombre,
-            'canCotizar'           => $this->isGranted('ROLE_COMPRADOR') || $this->isGranted('ROLE_ADMIN'),
+            'canCotizar'           => $this->isGranted('ROLE_COMPRADOR') || $this->isGranted('ROLE_ADMIN') || $this->isGranted('ROLE_ADMINISTRACION'),
             'canVerPrecio'         => $this->canVerPrecios(),
         ]);
     }
@@ -557,6 +554,7 @@ class ProyectoController extends AbstractController
     public function updateCantidad(int $itemId, Request $request): JsonResponse
     {
         if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')
+            && !$this->isGranted('ROLE_ADMINISTRACION')
             && !$this->isGranted('ROLE_INGENIERO_N1') && !$this->isGranted('ROLE_INGENIERO_N2')) {
             return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
         }
@@ -610,6 +608,7 @@ class ProyectoController extends AbstractController
     public function updateComment(int $itemId, Request $request): JsonResponse
     {
         if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')
+            && !$this->isGranted('ROLE_ADMINISTRACION')
             && !$this->isGranted('ROLE_INGENIERO_N1') && !$this->isGranted('ROLE_INGENIERO_N2')) {
             return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
         }
@@ -629,6 +628,7 @@ class ProyectoController extends AbstractController
     public function updateReemplazo(int $itemId, Request $request): JsonResponse
     {
         if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')
+            && !$this->isGranted('ROLE_ADMINISTRACION')
             && !$this->isGranted('ROLE_INGENIERO_N1') && !$this->isGranted('ROLE_INGENIERO_N2')) {
             return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
         }
@@ -658,6 +658,7 @@ class ProyectoController extends AbstractController
     public function quitarArticulo(int $itemId, Request $request): JsonResponse
     {
         if (!$this->isGranted('ROLE_COMPRADOR') && !$this->isGranted('ROLE_ADMIN')
+            && !$this->isGranted('ROLE_ADMINISTRACION')
             && !$this->isGranted('ROLE_INGENIERO_N1') && !$this->isGranted('ROLE_INGENIERO_N2')) {
             return $this->json(['error' => 'Sin permisos para modificar proyectos.'], 403);
         }

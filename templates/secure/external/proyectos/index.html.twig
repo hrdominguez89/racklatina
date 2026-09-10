@@ -293,18 +293,6 @@
     <form method="get" action="{{ path('app_proyectos_index') }}" id="form-filtros">
         <div class="filter-row">
             <div class="filter-group">
-                <label for="f-empresa">Empresa</label>
-                <select name="empresa" id="f-empresa" onchange="this.form.submit()">
-                    <option value="">Todas las empresas</option>
-                    {% for empresa in empresasOptions %}
-                    <option value="{{ empresa.codigoCalipso }}"
-                        {% if filtroEmpresa == empresa.codigoCalipso %}selected{% endif %}>
-                        {{ empresa.razonSocial ?? empresa.codigoCalipso }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="filter-group">
                 <label for="f-usuario">Usuario</label>
                 <select name="usuario" id="f-usuario" onchange="this.form.submit()">
                     <option value="">Todos los usuarios</option>
@@ -317,7 +305,7 @@
                 </select>
             </div>
             <div class="filter-actions">
-                {% if filtroEmpresa or filtroUsuario %}
+                {% if filtroUsuario %}
                 <a href="{{ path('app_proyectos_index') }}" class="btn-filter-clear">
                     <i class="ri-close-line me-1"></i>Limpiar
                 </a>
