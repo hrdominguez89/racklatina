@@ -27,7 +27,7 @@
     </a>
 </li>
 
-{% if is_granted('ROLE_ADMINISTRACION') %}
+{% if is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_COMPRADOR') %}
     <li class="nav-item">
         <a class="nav-link menu-link collapsed {% if current_route in ['app_comprobantes_impagos_external', 'app_comprobantes_saldados_external'] %}active{% endif %}"
            href="#sidebarCuentaExternal"
