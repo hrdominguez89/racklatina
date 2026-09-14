@@ -5,6 +5,7 @@ namespace App\Controller\Secure\External\Catalogo;
 use App\Repository\ClientesRepository;
 use App\Repository\ProyectoRepository;
 use App\Repository\StockAdvisorRepository;
+use App\Services\CalypsoLeadtimeService;
 use App\Services\CalypsoPreciosService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,6 +23,7 @@ class CatalogoController extends AbstractController
         private ProyectoRepository $proyectoRepo,
         private EntityManagerInterface $em,
         private CalypsoPreciosService $preciosService,
+        private CalypsoLeadtimeService $leadtimeService,
     ) {}
 
     #[Route('/switch-empresa', name: 'app_catalogo_switch_empresa', methods: ['POST'])]
@@ -195,6 +197,48 @@ class CatalogoController extends AbstractController
             'imagen'      => $a->getImagen(),
             'descripcion' => $a->getDescripcion(),
         ], array_slice($items, 0, 4)));
+    }
+
+    #[Route('/productos/{codigo}/plazos', name: 'app_catalogo_plazos', methods: ['GET'])]
+    public function plazos(string $codigo, Request $request): JsonResponse
+    {
+        $puedeVerStock = $this->isGranted('ROLE_COMPRADOR') ||
+            $this->isGranted('ROLE_ADMIN') ||
+            $this->isGranted('ROLE_ADMINISTRACION') ||
+            $this->isGranted('ROLE_INGENIERO_N1') ||
+            $this->isGranted('ROLE_INGENIERO_N2');
+
+        if (!$puedeVerStock) {
+            return $this->json(['error' => 'No autorizado'], 403);
+        }
+
+        $articulo = $this->stockAdvisorRepo->find($codigo);
+        if (!$articulo) {
+            return $this->json(['error' => 'Producto no encontrado'], 404);
+        }
+
+        $cantidad = max(1, (int) $request->query->get('cantidad', 1));
+        $deposito = $this->leadtimeService->resolverDeposito($codigo);
+
+        if ($deposito === null) {
+            return $this->json(['consultarPlazos' => true, 'cantidadSolicitada' => $cantidad, 'items' => []]);
+        }
+
+        $resultado = $this->leadtimeService->consultarLeadtime($codigo, $cantidad, $deposito);
+
+        return $this->json([
+            'consultarPlazos'    => $resultado['consultarPlazos'],
+            'cantidadSolicitada' => $cantidad,
+            'items' => array_map(static fn(array $ltItem): array => [
+                'cantidad'       => $ltItem['cantidad'],
+                'disponible'     => $ltItem['disponible'],
+                'fechaEntrega'   => $ltItem['fechaEntrega'] instanceof \DateTimeImmutable
+                    ? $ltItem['fechaEntrega']->format('d/m/Y')
+                    : $ltItem['fechaEntrega'],
+                'deposito'       => $ltItem['deposito'] ?? '',
+                'depositoNombre' => CalypsoLeadtimeService::getNombreDeposito($ltItem['deposito'] ?? ''),
+            ], $resultado['items']),
+        ]);
     }
 
     #[Route('/productos/{codigo}', name: 'app_catalogo_detalle')]
