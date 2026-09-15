@@ -107,7 +107,7 @@ class StockAdvisor
 
     public function getNombreDisplay(): string
     {
-        return $this->descripcionAdvisor ?? $this->descripcion ?? $this->codigoCalipso;
+        return $this->descripcion ?? $this->descripcionAdvisor ?? $this->codigoCalipso;
     }
 
     public function getStockNumerico(): float { return (float)($this->stock ?? 0); }
