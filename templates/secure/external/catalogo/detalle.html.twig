@@ -610,12 +610,13 @@
     </div>
 
     <div class="det-tab-panel active" id="tab-descripcion">
-        {% if articulo.descripcion %}
-            <p>{{ articulo.descripcion }}</p>
+        {% if articulo.descripcionAdvisor %}
+            <p>{{ articulo.descripcionAdvisor }}</p>
         {% endif %}
         {% if articulo.soluciones %}
             <p>{{ articulo.soluciones }}</p>
-        {% else %}
+        {% endif %}
+        {% if not articulo.descripcionAdvisor and not articulo.soluciones %}
             <p class="text-muted">Sin descripción disponible.</p>
         {% endif %}
     </div>
