@@ -95,8 +95,8 @@
            onclick="RKL.clarity('event','producto_click');RKL.clarity('set','producto_clickeado','{{ articulo.codigoCalipso|e('html_attr') }}');">
             <h6 class="card-title fw-semibold mb-1 line-clamp-2">{{ articulo.nombreDisplay }}</h6>
         </a>
-        {% if articulo.descripcion %}
-        <p class="card-text text-muted small mb-2 line-clamp-2">{{ articulo.descripcion }}</p>
+        {% if articulo.descripcionAdvisor %}
+        <p class="card-text text-muted small mb-2 line-clamp-2">{{ articulo.descripcionAdvisor }}</p>
         {% endif %}
         {% if articulo.codigoRockwell %}
         <small class="text-muted mb-2 d-block">Cód: {{ articulo.codigoRockwell }}</small>
