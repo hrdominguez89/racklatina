@@ -97,8 +97,8 @@ class ProyectoController extends AbstractController
 
             $usuariosOptions = $this->proyectoRepo->findUsersWithProyectos($filtroEmpresa);
 
-            // Proyectos propios del admin (todos los estados)
-            $misProyectos = $this->proyectoRepo->findByUser($user, null);
+            // Proyectos propios del admin (todos los estados), de la empresa activa
+            $misProyectos = $this->proyectoRepo->findByUser($user, $filtroEmpresa);
 
             // Mapa clienteCodigo → razonSocial
             $allCodigos   = array_unique(array_filter(array_map(
