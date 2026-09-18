@@ -939,8 +939,11 @@ class ProyectoController extends AbstractController
             throw $this->createNotFoundException('Proyecto no encontrado');
         }
 
-        // Admin sin impersonar puede ver cualquier proyecto
+        // Admin sin impersonar puede ver los proyectos de la empresa a la que está asociado
         if ($this->isGranted('ROLE_ADMIN')) {
+            if ($proyecto->getClienteCodigo() !== $this->getUser()->getActiveClienteCodigo()) {
+                throw $this->createNotFoundException('Proyecto no encontrado');
+            }
             return $proyecto;
         }
 
