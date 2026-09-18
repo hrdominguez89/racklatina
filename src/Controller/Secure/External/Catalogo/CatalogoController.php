@@ -278,12 +278,15 @@ class CatalogoController extends AbstractController
             }
         }
 
+        $stock = $this->stockAdvisorRepo->getStock($articulo->getCodigoCalipso());
+
         return $this->render('secure/external/catalogo/detalle.html.twig', [
             'articulo' => $articulo,
             'proyectos' => $proyectos,
             'relacionados' => array_slice($relacionados, 0, 4),
             'precio' => $precio,
             'stockAdvisor' => $articulo,
+            'stock' => $stock,
         ]);
     }
 }

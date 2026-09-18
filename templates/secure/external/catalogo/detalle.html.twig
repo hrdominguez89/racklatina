@@ -496,15 +496,16 @@
         {# Badges de tags (StockAdvisor) — solo roles con acceso a stock #}
         {% set puedeVerStock = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
         {% set puedeProyectos = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
-        {% if puedeVerStock and stockAdvisor and stockAdvisor.tags %}
-        {% set _detTags = stockAdvisor.tags|split(',')|map(t => t|trim)|filter(t => t != '') %}
-        {% if _detTags|length > 0 %}
+        {% set _detTags = (puedeVerStock and stockAdvisor and stockAdvisor.tags) ? stockAdvisor.tags|split(',')|map(t => t|trim)|filter(t => t != '') : [] %}
+        {% if puedeVerStock and (_detTags|length > 0 or stock is not null) %}
         <div class="mb-3 d-flex flex-wrap gap-2">
             {% for tag in _detTags %}
             <span class="badge-stock">{{ tag }}</span>
             {% endfor %}
+            {% if stock is not null %}
+            <span class="badge-stock">En Stock ({{ stock|number_format(0, ',', '.') }})</span>
+            {% endif %}
         </div>
-        {% endif %}
         {% endif %}
 
         {# Precio #}
@@ -641,7 +642,7 @@
     <div class="det-tab-panel" id="tab-envios">
         {% if puedeVerStock %}
         <div id="plazos-wrap">
-            <button type="button" class="btn-cotizacion-det" id="btn-consultar-plazos">Consultar</button>
+            <button type="button" class="btn-cotizacion-det" id="btn-consultar-plazos" disabled>Refrescar</button>
             <div id="plazos-resultado" class="mt-3"></div>
         </div>
         {% else %}
@@ -707,10 +708,12 @@
     document.getElementById('btn-menos')?.addEventListener('click', () => {
         const inp = document.getElementById('input-cantidad');
         if (parseInt(inp.value) > 1) inp.value = parseInt(inp.value) - 1;
+        inp.dispatchEvent(new Event('input'));
     });
     document.getElementById('btn-mas')?.addEventListener('click', () => {
         const inp = document.getElementById('input-cantidad');
         if (parseInt(inp.value) < 999) inp.value = parseInt(inp.value) + 1;
+        inp.dispatchEvent(new Event('input'));
     });
 
     // ── Agregar artículo a un proyecto ──
@@ -821,16 +824,25 @@
         }
     });
 
-    // ── Consultar plazos de entrega ──
-    document.getElementById('btn-consultar-plazos')?.addEventListener('click', async function() {
+    // ── Disponibilidad y entregas ──
+    const btnRefrescarPlazos = document.getElementById('btn-consultar-plazos');
+    let plazosCantidadConsultada = null;
+    let plazosCargado = false;
+
+    async function cargarPlazos() {
         const resultDiv = document.getElementById('plazos-resultado');
         const cantidad  = parseInt(document.getElementById('input-cantidad')?.value || 1);
-        this.disabled = true;
+        if (!btnRefrescarPlazos || !resultDiv) return;
+
+        btnRefrescarPlazos.disabled = true;
         resultDiv.innerHTML = '<span class="plazos-msg">Consultando…</span>';
         try {
             const params = new URLSearchParams({ cantidad });
             const res  = await fetch(`/catalogo/productos/${articuloCodigo}/plazos?${params}`);
             const data = await res.json();
+
+            plazosCantidadConsultada = cantidad;
+            plazosCargado = true;
 
             if (data.error) {
                 resultDiv.innerHTML = `<span class="plazos-msg" style="color:#c00;">${data.error}</span>`;
@@ -878,18 +890,28 @@
                 <div class="plazos-card">
                     <div class="plazos-card-header">
                         <span class="plazos-card-icon"><i class="ri-truck-line"></i></span>
-                        <span class="plazos-card-title">Disponibilidad y envíos</span>
+                        <span class="plazos-card-title">Disponibilidad y entregas</span>
                     </div>
                     <div class="plazos-rows">${rows}</div>
                     <div class="plazos-footer">
                         <i class="ri-information-line"></i>
-                        <span>Las fechas pueden variar según confirmación de stock con el fabricante. Salvo venta.</span>
+                        <span>Las fechas pueden variar según confirmación de stock con el fabricante. Sujeto a disponibilidad.</span>
                     </div>
                 </div>`;
         } catch (e) {
             resultDiv.innerHTML = '<span class="plazos-msg" style="color:#c00;">Error al consultar plazos.</span>';
         } finally {
-            this.disabled = false;
+            btnRefrescarPlazos.disabled = true;
+        }
+    }
+
+    btnRefrescarPlazos?.addEventListener('click', cargarPlazos);
+
+    // Habilita "Refrescar" solo cuando la cantidad cambia respecto de la última consulta
+    document.getElementById('input-cantidad')?.addEventListener('input', function() {
+        const cantidadActual = parseInt(this.value || 1);
+        if (btnRefrescarPlazos) {
+            btnRefrescarPlazos.disabled = !plazosCargado || cantidadActual === plazosCantidadConsultada;
         }
     });
 
@@ -900,6 +922,10 @@
             document.querySelectorAll('.det-tab-panel').forEach(p => p.classList.remove('active'));
             this.classList.add('active');
             document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+
+            if (this.dataset.tab === 'envios' && !plazosCargado) {
+                cargarPlazos();
+            }
         });
     });
 
