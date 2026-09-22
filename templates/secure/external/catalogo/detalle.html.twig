@@ -488,11 +488,6 @@
         {# Nombre #}
         <h4 class="fw-bold mb-2" style="color:#1a1a1a;line-height:1.3;font-size:1.3rem;">{{ articulo.nombreDisplay }}</h4>
 
-        {# Descripción #}
-        {% if articulo.descripcionAdvisor %}
-        <p class="mb-3" style="font-size:.85rem;color:#666;line-height:1.65;">{{ articulo.descripcionAdvisor }}</p>
-        {% endif %}
-
         {# Badges de tags (StockAdvisor) — solo roles con acceso a stock #}
         {% set puedeVerStock = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
         {% set puedeProyectos = is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
