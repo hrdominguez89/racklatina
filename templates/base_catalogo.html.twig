@@ -810,6 +810,8 @@ document.addEventListener('click', function(e) {
     const inputNombre = document.getElementById('cp-nombre');
     const errorBox   = document.getElementById('crear-proyecto-error');
 
+    const tieneEmpresa = {{ app.user.activeClienteCodigo ? 'true' : 'false' }};
+
     // Limpiar al abrir
     modal.addEventListener('show.bs.modal', function () {
         inputNombre.value = '';
@@ -817,13 +819,20 @@ document.addEventListener('click', function(e) {
         document.getElementById('cp-notas').value = '';
         errorBox.classList.add('d-none');
         errorBox.textContent = '';
-        btnCrear.disabled = false;
-        btnCrear.textContent = 'Creá el proyecto';
+
+        if (!tieneEmpresa) {
+            errorBox.innerHTML = 'Seleccioná una empresa antes de crear un proyecto. <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#modalSwitchEmpresa">Seleccionar empresa</a>';
+            errorBox.classList.remove('d-none');
+            btnCrear.disabled = true;
+        } else {
+            btnCrear.disabled = false;
+            btnCrear.textContent = 'Creá el proyecto';
+        }
     });
 
-    // Focus en nombre al abrir
+    // Focus en nombre al abrir (solo si hay empresa)
     modal.addEventListener('shown.bs.modal', function () {
-        inputNombre.focus();
+        if (tieneEmpresa) inputNombre.focus();
     });
 
     btnCrear.addEventListener('click', async function () {

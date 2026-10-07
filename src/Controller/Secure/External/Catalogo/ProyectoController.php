@@ -148,6 +148,12 @@ class ProyectoController extends AbstractController
         }
 
         $user = $this->getUser();
+
+        if (!$user->getActiveClienteCodigo()) {
+            $this->addFlash('error', 'Seleccioná una empresa antes de crear un proyecto.');
+            return $this->redirectToRoute('app_proyectos_index');
+        }
+
         $proyecto = new Proyecto();
         $proyecto->setUser($user);
         $proyecto->setNombre($nombre);
@@ -347,6 +353,10 @@ class ProyectoController extends AbstractController
         }
 
         $user = $this->getUser();
+
+        if (!$user->getActiveClienteCodigo()) {
+            return $this->json(['success' => false, 'error' => 'Seleccioná una empresa antes de crear un proyecto.'], 422);
+        }
         $proyecto = new Proyecto();
         $proyecto->setUser($user);
         $proyecto->setNombre($nombre);
@@ -755,6 +765,10 @@ class ProyectoController extends AbstractController
 
         if ($proyecto->getItems()->isEmpty()) {
             return $this->json(['success' => false, 'error' => 'El proyecto no tiene productos.'], 400);
+        }
+
+        if (!$proyecto->getClienteCodigo()) {
+            return $this->json(['success' => false, 'error' => 'El proyecto no tiene empresa asignada. Seleccioná una empresa antes de solicitar cotización.'], 422);
         }
 
         $user = $this->getUser();
