@@ -24,19 +24,19 @@
 				{% if ctx_admin_activo or ctx_activo %}
 				{% set ctx_user_nombre    = ctx_activo ? (app.user.firstName ~ ' ' ~ app.user.lastName) : null %}
 				{% set ctx_cliente_nombre = ctx_activo ? app.session.get('ctx_cliente_nombre') : null %}
-				<div class="ms-2 header-item d-none d-sm-flex">
+				<div class="ms-2 header-item d-flex">
 					<div class="dropdown" id="clientSelectorDropdown">
 						<button type="button"
-								class="btn btn-sm {{ ctx_activo ? 'btn-warning' : 'btn-outline-light' }} d-flex align-items-center gap-1"
+								class="btn btn-sm {{ ctx_activo ? 'btn-warning' : 'btn-light' }} d-flex align-items-center gap-1 fw-semibold"
 								id="clientSelectorBtn"
 								{% if not ctx_activo %}
 								data-bs-toggle="dropdown"
 								data-bs-auto-close="outside"
 								aria-expanded="false"
 								{% endif %}
-								title="{{ ctx_activo ? 'Viendo como: ' ~ ctx_user_nombre ~ (ctx_cliente_nombre ? ' (' ~ ctx_cliente_nombre ~ ')' : '') : 'Sin usuario seleccionado' }}">
+								title="{{ ctx_activo ? 'Viendo como: ' ~ ctx_user_nombre ~ (ctx_cliente_nombre ? ' (' ~ ctx_cliente_nombre ~ ')' : '') : 'Ver catálogo como un cliente' }}">
 							<i class="ri-{{ ctx_activo ? 'spy-fill' : 'user-search-line' }}"></i>
-							<span class="d-none d-lg-inline">
+							<span class="d-none d-md-inline">
 								{% if ctx_activo %}
 									{{ ctx_user_nombre|length > 20 ? ctx_user_nombre|slice(0,20) ~ '…' : ctx_user_nombre }}
 								{% else %}
