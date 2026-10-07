@@ -170,6 +170,55 @@ class ProyectoController extends AbstractController
         return $this->redirectToRoute('app_proyectos_show', ['id' => $proyecto->getId()]);
     }
 
+    /**
+     * Flujo "cotizar solo este producto" desde la ficha de artículo: crea un
+     * proyecto de un solo ítem y redirige a su vista para continuar el pedido.
+     */
+    #[Route('/cotizar-rapido', name: 'app_proyectos_cotizar_rapido', methods: ['GET'])]
+    public function cotizarRapido(Request $request): Response
+    {
+        $this->denyUnlessPuedeCotizar();
+
+        $user = $this->getUser();
+
+        if (!$user->getActiveClienteCodigo()) {
+            $this->addFlash('error', 'Seleccioná una empresa antes de solicitar una cotización.');
+            return $this->redirectToRoute('app_catalogo_index');
+        }
+
+        $articuloCodigo = trim($request->query->get('articulo', ''));
+        if (empty($articuloCodigo)) {
+            $this->addFlash('error', 'Código de artículo requerido.');
+            return $this->redirectToRoute('app_catalogo_index');
+        }
+
+        $articulo = $this->articuloRepo->find($articuloCodigo);
+        if (!$articulo) {
+            $this->addFlash('error', "Artículo '{$articuloCodigo}' no encontrado.");
+            return $this->redirectToRoute('app_catalogo_index');
+        }
+
+        $cantidad = max(1, (int) $request->query->get('cantidad', 1));
+
+        $proyecto = new Proyecto();
+        $proyecto->setUser($user);
+        $proyecto->setNombre('Cotización - ' . $articulo->getNombreDisplay());
+        $proyecto->setClienteCodigo($user->getActiveClienteCodigo());
+        $this->em->persist($proyecto);
+        $this->em->flush();
+
+        $item = new ProyectoItem();
+        $item->setProyecto($proyecto);
+        $item->setArticulo($articulo);
+        $item->setCantidad($cantidad);
+        $this->em->persist($item);
+
+        $user->setActiveProyectoId($proyecto->getId());
+        $this->em->flush();
+
+        return $this->redirectToRoute('app_proyectos_show', ['id' => $proyecto->getId()]);
+    }
+
     #[Route('/{id}', name: 'app_proyectos_show', requirements: ['id' => '\d+'])]
     public function show(int $id): Response
     {
