@@ -3,6 +3,7 @@
 namespace App\Security;
 
 use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
@@ -11,17 +12,20 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerI
 
 class LoginSuccessHandler implements AuthenticationSuccessHandlerInterface
 {
-    private RouterInterface $router;
-
-    public function __construct(RouterInterface $router)
-    {
-        $this->router = $router;
-    }
+    public function __construct(
+        private RouterInterface $router,
+        private EntityManagerInterface $em,
+    ) {}
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token): RedirectResponse
     {
         /** @var User $user */
         $user = $token->getUser();
+
+        // Limpiar empresa y proyecto activos: el usuario debe seleccionarlos en cada sesión
+        $user->setActiveCliente(null);
+        $user->setActiveProyectoId(null);
+        $this->em->flush();
 
         if ($user->isInternal()) {
             return new RedirectResponse($this->router->generate('app_secure_internal_home'));

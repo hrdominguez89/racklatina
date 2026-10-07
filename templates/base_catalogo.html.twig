@@ -375,7 +375,11 @@ document.addEventListener('click', function(e) {
 {# ── Modal: Switch empresa ── #}
 {% if app.user is not null %}
 {% set activoCodigo = app.user.activeClienteCodigo %}
-<div class="modal fade" id="modalSwitchEmpresa" tabindex="-1" aria-hidden="true">
+{# Se fuerza la selección cuando no hay empresa activa y hay algo para elegir.
+   Si el usuario tiene exactamente 1 empresa, User::getActiveClienteCodigo() ya la
+   autoselecciona (activoCodigo nunca viene vacío en ese caso), así que no se fuerza nada. #}
+{% set debeElegirEmpresa = activoCodigo is empty and (is_granted('ROLE_ADMIN') or app.user.userCustomers is not empty) %}
+<div class="modal fade" id="modalSwitchEmpresa" tabindex="-1" aria-hidden="true" data-obligatorio="{{ debeElegirEmpresa ? '1' : '0' }}">
     <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
         <div class="modal-content border-0" style="border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.18);">
 
@@ -387,7 +391,9 @@ document.addEventListener('click', function(e) {
                         Seleccioná la empresa con la que deseas ingresar:
                     {% endif %}
                 </h5>
+                {% if not debeElegirEmpresa %}
                 <button type="button" class="btn-close ms-3 flex-shrink-0" data-bs-dismiss="modal"></button>
+                {% endif %}
             </div>
 
             {% if is_granted('ROLE_ADMIN') %}
@@ -480,6 +486,20 @@ document.addEventListener('click', function(e) {
         </div>
     </div>
 </div>
+
+<script>
+(function () {
+    const modalEl = document.getElementById('modalSwitchEmpresa');
+    if (!modalEl || modalEl.dataset.obligatorio !== '1') return;
+
+    // Sin empresa activa y con más de una opción posible: se obliga a elegir antes de seguir.
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl, {
+        backdrop: 'static',
+        keyboard: false,
+    });
+    modal.show();
+})();
+</script>
 
 {% if is_granted('ROLE_ADMIN') %}
 <script>

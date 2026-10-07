@@ -446,14 +446,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * Devuelve el código Calypso de la empresa activa.
-     * Si no hay una explícita, usa el primer UserCustomer disponible.
+     * Si no hay una explícita y el usuario tiene una sola empresa asociada, se
+     * autoselecciona esa. Con 0 o 2+ empresas, debe elegir explícitamente.
      */
     public function getActiveClienteCodigo(): ?string
     {
         if ($this->activeCliente !== null) {
             return $this->activeCliente;
         }
-        $first = $this->userCustomers->first();
-        return $first ? $first->getClienteCodigo() : null;
+        if ($this->userCustomers->count() === 1) {
+            return $this->userCustomers->first()->getClienteCodigo();
+        }
+        return null;
     }
 }
