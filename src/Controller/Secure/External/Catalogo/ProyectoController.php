@@ -88,14 +88,16 @@ class ProyectoController extends AbstractController
             $filtroUsuario = ($v = $request->query->get('usuario')) && ctype_digit($v) ? (int) $v : null;
 
             // Solicitudes recibidas: solo proyectos FINISHED de otros usuarios, de la empresa activa
+            // (se excluye al propio admin porque sus proyectos ya se listan en $misProyectos)
             $solicitudes = $this->proyectoRepo->findAllWithFilters(
                 $filtroEmpresa,
                 $filtroUsuario,
                 ProyectoStatus::FINISHED,
                 'fecha_desc',
+                $user->getId(),
             );
 
-            $usuariosOptions = $this->proyectoRepo->findUsersWithProyectos($filtroEmpresa);
+            $usuariosOptions = $this->proyectoRepo->findUsersWithProyectos($filtroEmpresa, $user->getId());
 
             // Proyectos propios del admin (todos los estados), de la empresa activa
             $misProyectos = $this->proyectoRepo->findByUser($user, $filtroEmpresa);
