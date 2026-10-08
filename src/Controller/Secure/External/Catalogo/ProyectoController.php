@@ -150,7 +150,7 @@ class ProyectoController extends AbstractController
         $user = $this->getUser();
 
         if (!$user->getActiveClienteCodigo()) {
-            $this->addFlash('error', 'Seleccioná una empresa antes de crear un proyecto.');
+            $this->addFlash('error', 'Seleccioná una empresa para continuar.');
             return $this->redirectToRoute('app_proyectos_index');
         }
 
@@ -182,7 +182,7 @@ class ProyectoController extends AbstractController
         $user = $this->getUser();
 
         if (!$user->getActiveClienteCodigo()) {
-            $this->addFlash('error', 'Seleccioná una empresa antes de solicitar una cotización.');
+            $this->addFlash('error', 'Seleccioná una empresa para continuar.');
             return $this->redirectToRoute('app_catalogo_index');
         }
 
@@ -404,7 +404,7 @@ class ProyectoController extends AbstractController
         $user = $this->getUser();
 
         if (!$user->getActiveClienteCodigo()) {
-            return $this->json(['success' => false, 'error' => 'Seleccioná una empresa antes de crear un proyecto.'], 422);
+            return $this->json(['success' => false, 'error' => 'Seleccioná una empresa para continuar.'], 422);
         }
         $proyecto = new Proyecto();
         $proyecto->setUser($user);
@@ -430,7 +430,13 @@ class ProyectoController extends AbstractController
     {
         $this->denyUnlessProyectosWrite();
         $user = $this->getUser();
-        $proyectos = $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo(), ProyectoStatus::IN_PROGRESS);
+
+        $clienteCodigo = $user->getActiveClienteCodigo();
+        if (!$clienteCodigo) {
+            return $this->json([]);
+        }
+
+        $proyectos = $this->proyectoRepo->findByUser($user, $clienteCodigo, ProyectoStatus::IN_PROGRESS);
 
         return $this->json(array_map(fn($p) => [
             'id'       => $p->getId(),
@@ -547,6 +553,10 @@ class ProyectoController extends AbstractController
 
         try {
             $proyecto = $this->getProyectoParaModificar($id);
+
+            if (!$proyecto->getClienteCodigo()) {
+                return $this->json(['error' => 'Seleccioná una empresa para continuar.'], 422);
+            }
 
             $articuloCodigo = trim($request->request->get('articulo_codigo', ''));
             $cantidad = max(1, (int)$request->request->get('cantidad', 1));
@@ -817,7 +827,7 @@ class ProyectoController extends AbstractController
         }
 
         if (!$proyecto->getClienteCodigo()) {
-            return $this->json(['success' => false, 'error' => 'El proyecto no tiene empresa asignada. Seleccioná una empresa antes de solicitar cotización.'], 422);
+            return $this->json(['success' => false, 'error' => 'Seleccioná una empresa para continuar.'], 422);
         }
 
         $user = $this->getUser();
@@ -1023,6 +1033,16 @@ class ProyectoController extends AbstractController
         $proyecto = $this->proyectoRepo->find($id);
         if (!$proyecto) {
             throw $this->createNotFoundException('Proyecto no encontrado');
+        }
+
+        // Mismo criterio que getProyectoDelUsuario(): el admin solo puede modificar
+        // proyectos de la empresa que tiene activa en este momento, para evitar
+        // agregar productos a un proyecto de una empresa y no poder cotizarlo después.
+        if ($this->isGranted('ROLE_ADMIN')) {
+            if ($proyecto->getClienteCodigo() !== $this->getUser()->getActiveClienteCodigo()) {
+                throw $this->createAccessDeniedException('Seleccioná una empresa para continuar.');
+            }
+            return $proyecto;
         }
 
         if ($proyecto->getUser()->getId() !== $this->getUser()->getId()) {
