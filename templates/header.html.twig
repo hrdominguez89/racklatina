@@ -17,66 +17,8 @@
 					</button>
 				</div>
 
-				{# ── User/Client Selector (solo usuarios internos o impersonando) ── #}
 				{% set ctx_activo = is_granted('IS_IMPERSONATOR') %}
-				{% set ctx_admin_activo = is_granted('ROLE_ADMIN') and not ctx_activo %}
-
-				{% if ctx_admin_activo or ctx_activo %}
-				{% set ctx_user_nombre    = ctx_activo ? (app.user.firstName ~ ' ' ~ app.user.lastName) : null %}
 				{% set ctx_cliente_nombre = ctx_activo ? app.session.get('ctx_cliente_nombre') : null %}
-				<div class="ms-2 header-item d-flex">
-					<div class="dropdown" id="clientSelectorDropdown">
-						<button type="button"
-								class="btn btn-sm {{ ctx_activo ? 'btn-warning' : 'btn-light' }} d-flex align-items-center gap-1 fw-semibold"
-								id="clientSelectorBtn"
-								{% if not ctx_activo %}
-								data-bs-toggle="dropdown"
-								data-bs-auto-close="outside"
-								aria-expanded="false"
-								{% endif %}
-								title="{{ ctx_activo ? 'Viendo como: ' ~ ctx_user_nombre ~ (ctx_cliente_nombre ? ' (' ~ ctx_cliente_nombre ~ ')' : '') : 'Ver catálogo como un cliente' }}">
-							<i class="ri-{{ ctx_activo ? 'spy-fill' : 'user-search-line' }}"></i>
-							<span class="d-none d-md-inline">
-								{% if ctx_activo %}
-									{{ ctx_user_nombre|length > 20 ? ctx_user_nombre|slice(0,20) ~ '…' : ctx_user_nombre }}
-								{% else %}
-									Ver como...
-								{% endif %}
-							</span>
-						</button>
-
-						{% if not ctx_activo %}
-						<div class="dropdown-menu dropdown-menu-end p-2 shadow" style="min-width:340px;" id="clientSelectorMenu">
-							<p class="text-muted small mb-2 px-1">
-								<i class="ri-information-line me-1"></i>
-								Buscá por nombre, email o empresa
-							</p>
-							<input type="text"
-								   class="form-control form-control-sm mb-2"
-								   id="clientSelectorInput"
-								   placeholder="Ej: Juan Pérez, juan@empresa.com, Acme SA..."
-								   autocomplete="off">
-
-							<div id="clientSelectorResults" style="max-height:260px;overflow-y:auto;">
-								<p class="text-muted text-center small py-3 mb-0">
-									Ingresá al menos 2 caracteres para buscar
-								</p>
-							</div>
-						</div>
-						{% endif %}
-
-						{% if ctx_activo %}
-						<div class="ms-1">
-							<button type="button" class="btn btn-sm btn-outline-warning" id="clearClienteBtn"
-									title="Volver a tu sesión de admin">
-								<i class="ri-close-circle-line"></i>
-							</button>
-						</div>
-						{% endif %}
-					</div>
-				</div>
-				{% endif %}
-				{# ── /User Selector ───────────────────────────────────────────── #}
 
 				{% if not is_granted('ROLE_SUPER_ADMIN') and not ctx_activo %}
 					<div	class="ms-1 header-item d-none d-sm-flex">
@@ -136,130 +78,14 @@
 	</div>
 </header>
 
-{% if is_granted('ROLE_ADMIN') and not is_granted('IS_IMPERSONATOR') %}
-<script>
-(function () {
-    'use strict';
-
-    const BUSCAR_URL      = '{{ path('app_cliente_selector_buscar') }}';
-    const SELECCIONAR_URL = '{{ path('app_cliente_selector_seleccionar') }}';
-
-    let searchTimeout = null;
-
-    function esc(str) {
-        return String(str ?? '')
-            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    function renderResults(usuarios) {
-        const box = document.getElementById('clientSelectorResults');
-        if (!box) return;
-
-        if (!usuarios.length) {
-            box.innerHTML = '<p class="text-muted text-center small py-3 mb-0">Sin resultados</p>';
-            return;
-        }
-
-        box.innerHTML = usuarios.map(u => {
-            const tieneCliente = !!u.cliente_nombre;
-            return `
-            <div class="rounded px-2 py-2 ${tieneCliente ? 'user-result-item' : 'opacity-50'}"
-                 style="${tieneCliente ? 'cursor:pointer;' : ''}"
-                 data-user-id="${esc(u.id)}"
-                 title="${tieneCliente ? '' : 'Este usuario no tiene cliente Calypso asociado'}">
-                <span class="fw-semibold d-block">${esc(u.first_name)} ${esc(u.last_name)}</span>
-                <span class="text-muted small d-block">${esc(u.email)}</span>
-                ${tieneCliente
-                    ? `<span class="badge bg-primary-subtle text-primary mt-1">${esc(u.cliente_nombre)}</span>`
-                    : '<span class="badge bg-danger-subtle text-danger mt-1">Sin cliente Calypso</span>'
-                }
-            </div>`;
-        }).join('');
-    }
-
-    function seleccionarUsuario(userId) {
-        fetch(SELECCIONAR_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: parseInt(userId, 10) })
-        })
-        .then(r => r.json())
-        .then(data => {
-            console.log('seleccionar response:', data);
-            if (data.ok) {
-                console.log('navegando a:', data.switchUrl);
-                window.location.href = data.switchUrl;
-            } else {
-                alert(data.error ?? 'Error al seleccionar usuario.');
-            }
-        })
-        .catch(err => {
-            console.error('Error fetch:', err);
-            alert('Error de conexión: ' + err);
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const input    = document.getElementById('clientSelectorInput');
-        const box      = document.getElementById('clientSelectorResults');
-        const dropdown = document.getElementById('clientSelectorDropdown');
-
-        // Event delegation en el contenedor de resultados
-        if (box) {
-            box.addEventListener('click', function (e) {
-                const item = e.target.closest('.user-result-item');
-                if (item) seleccionarUsuario(item.dataset.userId);
-            });
-        }
-
-        if (input) {
-            input.addEventListener('input', function () {
-                clearTimeout(searchTimeout);
-                const q = this.value.trim();
-
-                if (q.length < 2) {
-                    if (box) box.innerHTML = '<p class="text-muted text-center small py-3 mb-0">Ingresá al menos 2 caracteres para buscar</p>';
-                    return;
-                }
-
-                searchTimeout = setTimeout(() => {
-                    fetch(`${BUSCAR_URL}?q=${encodeURIComponent(q)}`)
-                        .then(r => r.json())
-                        .then(renderResults)
-                        .catch(() => {
-                            if (box) box.innerHTML = '<p class="text-danger text-center small py-3 mb-0">Error al buscar. Intentá de nuevo.</p>';
-                        });
-                }, 300);
-            });
-
-            if (dropdown) {
-                dropdown.addEventListener('shown.bs.dropdown', () => input.focus());
-                dropdown.addEventListener('hidden.bs.dropdown', () => {
-                    input.value = '';
-                    clearTimeout(searchTimeout);
-                });
-            }
-        }
-    });
-}());
-</script>
-{% endif %}
-
 {% if is_granted('IS_IMPERSONATOR') %}
 <script>
 (function () {
     const EXIT_URL = window.location.pathname + '?_switch_user=_exit';
 
-    function stopEmulation() {
-        window.location.href = EXIT_URL;
-    }
-
     document.addEventListener('DOMContentLoaded', function () {
-        const btn     = document.getElementById('clearClienteBtn');
         const btnMenu = document.getElementById('clearClienteBtnMenu');
-        if (btn)     btn.addEventListener('click', stopEmulation);
-        if (btnMenu) btnMenu.addEventListener('click', function(e) { e.preventDefault(); stopEmulation(); });
+        if (btnMenu) btnMenu.addEventListener('click', function(e) { e.preventDefault(); window.location.href = EXIT_URL; });
     });
 }());
 </script>
