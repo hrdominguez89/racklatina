@@ -780,6 +780,7 @@ class ProyectoController extends AbstractController
             'fecha'            => new \DateTime(),
             'precio_total_usd' => $proyecto->getPrecioTotalUsd(),
             'plazo_maximo'     => $this->calcularPlazoMaximo($proyecto),
+            'nota_solicitud'   => $proyecto->getNotaSolicitud(),
         ];
 
         $tipo = $request->query->get('tipo', 'interno');
@@ -851,6 +852,10 @@ class ProyectoController extends AbstractController
         // 2. Snapshot de leadtime — debe completarse antes de armar los emails
         $this->snapshotLeadtime($proyecto);
 
+        // 3. Nota/aclaraciones del comprador para esta solicitud
+        $notaSolicitud = trim((string) $request->request->get('nota_solicitud', ''));
+        $proyecto->setNotaSolicitud($notaSolicitud !== '' ? $notaSolicitud : null);
+
         $fecha = new \DateTime();
         $items = $proyecto->getItems();
         $templateContext = [
@@ -863,6 +868,7 @@ class ProyectoController extends AbstractController
             'fecha'            => $fecha,
             'precio_total_usd' => $proyecto->getPrecioTotalUsd(),
             'plazo_maximo'     => $this->calcularPlazoMaximo($proyecto),
+            'nota_solicitud'   => $proyecto->getNotaSolicitud(),
         ];
 
         // Generar Excel adjunto
