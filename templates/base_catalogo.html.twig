@@ -230,8 +230,8 @@
                 <!-- Derecha: usuario + empresa -->
                 <div class="d-flex align-items-center gap-2">
 
-                    {# ── Botón "Cambiar empresa" ── #}
-                    {% if app.user is not null %}
+                    {# ── Botón "Cambiar empresa" (admins siempre; externos solo si tienen más de 1 empresa vinculada) ── #}
+                    {% if app.user is not null and (is_granted('ROLE_ADMIN') or app.user.userCustomers|length > 1) %}
                     <button type="button"
                             class="btn btn-sm header-empresa-btn d-flex align-items-center gap-1"
                             data-bs-toggle="modal"
