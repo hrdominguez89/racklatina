@@ -88,14 +88,16 @@ class ProyectoController extends AbstractController
             $filtroUsuario = ($v = $request->query->get('usuario')) && ctype_digit($v) ? (int) $v : null;
 
             // Solicitudes recibidas: solo proyectos FINISHED de otros usuarios, de la empresa activa
+            // (se excluye al propio admin porque sus proyectos ya se listan en $misProyectos)
             $solicitudes = $this->proyectoRepo->findAllWithFilters(
                 $filtroEmpresa,
                 $filtroUsuario,
                 ProyectoStatus::FINISHED,
                 'fecha_desc',
+                $user->getId(),
             );
 
-            $usuariosOptions = $this->proyectoRepo->findUsersWithProyectos($filtroEmpresa);
+            $usuariosOptions = $this->proyectoRepo->findUsersWithProyectos($filtroEmpresa, $user->getId());
 
             // Proyectos propios del admin (todos los estados), de la empresa activa
             $misProyectos = $this->proyectoRepo->findByUser($user, $filtroEmpresa);
@@ -148,6 +150,12 @@ class ProyectoController extends AbstractController
         }
 
         $user = $this->getUser();
+
+        if (!$user->getActiveClienteCodigo()) {
+            $this->addFlash('error', 'Seleccioná una empresa para continuar.');
+            return $this->redirectToRoute('app_proyectos_index');
+        }
+
         $proyecto = new Proyecto();
         $proyecto->setUser($user);
         $proyecto->setNombre($nombre);
@@ -161,6 +169,55 @@ class ProyectoController extends AbstractController
         $this->em->flush();
 
         $this->addFlash('success', "Proyecto \"{$nombre}\" creado y seleccionado como activo.");
+        return $this->redirectToRoute('app_proyectos_show', ['id' => $proyecto->getId()]);
+    }
+
+    /**
+     * Flujo "cotizar solo este producto" desde la ficha de artículo: crea un
+     * proyecto de un solo ítem y redirige a su vista para continuar el pedido.
+     */
+    #[Route('/cotizar-rapido', name: 'app_proyectos_cotizar_rapido', methods: ['GET'])]
+    public function cotizarRapido(Request $request): Response
+    {
+        $this->denyUnlessPuedeCotizar();
+
+        $user = $this->getUser();
+
+        if (!$user->getActiveClienteCodigo()) {
+            $this->addFlash('error', 'Seleccioná una empresa para continuar.');
+            return $this->redirectToRoute('app_catalogo_index');
+        }
+
+        $articuloCodigo = trim($request->query->get('articulo', ''));
+        if (empty($articuloCodigo)) {
+            $this->addFlash('error', 'Código de artículo requerido.');
+            return $this->redirectToRoute('app_catalogo_index');
+        }
+
+        $articulo = $this->articuloRepo->find($articuloCodigo);
+        if (!$articulo) {
+            $this->addFlash('error', "Artículo '{$articuloCodigo}' no encontrado.");
+            return $this->redirectToRoute('app_catalogo_index');
+        }
+
+        $cantidad = max(1, (int) $request->query->get('cantidad', 1));
+
+        $proyecto = new Proyecto();
+        $proyecto->setUser($user);
+        $proyecto->setNombre('Cotización - ' . $articulo->getNombreDisplay());
+        $proyecto->setClienteCodigo($user->getActiveClienteCodigo());
+        $this->em->persist($proyecto);
+        $this->em->flush();
+
+        $item = new ProyectoItem();
+        $item->setProyecto($proyecto);
+        $item->setArticulo($articulo);
+        $item->setCantidad($cantidad);
+        $this->em->persist($item);
+
+        $user->setActiveProyectoId($proyecto->getId());
+        $this->em->flush();
+
         return $this->redirectToRoute('app_proyectos_show', ['id' => $proyecto->getId()]);
     }
 
@@ -347,6 +404,10 @@ class ProyectoController extends AbstractController
         }
 
         $user = $this->getUser();
+
+        if (!$user->getActiveClienteCodigo()) {
+            return $this->json(['success' => false, 'error' => 'Seleccioná una empresa para continuar.'], 422);
+        }
         $proyecto = new Proyecto();
         $proyecto->setUser($user);
         $proyecto->setNombre($nombre);
@@ -371,7 +432,13 @@ class ProyectoController extends AbstractController
     {
         $this->denyUnlessProyectosWrite();
         $user = $this->getUser();
-        $proyectos = $this->proyectoRepo->findByUser($user, $user->getActiveClienteCodigo(), ProyectoStatus::IN_PROGRESS);
+
+        $clienteCodigo = $user->getActiveClienteCodigo();
+        if (!$clienteCodigo) {
+            return $this->json([]);
+        }
+
+        $proyectos = $this->proyectoRepo->findByUser($user, $clienteCodigo, ProyectoStatus::IN_PROGRESS);
 
         return $this->json(array_map(fn($p) => [
             'id'       => $p->getId(),
@@ -488,6 +555,10 @@ class ProyectoController extends AbstractController
 
         try {
             $proyecto = $this->getProyectoParaModificar($id);
+
+            if (!$proyecto->getClienteCodigo()) {
+                return $this->json(['error' => 'Seleccioná una empresa para continuar.'], 422);
+            }
 
             $articuloCodigo = trim($request->request->get('articulo_codigo', ''));
             $cantidad = max(1, (int)$request->request->get('cantidad', 1));
@@ -709,6 +780,7 @@ class ProyectoController extends AbstractController
             'fecha'            => new \DateTime(),
             'precio_total_usd' => $proyecto->getPrecioTotalUsd(),
             'plazo_maximo'     => $this->calcularPlazoMaximo($proyecto),
+            'nota_solicitud'   => $proyecto->getNotaSolicitud(),
         ];
 
         $tipo = $request->query->get('tipo', 'interno');
@@ -757,6 +829,10 @@ class ProyectoController extends AbstractController
             return $this->json(['success' => false, 'error' => 'El proyecto no tiene productos.'], 400);
         }
 
+        if (!$proyecto->getClienteCodigo()) {
+            return $this->json(['success' => false, 'error' => 'Seleccioná una empresa para continuar.'], 422);
+        }
+
         $user = $this->getUser();
         $usuarioNombre = trim($user->getFirstName() . ' ' . $user->getLastName());
         $usuarioEmail  = $user->getEmail();
@@ -776,6 +852,10 @@ class ProyectoController extends AbstractController
         // 2. Snapshot de leadtime — debe completarse antes de armar los emails
         $this->snapshotLeadtime($proyecto);
 
+        // 3. Nota/aclaraciones del comprador para esta solicitud
+        $notaSolicitud = trim((string) $request->request->get('nota_solicitud', ''));
+        $proyecto->setNotaSolicitud($notaSolicitud !== '' ? $notaSolicitud : null);
+
         $fecha = new \DateTime();
         $items = $proyecto->getItems();
         $templateContext = [
@@ -788,6 +868,7 @@ class ProyectoController extends AbstractController
             'fecha'            => $fecha,
             'precio_total_usd' => $proyecto->getPrecioTotalUsd(),
             'plazo_maximo'     => $this->calcularPlazoMaximo($proyecto),
+            'nota_solicitud'   => $proyecto->getNotaSolicitud(),
         ];
 
         // Generar Excel adjunto
@@ -960,6 +1041,16 @@ class ProyectoController extends AbstractController
         $proyecto = $this->proyectoRepo->find($id);
         if (!$proyecto) {
             throw $this->createNotFoundException('Proyecto no encontrado');
+        }
+
+        // Mismo criterio que getProyectoDelUsuario(): el admin solo puede modificar
+        // proyectos de la empresa que tiene activa en este momento, para evitar
+        // agregar productos a un proyecto de una empresa y no poder cotizarlo después.
+        if ($this->isGranted('ROLE_ADMIN')) {
+            if ($proyecto->getClienteCodigo() !== $this->getUser()->getActiveClienteCodigo()) {
+                throw $this->createAccessDeniedException('Seleccioná una empresa para continuar.');
+            }
+            return $proyecto;
         }
 
         if ($proyecto->getUser()->getId() !== $this->getUser()->getId()) {

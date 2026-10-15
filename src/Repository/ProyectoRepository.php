@@ -46,6 +46,7 @@ class ProyectoRepository extends ServiceEntityRepository
         ?int $userId = null,
         ?ProyectoStatus $status = null,
         string $orden = 'fecha_desc',
+        ?int $excludeUserId = null,
     ): array {
         $qb = $this->createQueryBuilder('p')
             ->leftJoin('p.items', 'i')
@@ -60,6 +61,11 @@ class ProyectoRepository extends ServiceEntityRepository
         if ($userId !== null) {
             $qb->andWhere('u.id = :userId')
                ->setParameter('userId', $userId);
+        }
+
+        if ($excludeUserId !== null) {
+            $qb->andWhere('u.id != :excludeUserId')
+               ->setParameter('excludeUserId', $excludeUserId);
         }
 
         if ($status !== null) {
@@ -78,7 +84,7 @@ class ProyectoRepository extends ServiceEntityRepository
     }
 
     /** Retorna los User distintos que tienen al menos un proyecto, filtrando opcionalmente por empresa. */
-    public function findUsersWithProyectos(?string $clienteCodigo = null): array
+    public function findUsersWithProyectos(?string $clienteCodigo = null, ?int $excludeUserId = null): array
     {
         $qb = $this->createQueryBuilder('p')
             ->select('DISTINCT u.id as userId')
@@ -87,6 +93,11 @@ class ProyectoRepository extends ServiceEntityRepository
         if ($clienteCodigo !== null) {
             $qb->where('p.clienteCodigo = :clienteCodigo')
                ->setParameter('clienteCodigo', $clienteCodigo);
+        }
+
+        if ($excludeUserId !== null) {
+            $qb->andWhere('u.id != :excludeUserId')
+               ->setParameter('excludeUserId', $excludeUserId);
         }
 
         $rows = $qb->getQuery()->getScalarResult();

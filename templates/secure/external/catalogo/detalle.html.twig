@@ -695,6 +695,7 @@
 <script>
 (function() {
     const articuloCodigo = '{{ articulo.codigoCalipso|e('js') }}';
+    const COTIZAR_RAPIDO_URL = '{{ path('app_proyectos_cotizar_rapido') }}';
 
     RKL.clarity('event', 'producto_visto');
     RKL.clarity('set', 'producto_visto', articuloCodigo);
@@ -932,10 +933,10 @@
     });
 
     document.getElementById('btn-cot-solo')?.addEventListener('click', function() {
-        // Cotizar solo este producto: agrega al carrito de cotización y redirige
+        // Cotizar solo este producto: crea un proyecto de un solo ítem y redirige a su vista
         const cantidad = parseInt(document.getElementById('input-cantidad')?.value || 1);
         const params = new URLSearchParams({ articulo: articuloCodigo, cantidad });
-        window.location.href = `/secure/cotizacion/nueva?${params}`;
+        window.location.href = `${COTIZAR_RAPIDO_URL}?${params}`;
     });
 
 })();

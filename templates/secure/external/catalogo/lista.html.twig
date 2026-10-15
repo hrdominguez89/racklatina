@@ -585,8 +585,14 @@
                             {% set _esIngenieroBtn = is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2') %}
                             <button type="button"
                                     class="rkl-btn-agregar btn-agregar-proyecto"
+                                    style="position:relative;z-index:2;"
                                     data-articulo-codigo="{{ articulo.codigoCalipso }}"
                                     data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}"
+                                    data-articulo-imagen="{{ articulo.imagenUrl|e('html_attr') }}"
+                                    data-articulo-imagen-fallback="{{ articulo.imagenFallbackUrl|e('html_attr') }}"
+                                    data-articulo-subcategoria="{{ articulo.subcategoriaAdvisor|e('html_attr') }}"
+                                    data-articulo-codigo-rockwell="{{ articulo.codigoRockwell|e('html_attr') }}"
+                                    data-articulo-marca="{{ articulo.marca|e('html_attr') }}"
                                     data-modo-ingeniero="{{ _esIngenieroBtn ? '1' : '0' }}">
                                 {{ _esIngenieroBtn ? 'Agregar a Lista' : 'Agregar a Proyecto' }}
                             </button>

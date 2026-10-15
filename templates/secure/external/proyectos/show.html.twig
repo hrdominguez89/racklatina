@@ -425,7 +425,9 @@
                     <th>Sugerir remplazo<br>por precio</th>
                     <th>Sugerir remplazo<br>por plazo</th>
                     {% endif %}
-                    {# <th>Dejá un<br>comentario</th> #}
+                    {% if canCotizar %}
+                    <th>Notas</th>
+                    {% endif %}
                     <th></th>
                 </tr>
             </thead>
@@ -452,6 +454,7 @@
                             </div>
                             <div class="td-producto-info">
                                 <span class="td-producto-nombre" title="{{ item.articulo.nombreDisplay }}">{{ item.articulo.nombreDisplay }}</span>
+                                <span class="td-producto-codigo" style="font-size:.75rem;color:#888;display:block;">Cód: {{ item.articulo.codigoCalipso }}</span>
                                 <a href="{{ path('app_catalogo_detalle', {codigo: item.articulo.codigoCalipso}) }}"
                                    class="td-ver-producto">Ver producto</a>
                             </div>
@@ -547,14 +550,16 @@
                     {% endif %}
 
                     {# Comentario #}
-                    {# <td>
+                    {% if canCotizar %}
+                    <td>
                         <textarea rows="2"
                                   class="textarea-comentario input-item-comment"
                                   placeholder="Escribí tu comentario..."
                                   data-item="{{ item.id }}"
                                   {% if isFinished %}disabled{% endif %}>{{ item.comment }}</textarea>
                         <div class="comment-status" data-item="{{ item.id }}"></div>
-                    </td> #}
+                    </td>
+                    {% endif %}
 
                     {# Quitar #}
                     <td>
@@ -701,6 +706,13 @@
                 <p class="text-muted mb-0" style="font-size:.82rem;">
                     El proyecto quedará marcado como finalizado y no podrá modificarse.
                 </p>
+                <div class="text-start mt-3">
+                    <label for="input-nota-solicitud" class="form-label" style="font-size:.78rem;font-weight:600;color:#555;">
+                        Aclaraciones (opcional)
+                    </label>
+                    <textarea id="input-nota-solicitud" rows="2" class="form-control" style="font-size:.85rem;"
+                              placeholder="Ej: enviar la cotización a compras@empresa.com"></textarea>
+                </div>
             </div>
             <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 justify-content-center">
                 <button type="button" class="btn btn-outline-secondary px-4 fw-semibold" data-bs-dismiss="modal">
@@ -814,8 +826,10 @@
 
             const proyectoId = btnSolicitar.dataset.proyectoId;
             const csrf       = btnSolicitar.dataset.csrf;
+            const notaInput  = document.getElementById('input-nota-solicitud');
             const fd = new FormData();
             fd.append('_token', csrf);
+            fd.append('nota_solicitud', notaInput ? notaInput.value : '');
 
             try {
                 const res  = await fetch(`/secure/proyectos/${proyectoId}/solicitar-cotizacion`, { method: 'POST', body: fd });

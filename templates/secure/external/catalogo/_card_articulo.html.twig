@@ -40,8 +40,14 @@
             <div class="col-auto ms-auto d-flex gap-2 flex-wrap justify-content-end position-relative">
                 {% if puedeProyectos %}
                     <button type="button" class="btn btn-dark btn-sm btn-agregar-proyecto"
+                            style="position:relative;z-index:2;"
                             data-articulo-codigo="{{ articulo.codigoCalipso }}"
                             data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}"
+                            data-articulo-imagen="{{ articulo.imagenUrl|e('html_attr') }}"
+                            data-articulo-imagen-fallback="{{ articulo.imagenFallbackUrl|e('html_attr') }}"
+                            data-articulo-subcategoria="{{ articulo.subcategoriaAdvisor|e('html_attr') }}"
+                            data-articulo-codigo-rockwell="{{ articulo.codigoRockwell|e('html_attr') }}"
+                            data-articulo-marca="{{ articulo.marca|e('html_attr') }}"
                             data-modo-ingeniero="{{ esIngenieroCard ? '1' : '0' }}">
                         <i class="ri-folder-add-line"></i> {{ esIngenieroCard ? 'Agregar a Lista' : 'Agregar' }}
                     </button>
@@ -105,11 +111,16 @@
             {% if puedeProyectos %}
                 <button type="button"
                         class="btn btn-agregar-proyecto w-100"
-                        style="border:1.5px solid var(--rkl-primary);color:var(--rkl-primary);background:#fff;border-radius:5px;font-size:.73rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:.5rem .75rem;transition:background .15s,color .15s;"
+                        style="border:1.5px solid var(--rkl-primary);color:var(--rkl-primary);background:#fff;border-radius:5px;font-size:.73rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:.5rem .75rem;transition:background .15s,color .15s;position:relative;z-index:2;"
                         onmouseover="this.style.background='var(--rkl-primary)';this.style.color='#fff';"
                         onmouseout="this.style.background='#fff';this.style.color='var(--rkl-primary)';"
                         data-articulo-codigo="{{ articulo.codigoCalipso }}"
                         data-articulo-nombre="{{ articulo.nombreDisplay|e('html_attr') }}"
+                        data-articulo-imagen="{{ articulo.imagenUrl|e('html_attr') }}"
+                        data-articulo-imagen-fallback="{{ articulo.imagenFallbackUrl|e('html_attr') }}"
+                        data-articulo-subcategoria="{{ articulo.subcategoriaAdvisor|e('html_attr') }}"
+                        data-articulo-codigo-rockwell="{{ articulo.codigoRockwell|e('html_attr') }}"
+                        data-articulo-marca="{{ articulo.marca|e('html_attr') }}"
                         data-modo-ingeniero="{{ esIngenieroCard ? '1' : '0' }}">
                     {{ esIngenieroCard ? 'Agregar a Lista' : 'Agregar a Proyecto' }}
                 </button>

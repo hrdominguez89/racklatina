@@ -55,6 +55,13 @@
             <strong>{{ fecha|date('d/m/Y') }}</strong> a las <strong>{{ fecha|date('H:i') }}</strong> hs.
         </p>
 
+        {% if nota_solicitud %}
+        <div style="background:#fffbe6;border:1px solid #f0e2a0;border-radius:6px;padding:14px 16px;margin:0 0 24px;">
+            <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#8a7a1a;">Aclaraciones</p>
+            <p style="margin:0;font-size:13px;color:#444;white-space:pre-line;">{{ nota_solicitud }}</p>
+        </div>
+        {% endif %}
+
         <p class="section-label">Detalle</p>
 
         <div class="table-wrap">

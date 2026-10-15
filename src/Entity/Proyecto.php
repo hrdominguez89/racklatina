@@ -34,6 +34,10 @@ class Proyecto
     #[ORM\Column(name: 'descripcion', type: 'text', nullable: true)]
     private ?string $descripcion = null;
 
+    /** Aclaraciones del comprador al momento de solicitar la cotización (ej. "enviar a tal mail"). */
+    #[ORM\Column(name: 'nota_solicitud', type: 'text', nullable: true)]
+    private ?string $notaSolicitud = null;
+
     #[ORM\Column(name: 'cliente_codigo', length: 22, nullable: true)]
     private ?string $clienteCodigo = null;
 
@@ -65,6 +69,9 @@ class Proyecto
 
     public function getDescripcion(): ?string { return $this->descripcion; }
     public function setDescripcion(?string $descripcion): static { $this->descripcion = $descripcion; return $this; }
+
+    public function getNotaSolicitud(): ?string { return $this->notaSolicitud; }
+    public function setNotaSolicitud(?string $notaSolicitud): static { $this->notaSolicitud = $notaSolicitud; return $this; }
 
     public function getClienteCodigo(): ?string { return $this->clienteCodigo; }
     public function setClienteCodigo(?string $clienteCodigo): static { $this->clienteCodigo = $clienteCodigo; return $this; }
