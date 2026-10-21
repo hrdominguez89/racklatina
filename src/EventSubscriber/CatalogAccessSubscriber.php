@@ -3,6 +3,7 @@
 namespace App\EventSubscriber;
 
 use App\Entity\User;
+use App\Entity\UserCustomer;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -20,6 +21,10 @@ class CatalogAccessSubscriber implements EventSubscriberInterface
         private RouterInterface $router,
         #[Autowire(env: 'bool:CATALOG_RESTRICTED')]
         private bool $catalogRestricted,
+        #[Autowire(env: 'CATALOG_ALLOWED_EMAILS')]
+        private string $catalogAllowedEmails = '',
+        #[Autowire(env: 'CATALOG_ALLOWED_CLIENTES')]
+        private string $catalogAllowedClientes = '',
     ) {}
 
     public static function getSubscribedEvents(): array
@@ -64,7 +69,20 @@ class CatalogAccessSubscriber implements EventSubscriberInterface
         }
 
         $rolesPermitidos = ['ROLE_SUPER_ADMIN', 'ROLE_ADMIN'];
-        if (!$emailInterno && !array_intersect($rolesPermitidos, $user->getRoles())) {
+        $emailWhitelisteado = in_array($user->getEmail(), $this->parseList($this->catalogAllowedEmails), true);
+        $clientesPermitidos = $this->parseList($this->catalogAllowedClientes);
+        $codigosUsuario = array_map(
+            fn (UserCustomer $uc) => $uc->getClienteCodigo(),
+            $user->getUserCustomers()->toArray()
+        );
+        $empresaWhitelisteada = (bool) array_intersect($clientesPermitidos, $codigosUsuario);
+
+        if (
+            !$emailInterno
+            && !$emailWhitelisteado
+            && !$empresaWhitelisteada
+            && !array_intersect($rolesPermitidos, $user->getRoles())
+        ) {
             // No redirigir a /login: un usuario ya autenticado sin acceso puede tener
             // /catalogo como "home" por rol (ver LoginSuccessHandler/LoginController),
             // lo que provocaría un loop de redirects login <-> catalogo.
@@ -73,5 +91,13 @@ class CatalogAccessSubscriber implements EventSubscriberInterface
                 Response::HTTP_FORBIDDEN
             ));
         }
+    }
+
+    /**
+     * Convierte un CSV de env var ("01001196, 01008556") en lista limpia sin vacíos.
+     */
+    private function parseList(string $csv): array
+    {
+        return array_values(array_filter(array_map('trim', explode(',', $csv))));
     }
 }
