@@ -15,7 +15,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[UniqueEntity(fields: ['email'], message: 'Este email ya está en uso')]
+#[UniqueEntity(fields: ['email'], message: 'Si los datos ingresados son correctos, en breve recibirás un correo para continuar con el registro.')]
 #[Gedmo\SoftDeleteable(fieldName: 'deletedAt', timeAware: false)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
