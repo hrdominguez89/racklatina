@@ -135,6 +135,12 @@ class CatalogoController extends AbstractController
             : 24;
         $vista = $request->query->get('vista', 'grid');
 
+        $marcasDisponibles = $this->stockAdvisorRepo->getMarcas($categoria, $subcategoria);
+        if ($marca && !in_array($marca, $marcasDisponibles, true)) {
+            // La marca seleccionada no tiene productos en la categoría/subcategoría actual: se ignora.
+            $marca = null;
+        }
+
         $resultado = $this->stockAdvisorRepo->buscarConFiltros(
             $q, $categoria, $subcategoria, $marca, $pagina, $porPagina, $ordenar, $tags, $solucion
         );
@@ -171,7 +177,7 @@ class CatalogoController extends AbstractController
             'opcionesFiltros' => [
                 'categorias' => $this->stockAdvisorRepo->getCategorias(),
                 'subcategorias' => $this->stockAdvisorRepo->getSubcategorias($categoria),
-                'marcas' => $this->stockAdvisorRepo->getMarcas(),
+                'marcas' => $marcasDisponibles,
                 'tags' => $this->stockAdvisorRepo->getTagsDisponibles(),
             ],
             'proyectos' => $proyectos,

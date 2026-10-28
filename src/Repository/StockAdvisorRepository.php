@@ -120,17 +120,24 @@ class StockAdvisorRepository extends ServiceEntityRepository
         return $qb->orderBy('s.subcategoriaAdvisor', 'ASC')->getQuery()->getSingleColumnResult();
     }
 
-    public function getMarcas(): array
+    public function getMarcas(?string $categoria = null, ?string $subcategoria = null): array
     {
-        return $this->createQueryBuilder('s')
+        $qb = $this->createQueryBuilder('s')
             ->select('DISTINCT s.marca')
             ->where('s.marca IS NOT NULL AND s.marca != :empty')
             ->andWhere('s.visibleAdvisor IS NOT NULL AND s.visibleAdvisor != :cero')
             ->setParameter('empty', '')
-            ->setParameter('cero', '0')
-            ->orderBy('s.marca', 'ASC')
-            ->getQuery()
-            ->getSingleColumnResult();
+            ->setParameter('cero', '0');
+
+        if ($categoria) {
+            $qb->andWhere('s.categoriaAdvisor = :cat')->setParameter('cat', $categoria);
+        }
+
+        if ($subcategoria) {
+            $qb->andWhere('s.subcategoriaAdvisor = :subcat')->setParameter('subcat', $subcategoria);
+        }
+
+        return $qb->orderBy('s.marca', 'ASC')->getQuery()->getSingleColumnResult();
     }
 
     public function getRecomendados(int $limit = 8): array
