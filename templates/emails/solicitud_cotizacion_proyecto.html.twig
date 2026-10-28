@@ -64,7 +64,10 @@
             <tbody>
             {% for item in items %}
                 <tr>
-                    <td class="col-producto">{{ item.articulo.nombreDisplay }}</td>
+                    <td class="col-producto">
+                        {{ item.articulo.nombreDisplay }}
+                        <span style="font-size:11px;color:#888;display:block;">Cód: {{ item.articulo.codigoCalipso }}</span>
+                    </td>
                     <td class="col-cantidad">{{ item.cantidad }}</td>
                     <td class="col-notas">
                         {% if item.comment %}
