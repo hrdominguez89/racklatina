@@ -11,6 +11,7 @@ use App\Enum\CustomerRequestType;
 use App\Form\RegistrationFormType;
 use App\Repository\ClientesRepository;
 use App\Repository\RoleRepository;
+use App\Services\RecaptchaService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -27,8 +28,11 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class RegisterController extends AbstractController
 {
-    public function __construct(private MailerInterface $mailer,private ClientesRepository $clienteRepository)
-    {
+    public function __construct(
+        private MailerInterface $mailer,
+        private ClientesRepository $clienteRepository,
+        private RecaptchaService $recaptcha,
+    ) {
         $this->mailer = $mailer;
         $this->clienteRepository = $clienteRepository;
     }
@@ -45,6 +49,14 @@ final class RegisterController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $recaptchaToken = $request->request->get('g-recaptcha-response');
+            if (!$this->recaptcha->verificar($recaptchaToken, $request->getClientIp())) {
+                return $this->render('register/register.html.twig', [
+                    'form' => $form->createView(),
+                    'recaptcha_error' => 'Por favor, confirmá que no sos un robot.',
+                ]);
+            }
+
             $user->setPassword($passwordHasher->hashPassword($user, $form->get('plainPassword')->getData()));
 
             $external = new ExternalUserData();
