@@ -9,11 +9,25 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\{EmailType, PasswordType, TextType, ChoiceType};
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Email;
+use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
 
 class RegistrationFormType extends AbstractType
 {
     private RoleRepository $roleRepository;
+
+    // Letras (con acentos/ñ), números, espacios, apóstrofes y guiones. Nada de < > ; { } ` etc.
+    private const NOMBRE_PATTERN = '/^[\p{L}\p{N}\s\'\-]+$/u';
+
+    // Igual que NOMBRE_PATTERN pero admite ".", "," y "&" (razón social, direcciones: "Av. Rivadavia 1234, Piso 2", "Smith & Sons S.A.")
+    private const DIRECCION_PATTERN = '/^[\p{L}\p{N}\s\'\-.,&]*$/u';
+
+    // Formatos de CUIT/RUT reales en la base de Calypso son inconsistentes (con/sin guiones,
+    // distinta cantidad de dígitos) — se valida solo que sean dígitos y guiones, sin forzar
+    // una posición exacta, para no bloquear el registro de clientes ya existentes.
+    private const CUIT_PATTERN = '/^[0-9\-]+$/';
 
     public function __construct(RoleRepository $roleRepository)
     {
@@ -33,11 +47,21 @@ class RegistrationFormType extends AbstractType
                 'label' => 'Nombre <span style="color:red">*</span>',
                 'label_html' => true,
                 'required' => true,
+                'constraints' => [
+                    new NotBlank(['message' => 'El nombre es obligatorio.']),
+                    new Length(['max' => 60]),
+                    new Regex(['pattern' => self::NOMBRE_PATTERN, 'message' => 'El nombre contiene caracteres no permitidos.']),
+                ],
             ])
             ->add('lastName', TextType::class, [
                 'label' => 'Apellido <span style="color:red">*</span>',
                 'label_html' => true,
                 'required' => true,
+                'constraints' => [
+                    new NotBlank(['message' => 'El apellido es obligatorio.']),
+                    new Length(['max' => 60]),
+                    new Regex(['pattern' => self::NOMBRE_PATTERN, 'message' => 'El apellido contiene caracteres no permitidos.']),
+                ],
             ])
             ->add('cuit', TextType::class, [
                 'mapped' => false,
@@ -47,6 +71,8 @@ class RegistrationFormType extends AbstractType
                 'required' => true,
                 'constraints' => [
                     new NotBlank(['message' => 'El CUIT/RUT es obligatorio.']),
+                    new Length(['max' => 20]),
+                    new Regex(['pattern' => self::CUIT_PATTERN, 'message' => 'El CUIT/RUT solo puede contener números y guiones.']),
                 ],
             ])
             // ->add('nationalIdNumber', IntegerType::class, [
@@ -60,6 +86,10 @@ class RegistrationFormType extends AbstractType
                 'label' => 'Email <span style="color:red">*</span>',
                 'label_html' => true,
                 'required' => true,
+                'constraints' => [
+                    new NotBlank(['message' => 'El email es obligatorio.']),
+                    new Email(['message' => 'Ingresá un email válido.']),
+                ],
             ])
             ->add('plainPassword', PasswordType::class, [
                 'mapped' => false,
@@ -72,12 +102,20 @@ class RegistrationFormType extends AbstractType
                 'label' => 'Razón Social <span style="color:red">*</span>',
                 'label_html' => true,
                 'required' => false,
+                'constraints' => [
+                    new Length(['max' => 255]),
+                    new Regex(['pattern' => self::DIRECCION_PATTERN, 'message' => 'La razón social contiene caracteres no permitidos.']),
+                ],
             ])
             ->add('domicilio', TextType::class, [
                 'mapped' => false,
                 'label' => 'Domicilio <span style="color:red">*</span>',
                 'label_html' => true,
                 'required' => false,
+                'constraints' => [
+                    new Length(['max' => 255]),
+                    new Regex(['pattern' => self::DIRECCION_PATTERN, 'message' => 'El domicilio contiene caracteres no permitidos.']),
+                ],
             ])
             ->add('codigoPostal', TextType::class, [
                 'mapped' => false,
