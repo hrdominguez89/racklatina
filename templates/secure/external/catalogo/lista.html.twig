@@ -466,8 +466,12 @@
 
         {# Filter tags activos #}
         {% if filtros.q or filtros.categoria or filtros.subcategoria or filtros.marca or filtros.solucion or filtros.tags is not empty %}
-        <div class="d-flex flex-wrap gap-2 mb-3">
+        <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
             {# Los chips de búsqueda los renderiza el JS en #q-chips #}
+            <a href="{{ path('app_catalogo_lista') }}" class="rkl-tag"
+               style="border:1.5px solid var(--rkl-primary);color:#6b6200;font-weight:600;">
+                Limpiar todos los filtros
+            </a>
             {% if filtros.solucion %}
             <span class="rkl-tag">
                 <a href="{{ path('app_catalogo_lista', {q: filtros.q, categoria: filtros.categoria, subcategoria: filtros.subcategoria, marca: filtros.marca, solucion: null, tag: filtros.tags, ordenar: filtros.ordenar, pagina: 1}) }}">×</a>
