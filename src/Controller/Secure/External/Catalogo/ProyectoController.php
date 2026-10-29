@@ -323,6 +323,57 @@ class ProyectoController extends AbstractController
         return $this->redirectToRoute('app_proyectos_index');
     }
 
+    /**
+     * Clona un proyecto (de cualquier status) en uno nuevo IN_PROGRESS, a nombre del usuario
+     * que ejecuta la acción. Copia cliente, items (articulo + cantidad + comment) y notas
+     * generales — NO copia snapshots de precio/leadtime, se recalculan en vivo como cualquier
+     * proyecto IN_PROGRESS nuevo.
+     */
+    #[Route('/{id}/clonar', name: 'app_proyectos_clonar', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function clonar(int $id, Request $request): Response
+    {
+        $this->denyUnlessProyectosWrite();
+        $original = $this->getProyectoDelUsuario($id);
+
+        if (!$this->isCsrfTokenValid('proyecto_clonar_' . $id, $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token inválido.');
+            return $this->redirectToRoute('app_proyectos_show', ['id' => $id]);
+        }
+
+        $user = $this->getUser();
+
+        $clon = $this->em->wrapInTransaction(function () use ($original, $user) {
+            $clon = new Proyecto();
+            $clon->setUser($user);
+            $clon->setNombre($original->getNombre() . ' (copia)');
+            $clon->setDescripcion($original->getDescripcion());
+            $clon->setNotaSolicitud($original->getNotaSolicitud());
+            $clon->setClienteCodigo($original->getClienteCodigo());
+            $clon->setRubro($original->getRubro());
+            $clon->setStatus(ProyectoStatus::IN_PROGRESS);
+            $this->em->persist($clon);
+            $this->em->flush();
+
+            foreach ($original->getItems() as $item) {
+                $nuevoItem = new ProyectoItem();
+                $nuevoItem->setProyecto($clon);
+                $nuevoItem->setArticulo($item->getArticulo());
+                $nuevoItem->setCantidad($item->getCantidad());
+                $nuevoItem->setComment($item->getComment());
+                $this->em->persist($nuevoItem);
+            }
+            $this->em->flush();
+
+            return $clon;
+        });
+
+        $user->setActiveProyectoId($clon->getId());
+        $this->em->flush();
+
+        $this->addFlash('success', "Proyecto clonado como \"{$clon->getNombre()}\".");
+        return $this->redirectToRoute('app_proyectos_show', ['id' => $clon->getId()]);
+    }
+
     // --- Lista de proyectos (JSON, para el modal del catálogo) ---
 
     /**

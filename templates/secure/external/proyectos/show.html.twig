@@ -329,6 +329,33 @@
     pointer-events: none;
 }
 
+.clone-project {
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    color: #555;
+
+    padding: 8px 12px;
+    border-radius: 6px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    cursor: pointer;
+    transition: .15s ease;
+}
+
+.clone-project i { color: #888; }
+
+.clone-project:hover {
+    color: #1a1a1a;
+    border-color: #ccc;
+    background: #f5f5f5;
+}
+
 .delete-project:disabled i,
 .delete-project.disabled i {
     color: #9ca3af;
@@ -346,11 +373,18 @@
 {# Cabecera #}
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="fw-bold mb-0" style="color:#1a1a1a;">{{ proyecto.nombre }}</h4>
-    {% if esPropio and not isFinished %}
-    <button type="button" class="delete-project" data-bs-toggle="modal" data-bs-target="#modalEliminarProyecto">
-        <i class="ri-delete-bin-line"></i> Eliminar proyecto
-    </button>
-    {% endif %}
+    <div class="d-flex gap-2">
+        {% if esPropio %}
+        <button type="button" class="clone-project" data-bs-toggle="modal" data-bs-target="#modalClonarProyecto">
+            <i class="ri-file-copy-line"></i> Clonar proyecto
+        </button>
+        {% endif %}
+        {% if esPropio and not isFinished %}
+        <button type="button" class="delete-project" data-bs-toggle="modal" data-bs-target="#modalEliminarProyecto">
+            <i class="ri-delete-bin-line"></i> Eliminar proyecto
+        </button>
+        {% endif %}
+    </div>
 </div>
 
 {% if isAdmin is defined and isAdmin %}
@@ -683,6 +717,37 @@
                     <input type="hidden" name="_token" value="{{ csrf_token('proyecto_eliminar_' ~ proyecto.id) }}">
                     <button type="submit" class="btn btn-danger">
                         <i class="ri-delete-bin-line me-1"></i> Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# ── Modal: confirmar clonado de proyecto ── #}
+{% if esPropio %}
+<div class="modal fade" id="modalClonarProyecto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">
+                    <i class="ri-file-copy-line me-2"></i>Clonar Proyecto
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">
+                    Se va a crear una copia de <strong>{{ proyecto.nombre|e('html') }}</strong> con los mismos
+                    productos y cantidades, lista para seguir editando (precios y plazos se recalculan de nuevo).
+                </p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="{{ path('app_proyectos_clonar', {id: proyecto.id}) }}" class="d-inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('proyecto_clonar_' ~ proyecto.id) }}">
+                    <button type="submit" class="btn btn-warning fw-semibold">
+                        <i class="ri-file-copy-line me-1"></i> Clonar
                     </button>
                 </form>
             </div>
