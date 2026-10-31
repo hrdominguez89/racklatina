@@ -444,7 +444,14 @@
 
     {# ── Tabla de productos ── #}
     <div class="proyecto-items">
-        <p class="mb-2" style="font-size:.95rem;font-weight:600;color:#333;">Listado de productos</p>
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <p class="mb-0" style="font-size:.95rem;font-weight:600;color:#333;">Listado de productos</p>
+            {% if not isFinished and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) %}
+            <button type="button" class="clone-project" data-bs-toggle="modal" data-bs-target="#modalImportarExcel">
+                <i class="ri-file-excel-2-line"></i> Importar Excel
+            </button>
+            {% endif %}
+        </div>
 
         <div class="tabla-wrap">
         <table class="tabla-productos">
@@ -753,6 +760,40 @@
                     </button>
                 </form>
             </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# ── Modal: importar Excel ── #}
+{% if not isFinished and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) %}
+<div class="modal fade" id="modalImportarExcel" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">
+                    <i class="ri-file-excel-2-line me-2"></i>Importar Excel
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ path('app_proyectos_importar_excel', {id: proyecto.id}) }}"
+                  enctype="multipart/form-data">
+                <div class="modal-body">
+                    <p class="text-muted small">
+                        El archivo debe tener el código de artículo en la columna A y la cantidad en la
+                        columna B, con la fila 1 como encabezado. Máximo {{ constant('App\\Services\\ProyectoExcelImporter::MAX_FILAS') }} filas.
+                        Si un código ya está en el proyecto, se suma la cantidad.
+                    </p>
+                    <input type="file" name="excel" accept=".xlsx,.xls" class="form-control" required>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <input type="hidden" name="_token" value="{{ csrf_token('proyecto_importar_excel_' ~ proyecto.id) }}">
+                    <button type="submit" class="btn btn-warning fw-semibold">
+                        <i class="ri-upload-2-line me-1"></i> Importar
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
