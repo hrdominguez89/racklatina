@@ -16,13 +16,13 @@ use App\Repository\SectorsRepository;
 use App\Repository\UserCustomerRepository;
 use App\Repository\UserRepository;
 use App\Repository\UserRoleRepository;
+use App\Services\PasswordPolicyService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Mime\Email;
 
 #[Route('secure/user')]
@@ -36,7 +36,8 @@ final class UserController extends AbstractController
         private UserCustomerRepository $userCustomerRepository,
         private SectorsRepository $sectoresRepository,
         private ExternalUserDataRepository $externalUserDataRepository,
-        private MailerInterface $mailer
+        private MailerInterface $mailer,
+        private PasswordPolicyService $passwordPolicy,
     ) {
         $this->userRepository = $userRepository;
         $this->userRoleRepository = $userRoleRepository;
@@ -146,7 +147,7 @@ final class UserController extends AbstractController
 
     // FUNCIONES PARA ALTAS DE USUARIOS
     #[Route('/crearUsuarios', name: 'app_usuarios_crear', methods: ['POST'])]
-    public function crearUsuarios(Request $request, UserPasswordHasherInterface $passwordHasher)
+    public function crearUsuarios(Request $request)
     {
         $data = [];
         foreach ($request->request as $key => $value) {
@@ -155,7 +156,11 @@ final class UserController extends AbstractController
         $tipo_usuario = $data["tipo_usuario"];
         switch ($tipo_usuario) {
             case "empleado":
-                $flag = $this->crearEmpleado($data, $passwordHasher);
+                if (!empty($data['password']) && !$this->passwordPolicy->esCompleja($data['password'])) {
+                    $this->addFlash('danger', PasswordPolicyService::MENSAJE_COMPLEJIDAD);
+                    return $this->redirectToRoute('app_secure_internal_user_user_racklatina');
+                }
+                $flag = $this->crearEmpleado($data);
                 if ($flag) {
                     $this->addFlash('success', 'Se dio de alta el usuario.');
                 } else {
@@ -163,7 +168,11 @@ final class UserController extends AbstractController
                 }
                 return $this->redirectToRoute('app_secure_internal_user_user_racklatina');
             case "cliente":
-                $flag = $this->crearCliente($data, $passwordHasher);
+                if (!empty($data['password']) && !$this->passwordPolicy->esCompleja($data['password'])) {
+                    $this->addFlash('danger', PasswordPolicyService::MENSAJE_COMPLEJIDAD);
+                    return $this->redirectToRoute('app_secure_internal_user_user_cliente');
+                }
+                $flag = $this->crearCliente($data);
                 if ($flag) {
                     $this->addFlash('success', 'Se dio de alta el usuario.');
                 } else {
@@ -172,7 +181,7 @@ final class UserController extends AbstractController
                 return $this->redirectToRoute('app_secure_internal_user_user_cliente');
         }
     }
-    public function crearEmpleado($data, UserPasswordHasherInterface $passwordHasher)
+    public function crearEmpleado($data)
     {
         $aux = $this->reutilizarUsuario($data);
         if($aux)
@@ -193,7 +202,7 @@ final class UserController extends AbstractController
             $rol = $this->roleRepository->find(id: $rol_id);
 
             $usuario = new User();
-            $usuario->setPassword($passwordHasher->hashPassword($usuario, $password));
+            $this->passwordPolicy->aplicarCambio($usuario, $password);
             $usuario->setEmail($email);
             $usuario->setFirstName($firstName);
             $usuario->setLastName($lastName);
@@ -216,7 +225,7 @@ final class UserController extends AbstractController
         }
         return false;
     }
-    public function crearCliente($data, UserPasswordHasherInterface $passwordHasher)
+    public function crearCliente($data)
     {
         $aux = $this->reutilizarUsuario($data);
         if($aux)
@@ -234,7 +243,7 @@ final class UserController extends AbstractController
 
             $user = new User();
             $user->setEmail($email);
-            $user->setPassword($passwordHasher->hashPassword($user, $password));
+            $this->passwordPolicy->aplicarCambio($user, $password);
             $user->setFirstName($nombre);
             $user->setLastName($apellido);
             if($dni != null && is_int($dni))
@@ -381,15 +390,25 @@ final class UserController extends AbstractController
         return $this->render('secure/internal/user/_modal_editar_usuario_cliente.html.twig', $data);
     }
     #[Route('/editar', name: 'app_usuarios_editar_guardar', methods: ['POST'])]
-    public function editarUsuario(Request $request, UserPasswordHasherInterface $passwordHasher)
+    public function editarUsuario(Request $request)
     {
         $id = $request->request->get('id');
         $user = $this->userRepository->find($id) ?? null;
+        $nuevaPassword = $request->request->get('password');
+
+        if ($nuevaPassword !== '' && !$this->passwordPolicy->esCompleja($nuevaPassword)) {
+            $this->addFlash('danger', PasswordPolicyService::MENSAJE_COMPLEJIDAD);
+            return $this->redirectToRoute(
+                $request->request->get('tipo_usuario') == "empleado"
+                    ? 'app_secure_internal_user_user_racklatina'
+                    : 'app_secure_internal_user_user_cliente'
+            );
+        }
 
         if ($request->request->get('tipo_usuario') == "empleado") {
             $user->setEmail($request->request->get('email'));
-            if ($request->request->get('password') !== '') {
-                $user->setPassword($passwordHasher->hashPassword($user, $request->request->get('password')));
+            if ($nuevaPassword !== '') {
+                $this->passwordPolicy->aplicarCambio($user, $nuevaPassword);
             }
             $user->setFirstName($request->request->get('firstName'));
             $user->setLastName($request->request->get('lastName'));
@@ -404,8 +423,8 @@ final class UserController extends AbstractController
             return $this->redirectToRoute('app_secure_internal_user_user_racklatina');
         } else {
             $user->setEmail($request->request->get('email'));
-            if ($request->request->get('password') !== '') {
-                $user->setPassword($passwordHasher->hashPassword($user, $request->request->get('password')));
+            if ($nuevaPassword !== '') {
+                $this->passwordPolicy->aplicarCambio($user, $nuevaPassword);
             }
             $user->setFirstName($request->request->get('firstName'));
             $user->setLastName($request->request->get('lastName'));

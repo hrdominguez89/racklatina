@@ -11,6 +11,7 @@ use App\Enum\CustomerRequestType;
 use App\Form\RegistrationFormType;
 use App\Repository\ClientesRepository;
 use App\Repository\RoleRepository;
+use App\Services\PasswordPolicyService;
 use App\Services\RecaptchaService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,7 +20,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Mailer\MailerInterface;
@@ -32,6 +32,7 @@ final class RegisterController extends AbstractController
         private MailerInterface $mailer,
         private ClientesRepository $clienteRepository,
         private RecaptchaService $recaptcha,
+        private PasswordPolicyService $passwordPolicy,
     ) {
         $this->mailer = $mailer;
         $this->clienteRepository = $clienteRepository;
@@ -40,7 +41,6 @@ final class RegisterController extends AbstractController
     public function index(
         Request $request,
         EntityManagerInterface $em,
-        UserPasswordHasherInterface $passwordHasher,
         RoleRepository $roleRepository,
         MailerInterface $mailer
     ): Response {
@@ -57,7 +57,7 @@ final class RegisterController extends AbstractController
                 ]);
             }
 
-            $user->setPassword($passwordHasher->hashPassword($user, $form->get('plainPassword')->getData()));
+            $this->passwordPolicy->aplicarCambio($user, $form->get('plainPassword')->getData());
 
             $external = new ExternalUserData();
             $cuit = $form->get('cuit')->getData();

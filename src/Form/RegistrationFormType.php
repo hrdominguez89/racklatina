@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\User;
 use App\Enum\UserRoleType;
 use App\Repository\RoleRepository;
+use App\Services\PasswordPolicyService;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\{EmailType, PasswordType, TextType, ChoiceType};
 use Symfony\Component\Form\FormBuilderInterface;
@@ -96,6 +97,13 @@ class RegistrationFormType extends AbstractType
                 'label' => 'Contraseña <span style="color:red">*</span>',
                 'label_html' => true,
                 'attr' => ['autocomplete' => 'new-password'],
+                'constraints' => [
+                    new NotBlank(['message' => 'La contraseña es obligatoria.']),
+                    new Regex([
+                        'pattern' => PasswordPolicyService::PATTERN_COMPLEJIDAD,
+                        'message' => PasswordPolicyService::MENSAJE_COMPLEJIDAD,
+                    ]),
+                ],
             ])
             ->add('companyName', TextType::class, [
                 'mapped' => false,

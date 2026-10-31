@@ -2,15 +2,15 @@
 
 namespace App\Form;
 
-use PharIo\Manifest\Email;
+use App\Services\PasswordPolicyService;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
 
 class UsuarioRacklatinaType extends AbstractType 
 {
@@ -25,9 +25,9 @@ class UsuarioRacklatinaType extends AbstractType
             ->add('password', PasswordType::class, [
                 'constraints' => [
                     new NotBlank(),
-                    new Length([
-                        'min' => 8,
-                        'minMessage' => 'La contrase a debe tener al menos 8 caracteres',
+                    new Regex([
+                        'pattern' => PasswordPolicyService::PATTERN_COMPLEJIDAD,
+                        'message' => PasswordPolicyService::MENSAJE_COMPLEJIDAD,
                     ]),
                 ],
             ])
