@@ -30,7 +30,9 @@
     letter-spacing: 1.2px;
     text-transform: uppercase;
     color: #555;
-    margin-bottom: 1rem;
+    margin: 0 0 1.25rem;
+    padding-bottom: .6rem;
+    border-bottom: 1px solid #f0f0f0;
 }
 .rkl-filter-section { margin-bottom: 0; }
 .rkl-filter-header {
@@ -280,13 +282,47 @@
     color: #1a1a1a;
 }
 
+/* ── Filtros (mobile trigger) ───────────────────────────── */
+.rkl-filtros-badge {
+    background: #1a1a1a;
+    color: #fff;
+    font-size: .68rem;
+    font-weight: 800;
+    border-radius: 50%;
+    min-width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    line-height: 1;
+}
+.rkl-actions-row {
+    display: flex;
+    gap: .5rem;
+    flex-shrink: 0;
+}
+
 /* ── Responsive ─────────────────────────────────────────── */
-@media (max-width: 767px) {
-    .rkl-sidebar {
-        display: none;
-    }
+#rklFiltrosOffcanvas {
+    --bs-offcanvas-width: 300px;
+}
+@media (max-width: 767.98px) {
     .rkl-content {
         padding-left: 0;
+    }
+    .rkl-search-wrap {
+        flex: 1 1 100%;
+    }
+    .rkl-actions-row {
+        flex: 1 1 100%;
+    }
+    .rkl-actions-row > * {
+        flex: 1 1 0;
+    }
+    .rkl-ordenar-btn {
+        width: 100%;
+        justify-content: center;
     }
 }
 </style>
@@ -306,12 +342,19 @@
     {% endif %}
 </div>
 
+{% set filtrosActivosCount = (filtros.categoria ? 1 : 0) + (filtros.subcategoria ? 1 : 0) + (filtros.marca ? 1 : 0) + (filtros.tags|default([])|length) %}
+
 {# ── Layout ───────────────────────────────────────────── #}
 <div class="rkl-layout">
 
-    {# ── Sidebar ────────────────────────────────────── #}
-    <aside class="rkl-sidebar">
-        <p class="rkl-sidebar-title">Filtros</p>
+    {# ── Sidebar / Offcanvas de filtros (mobile) ───────── #}
+    <aside class="rkl-sidebar offcanvas-md offcanvas-start" tabindex="-1" id="rklFiltrosOffcanvas" aria-labelledby="rklFiltrosLabel">
+        <div class="offcanvas-header d-md-none">
+            <h5 class="offcanvas-title" id="rklFiltrosLabel">Filtros</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#rklFiltrosOffcanvas" aria-label="Cerrar"></button>
+        </div>
+        <div class="offcanvas-body">
+        <p class="rkl-sidebar-title d-none d-md-block">Filtros</p>
 
         <form method="GET" action="{{ path('app_catalogo_lista') }}" id="form-filtros">
             <input type="hidden" name="q" value="{{ filtros.q ?? '' }}">
@@ -411,6 +454,7 @@
             {% endif %}
 
         </form>
+        </div>
     </aside>
 
     {# Params base para generación de URLs (tag como array, sin la key 'tags' que rompe path()) #}
@@ -444,20 +488,31 @@
                            placeholder="Buscá un producto y presioná Enter"
                            autocomplete="off">
                 </div>
-                <div class="dropdown flex-shrink-0">
-                    <button type="button" class="btn rkl-ordenar-btn" data-bs-toggle="dropdown">
-                        Ordenar por <i class="ri-arrow-down-s-line"></i>
+                <div class="rkl-actions-row">
+                    <button type="button"
+                            class="btn rkl-ordenar-btn d-md-none"
+                            data-bs-toggle="offcanvas" data-bs-target="#rklFiltrosOffcanvas"
+                            aria-controls="rklFiltrosOffcanvas">
+                        <i class="ri-filter-3-line"></i> Filtros
+                        {% if filtrosActivosCount > 0 %}
+                        <span class="rkl-filtros-badge">{{ filtrosActivosCount }}</span>
+                        {% endif %}
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end" style="font-size:.82rem;min-width:130px;">
-                        <li>
-                            <a class="dropdown-item {{ filtros.ordenar != 'za' ? 'fw-semibold' : '' }}"
-                               href="{{ path('app_catalogo_lista', baseParams|merge({ordenar: 'az', pagina: 1})) }}">A – Z</a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item {{ filtros.ordenar == 'za' ? 'fw-semibold' : '' }}"
-                               href="{{ path('app_catalogo_lista', baseParams|merge({ordenar: 'za', pagina: 1})) }}">Z – A</a>
-                        </li>
-                    </ul>
+                    <div class="dropdown">
+                        <button type="button" class="btn rkl-ordenar-btn" data-bs-toggle="dropdown">
+                            Ordenar por <i class="ri-arrow-down-s-line"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" style="font-size:.82rem;min-width:130px;">
+                            <li>
+                                <a class="dropdown-item {{ filtros.ordenar != 'za' ? 'fw-semibold' : '' }}"
+                                   href="{{ path('app_catalogo_lista', baseParams|merge({ordenar: 'az', pagina: 1})) }}">A – Z</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {{ filtros.ordenar == 'za' ? 'fw-semibold' : '' }}"
+                                   href="{{ path('app_catalogo_lista', baseParams|merge({ordenar: 'za', pagina: 1})) }}">Z – A</a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             {# Chips de palabras buscadas #}
