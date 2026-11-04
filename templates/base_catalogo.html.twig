@@ -47,6 +47,9 @@
     <link href="{{ asset('css/app.min.css') }}" rel="stylesheet" type="text/css"/>
     <!-- custom Css -->
     <link href="{{ asset('css/custom.min.css') }}" rel="stylesheet" type="text/css"/>
+    <!-- Uppy + SweetAlert2 Css (modal de Contacto) -->
+    <link href="{{ asset('uppy/uppy.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('libs/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet" type="text/css"/>
 
     <style>
         :root {
@@ -230,6 +233,16 @@
                 <!-- Derecha: usuario + empresa -->
                 <div class="d-flex align-items-center gap-2">
 
+                    {# ── Botón "Contacto" (mismo criterio que header.html.twig del portal) ── #}
+                    {% if app.user is not null and not is_granted('ROLE_SUPER_ADMIN') and not is_granted('IS_IMPERSONATOR') %}
+                    <div class="d-none d-sm-flex">
+                        <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#contactoModal">
+                            <i class="ri-customer-service-line me-1"></i>Contacto
+                        </a>
+                    </div>
+                    {% endif %}
+                    {# ── /Botón "Contacto" ── #}
+
                     {# ── Botón "Cambiar empresa" (admins siempre; externos solo si tienen más de 1 empresa vinculada) ── #}
                     {% if app.user is not null and (is_granted('ROLE_ADMIN') or app.user.userCustomers|length > 1) %}
                     <button type="button"
@@ -315,6 +328,10 @@
 
     <div class="vertical-overlay"></div>
 
+    {% if app.user is not null and not is_granted('ROLE_SUPER_ADMIN') and not is_granted('IS_IMPERSONATOR') %}
+    {{ include('contacto.html.twig') }}
+    {% endif %}
+
     <!-- ===== CONTENIDO ===== -->
     <div class="main-content">
         <div class="page-content">
@@ -346,6 +363,14 @@
 <script src="{{ asset('libs/node-waves/waves.min.js') }}"></script>
 <script src="{{ asset('libs/feather-icons/feather.min.js') }}"></script>
 <script src="{{ asset('js/app.js') }}"></script>
+
+{% if app.user is not null and not is_granted('ROLE_SUPER_ADMIN') and not is_granted('IS_IMPERSONATOR') %}
+<!-- JS del modal de Contacto -->
+<script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
+<script src="{{ asset('libs/sweetalert2/sweetalert2.min.js') }}"></script>
+<script src="{{ asset('uppy/uppy.min.js') }}"></script>
+{{ include('_contacto_js.html.twig') }}
+{% endif %}
 
 <script>
 {% if app.user is not null %}
