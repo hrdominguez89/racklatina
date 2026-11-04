@@ -136,6 +136,10 @@ class RegistrationFormType extends AbstractType
                 'label' => 'Localidad <span style="color:red">*</span>',
                 'label_html' => true,
                 'required' => false,
+                'constraints' => [
+                    new Length(['max' => 100]),
+                    new Regex(['pattern' => self::DIRECCION_PATTERN, 'message' => 'La localidad contiene caracteres no permitidos.']),
+                ],
             ])
             ->add('provincia', TextType::class, [
                 'mapped' => false,
@@ -209,7 +213,11 @@ class RegistrationFormType extends AbstractType
             ->add('jobTitle', TextType::class, [
                 'mapped' => false,
                 'label' => 'Cargo <span style="color:red">*</span>',
-                'label_html' => true
+                'label_html' => true,
+                'constraints' => [
+                    new Length(['max' => 150]),
+                    new Regex(['pattern' => self::DIRECCION_PATTERN, 'message' => 'El cargo contiene caracteres no permitidos.']),
+                ],
             ])
             ->add('role', ChoiceType::class, [
             'mapped' => false,

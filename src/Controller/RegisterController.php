@@ -57,6 +57,14 @@ final class RegisterController extends AbstractController
                 ]);
             }
 
+            $yaExiste = $em->getRepository(User::class)->findOneBy(['email' => $user->getEmail()]) !== null;
+            if ($yaExiste) {
+                // Mismo mensaje y redirect que un alta real exitosa: ni el texto ni el campo
+                // deben delatar si el email ya estaba registrado (ticket 10).
+                $this->addFlash('success', 'Se le envió un email a su cuenta para confirmar el registro.');
+                return $this->redirectToRoute('app_login');
+            }
+
             $this->passwordPolicy->aplicarCambio($user, $form->get('plainPassword')->getData());
 
             $external = new ExternalUserData();
