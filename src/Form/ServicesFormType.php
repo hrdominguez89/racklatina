@@ -207,7 +207,14 @@ class ServicesFormType extends AbstractType
                     'class' => 'form-control',
                     'rows' => 4,
                     'placeholder' => 'Describa la falla'
-                ]
+                ],
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'La descripción de la falla es obligatoria.']),
+                    new Assert\Length([
+                        'max' => 5000,
+                        'maxMessage' => 'La descripción de la falla no puede superar los {{ limit }} caracteres.',
+                    ]),
+                ],
             ])
             // ->add('servicemeses', TextType::class, [
             //     'label' => 'Meses',

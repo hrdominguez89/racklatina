@@ -70,7 +70,7 @@ class Servicios
     #[ORM\Column(name: "serviceNroSerie", length: 25, nullable: true)]
     private ?string $servicenroserie = null;
 
-    #[ORM\Column(name: "serviceFalla", length: 500, nullable: true)]
+    #[ORM\Column(name: "serviceFalla", type: Types::TEXT, nullable: true)]
     private ?string $servicefalla = null;
 
     #[ORM\Column(name: "serviceMeses", length: 2, nullable: true)]
