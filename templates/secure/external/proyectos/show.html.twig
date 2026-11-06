@@ -432,6 +432,13 @@
     <a href="{{ path('app_catalogo_lista') }}" class="btn btn-warning fw-semibold px-4">
         <i class="ri-store-2-line me-1"></i> Ir a la tienda
     </a>
+    {% if not isFinished and (is_granted('ROLE_COMPRADOR') or is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINISTRACION') or is_granted('ROLE_INGENIERO_N1') or is_granted('ROLE_INGENIERO_N2')) %}
+    <div class="mt-2">
+        <button type="button" class="clone-project" data-bs-toggle="modal" data-bs-target="#modalImportarExcel">
+            <i class="ri-file-excel-2-line"></i> Importar Excel
+        </button>
+    </div>
+    {% endif %}
 </div>
 
 {% else %}
@@ -780,8 +787,9 @@
                   enctype="multipart/form-data">
                 <div class="modal-body">
                     <p class="text-muted small">
-                        El archivo debe tener el código de artículo en la columna A y la cantidad en la
-                        columna B, con la fila 1 como encabezado. Máximo {{ constant('App\\Services\\ProyectoExcelImporter::MAX_FILAS') }} filas.
+                        El archivo debe tener el código de artículo (el que se ve en la ficha del
+                        producto) en la columna A y la cantidad en la columna B, con la fila 1 como
+                        encabezado. Máximo {{ constant('App\\Services\\ProyectoExcelImporter::MAX_FILAS') }} filas.
                         Si un código ya está en el proyecto, se suma la cantidad.
                     </p>
                     <input type="file" name="excel" accept=".xlsx,.xls" class="form-control" required>

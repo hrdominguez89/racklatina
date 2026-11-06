@@ -78,7 +78,12 @@ class ProyectoExcelImporter
         $errores = [];
 
         foreach ($agrupadas as $codigo => $cantidad) {
-            $articulo = $this->articuloRepo->find($codigo);
+            // El código que ve el cliente en el sitio es codigoRockwell (sin el prefijo interno
+            // "01", ver ticket 4) — se busca por ese primero. Si no matchea, se intenta por
+            // codigoCalipso (PK real) por si reimportan un Excel exportado por el propio sistema,
+            // que sigue usando el código completo para reconciliar con Calypso.
+            $articulo = $this->articuloRepo->findOneBy(['codigoRockwell' => $codigo])
+                ?? $this->articuloRepo->find($codigo);
             if (!$articulo) {
                 $errores[] = "Código \"{$codigo}\": no se encontró en el catálogo.";
                 continue;
