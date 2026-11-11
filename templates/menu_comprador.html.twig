@@ -1,5 +1,18 @@
 {% set current_route = app.request.get('_route') %}
 
+<li class="menu-title mt-2"><span>Tienda</span></li>
+
+<li class="nav-item">
+    <a href="{{ path('app_catalogo_index') }}"
+       class="nav-link menu-link"
+       data-key="t-catalogo">
+        <i class="ri-store-2-line"></i>
+        <span>Ir a la Tienda</span>
+    </a>
+</li>
+
+<li class="menu-title mt-2"><span>Mi Portal</span></li>
+
 <li class="nav-item">
     <a href="{{ path('app_home') }}"
        class="nav-link menu-link {% if current_route == 'app_home' or current_route == 'app_secure_external_home' %}active{% endif %}"
@@ -66,16 +79,5 @@
        data-key="t-crm">
         <i class="ri-customer-service-2-line"></i>
         <span>Mis Solicitudes de Servicio</span>
-    </a>
-</li>
-
-<li class="menu-title mt-2"><span>Tienda</span></li>
-
-<li class="nav-item">
-    <a href="{{ path('app_catalogo_index') }}"
-       class="nav-link menu-link"
-       data-key="t-catalogo">
-        <i class="ri-store-2-line"></i>
-        <span>Ir a la Tienda</span>
     </a>
 </li>
