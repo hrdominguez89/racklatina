@@ -286,10 +286,15 @@ class CatalogoController extends AbstractController
 
         $stock = $this->stockAdvisorRepo->getStock($articulo->getCodigoCalipso());
 
+        $relacionados = array_slice($relacionados, 0, 4);
+        $codigosRelacionados = array_map(fn($a) => $a->getCodigoCalipso(), $relacionados);
+        $tagsMap = $this->stockAdvisorRepo->getTagsMap($codigosRelacionados);
+
         return $this->render('secure/external/catalogo/detalle.html.twig', [
             'articulo' => $articulo,
             'proyectos' => $proyectos,
-            'relacionados' => array_slice($relacionados, 0, 4),
+            'relacionados' => $relacionados,
+            'tagsMap' => $tagsMap,
             'precio' => $precio,
             'stockAdvisor' => $articulo,
             'stock' => $stock,

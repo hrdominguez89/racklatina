@@ -36,6 +36,14 @@
                 {% if articulo.subcategoriaAdvisor %}
                 <small class="text-muted">{{ articulo.subcategoriaAdvisor }}</small>
                 {% endif %}
+                {% if articleTags|length > 0 %}
+                <div class="d-flex flex-wrap gap-1 mt-1">
+                    {% for tag in articleTags %}
+                    <span class="badge rounded-pill"
+                          style="background:var(--rkl-primary);font-size:.68rem;font-weight:600;letter-spacing:.2px;">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
             <div class="col-auto ms-auto d-flex gap-2 flex-wrap justify-content-end position-relative">
                 {% if puedeProyectos %}
@@ -74,20 +82,17 @@
                  class="img-fluid p-3" style="max-height:100%;object-fit:contain;mix-blend-mode:multiply;"
                  onerror="this.onerror=null;this.src='{{ articulo.imagenFallbackUrl|e('html_attr') }}';">
         </div>
-        {# Badges de tags (de StockAdvisor), stock y código — tags/stock solo para roles con acceso a stock #}
+        {# Badges de tags (de StockAdvisor, visibles para todos), stock (solo roles con acceso) y código #}
         {% set codigoBadge = articulo.codigoRockwell ?: articulo.codigoCalipso %}
-        {% if (puedeVerStock and (articleTags|length > 0 or tieneStock)) or codigoBadge %}
+        {% if articleTags|length > 0 or (puedeVerStock and tieneStock) or codigoBadge %}
         <div class="position-absolute top-0 start-0 m-2 d-flex flex-column align-items-start gap-1">
-            {% if puedeVerStock %}
-                {% if articleTags|length > 0 %}
-                    {% for tag in articleTags %}
-                    <span class="badge rounded-pill"
-                          style="background:var(--rkl-primary);font-size:.68rem;font-weight:600;letter-spacing:.2px;">{{ tag }}</span>
-                    {% endfor %}
-                {% elseif tieneStock %}
-                    <span class="badge rounded-pill"
-                          style="background:var(--rkl-primary);font-size:.68rem;font-weight:600;letter-spacing:.2px;">En Stock ({{ stockMap[articulo.codigoCalipso] }})</span>
-                {% endif %}
+            {% for tag in articleTags %}
+            <span class="badge rounded-pill"
+                  style="background:var(--rkl-primary);font-size:.68rem;font-weight:600;letter-spacing:.2px;">{{ tag }}</span>
+            {% endfor %}
+            {% if puedeVerStock and tieneStock %}
+                <span class="badge rounded-pill"
+                      style="background:var(--rkl-primary);font-size:.68rem;font-weight:600;letter-spacing:.2px;">En Stock ({{ stockMap[articulo.codigoCalipso] }})</span>
             {% endif %}
             {% if codigoBadge %}
             <span class="badge rounded-pill"
