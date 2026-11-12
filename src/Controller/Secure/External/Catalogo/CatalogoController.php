@@ -135,6 +135,12 @@ class CatalogoController extends AbstractController
             : 24;
         $vista = $request->query->get('vista', 'grid');
 
+        $marcasDisponibles = $this->stockAdvisorRepo->getMarcas($categoria, $subcategoria);
+        if ($marca && !in_array($marca, $marcasDisponibles, true)) {
+            // La marca seleccionada no tiene productos en la categoría/subcategoría actual: se ignora.
+            $marca = null;
+        }
+
         $resultado = $this->stockAdvisorRepo->buscarConFiltros(
             $q, $categoria, $subcategoria, $marca, $pagina, $porPagina, $ordenar, $tags, $solucion
         );
@@ -171,7 +177,7 @@ class CatalogoController extends AbstractController
             'opcionesFiltros' => [
                 'categorias' => $this->stockAdvisorRepo->getCategorias(),
                 'subcategorias' => $this->stockAdvisorRepo->getSubcategorias($categoria),
-                'marcas' => $this->stockAdvisorRepo->getMarcas(),
+                'marcas' => $marcasDisponibles,
                 'tags' => $this->stockAdvisorRepo->getTagsDisponibles(),
             ],
             'proyectos' => $proyectos,
@@ -280,10 +286,15 @@ class CatalogoController extends AbstractController
 
         $stock = $this->stockAdvisorRepo->getStock($articulo->getCodigoCalipso());
 
+        $relacionados = array_slice($relacionados, 0, 4);
+        $codigosRelacionados = array_map(fn($a) => $a->getCodigoCalipso(), $relacionados);
+        $tagsMap = $this->stockAdvisorRepo->getTagsMap($codigosRelacionados);
+
         return $this->render('secure/external/catalogo/detalle.html.twig', [
             'articulo' => $articulo,
             'proyectos' => $proyectos,
-            'relacionados' => array_slice($relacionados, 0, 4),
+            'relacionados' => $relacionados,
+            'tagsMap' => $tagsMap,
             'precio' => $precio,
             'stockAdvisor' => $articulo,
             'stock' => $stock,

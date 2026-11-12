@@ -32,6 +32,10 @@ security:
                 # where to redirect after logout
                 # target: app_any_route
 
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
+
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
 
@@ -43,6 +47,7 @@ security:
     access_control:
         - { path: ^/secure/carousel/api/images, roles: PUBLIC_ACCESS }
         - { path: ^/catalogo, roles: PUBLIC_ACCESS }
+        - { path: ^/secure/cambiar-contrasena-vencida, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/secure/proyectos, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_COMPRADOR, ROLE_ADMINISTRACION, ROLE_INGENIERO_N1, ROLE_INGENIERO_N2] }
         - { path: ^/secure/seccion-cuenta/clientes/*, roles: [ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_COMPRADOR, ROLE_ADMINISTRACION] }
         - { path: ^/secure/clientes/*, roles: [ROLE_COMPRADOR, ROLE_ADMINISTRACION] }

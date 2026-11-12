@@ -13,6 +13,7 @@ use App\Repository\ProyectoRepository;
 use App\Services\CalypsoLeadtimeService;
 use App\Services\CalypsoPreciosService;
 use App\Services\ProyectoExcelExporter;
+use App\Services\ProyectoExcelImporter;
 use App\Services\StockAdvisorService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -71,6 +72,7 @@ class ProyectoController extends AbstractController
         private ClientesRepository $clientesRepo,
         private StockAdvisorService $stockService,
         private ProyectoExcelExporter $excelExporter,
+        private ProyectoExcelImporter $excelImporter,
         private CalypsoPreciosService $preciosService,
         private CalypsoLeadtimeService $leadtimeService,
     ) {}
@@ -321,6 +323,57 @@ class ProyectoController extends AbstractController
 
         $this->addFlash('success', "Proyecto \"{$nombre}\" eliminado.");
         return $this->redirectToRoute('app_proyectos_index');
+    }
+
+    /**
+     * Clona un proyecto (de cualquier status) en uno nuevo IN_PROGRESS, a nombre del usuario
+     * que ejecuta la acción. Copia cliente, items (articulo + cantidad + comment) y notas
+     * generales — NO copia snapshots de precio/leadtime, se recalculan en vivo como cualquier
+     * proyecto IN_PROGRESS nuevo.
+     */
+    #[Route('/{id}/clonar', name: 'app_proyectos_clonar', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function clonar(int $id, Request $request): Response
+    {
+        $this->denyUnlessProyectosWrite();
+        $original = $this->getProyectoDelUsuario($id);
+
+        if (!$this->isCsrfTokenValid('proyecto_clonar_' . $id, $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token inválido.');
+            return $this->redirectToRoute('app_proyectos_show', ['id' => $id]);
+        }
+
+        $user = $this->getUser();
+
+        $clon = $this->em->wrapInTransaction(function () use ($original, $user) {
+            $clon = new Proyecto();
+            $clon->setUser($user);
+            $clon->setNombre($original->getNombre() . ' (copia)');
+            $clon->setDescripcion($original->getDescripcion());
+            $clon->setNotaSolicitud($original->getNotaSolicitud());
+            $clon->setClienteCodigo($original->getClienteCodigo());
+            $clon->setRubro($original->getRubro());
+            $clon->setStatus(ProyectoStatus::IN_PROGRESS);
+            $this->em->persist($clon);
+            $this->em->flush();
+
+            foreach ($original->getItems() as $item) {
+                $nuevoItem = new ProyectoItem();
+                $nuevoItem->setProyecto($clon);
+                $nuevoItem->setArticulo($item->getArticulo());
+                $nuevoItem->setCantidad($item->getCantidad());
+                $nuevoItem->setComment($item->getComment());
+                $this->em->persist($nuevoItem);
+            }
+            $this->em->flush();
+
+            return $clon;
+        });
+
+        $user->setActiveProyectoId($clon->getId());
+        $this->em->flush();
+
+        $this->addFlash('success', "Proyecto clonado como \"{$clon->getNombre()}\".");
+        return $this->redirectToRoute('app_proyectos_show', ['id' => $clon->getId()]);
     }
 
     // --- Lista de proyectos (JSON, para el modal del catálogo) ---
@@ -621,6 +674,67 @@ class ProyectoController extends AbstractController
         }
     }
 
+    /**
+     * Importa artículos a un proyecto desde un Excel (columna A código, columna B
+     * cantidad). No consulta precio/plazo: igual que al agregar a mano, esos datos se
+     * cargan de forma asíncrona cuando se renderiza el proyecto.
+     */
+    #[Route('/{id}/importar-excel', name: 'app_proyectos_importar_excel', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function importarExcel(int $id, Request $request): Response
+    {
+        $this->denyUnlessProyectosWrite();
+        $proyecto = $this->getProyectoParaModificar($id);
+
+        if (!$this->isCsrfTokenValid('proyecto_importar_excel_' . $id, $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token inválido.');
+            return $this->redirectToRoute('app_proyectos_show', ['id' => $id]);
+        }
+
+        if (!$proyecto->getClienteCodigo()) {
+            $this->addFlash('error', 'Seleccioná una empresa para continuar.');
+            return $this->redirectToRoute('app_proyectos_show', ['id' => $id]);
+        }
+
+        $file = $request->files->get('excel');
+        if (!$file) {
+            $this->addFlash('error', 'Seleccioná un archivo Excel para importar.');
+            return $this->redirectToRoute('app_proyectos_show', ['id' => $id]);
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension());
+        if (!in_array($extension, ['xlsx', 'xls'], true)) {
+            $this->addFlash('error', 'El archivo debe ser un Excel (.xlsx o .xls).');
+            return $this->redirectToRoute('app_proyectos_show', ['id' => $id]);
+        }
+
+        $resultado = $this->excelImporter->importar($proyecto, $file);
+
+        if ($resultado['archivoInvalido']) {
+            $this->addFlash('error', 'No se pudo leer el archivo. Verificá que sea un Excel válido.');
+        } elseif ($resultado['demasiadasFilas']) {
+            $this->addFlash('error', 'El archivo tiene más de ' . ProyectoExcelImporter::MAX_FILAS . ' filas. Dividilo en archivos más chicos e importá de a tandas.');
+        } else {
+            if ($resultado['importados'] > 0) {
+                $this->addFlash('success', "Se importaron {$resultado['importados']} artículo(s) al proyecto.");
+            }
+            if (!empty($resultado['errores'])) {
+                $maxMostrar = 10;
+                $errores = array_slice($resultado['errores'], 0, $maxMostrar);
+                $restantes = count($resultado['errores']) - count($errores);
+                $mensaje = 'No se pudieron importar ' . count($resultado['errores']) . ' fila(s): ' . implode(' | ', $errores);
+                if ($restantes > 0) {
+                    $mensaje .= " (y {$restantes} más)";
+                }
+                $this->addFlash('error', $mensaje);
+            }
+            if ($resultado['importados'] === 0 && empty($resultado['errores'])) {
+                $this->addFlash('error', 'El archivo no tiene filas con código de artículo (columna A) a partir de la fila 2.');
+            }
+        }
+
+        return $this->redirectToRoute('app_proyectos_show', ['id' => $id]);
+    }
+
     #[Route('/item/{itemId}/cantidad', name: 'app_proyectos_update_cantidad', requirements: ['itemId' => '\d+'], methods: ['POST'])]
     public function updateCantidad(int $itemId, Request $request): JsonResponse
     {
@@ -895,7 +1009,7 @@ class ProyectoController extends AbstractController
         $emailConfirmacion = (new ContactoEmailWithAttachments())
             ->from($_ENV['MAIL_FROM'])
             ->to($usuarioEmail)
-            ->subject('Tu solicitud de presupuesto fue enviada con éxito')
+            ->subject('Tu solicitud de presupuesto "' . $proyecto->getNombre() . '" fue enviada con éxito')
             ->html($this->renderView('emails/solicitud_cotizacion_confirmacion.html.twig', $templateContext));
 
         $this->mailer->send($emailConfirmacion);

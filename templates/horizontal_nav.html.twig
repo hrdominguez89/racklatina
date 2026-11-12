@@ -4,6 +4,14 @@
     <div class="container-fluid">
         <nav class="horizontal-nav-menu">
             <ul class="nav-horizontal-list">
+                <li class="nav-horizontal-item">
+                    <a href="{{ path('app_catalogo_index') }}"
+                       class="nav-horizontal-link {% if current_route starts with 'app_catalogo' %}active{% endif %}"
+                       style="color:var(--rkl-primary) !important;">
+                        <i class="ri-store-2-line me-1"></i>Tienda
+                    </a>
+                </li>
+
                 {% if is_granted('ROLE_ADMIN') %}
                     {% if is_granted('ROLE_SUPER_ADMIN') %}
                         <li class="nav-horizontal-item">

@@ -11,6 +11,8 @@ use App\Enum\CustomerRequestType;
 use App\Form\RegistrationFormType;
 use App\Repository\ClientesRepository;
 use App\Repository\RoleRepository;
+use App\Services\PasswordPolicyService;
+use App\Services\RecaptchaService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -18,7 +20,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Mailer\MailerInterface;
@@ -27,8 +28,12 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class RegisterController extends AbstractController
 {
-    public function __construct(private MailerInterface $mailer,private ClientesRepository $clienteRepository)
-    {
+    public function __construct(
+        private MailerInterface $mailer,
+        private ClientesRepository $clienteRepository,
+        private RecaptchaService $recaptcha,
+        private PasswordPolicyService $passwordPolicy,
+    ) {
         $this->mailer = $mailer;
         $this->clienteRepository = $clienteRepository;
     }
@@ -36,7 +41,6 @@ final class RegisterController extends AbstractController
     public function index(
         Request $request,
         EntityManagerInterface $em,
-        UserPasswordHasherInterface $passwordHasher,
         RoleRepository $roleRepository,
         MailerInterface $mailer
     ): Response {
@@ -45,7 +49,23 @@ final class RegisterController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $user->setPassword($passwordHasher->hashPassword($user, $form->get('plainPassword')->getData()));
+            $recaptchaToken = $request->request->get('g-recaptcha-response');
+            if (!$this->recaptcha->verificar($recaptchaToken, $request->getClientIp())) {
+                return $this->render('register/register.html.twig', [
+                    'form' => $form->createView(),
+                    'recaptcha_error' => 'Por favor, confirmá que no sos un robot.',
+                ]);
+            }
+
+            $yaExiste = $em->getRepository(User::class)->findOneBy(['email' => $user->getEmail()]) !== null;
+            if ($yaExiste) {
+                // Mismo mensaje y redirect que un alta real exitosa: ni el texto ni el campo
+                // deben delatar si el email ya estaba registrado (ticket 10).
+                $this->addFlash('success', 'Se le envió un email a su cuenta para confirmar el registro.');
+                return $this->redirectToRoute('app_login');
+            }
+
+            $this->passwordPolicy->aplicarCambio($user, $form->get('plainPassword')->getData());
 
             $external = new ExternalUserData();
             $cuit = $form->get('cuit')->getData();

@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Controller\Secure;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use App\Repository\ExternalUserDataRepository;
 use App\Repository\SectorsRepository;
+use App\Services\PasswordPolicyService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -44,20 +44,30 @@ final class MiPerfilControlladorController extends AbstractController
 
     #[Route('/edicion/guardar', name: 'app_editar_perfil_guardar', methods: ['POST'])]
         
-    public function guardarCambiosPerfil(Request $request,UserPasswordHasherInterface $passwordHasher): Response
+    public function guardarCambiosPerfil(Request $request, PasswordPolicyService $passwordPolicy): Response
     {
         $data = $request->request->all();
 
         $user = $this->getUser();
+
+        if (($data['password'] ?? '') !== '') {
+            if (!$passwordPolicy->esCompleja($data['password'])) {
+                $this->addFlash('danger', PasswordPolicyService::MENSAJE_COMPLEJIDAD);
+                return $this->redirectToRoute('app_mi_perfil_controllador_edicion');
+            }
+            if ($passwordPolicy->fueUsadaRecientemente($user, $data['password'])) {
+                $this->addFlash('danger', PasswordPolicyService::MENSAJE_REUTILIZADA);
+                return $this->redirectToRoute('app_mi_perfil_controllador_edicion');
+            }
+            $passwordPolicy->aplicarCambio($user, $data['password']);
+        }
+
         $user->setFirstName($data['firstName'] ?? null);
         $user->setLastName($data['lastName'] ?? null);
         $dni = $data['dni'] ?? null;
         if($dni != null)
         {
             $user->setNationalIdNumber($dni);
-        }
-        if ($data['password'] !== '') {
-            $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
         }
         $flag = $data['jobTitle'] ?? null;
         if($flag !=null)

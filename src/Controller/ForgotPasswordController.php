@@ -4,13 +4,13 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Services\PasswordPolicyService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
@@ -77,7 +77,7 @@ final class ForgotPasswordController extends AbstractController
         Request $request,
         string $token,
         EntityManagerInterface $em,
-        UserPasswordHasherInterface $passwordHasher,
+        PasswordPolicyService $passwordPolicy,
         MailerInterface $mailer
     ): Response {
         $user = $em->getRepository(User::class)->findOneBy(['resetPasswordToken' => $token]);
@@ -100,13 +100,18 @@ final class ForgotPasswordController extends AbstractController
                 return $this->redirectToRoute('app_change_password', ['token' => $token]);
             }
 
-            if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/', $password)) {
-                $this->addFlash('danger', 'La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.');
+            if (!$passwordPolicy->esCompleja($password)) {
+                $this->addFlash('danger', PasswordPolicyService::MENSAJE_COMPLEJIDAD);
+                return $this->redirectToRoute('app_change_password', ['token' => $token]);
+            }
+
+            if ($passwordPolicy->fueUsadaRecientemente($user, $password)) {
+                $this->addFlash('danger', PasswordPolicyService::MENSAJE_REUTILIZADA);
                 return $this->redirectToRoute('app_change_password', ['token' => $token]);
             }
 
             // Guardar nueva contraseña
-            $user->setPassword($passwordHasher->hashPassword($user, $password));
+            $passwordPolicy->aplicarCambio($user, $password);
             $user->setResetPasswordToken(null);
             $user->setResetPasswordTokenExiresAt(null);
             $em->flush();

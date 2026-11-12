@@ -425,9 +425,18 @@
         <span class="reg-field-error">{{ form_errors(form.role) }}</span>
     {% endif %}
 
+    <div class="mb-3">
+        <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+        {% if recaptcha_error is defined and recaptcha_error %}
+            <span class="reg-field-error">{{ recaptcha_error }}</span>
+        {% endif %}
+    </div>
+
     <button type="submit" class="btn-reg-submit">Registrate</button>
 
     {{ form_end(form) }}
+
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
     <div class="text-center mb-2">
         <p class="mb-0" style="font-size:.87rem;color:#666;">
