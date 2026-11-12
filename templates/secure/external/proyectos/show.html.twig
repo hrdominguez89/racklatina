@@ -790,7 +790,7 @@
                         El archivo debe tener el código de artículo (el que se ve en la ficha del
                         producto) en la columna A y la cantidad en la columna B, con la fila 1 como
                         encabezado. Máximo {{ constant('App\\Services\\ProyectoExcelImporter::MAX_FILAS') }} filas.
-                        Si un código ya está en el proyecto, se suma la cantidad.
+                        Si un código ya está en el proyecto, se reemplaza su cantidad por la del archivo.
                     </p>
                     <input type="file" name="excel" accept=".xlsx,.xls" class="form-control" required>
                 </div>

@@ -89,10 +89,12 @@ class ProyectoExcelImporter
                 continue;
             }
 
-            // Mismo criterio que agregarArticulo(): si ya está en el proyecto, suma cantidad.
+            // Si el artículo ya está en el proyecto (de una importación anterior o agregado a
+            // mano), se PISA la cantidad con la del Excel — no se suma. Reimportar un archivo
+            // corregido/actualizado debe reflejar el valor nuevo, no acumular sobre el viejo.
             $item = $this->itemRepo->findOneBy(['proyecto' => $proyecto, 'articulo' => $articulo]);
             if ($item) {
-                $item->setCantidad($item->getCantidad() + $cantidad);
+                $item->setCantidad($cantidad);
             } else {
                 $item = new ProyectoItem();
                 $item->setProyecto($proyecto);
