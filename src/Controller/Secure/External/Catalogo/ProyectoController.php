@@ -1009,7 +1009,7 @@ class ProyectoController extends AbstractController
         $emailConfirmacion = (new ContactoEmailWithAttachments())
             ->from($_ENV['MAIL_FROM'])
             ->to($usuarioEmail)
-            ->subject('Tu solicitud de presupuesto fue enviada con éxito')
+            ->subject('Tu solicitud de presupuesto "' . $proyecto->getNombre() . '" fue enviada con éxito')
             ->html($this->renderView('emails/solicitud_cotizacion_confirmacion.html.twig', $templateContext));
 
         $this->mailer->send($emailConfirmacion);
